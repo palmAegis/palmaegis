@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register | Auth System</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link rel="stylesheet" href="css/register.css" />
+</head>
+<body class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>Create Account</h1>
+        <p>Register with your email and password</p>
+      </div>
+
+      <form method="post" action="" class="auth-form" id="registerForm">
+        <div id="signUpMessage" class="messageDiv" style="display:none;"></div>
+
+        <div class="input-group">
+          <label for="rEmail">Email</label>
+          <div class="input-with-icon">
+            <i class="fas fa-envelope"></i>
+            <input type="email" id="rEmail" placeholder="Enter your email" required />
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label for="rPassword">Password</label>
+          <div class="input-with-icon">
+            <i class="fas fa-lock"></i>
+            <input type="password" id="rPassword" placeholder="Create a password" required />
+          </div>
+          <div class="password-hint">
+            Use 8 or more characters with a mix of letters, numbers & symbols
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="submitSignUp">Sign Up</button>
+
+        <div class="auth-footer">
+          Already have an account? <a href="signin.html">Sign in</a>
+        </div>
+      </form>
+    </div>
+    
+    <div class="auth-logo-section">
+      <div class="logo-container">
+                <!-- Replace with your actual logo -->
+                <img src="images/logo.png" alt="Company Logo">
+            </div>
+      <div class="logo-text">
+        <h2>Palm Aegis</h2>
+        <p>Join our platform today and discover amazing features!</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const password = document.getElementById('rPassword').value;
+      const messageDiv = document.getElementById('signUpMessage');
+
+      // Password validation
+      const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+      if (!passwordPattern.test(password)) {
+        messageDiv.innerText = "Password must be at least 8 characters and include letters, numbers, and symbols.";
+        messageDiv.style.display = "block";
+        messageDiv.className = "messageDiv error";
+        return;
+      }
+
+      messageDiv.style.display = "none";
+      document.getElementById('submitSignUp').disabled = true;
+      
+      // Show success message (remove this in production)
+      messageDiv.innerText = "Registration successful! Redirecting...";
+      messageDiv.style.display = "block";
+      messageDiv.className = "messageDiv success";
+    });
+  </script>
+
+  <script type="module" src="js/firebaseauth.js"></script>
+</body>
+</html>

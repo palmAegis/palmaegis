@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Data</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/farmdata.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <img src="images/logo.png" alt="Logo" class="logo-img">
+                Farm Data Palm Aegis
+            </div>
+            <div id="user-info" class="user-info">Welcome, <span id="user-name">Loading...</span></div>
+            <!-- Back to Dashboard Button -->
+            <a href="homepage.html">
+            <button class="btn" id="btnBackToDashboard" style="margin-left: 10px;">
+                <i class=""></i>&nbsp;Back to Dashboard
+            </button>
+            </a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="nav-tabs">
+            <div class="tab active" data-tab="data-entry">Data Entry</div>
+            <div class="tab" data-tab="view-data">View Data</div>
+            <div class="tab" data-tab="insights">Insights & Analytics</div>
+            <div id="admin-tab" class="tab hidden" data-tab="admin">Admin Panel</div>
+        </div>
+        
+        <!-- Data Entry Tab -->
+        <div id="data-entry" class="tab-content active">
+            <h2>Farm Data Entry</h2>
+            <form id="farm-data-form">
+                <div class="form-group">
+                    <label for="farmer-name">Farmer Name</label>
+                    <input type="text" id="farmer-name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location-farm">Location Farm</label>
+                    <input type="text" id="location-farm" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="soil-type">Soil Type</label>
+                    <select id="soil-type" required>
+                        <option value="">Select Soil Type</option>
+                        <option value="clay">Clay</option>
+                        <option value="sandy">Sandy</option>
+                        <option value="loamy">Loamy</option>
+                        <option value="silty">Silty</option>
+                        <option value="peaty">Peaty</option>
+                        <option value="chalky">Chalky</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="crop-type">Crop Type</label>
+                    <input type="text" id="crop-type" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="planting-date">Planting Date</label>
+                    <input type="date" id="planting-date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="weather">Weather Conditions</label>
+                    <select id="weather" required>
+                        <option value="">Select Weather</option>
+                        <option value="sunny">Sunny</option>
+                        <option value="cloudy">Cloudy</option>
+                        <option value="rainy">Rainy</option>
+                        <option value="stormy">Stormy</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="disease">Disease/Pest Issues</label>
+                    <textarea id="disease" rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="yield">Yield (kg/hectare)</label>
+                    <input type="number" id="yield" step="0.1">
+                </div>
+                
+                <button type="submit" id="submit-btn">Save Farm Data</button>
+            </form>
+            
+            <div id="save-message" class="alert alert-success hidden">
+                Data saved successfully!
+            </div>
+        </div>
+        
+        <!-- View Data Tab -->
+        <div id="view-data" class="tab-content">
+            <h2>Farm Data Records</h2>
+            <!-- Add this refresh button temporarily -->
+            <div style="margin-bottom: 15px;">
+                <button class="btn" onclick="refreshData()" style="background-color: #4CAF50; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;">
+                    🔄 Refresh Data
+                </button>
+                <span id="data-count" style="margin-left: 15px; color: #666;"></span>
+            </div>
+            
+            <div class="form-group">
+                <input type="text" id="search-data" placeholder="Search farm data...">
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Farmer Name</th>
+                        <th>Location</th>
+                        <th>Soil Type</th>
+                        <th>Crop Type</th>
+                        <th>Planting Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Insights Tab -->
+        <div id="insights" class="tab-content">
+            <h2>Analytics & Predictive Insights</h2>
+            
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Best Planting Times</h3>
+                    <div class="stat-value" id="best-planting-time">Calculating...</div>
+                    <p>Based on historical data and weather patterns</p>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3>Disease Risk</h3>
+                    <div class="stat-value" id="disease-risk">Low</div>
+                    <p>Current conditions suggest minimal disease risk</p>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3>Yield Prediction</h3>
+                    <div class="stat-value" id="yield-prediction">-- kg/ha</div>
+                    <p>Expected yield based on current conditions</p>
+                </div>
+            </div>
+            
+            <h3>Trend Analysis</h3>
+            <div class="chart-container">
+                <canvas id="trend-chart"></canvas>
+            </div>
+            
+            <h3>Insights</h3>
+            <div id="insights-container">
+                <!-- Insights will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- Admin Panel Tab -->
+        <div id="admin" class="tab-content">
+            <h2>Admin Panel</h2>
+            
+            <div class="dashboard-grid">
+                <div class="dashboard-card">
+                    <h3>Total Farms</h3>
+                    <div class="stat-value" id="total-farms">0</div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3>Most Common Crop</h3>
+                    <div class="stat-value" id="common-crop">--</div>
+                </div>
+                
+                <div class="dashboard-card">
+                    <h3>Average Yield</h3>
+                    <div class="stat-value" id="avg-yield">-- kg/ha</div>
+                </div>
+            </div>
+            
+            <h3>All Farm Data</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Farmer Name</th>
+                        <th>Location</th>
+                        <th>Soil Type</th>
+                        <th>Crop Type</th>
+                        <th>Planting Date</th>
+                        <th>Weather</th>
+                        <th>Disease Issues</th>
+                        <th>Yield</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-data-table-body">
+                    <!-- Data will be populated by JavaScript -->
+                </tbody>
+            </table>
+            
+            <div style="margin-top: 20px;">
+                <button id="export-data" class="btn-danger">Export All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Farm Data Module with Firebase Integration -->
+    <script type="module" src="js/farmdata.js"></script>
+    
+    <script>
+        // Global variables
+        let farmData = [];
+        let unsubscribeListener = null;
+
+        // DOM elements
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const farmDataForm = document.getElementById('farm-data-form');
+        const saveMessage = document.getElementById('save-message');
+        const dataTableBody = document.getElementById('data-table-body');
+        const adminDataTableBody = document.getElementById('admin-data-table-body');
+        const searchInput = document.getElementById('search-data');
+        const insightsContainer = document.getElementById('insights-container');
+        const adminTab = document.getElementById('admin-tab');
+        const exportButton = document.getElementById('export-data');
+        const submitBtn = document.getElementById('submit-btn');
+        const userNameElement = document.getElementById('user-name');
+        
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log('🚀 Initializing Farm Data System...');
+                
+                // First, test Firebase connection
+                const debugResult = await window.debugFirebase();
+                console.log('🔍 Debug result:', debugResult);
+                
+                // Load user data from Firebase
+                await loadUserData();
+                
+                // Load farm data from Firebase
+                await window.loadFarmData();
+                farmData = window.farmData;
+                
+                console.log('📊 Farm data loaded:', farmData);
+                
+                // Set up real-time listener
+                unsubscribeListener = window.setupFarmDataListener();
+                
+                // Initialize UI
+                renderFarmData();
+                generateInsights();
+                
+                // Force render again after a short delay to ensure data is displayed
+                setTimeout(() => {
+                    renderFarmData();
+                    console.log('🔄 Forced UI refresh');
+                }, 1000);
+                
+                console.log('✅ Farm Data System initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Error initializing application:', error);
+                showAlert('Error loading farm data. Using offline mode.', 'warning');
+                
+                // Try to render with whatever data we have
+                renderFarmData();
+            }
+        });
+        
+        // Load user data from Firebase
+        async function loadUserData() {
+            try {
+                // Check if user is logged in
+                const user = await window.getCurrentUser();
+                if (user) {
+                    // Get user data from Firestore
+                    const userData = await window.getUserData(user.uid);
+                    if (userData && userData.firstName) {
+                        userNameElement.textContent = userData.firstName;
+                    } else {
+                        userNameElement.textContent = user.email || 'User';
+                    }
+                } else {
+                    userNameElement.textContent = 'Guest';
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                userNameElement.textContent = 'User';
+            }
+        }
+        
+        // Tab switching functionality
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // Refresh data when switching to certain tabs
+                if (tabId === 'view-data') {
+                    renderFarmData();
+                } else if (tabId === 'insights') {
+                    generateInsights();
+                } else if (tabId === 'admin') {
+                    renderAdminData();
+                }
+            });
+        });
+        // Manual refresh function for testing
+        async function refreshData() {
+            try {
+                console.log('🔄 Manual refresh triggered');
+                await window.loadFarmData();
+                farmData = window.farmData;
+                renderFarmData();
+                
+                // Update data count
+                document.getElementById('data-count').textContent = `${farmData.length} records loaded`;
+                
+                showAlert('Data refreshed successfully!', 'success');
+            } catch (error) {
+                console.error('Error refreshing data:', error);
+                showAlert('Error refreshing data', 'danger');
+            }
+        }
+        // Form submission
+        farmDataForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const newData = {
+                farmerName: document.getElementById('farmer-name').value,
+                locationFarm: document.getElementById('location-farm').value,
+                soilType: document.getElementById('soil-type').value,
+                cropType: document.getElementById('crop-type').value,
+                plantingDate: document.getElementById('planting-date').value,
+                weather: document.getElementById('weather').value,
+                disease: document.getElementById('disease').value,
+                yield: document.getElementById('yield').value ? parseFloat(document.getElementById('yield').value) : null,
+                status: 'Pending Review',
+                createdAt: new Date().toISOString()
+            };
+            
+            try {
+                // Show loading state
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Saving...';
+                
+                // Save to Firebase
+                await window.saveFarmData(newData);
+                
+                // Show success message
+                showAlert('Data saved successfully to cloud!', 'success');
+                
+                // Reset form
+                farmDataForm.reset();
+                
+                // IMPORTANT: Refresh the data immediately after saving
+                await window.loadFarmData();
+                farmData = window.farmData;
+                
+                // If we're on view data tab, refresh the table
+                if (document.getElementById('view-data').classList.contains('active')) {
+                    renderFarmData();
+                }
+                
+            } catch (error) {
+                console.error('Error saving data:', error);
+                showAlert('Error saving data to cloud. Please try again.', 'danger');
+            } finally {
+                // Restore button state
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Save Farm Data';
+            }
+        });
+        
+        // Render farm data in table
+        function renderFarmData() {
+            console.log('🎨 Rendering farm data table...');
+            console.log('📊 Current farmData:', farmData);
+            
+            dataTableBody.innerHTML = '';
+            
+            if (!farmData || farmData.length === 0) {
+                dataTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">No farm data available. Add some data in the Data Entry tab.</td></tr>';
+                console.log('ℹ️ No farm data to display');
+                return;
+            }
+            
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredData = farmData.filter(data => 
+                data.farmerName && data.farmerName.toLowerCase().includes(searchTerm) ||
+                data.locationFarm && data.locationFarm.toLowerCase().includes(searchTerm) ||
+                data.cropType && data.cropType.toLowerCase().includes(searchTerm) ||
+                data.soilType && data.soilType.toLowerCase().includes(searchTerm)
+            );
+            
+            console.log(`🔍 Filtered data: ${filteredData.length} records`);
+            
+            if (filteredData.length === 0) {
+                dataTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No matching records found</td></tr>';
+                return;
+            }
+            
+            filteredData.forEach((data, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.farmerName || 'N/A'}</td>
+                    <td>${data.locationFarm || 'N/A'}</td>
+                    <td>${data.soilType || 'N/A'}</td>
+                    <td>${data.cropType || 'N/A'}</td>
+                    <td>${data.plantingDate || 'N/A'}</td>
+                    <td><span class="badge ${getStatusBadgeClass(data.status)}">${data.status || 'Pending Review'}</span></td>
+                    <td>
+                        <button onclick="viewDataDetails('${data.id}')">View</button>
+                        <button class="btn-danger" onclick="deleteData('${data.id}')">Delete</button>
+                    </td>
+                `;
+                dataTableBody.appendChild(row);
+            });
+            
+            console.log('✅ Farm data table rendered successfully');
+        }
+
+        // Helper function for status badge classes
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'Approved': return 'badge-success';
+                case 'Rejected': return 'badge-danger';
+                case 'Pending Review': return 'badge-warning';
+                default: return 'badge-warning';
+            }
+        }
+        
+        // Render admin data
+        function renderAdminData() {
+            adminDataTableBody.innerHTML = '';
+            
+            if (farmData.length === 0) {
+                adminDataTableBody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No farm data available</td></tr>';
+                return;
+            }
+            
+            // Update admin stats
+            document.getElementById('total-farms').textContent = farmData.length;
+            
+            // Find most common crop
+            const cropCounts = {};
+            farmData.forEach(data => {
+                cropCounts[data.cropType] = (cropCounts[data.cropType] || 0) + 1;
+            });
+            
+            let commonCrop = '';
+            let maxCount = 0;
+            for (const crop in cropCounts) {
+                if (cropCounts[crop] > maxCount) {
+                    maxCount = cropCounts[crop];
+                    commonCrop = crop;
+                }
+            }
+            document.getElementById('common-crop').textContent = commonCrop || '--';
+            
+            // Calculate average yield
+            const yields = farmData.filter(data => data.yield).map(data => data.yield);
+            const avgYield = yields.length > 0 ? 
+                (yields.reduce((a, b) => a + b, 0) / yields.length).toFixed(2) : '--';
+            document.getElementById('avg-yield').textContent = avgYield + (avgYield !== '--' ? ' kg/ha' : '');
+            
+            // Populate admin table
+            farmData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.farmerName}</td>
+                    <td>${data.locationFarm}</td>
+                    <td>${data.soilType}</td>
+                    <td>${data.cropType}</td>
+                    <td>${data.plantingDate}</td>
+                    <td>${data.weather}</td>
+                    <td>${data.disease || 'None'}</td>
+                    <td>${data.yield ? data.yield + ' kg/ha' : '--'}</td>
+                    <td><span class="badge ${getStatusBadgeClass(data.status)}">${data.status || 'Pending Review'}</span></td>
+                `;
+                adminDataTableBody.appendChild(row);
+            });
+        }
+        
+        // Generate insights
+        function generateInsights() {
+            insightsContainer.innerHTML = '';
+            
+            if (farmData.length === 0) {
+                insightsContainer.innerHTML = '<div class="insight-card">No data available for insights. Add some farm data first.</div>';
+                return;
+            }
+            
+            // Best planting time insight
+            const currentMonth = new Date().getMonth();
+            let bestPlantingTime = '';
+            
+            if (currentMonth >= 2 && currentMonth <= 4) {
+                bestPlantingTime = "Now is a good time for spring planting";
+            } else if (currentMonth >= 8 && currentMonth <= 10) {
+                bestPlantingTime = "Consider fall planting for certain crops";
+            } else {
+                bestPlantingTime = "Plan for next season's planting";
+            }
+            
+            document.getElementById('best-planting-time').textContent = bestPlantingTime;
+            
+            // Disease risk insight
+            const rainyEntries = farmData.filter(data => data.weather === 'rainy' && data.disease && data.disease !== 'None').length;
+            const diseaseRisk = rainyEntries > 2 ? 'High' : rainyEntries > 0 ? 'Medium' : 'Low';
+            document.getElementById('disease-risk').textContent = diseaseRisk;
+            
+            // Yield prediction
+            const avgYield = farmData.filter(data => data.yield).reduce((sum, data) => sum + data.yield, 0) / 
+                            farmData.filter(data => data.yield).length;
+            document.getElementById('yield-prediction').textContent = 
+                avgYield ? `${Math.round(avgYield * 0.9)}-${Math.round(avgYield * 1.1)} kg/ha` : '-- kg/ha';
+            
+            // Generate trend insights
+            const soilYieldMap = {};
+            farmData.forEach(data => {
+                if (data.yield) {
+                    if (!soilYieldMap[data.soilType]) {
+                        soilYieldMap[data.soilType] = { total: 0, count: 0 };
+                    }
+                    soilYieldMap[data.soilType].total += data.yield;
+                    soilYieldMap[data.soilType].count++;
+                }
+            });
+            
+            // Create insight cards
+            if (Object.keys(soilYieldMap).length > 0) {
+                let bestSoil = '';
+                let bestAvg = 0;
+                
+                for (const soil in soilYieldMap) {
+                    const avg = soilYieldMap[soil].total / soilYieldMap[soil].count;
+                    if (avg > bestAvg) {
+                        bestAvg = avg;
+                        bestSoil = soil;
+                    }
+                    
+                    const insightCard = document.createElement('div');
+                    insightCard.className = 'insight-card';
+                    insightCard.innerHTML = `
+                        <h4>${soil.charAt(0).toUpperCase() + soil.slice(1)} Soil Performance</h4>
+                        <p>Average yield: ${avg.toFixed(0)} kg/ha</p>
+                    `;
+                    insightsContainer.appendChild(insightCard);
+                }
+                
+                // Add best performing soil insight
+                if (bestSoil) {
+                    const bestSoilCard = document.createElement('div');
+                    bestSoilCard.className = 'insight-card alert-warning';
+                    bestSoilCard.innerHTML = `
+                        <h4>🌟 Best Performing Soil</h4>
+                        <p>${bestSoil.charAt(0).toUpperCase() + bestSoil.slice(1)} soil shows the highest average yield at ${bestAvg.toFixed(0)} kg/ha</p>
+                    `;
+                    insightsContainer.appendChild(bestSoilCard);
+                }
+            }
+            
+            // Weather-disease correlation insight
+            const diseaseByWeather = {};
+            farmData.forEach(data => {
+                if (data.disease && data.disease !== 'None') {
+                    diseaseByWeather[data.weather] = (diseaseByWeather[data.weather] || 0) + 1;
+                }
+            });
+            
+            if (Object.keys(diseaseByWeather).length > 0) {
+                let highestRiskWeather = '';
+                let highestCount = 0;
+                
+                for (const weather in diseaseByWeather) {
+                    if (diseaseByWeather[weather] > highestCount) {
+                        highestCount = diseaseByWeather[weather];
+                        highestRiskWeather = weather;
+                    }
+                }
+                
+                const weatherInsightCard = document.createElement('div');
+                weatherInsightCard.className = 'insight-card alert-warning';
+                weatherInsightCard.innerHTML = `
+                    <h4>⚠️ Weather-Disease Correlation</h4>
+                    <p>${highestRiskWeather} conditions show the highest disease incidence. Consider preventive measures during these conditions.</p>
+                `;
+                insightsContainer.appendChild(weatherInsightCard);
+            }
+            
+            // Simple chart for trends
+            const chartContainer = document.getElementById('trend-chart');
+            chartContainer.innerHTML = '<p>Yield by soil type visualization would appear here with a proper charting library.</p>';
+        }
+        
+        // View data details
+        function viewDataDetails(id) {
+            const data = farmData.find(item => item.id === id);
+            if (data) {
+                alert(
+                    `Farmer: ${data.farmerName}\n` +
+                    `Location: ${data.locationFarm}\n` +
+                    `Soil: ${data.soilType}\n` +
+                    `Crop: ${data.cropType}\n` +
+                    `Planted: ${data.plantingDate}\n` +
+                    `Weather: ${data.weather}\n` +
+                    `Disease: ${data.disease || 'None'}\n` +
+                    `Yield: ${data.yield ? data.yield + ' kg/ha' : 'Not recorded'}\n` +
+                    `Status: ${data.status || 'Pending Review'}`
+                );
+            }
+        }
+        
+        // Delete data
+        async function deleteData(id) {
+            if (confirm('Are you sure you want to delete this farm data?')) {
+                try {
+                    await window.deleteFarmData(id);
+                    showAlert('Farm data deleted successfully!', 'success');
+                } catch (error) {
+                    console.error('Error deleting data:', error);
+                    showAlert('Error deleting farm data. Please try again.', 'danger');
+                }
+            }
+        }
+        
+        // Export data
+        exportButton.addEventListener('click', function() {
+            const dataStr = JSON.stringify(farmData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'farm-data-export.json';
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+        
+        // Search functionality
+        searchInput.addEventListener('input', renderFarmData);
+        
+        // Show alert message
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create alert element
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type === 'success' ? 'success' : type === 'warning' ? 'warning' : 'danger'}`;
+            alert.textContent = message;
+            
+            // Insert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(alert, container.firstChild);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+        
+        // Check if user is admin
+        const isAdmin = window.location.search.includes('admin');
+        if (isAdmin) {
+            adminTab.classList.remove('hidden');
+            document.getElementById('user-info').textContent = 'Welcome, Admin';
+        }
+        
+        // Update farm data when Firebase updates
+        window.updateFarmDataUI = function() {
+            farmData = window.farmData;
+            renderFarmData();
+            generateInsights();
+            
+            if (document.getElementById('admin').classList.contains('active')) {
+                renderAdminData();
+            }
+        };
+
+        // Add badge styles
+        const style = document.createElement('style');
+        style.textContent = `
+            .badge {
+                display: inline-block;
+                padding: 3px 8px;
+                border-radius: 12px;
+                font-size: 12px;
+                font-weight: 500;
+            }
+            .badge-success {
+                background-color: #E8F5E9;
+                color: #2E7D32;
+            }
+            .badge-warning {
+                background-color: #FFF3E0;
+                color: #EF6C00;
+            }
+            .badge-danger {
+                background-color: #FFEBEE;
+                color: #C62828;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

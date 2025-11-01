@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Disease Treatment Guide</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: #2c5e1a;
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 20px;
+        }
+
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        nav ul li a:hover {
+            color: #c8e6c9;
+        }
+
+        main {
+            padding: 30px 0;
+        }
+
+        .layout {
+            display: flex;
+            gap: 30px;
+        }
+
+        .sidebar {
+            flex: 0 0 250px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .content {
+            flex: 1;
+        }
+
+        .search-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .search-section h2 {
+            margin-bottom: 15px;
+            color: #2c5e1a;
+        }
+
+        .search-container {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .search-container input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 1rem;
+        }
+
+        .search-container button {
+            background-color: #2c5e1a;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .search-container button:hover {
+            background-color: #3d7a29;
+        }
+
+        .filter-container h3 {
+            margin-bottom: 15px;
+            color: #2c5e1a;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            background-color: #f0f4f7;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            background-color: #2c5e1a;
+            color: white;
+            border-color: #2c5e1a;
+        }
+
+        .filter-btn:hover:not(.active) {
+            background-color: #e0e7ed;
+        }
+
+        .treatment-list h2 {
+            margin-bottom: 20px;
+            color: #2c5e1a;
+        }
+
+        .treatment-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .treatment-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .treatment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .treatment-image {
+            height: 180px;
+            overflow: hidden;
+        }
+
+        .treatment-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .treatment-info {
+            padding: 20px;
+        }
+
+        .treatment-name {
+            font-size: 1.2rem;
+            margin-bottom: 5px;
+            color: #2c5e1a;
+        }
+
+        .treatment-plant-part {
+            display: inline-block;
+            background-color: #e8f5e9;
+            color: #2c5e1a;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-bottom: 10px;
+        }
+
+        .treatment-symptoms {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        .treatment-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .view-details {
+            background-color: #2c5e1a;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .view-details:hover {
+            background-color: #3d7a29;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #777;
+            z-index: 10;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 30px;
+        }
+
+        .modal-header {
+            display: flex;
+            margin-bottom: 25px;
+            gap: 20px;
+        }
+
+        .modal-image {
+            flex: 0 0 200px;
+        }
+
+        .modal-image img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .modal-title {
+            flex: 1;
+        }
+
+        .modal-title h2 {
+            color: #2c5e1a;
+            margin-bottom: 10px;
+        }
+
+        .treatment-details {
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .treatment-section {
+            margin-bottom: 20px;
+        }
+
+        .treatment-section h3 {
+            color: #2c5e1a;
+            margin-bottom: 10px;
+        }
+
+        .treatment-section ul {
+            padding-left: 20px;
+        }
+
+        .treatment-section li {
+            margin-bottom: 8px;
+        }
+
+        footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                flex: none;
+                width: 100%;
+            }
+            
+            .modal-header {
+                flex-direction: column;
+            }
+            
+            .modal-image {
+                flex: none;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Palm Aegis Treatment</h1>
+            <nav>
+                <ul>
+                    <li><a href="homepage.html"><i class="fas fa-home"></i> Home</a></li>
+                    <!-- <li><a href="treatmentadmin.html">Admin</a></li> -->
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="layout">
+
+            <div class="content">
+                <section class="search-section">
+                    <h2>Find Treatment for Plant Diseases</h2>
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="Search by disease name or symptom...">
+                        <button id="searchBtn">Search</button>
+                    </div>
+                    <h3>Filter by Plant Part</h3>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="Leaves">Leaves</button>
+                    <button class="filter-btn" data-filter="Fruits">Fruits</button>
+                    <button class="filter-btn" data-filter="Stems">Stems</button>
+                    <button class="filter-btn" data-filter="Roots">Roots</button>
+                </div>
+                </section>
+
+                <section class="treatment-list">
+                    <h2>Available Treatments</h2>
+                    <div id="loadingMessage" class="loading">Loading treatments...</div>
+                    <div id="errorMessage" class="error-message" style="display: none;"></div>
+                    <div id="treatmentContainer" class="treatment-container">
+                        <!-- Treatments will be loaded here dynamically from Firebase -->
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Treatment Details Modal -->
+    <div id="treatmentModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="modalContent" class="modal-body">
+                <!-- Modal content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Farm Disease Treatment System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // DOM elements
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const filterBtns = document.querySelectorAll('.filter-btn');
+        const treatmentContainer = document.getElementById('treatmentContainer');
+        const treatmentModal = document.getElementById('treatmentModal');
+        const modalContent = document.getElementById('modalContent');
+        const closeModal = document.querySelector('.close-modal');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Current filter state
+        let currentFilter = 'all';
+        let currentSearchTerm = '';
+        let allDiseases = [];
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTreatmentsFromFirebase();
+            setupEventListeners();
+        });
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Search functionality
+            searchBtn.addEventListener('click', performSearch);
+            searchInput.addEventListener('keyup', function(event) {
+                if (event.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Filter buttons
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active button
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Update filter and display treatments
+                    currentFilter = this.getAttribute('data-filter');
+                    filterAndDisplayTreatments();
+                });
+            });
+
+            // Modal close button
+            closeModal.addEventListener('click', function() {
+                treatmentModal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                if (event.target === treatmentModal) {
+                    treatmentModal.style.display = 'none';
+                }
+            });
+        }
+
+        // Load treatments from Firebase
+        function loadTreatmentsFromFirebase() {
+            loadingMessage.style.display = 'block';
+            treatmentContainer.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            db.collection('treatments').orderBy('createdAt', 'desc').get()
+            .then((querySnapshot) => {
+                loadingMessage.style.display = 'none';
+                treatmentContainer.style.display = 'grid';
+                
+                if (querySnapshot.empty) {
+                    treatmentContainer.innerHTML = '<div class="no-results">No treatments available. Please check back later.</div>';
+                    return;
+                }
+                
+                allDiseases = [];
+                querySnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    allDiseases.push({
+                        id: doc.id,
+                        name: data.name,
+                        plantPart: data.plantPart,
+                        image: data.image,
+                        symptoms: data.symptoms,
+                        description: data.description,
+                        treatment: data.treatment,
+                        prevention: data.prevention
+                    });
+                });
+                
+                displayTreatments(allDiseases);
+            })
+            .catch((error) => {
+                console.error("Error getting documents: ", error);
+                loadingMessage.style.display = 'none';
+                errorMessage.style.display = 'block';
+                errorMessage.textContent = 'Error loading treatments: ' + error.message;
+            });
+        }
+
+        // Perform search
+        function performSearch() {
+            currentSearchTerm = searchInput.value.trim().toLowerCase();
+            filterAndDisplayTreatments();
+        }
+
+        // Filter and display treatments based on current filter and search term
+        function filterAndDisplayTreatments() {
+            let filteredDiseases = allDiseases;
+            
+            // Apply search filter
+            if (currentSearchTerm) {
+                filteredDiseases = filteredDiseases.filter(disease => 
+                    disease.name.toLowerCase().includes(currentSearchTerm) || 
+                    disease.symptoms.toLowerCase().includes(currentSearchTerm)
+                );
+            }
+            
+            // Apply plant part filter
+            if (currentFilter !== 'all') {
+                filteredDiseases = filteredDiseases.filter(disease => 
+                    disease.plantPart === currentFilter
+                );
+            }
+            
+            displayTreatments(filteredDiseases);
+        }
+
+        // Display treatments in the container
+        function displayTreatments(diseasesToShow) {
+            treatmentContainer.innerHTML = '';
+            
+            if (diseasesToShow.length === 0) {
+                treatmentContainer.innerHTML = '<div class="no-results">No treatments found matching your criteria.</div>';
+                return;
+            }
+            
+            diseasesToShow.forEach(disease => {
+                const treatmentCard = document.createElement('div');
+                treatmentCard.className = 'treatment-card';
+                treatmentCard.setAttribute('data-id', disease.id);
+                
+                treatmentCard.innerHTML = `
+                    <div class="treatment-image">
+                        <img src="${disease.image}" alt="${disease.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                    </div>
+                    <div class="treatment-info">
+                        <h3 class="treatment-name">${disease.name}</h3>
+                        <span class="treatment-plant-part">${disease.plantPart}</span>
+                        <p class="treatment-symptoms">${disease.symptoms}</p>
+                        <div class="treatment-actions">
+                            <button class="view-details" data-id="${disease.id}">View Details</button>
+                        </div>
+                    </div>
+                `;
+                
+                treatmentContainer.appendChild(treatmentCard);
+            });
+            
+            // Add event listeners to view details buttons
+            document.querySelectorAll('.view-details').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const diseaseId = this.getAttribute('data-id');
+                    showTreatmentDetails(diseaseId);
+                });
+            });
+        }
+
+        // Show treatment details in modal
+        function showTreatmentDetails(diseaseId) {
+            const disease = allDiseases.find(d => d.id === diseaseId);
+            
+            if (!disease) return;
+            
+            modalContent.innerHTML = `
+                <div class="modal-header">
+                    <div class="modal-image">
+                        <img src="${disease.image}" alt="${disease.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                    </div>
+                    <div class="modal-title">
+                        <h2>${disease.name}</h2>
+                        <span class="treatment-plant-part">${disease.plantPart}</span>
+                        <p>${disease.description}</p>
+                    </div>
+                </div>
+                <div class="treatment-details">
+                    <div class="treatment-section">
+                        <h3>Symptoms</h3>
+                        <p>${disease.symptoms}</p>
+                    </div>
+                    <div class="treatment-section">
+                        <h3>Treatment</h3>
+                        <ul>
+                            ${disease.treatment.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div class="treatment-section">
+                        <h3>Prevention</h3>
+                        <ul>
+                            ${disease.prevention.map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            treatmentModal.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

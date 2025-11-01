@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+    <link rel="stylesheet" href="css/profile.css">
+</head>
+<body>
+    <!-- Back to Homepage Button -->
+    <button id="back-home-btn" class="back-home-btn">
+        <i class=""></i> Back to Homepage
+    </button>
+
+    <script>
+    // ✅ Back to homepage button redirect
+    const backHomeBtn = document.getElementById('back-home-btn');
+    if (backHomeBtn) {
+        backHomeBtn.addEventListener('click', () => {
+            window.location.href = 'homepage.html';
+        });
+    }
+    </script>
+    <div class="profile-container">
+        <!-- Sidebar with profile summary -->
+        <div class="profile-sidebar">
+            <div class="profile-picture-container">
+                <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
+                <div class="upload-progress" id="upload-progress">Uploading...</div>
+                <input type="file" id="file-input" class="file-input" accept="image/*">
+                <button class="upload-btn" id="upload-trigger">
+                    <i class="fas fa-camera"></i>
+                </button>
+            </div>
+            
+            <h2 class="profile-name" id="display-name"></h2>
+            <p class="profile-username" id="display-username"></p>
+            <div class="badge">Pro Member</div>
+            
+            <p class="profile-bio" id="display-bio">Digital designer & photography enthusiast. Love to travel and capture moments.</p>
+            
+            <div class="social-links">
+                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+            </div>
+        </div>
+        
+        <!-- Main content with editable profile -->
+        <div class="profile-content">
+            <h2 class="section-title"><i class="fas fa-user-edit"></i> Edit Profile</h2>
+            
+            <div id="success-notification" class="notification success">
+                <i class="fas fa-check-circle"></i> Profile updated successfully!
+            </div>
+            
+            <div id="error-notification" class="notification error">
+                <i class="fas fa-exclamation-circle"></i> Please fill in all required fields.
+            </div>
+
+            <div id="auth-notification" class="notification error">
+                <i class="fas fa-exclamation-circle"></i> You must be logged in to save your profile.
+            </div>
+            
+            <form id="profile-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-at"></i>
+                        <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first-name">First Name</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="first-name" name="first-name" placeholder="First name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="last-name">Last Name</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="last-name" name="last-name" placeholder="Last name" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio">Bio</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-pencil-alt"></i>
+                        <textarea id="bio" name="bio" placeholder="Tell us about yourself..."></textarea>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <input type="text" id="location" name="location" placeholder="Where are you from?">
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="submit" class="btn btn-block" id="save-button">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+        authDomain: "palmaegis-setup.firebaseapp.com",
+        projectId: "palmaegis-setup",
+        storageBucket: "palmaegis-setup.firebasestorage.app",
+        messagingSenderId: "445887502374",
+        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const storage = firebase.storage();
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const profileForm = document.getElementById('profile-form');
+        const fileInput = document.getElementById('file-input');
+        const uploadTrigger = document.getElementById('upload-trigger');
+        const profilePicture = document.getElementById('profile-picture');
+        const uploadProgress = document.getElementById('upload-progress');
+        const usernameInput = document.getElementById('username');
+        const firstNameInput = document.getElementById('first-name');
+        const lastNameInput = document.getElementById('last-name');
+        const bioInput = document.getElementById('bio');
+        const locationInput = document.getElementById('location');
+        const displayName = document.getElementById('display-name');
+        const displayUsername = document.getElementById('display-username');
+        const displayBio = document.getElementById('display-bio');
+        const successNotification = document.getElementById('success-notification');
+        const errorNotification = document.getElementById('error-notification');
+        const authNotification = document.getElementById('auth-notification');
+        const saveButton = document.getElementById('save-button');
+
+        let currentUser = null;
+        let isUploading = false;
+
+        // ✅ Authentication
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                authNotification.style.display = 'none';
+                loadProfileData();
+            } else {
+                currentUser = null;
+                authNotification.style.display = 'block';
+            }
+        });
+
+        // ✅ Load profile from Firestore
+        async function loadProfileData() {
+            if (!currentUser) return;
+
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+
+                    if (data.imageBase64) {
+                        profilePicture.src = data.imageBase64;
+                    } else if (data.picture) {
+                        profilePicture.src = data.picture;
+                    } else {
+                        profilePicture.src = 'images/user-avatar.jpg';
+                    }
+
+                    usernameInput.value = data.username || currentUser.email.split('@')[0];
+                    displayUsername.textContent = '@' + usernameInput.value;
+                    firstNameInput.value = data.firstName || '';
+                    lastNameInput.value = data.lastName || '';
+                    displayName.textContent = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+                    bioInput.value = data.bio || '';
+                    displayBio.textContent = data.bio || '';
+                    locationInput.value = data.location || '';
+                }
+            } catch (err) {
+                console.error('Error loading profile:', err);
+                showNotification(errorNotification, 'Error loading profile data: ' + err.message);
+            }
+        }
+
+        // ✅ File Upload Trigger
+        uploadTrigger.addEventListener('click', () => {
+            if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+            if (isUploading) return showNotification(errorNotification, 'Upload in progress...');
+            fileInput.click();
+        });
+
+        // ✅ File Upload Handler (with validation + Base64 fallback)
+        // ✅ File Upload Handler (Base64 only)
+fileInput.addEventListener('change', async () => {
+    if (!currentUser || isUploading) return;
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    try {
+        if (!file.type.startsWith('image/')) throw new Error('Only image files allowed.');
+        if (file.size > 1 * 1024 * 1024 * 1024)
+            throw new Error('File too large (max 1GB).');
+
+        isUploading = true;
+        uploadTrigger.classList.add('uploading');
+        uploadTrigger.innerHTML = '<div class="loading"></div>';
+        uploadProgress.style.display = 'block';
+        profilePicture.classList.add('loading');
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const base64Image = e.target.result;
+            profilePicture.src = base64Image;
+
+            // Save Base64 only
+            await db.collection('users').doc(currentUser.uid).set({
+                imageBase64: base64Image,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            showNotification(successNotification, 'Profile picture updated!');
+        };
+        reader.readAsDataURL(file);
+
+    } catch (error) {
+        console.error('Upload error:', error);
+        showNotification(errorNotification, error.message);
+    } finally {
+        isUploading = false;
+        uploadTrigger.classList.remove('uploading');
+        uploadTrigger.innerHTML = '<i class="fas fa-camera"></i>';
+        uploadProgress.style.display = 'none';
+        profilePicture.classList.remove('loading');
+        fileInput.value = '';
+    }
+});
+
+
+        // ✅ Profile Form Submission
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+
+            if (!usernameInput.value || !firstNameInput.value || !lastNameInput.value) {
+                return showNotification(errorNotification, 'Please fill all required fields.');
+            }
+
+            const profileData = {
+                username: usernameInput.value,
+                firstName: firstNameInput.value,
+                lastName: lastNameInput.value,
+                email: currentUser.email,
+                bio: bioInput.value,
+                location: locationInput.value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (profilePicture.src && !profilePicture.src.includes('unsplash.com')) {
+                profileData.picture = profilePicture.src;
+            }
+
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<div class="loading"></div> Saving...';
+
+            try {
+                await db.collection('users').doc(currentUser.uid).set(profileData, { merge: true });
+                showNotification(successNotification, 'Profile updated successfully!');
+                displayName.textContent = `${firstNameInput.value} ${lastNameInput.value}`;
+                displayUsername.textContent = '@' + usernameInput.value;
+                displayBio.textContent = bioInput.value;
+            } catch (err) {
+                console.error('Error saving profile:', err);
+                showNotification(errorNotification, 'Error saving profile: ' + err.message);
+            } finally {
+                saveButton.disabled = false;
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            }
+        });
+
+        // ✅ Notification helper
+        function showNotification(el, message) {
+            while (el.childNodes.length > 1) el.removeChild(el.lastChild);
+            el.appendChild(document.createTextNode(' ' + message));
+            el.style.display = 'block';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+    });
+    </script>
+</body>
+</html>

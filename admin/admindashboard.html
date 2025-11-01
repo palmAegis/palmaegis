@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - Palm Aegis</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../admin/css/admin.css">
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../admin/js/admin.js"></script>
+</head>
+
+<body class="bg-gray-50 font-[Inter] flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gradient-to-b from-green-700 to-green-800 text-white flex flex-col p-4 shadow-lg">
+    <div class="flex flex-col items-center text-center mt-6">
+      <img src="../images/logo.png" alt="Palm Aegis Logo" class="w-24 mb-3">
+      <h2 class="text-2xl font-bold">Palm Admin</h2>
+    </div>
+
+    <nav class="mt-10 flex-1">
+      <ul class="space-y-2">
+        <li>
+          <a href="#" onclick="showAdminTab('dashboard-tab', this)" class="flex items-center px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 transition">
+            <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="user.html" onclick="showAdminTab('users-tab', this)" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-users mr-3"></i> Users
+          </a>
+        </li>
+        <li>
+          <a href="#" onclick="showAdminTab('reports-tab', this)" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-file-alt mr-3"></i> Reports
+          </a>
+        </li>
+        <li>
+          <a href="TreeHealthManagement.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-leaf mr-3"></i> Tree Health
+          </a>
+        </li>
+        <li>
+          <a href="TreatmentAdmin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-pills mr-3"></i> Treatment
+          </a>
+        </li>
+        <li>
+          <a href="farmdataadmin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-database mr-3"></i> Farm Data
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="border-t border-green-600 pt-4">
+      <div class="flex items-center mb-4">
+        <div class="bg-green-600 p-3 rounded-full">
+          <i class="fas fa-user-shield text-white"></i>
+        </div>
+        <div class="ml-3">
+          <h4 id="admin-name" class="text-sm font-semibold">Admin User</h4>
+          <p id="admin-email" class="text-xs text-green-200">admin@gmail.com</p>
+        </div>
+      </div>
+      <a href="../index.html" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded-lg font-medium flex items-center justify-center transition">
+        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8 overflow-y-auto">
+    <!-- Header -->
+    <header class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
+        <p class="text-gray-500">Monitor your palm disease detection platform</p>
+      </div>
+      <div class="flex items-center space-x-6">
+        <div class="relative">
+          <i class="fas fa-bell text-gray-700 text-lg"></i>
+          <span id="notification-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-4 h-4 rounded-full flex items-center justify-center">0</span>
+        </div>
+        <div id="current-date" class="text-gray-600 text-sm"></div>
+      </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+      <div class="bg-white rounded-xl shadow p-6 flex items-center justify-between">
+        <div>
+          <h3 id="active-users-count" class="text-3xl font-bold text-green-700">0</h3>
+          <p class="text-gray-500">Active Users</p>
+        </div>
+        <i class="fas fa-user-check text-3xl text-green-600"></i>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6 flex items-center justify-between">
+        <div>
+          <h3 id="total-users-count" class="text-3xl font-bold text-green-700">0</h3>
+          <p class="text-gray-500">Total Users</p>
+        </div>
+        <i class="fas fa-users text-3xl text-green-600"></i>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6 flex items-center justify-between">
+        <div>
+          <h3 id="new-users-count" class="text-3xl font-bold text-green-700">0</h3>
+          <p class="text-gray-500">New Registrations</p>
+        </div>
+        <i class="fas fa-user-plus text-3xl text-green-600"></i>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6 flex items-center justify-between">
+        <div>
+          <h3 id="total-detections" class="text-3xl font-bold text-green-700">6</h3>
+          <p class="text-gray-500">Total Disease</p>
+        </div>
+        <i class="fas fa-microscope text-3xl text-green-600"></i>
+      </div>
+    </section>
+
+    <!-- Active Users -->
+    <section class="bg-white rounded-xl shadow p-6 mb-10">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold text-gray-800">Active Users</h3>
+        <button onclick="showActiveUsersList()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md transition">
+          <i class="fas fa-sync-alt mr-2"></i> Refresh
+        </button>
+      </div>
+      <div id="active-users-list" class="text-gray-600">Click refresh to load users...</div>
+    </section>
+    <!-- Last Login Users Chart -->
+    <section class="bg-white rounded-xl shadow p-6 mb-10">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">Last Login Users (Last 7 Days)</h3>
+      <canvas id="lastLoginChart" height="120"></canvas>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-xl font-semibold mb-4 text-gray-800">Quick Actions</h3>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <button onclick="exportUserData()" class="flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 p-4 rounded-lg border border-green-200 transition">
+          <i class="fas fa-download text-2xl text-green-600 mb-2"></i>
+          <span>Export</span>
+        </button>
+        <button onclick="sendNotification()" class="flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 p-4 rounded-lg border border-green-200 transition">
+          <i class="fas fa-bell text-2xl text-green-600 mb-2"></i>
+          <span>Notify</span>
+        </button>
+        <button onclick="backupData()" class="flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 p-4 rounded-lg border border-green-200 transition">
+          <i class="fas fa-database text-2xl text-green-600 mb-2"></i>
+          <span>Backup</span>
+        </button>
+        <button onclick="systemHealth()" class="flex flex-col items-center justify-center bg-green-50 hover:bg-green-100 p-4 rounded-lg border border-green-200 transition">
+          <i class="fas fa-heartbeat text-2xl text-green-600 mb-2"></i>
+          <span>Health</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("current-date").innerText = new Date().toLocaleDateString();
+  </script>
+</body>
+</html>

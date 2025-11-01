@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palm Aegis Community</title>
+    <link rel="stylesheet" href="css/forum.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Include Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+</head>
+<body>
+    <div class="forum-container">
+        <!-- Community Header -->
+        <header class="community-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <button class="back-btn" onclick="window.history.back();">
+                        Back
+                    </button>
+                    <div class="community-info">
+                        <div class="community-avatar">
+                            <img src="images/logo.png" alt="Palm Aegis Logo" style="width:32px;height:32px;object-fit:contain;" />
+                        </div>
+                        <div class="community-details">
+                            <h1>Palm Aegis Community</h1>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="header-btn" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                    <button class="header-btn" id="menuBtn">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <div class="tab active" data-category="all">
+                <i class="fas fa-globe"></i>
+                <span>All</span>
+            </div>
+            <div class="tab" data-category="general">
+                <i class="fas fa-comments"></i>
+                <span>General</span>
+            </div>
+            <div class="tab" data-category="question">
+                <i class="fas fa-question-circle"></i>
+                <span>Questions</span>
+            </div>
+            <div class="tab" data-category="announcement">
+                <i class="fas fa-bullhorn"></i>
+                <span>News</span>
+            </div>
+            <div class="tab" data-category="idea">
+                <i class="fas fa-lightbulb"></i>
+                <span>Ideas</span>
+            </div>
+                </div>
+
+        <!-- Main Content Area -->
+        <main class="forum-main">
+            <!-- Create Post Section -->
+            <div class="create-post-section">
+                <div class="post-input-container">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="post-input-wrapper">
+                        <input type="text" id="postTitle" placeholder="What's on your mind?" class="post-title-input">
+                        <textarea id="postContent" placeholder="Share your thoughts..." class="post-content-input"></textarea>
+                        <div class="post-actions">
+                            <div class="post-category-selector">
+                                <select id="postCategory" class="category-select">
+                                    <option value="general">💬 General</option>
+                                    <option value="question">❓ Question</option>
+                                    <option value="announcement">📢 News</option>
+                                    <option value="idea">💡 Idea</option>
+                            </select>
+                            </div>
+                            <div class="post-buttons">
+                                <button class="post-btn secondary" id="cancelPost">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <button class="post-btn primary" id="submitPost">
+                                    <i class="fas fa-paper-plane"></i>
+                                    <span>Post</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Posts Feed -->
+            <div class="posts-feed" id="postsContainer">
+                <!-- Posts will be loaded here dynamically -->
+                <div class="loading-indicator">
+                    <div class="loading-spinner"></div>
+                    <span>Loading posts...</span>
+                    </div>
+                </div>
+            </main>
+
+        <!-- Floating Action Button -->
+        <!-- <button class="fab" id="createPostFab">
+            <i class="fas fa-plus"></i>
+        </button> -->
+
+        <!-- Search Modal -->
+        <div class="search-modal" id="searchModal">
+            <div class="search-content">
+                <div class="search-header">
+                    <button class="close-search" id="closeSearch">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <input type="text" placeholder="Search posts..." id="searchInput">
+                </div>
+                <div class="search-results" id="searchResults">
+                    <!-- Search results will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/forum.js"></script>
+</body>
+</html>

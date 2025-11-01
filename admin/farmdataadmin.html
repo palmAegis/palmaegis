@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Data Management</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <link rel="stylesheet" href="../css/farmdata.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo">
+                <img src="../images/logo.png" alt="Logo" class="logo-img">
+                Farm Data Palm Aegis
+            </div>
+            <div class="user-info">
+                <div id="admin-name">Administrator</div>
+                <div>
+                <!-- Back to Dashboard Button -->
+                <a href="admindashboard.html">
+                <button class="btn" id="btnBackToDashboard" style="margin-left: 10px;">
+                    <i class=""></i>&nbsp;Back to Dashboard
+                </button>
+                </a>
+            </div>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="nav-tabs">
+            <div class="tab active" data-tab="dashboard">Dashboard</div>
+            <div class="tab" data-tab="farm-data">Farm Data</div>
+            <div class="tab" data-tab="analytics">Analytics</div>
+            <div class="tab" data-tab="system">System Management</div>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <h2>Admin Dashboard</h2>
+            
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Farms</div>
+                    <div class="stat-value" id="total-farms">0</div>
+                    <div class="stat-change positive" id="farms-change">+0 this month</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Pending Reviews</div>
+                    <div class="stat-value" id="pending-reviews">0</div>
+                    <div class="stat-change warning" id="reviews-change">Need attention</div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-title">Disease Reports</div>
+                    <div class="stat-value" id="disease-reports">0</div>
+                    <div class="stat-change negative" id="disease-change">+0 this week</div>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-title">Avg Yield (kg/ha)</div>
+                    <div class="stat-value" id="avg-yield">0</div>
+                    <div class="stat-change positive" id="yield-change">+0% from last season</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Data Status Overview</h3>
+                <canvas id="status-chart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Top Crops by Yield</h3>
+                <canvas id="crop-yield-chart"></canvas>
+            </div>
+            
+            <h3>Recent Activity</h3>
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Farmer</th>
+                            <th>Location</th>
+                            <th>Activity</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-activity-body">
+                        <!-- Recent activity will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Farm Data Tab -->
+        <div id="farm-data" class="tab-content">
+            <!-- Di dalam div#farm-data, tambahkan ini setelah h2 -->
+            <div class="action-bar">
+                <h2>Farm Data Management</h2>
+                <div>
+                    <button class="btn btn-info" id="refresh-admin-data">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
+                    <button class="btn" id="export-data">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                    <button class="btn btn-danger" id="delete-selected">
+                        <i class="fas fa-trash"></i> Delete Selected
+                    </button>
+                </div>
+            </div>
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select id="filter-status">
+                        <option value="">All Status</option>
+                        <option value="Pending Review">Pending Review</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Soil Type</label>
+                    <select id="filter-soil">
+                        <option value="">All Types</option>
+                        <option value="clay">Clay</option>
+                        <option value="sandy">Sandy</option>
+                        <option value="loamy">Loamy</option>
+                        <option value="silty">Silty</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Crop Type</label>
+                    <select id="filter-crop">
+                        <option value="">All Crops</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <input type="date" id="filter-date-from">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">To</label>
+                    <input type="date" id="filter-date-to">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">&nbsp;</label>
+                    <button class="btn" id="apply-filters">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </div>
+            </div>
+            
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="select-all"></th>
+                            <th>Farmer Name</th>
+                            <th>Location</th>
+                            <th>Soil Type</th>
+                            <th>Crop Type</th>
+                            <th>Planting Date</th>
+                            <th>Weather</th>
+                            <th>Disease</th>
+                            <th>Yield</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="farm-data-body">
+                        <!-- Farm data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <h2>Advanced Analytics</h2>
+            
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Best Performing Soil</div>
+                    <div class="stat-value" id="best-soil">--</div>
+                    <div class="stat-change">Based on yield data</div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-title">Highest Disease Risk</div>
+                    <div class="stat-value" id="high-risk-weather">--</div>
+                    <div class="stat-change">Weather condition</div>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-title">Optimal Planting Period</div>
+                    <div class="stat-value" id="optimal-planting">--</div>
+                    <div class="stat-change">For current crops</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Approval Rate</div>
+                    <div class="stat-value" id="approval-rate">--%</div>
+                    <div class="stat-change">Data quality</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Data Status Distribution</h3>
+                <canvas id="status-distribution-chart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Yield by Crop Type</h3>
+                <canvas id="yield-by-crop-chart"></canvas>
+            </div>
+            
+            <h3>Predictive Insights</h3>
+            <div id="predictive-insights">
+                <!-- Insights will be populated by JavaScript -->
+            </div>
+        </div>
+        
+        <!-- System Management Tab -->
+        <div id="system" class="tab-content">
+            <h2>System Management</h2>
+            
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-title">Total Users</div>
+                    <div class="stat-value" id="total-users">0</div>
+                    <div class="stat-change positive">+0 this month</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-title">Data Entries</div>
+                    <div class="stat-value" id="data-entries">0</div>
+                    <div class="stat-change positive">+0 this week</div>
+                </div>
+                
+                <div class="stat-card info">
+                    <div class="stat-title">System Uptime</div>
+                    <div class="stat-value">99.8%</div>
+                    <div class="stat-change">Last 30 days</div>
+                </div>
+                
+                <div class="stat-card warning">
+                    <div class="stat-title">Pending Actions</div>
+                    <div class="stat-value" id="pending-actions">0</div>
+                    <div class="stat-change">Require review</div>
+                </div>
+            </div>
+            
+            <div class="action-bar">
+                <h3>User Management</h3>
+                <button class="btn" id="add-user-btn">
+                    <i class="fas fa-user-plus"></i> Add User
+                </button>
+            </div>
+            
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Last Login</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-management-body">
+                        <!-- User data will be populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="action-bar" style="margin-top: 30px;">
+                <h3>Data Management</h3>
+                <div>
+                    <button class="btn btn-warning" id="backup-data">
+                        <i class="fas fa-database"></i> Backup Data
+                    </button>
+                    <button class="btn btn-danger" id="clear-data">
+                        <i class="fas fa-broom"></i> Clear All Data
+                    </button>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> System backups are performed automatically every 24 hours.
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="../admin/js/farmdataadmin.js"></script>
+        <script>
+        // Global variables
+        let farmData = [];
+        let filteredData = [];
+
+        // DOM elements
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        // Tab switching functionality
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Update active content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+                
+                // Refresh data when switching to certain tabs
+                if (tabId === 'farm-data') {
+                    renderFarmDataTable();
+                } else if (tabId === 'analytics') {
+                    generateAnalytics();
+                } else if (tabId === 'system') {
+                    renderUserManagement();
+                }
+            });
+        });
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log('🚀 Initializing Admin Panel...');
+                
+                // Load farm data with forced refresh
+                await window.loadFarmData();
+                farmData = window.farmData || [];
+                filteredData = [...farmData];
+                
+                console.log('📊 Admin farm data loaded:', farmData);
+                
+                updateDashboard();
+                renderFarmDataTable();
+                generateAnalytics();
+                renderUserManagement();
+                setupEventListeners();
+                
+                // Set up real-time listener for updates
+                window.setupFarmDataListener();
+                
+                console.log('✅ Admin panel initialized successfully');
+                
+            } catch (error) {
+                console.error('❌ Error initializing admin panel:', error);
+                showAlert('Error loading farm data. Please refresh the page.', 'danger');
+                
+                // Try to render with whatever data we have
+                renderFarmDataTable();
+                updateDashboard();
+            }
+        });
+        
+        // Update dashboard with current stats
+        function updateDashboard() {
+            console.log('📈 Updating admin dashboard...');
+            console.log('📊 Total farm data:', farmData.length);
+            
+            document.getElementById('total-farms').textContent = farmData.length;
+            
+            // Count pending reviews
+            const pendingReviews = farmData.filter(item => item.status === 'Pending Review').length;
+            document.getElementById('pending-reviews').textContent = pendingReviews;
+            
+            // Count disease reports
+            const diseaseReports = farmData.filter(item => 
+                item.disease && item.disease !== 'None' && item.disease !== '').length;
+            document.getElementById('disease-reports').textContent = diseaseReports;
+            
+            // Calculate average yield
+            const yields = farmData.filter(item => item.yield).map(item => item.yield);
+            const avgYield = yields.length > 0 ? 
+                Math.round(yields.reduce((a, b) => a + b, 0) / yields.length) : 0;
+            document.getElementById('avg-yield').textContent = avgYield;
+            
+            // Update recent activity
+            updateRecentActivity();
+            
+            // Update system stats
+            document.getElementById('data-entries').textContent = farmData.length;
+            document.getElementById('pending-actions').textContent = pendingReviews;
+            
+            console.log('✅ Admin dashboard updated');
+        }
+        
+        // Render farm data table
+        function renderFarmDataTable() {
+            const tableBody = document.getElementById('farm-data-body');
+            tableBody.innerHTML = '';
+            
+            console.log('🎨 Rendering admin farm data table...');
+            console.log('📊 Current filteredData:', filteredData);
+            
+            // Populate crop filter
+            const cropFilter = document.getElementById('filter-crop');
+            const crops = [...new Set(farmData.map(item => item.cropType).filter(Boolean))];
+            cropFilter.innerHTML = '<option value="">All Crops</option>';
+            crops.forEach(crop => {
+                if (crop) {
+                    cropFilter.innerHTML += `<option value="${crop}">${crop}</option>`;
+                }
+            });
+            
+            if (!filteredData || filteredData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 20px;">No farm data available</td></tr>';
+                console.log('ℹ️ No farm data to display in admin');
+                return;
+            }
+            
+            filteredData.forEach((data, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><input type="checkbox" class="data-checkbox" data-id="${data.id}"></td>
+                    <td>${data.farmerName || data.farmName || 'N/A'}</td>
+                    <td>${data.locationFarm || data.farmName || 'N/A'}</td>
+                    <td>${data.soilType || 'N/A'}</td>
+                    <td>${data.cropType || 'N/A'}</td>
+                    <td>${data.plantingDate || 'N/A'}</td>
+                    <td>${data.weather || 'N/A'}</td>
+                    <td>
+                        ${data.disease && data.disease !== 'None' ? 
+                            `<span class="badge badge-danger">${data.disease}</span>` : 
+                            '<span class="badge badge-success">None</span>'}
+                    </td>
+                    <td>${data.yield ? data.yield + ' kg/ha' : '--'}</td>
+                    <td>
+                        <span class="badge ${getStatusBadgeClass(data.status)}">
+                            ${data.status || 'Pending Review'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="status-actions">
+                            <button class="btn btn-success btn-sm approve-btn" data-id="${data.id}" title="Approve">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm reject-btn" data-id="${data.id}" title="Reject">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <button class="btn btn-info btn-sm view-btn" data-id="${data.id}" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm delete-btn" data-id="${data.id}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Add event listeners to action buttons
+            setupTableEventListeners();
+            
+            console.log('✅ Admin farm data table rendered successfully');
+        }
+
+        // Helper function for status badge classes
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'Approved': return 'badge-success';
+                case 'Rejected': return 'badge-danger';
+                case 'Pending Review': return 'badge-warning';
+                default: return 'badge-info';
+            }
+        }
+        
+        // Setup event listeners for table buttons
+        function setupTableEventListeners() {
+            // Approve buttons
+            document.querySelectorAll('.approve-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    updateDataStatus(id, 'Approved');
+                });
+            });
+            
+            // Reject buttons
+            document.querySelectorAll('.reject-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    updateDataStatus(id, 'Rejected');
+                });
+            });
+            
+            // View buttons
+            document.querySelectorAll('.view-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    viewDataDetails(id);
+                });
+            });
+            
+            // Delete buttons
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    const id = this.getAttribute('data-id');
+                    deleteData(id);
+                });
+            });
+        }
+
+        // Handle real-time data updates from Firebase
+        window.updateFarmDataUI = function() {
+            console.log('🔄 Admin panel received real-time update');
+            farmData = window.farmData || [];
+            filteredData = [...farmData];
+            
+            updateDashboard();
+            
+            // Refresh current tab if needed
+            if (document.getElementById('farm-data').classList.contains('active')) {
+                renderFarmDataTable();
+            }
+            if (document.getElementById('analytics').classList.contains('active')) {
+                generateAnalytics();
+            }
+            if (document.getElementById('dashboard').classList.contains('active')) {
+                updateRecentActivity();
+            }
+            
+            console.log('✅ Admin UI updated with new data');
+        };
+        
+        // Update data status
+        async function updateDataStatus(id, status) {
+            try {
+                await window.updateFarmData(id, { status: status });
+                showAlert(`Data ${status.toLowerCase()} successfully!`, 'success');
+                
+                // Refresh data
+                await window.loadFarmData();
+                farmData = window.farmData || [];
+                applyFilters();
+                updateDashboard();
+            } catch (error) {
+                console.error('Error updating data status:', error);
+                showAlert('Error updating data status. Please try again.', 'danger');
+            }
+        }
+        
+        // Generate analytics and insights
+        function generateAnalytics() {
+            if (!farmData || farmData.length === 0) return;
+            
+            // Best performing soil
+            const soilYieldMap = {};
+            farmData.forEach(data => {
+                if (data.yield && data.soilType) {
+                    if (!soilYieldMap[data.soilType]) {
+                        soilYieldMap[data.soilType] = { total: 0, count: 0 };
+                    }
+                    soilYieldMap[data.soilType].total += data.yield;
+                    soilYieldMap[data.soilType].count++;
+                }
+            });
+            
+            let bestSoil = '';
+            let bestAvg = 0;
+            for (const soil in soilYieldMap) {
+                const avg = soilYieldMap[soil].total / soilYieldMap[soil].count;
+                if (avg > bestAvg) {
+                    bestAvg = avg;
+                    bestSoil = soil;
+                }
+            }
+            document.getElementById('best-soil').textContent = bestSoil ? bestSoil.charAt(0).toUpperCase() + bestSoil.slice(1) : '--';
+            
+            // Highest disease risk weather
+            const diseaseByWeather = {};
+            farmData.forEach(data => {
+                if (data.disease && data.disease !== 'None' && data.weather) {
+                    diseaseByWeather[data.weather] = (diseaseByWeather[data.weather] || 0) + 1;
+                }
+            });
+            
+            let highestRiskWeather = '';
+            let highestCount = 0;
+            for (const weather in diseaseByWeather) {
+                if (diseaseByWeather[weather] > highestCount) {
+                    highestCount = diseaseByWeather[weather];
+                    highestRiskWeather = weather;
+                }
+            }
+            document.getElementById('high-risk-weather').textContent = highestRiskWeather ? highestRiskWeather.charAt(0).toUpperCase() + highestRiskWeather.slice(1) : '--';
+            
+            // Optimal planting period
+            const currentMonth = new Date().getMonth();
+            let optimalPlanting = '';
+            if (currentMonth >= 2 && currentMonth <= 4) {
+                optimalPlanting = "Spring (Mar-May)";
+            } else if (currentMonth >= 8 && currentMonth <= 10) {
+                optimalPlanting = "Fall (Sep-Nov)";
+            } else {
+                optimalPlanting = "Varies by crop";
+            }
+            document.getElementById('optimal-planting').textContent = optimalPlanting;
+            
+            // Approval rate
+            const approvedCount = farmData.filter(item => item.status === 'Approved').length;
+            const approvalRate = farmData.length > 0 ? Math.round((approvedCount / farmData.length) * 100) : 0;
+            document.getElementById('approval-rate').textContent = approvalRate + '%';
+            
+            // Generate predictive insights
+            generatePredictiveInsights();
+        }
+        
+        // Generate predictive insights
+        function generatePredictiveInsights() {
+            const insightsContainer = document.getElementById('predictive-insights');
+            insightsContainer.innerHTML = '';
+            
+            if (!farmData || farmData.length === 0) {
+                insightsContainer.innerHTML = '<div class="insight-card">No data available for insights</div>';
+                return;
+            }
+            
+            // Insight 1: Status distribution
+            const statusCounts = {};
+            farmData.forEach(item => {
+                const status = item.status || 'Pending Review';
+                statusCounts[status] = (statusCounts[status] || 0) + 1;
+            });
+            
+            if (Object.keys(statusCounts).length > 0) {
+                const insightCard = document.createElement('div');
+                insightCard.className = 'insight-card';
+                insightCard.innerHTML = `
+                    <h4><i class="fas fa-chart-pie"></i> Data Status Overview</h4>
+                    <p>Current distribution: ${Object.keys(statusCounts).map(status => 
+                        `${status}: ${statusCounts[status]} records`).join(', ')}.</p>
+                `;
+                insightsContainer.appendChild(insightCard);
+            }
+            
+            // Insight 2: Weather-disease correlation
+            const diseaseByWeather = {};
+            farmData.forEach(data => {
+                if (data.disease && data.disease !== 'None' && data.weather) {
+                    diseaseByWeather[data.weather] = (diseaseByWeather[data.weather] || 0) + 1;
+                }
+            });
+            
+            if (Object.keys(diseaseByWeather).length > 0) {
+                const insightCard = document.createElement('div');
+                insightCard.className = 'insight-card warning';
+                insightCard.innerHTML = `
+                    <h4><i class="fas fa-exclamation-triangle"></i> Disease Risk Alert</h4>
+                    <p>Higher disease incidence observed during ${Object.keys(diseaseByWeather).map(weather => {
+                        return `${weather} conditions (${diseaseByWeather[weather]} cases)`;
+                    }).join(', ')}. Consider preventive measures.</p>
+                `;
+                insightsContainer.appendChild(insightCard);
+            }
+            
+            // Insight 3: Yield trends
+            const yields = farmData.filter(data => data.yield).map(data => data.yield);
+            if (yields.length > 0) {
+                const avgYield = yields.reduce((a, b) => a + b, 0) / yields.length;
+                const maxYield = Math.max(...yields);
+                const minYield = Math.min(...yields);
+                
+                const insightCard = document.createElement('div');
+                insightCard.className = 'insight-card info';
+                insightCard.innerHTML = `
+                    <h4><i class="fas fa-seedling"></i> Yield Analysis</h4>
+                    <p>Average yield: ${Math.round(avgYield)} kg/ha (Range: ${minYield}-${maxYield} kg/ha). 
+                    ${avgYield > 5000 ? 'Excellent productivity' : 'Consider soil improvement strategies'}.</p>
+                `;
+                insightsContainer.appendChild(insightCard);
+            }
+        }
+        
+        // Render user management table
+        function renderUserManagement() {
+            const tableBody = document.getElementById('user-management-body');
+            tableBody.innerHTML = '';
+            
+            // For demo purposes, using sample user data
+            const sampleUsers = [
+                { id: "ADM001", name: "Admin User", email: "admin@farmdata.com", role: "Administrator", lastLogin: "2023-06-15", status: "Active" },
+                { id: "MGR001", name: "Farm Manager", email: "manager@farmdata.com", role: "Manager", lastLogin: "2023-06-14", status: "Active" },
+                { id: "USR001", name: "John Farmer", email: "john@greenvalley.com", role: "Farmer", lastLogin: "2023-06-13", status: "Active" }
+            ];
+            
+            sampleUsers.forEach(user => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.role}</td>
+                    <td>${user.lastLogin}</td>
+                    <td>
+                        <span class="badge ${user.status === 'Active' ? 'badge-success' : 'badge-warning'}">
+                            ${user.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-info btn-sm">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            document.getElementById('total-users').textContent = sampleUsers.length;
+        }
+        
+        // Update recent activity
+        function updateRecentActivity() {
+            const activityBody = document.getElementById('recent-activity-body');
+            activityBody.innerHTML = '';
+            
+            if (!farmData || farmData.length === 0) {
+                activityBody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No recent activity</td></tr>';
+                return;
+            }
+            
+            // Get recent entries (last 5)
+            const recentData = farmData.slice(-5).reverse();
+            
+            recentData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.farmerName || data.farmName || 'Unknown'}</td>
+                    <td>${data.locationFarm || data.farmName || 'Unknown'}</td>
+                    <td>New ${data.cropType || 'crop'} data entry</td>
+                    <td>${data.plantingDate || 'Unknown'}</td>
+                    <td>
+                        <span class="badge ${getStatusBadgeClass(data.status)}">
+                            ${data.status || 'Pending Review'}
+                        </span>
+                    </td>
+                `;
+                activityBody.appendChild(row);
+            });
+        }
+        
+        // View data details
+        function viewDataDetails(id) {
+            const data = farmData.find(item => item.id === id);
+            if (data) {
+                alert(
+                    `Farmer: ${data.farmerName || data.farmName || 'N/A'}\n` +
+                    `Location: ${data.locationFarm || data.farmName || 'N/A'}\n` +
+                    `Soil: ${data.soilType || 'N/A'}\n` +
+                    `Crop: ${data.cropType || 'N/A'}\n` +
+                    `Planted: ${data.plantingDate || 'N/A'}\n` +
+                    `Weather: ${data.weather || 'N/A'}\n` +
+                    `Disease: ${data.disease || 'None'}\n` +
+                    `Yield: ${data.yield ? data.yield + ' kg/ha' : 'Not recorded'}\n` +
+                    `Status: ${data.status || 'Pending Review'}\n` +
+                    `Submitted: ${new Date(data.createdAt?.toDate?.() || data.createdAt).toLocaleDateString()}`
+                );
+            }
+        }
+        
+        // Delete data
+        async function deleteData(id) {
+            if (confirm('Are you sure you want to delete this farm data? This action cannot be undone.')) {
+                try {
+                    await window.deleteFarmData(id);
+                    showAlert('Farm data deleted successfully!', 'success');
+                    
+                    // Refresh data
+                    await window.loadFarmData();
+                    farmData = window.farmData || [];
+                    applyFilters();
+                    updateDashboard();
+                } catch (error) {
+                    console.error('Error deleting data:', error);
+                    showAlert('Error deleting farm data. Please try again.', 'danger');
+                }
+            }
+        }
+        
+        // Apply filters
+        function applyFilters() {
+            const statusFilter = document.getElementById('filter-status').value;
+            const soilFilter = document.getElementById('filter-soil').value;
+            const cropFilter = document.getElementById('filter-crop').value;
+            const dateFrom = document.getElementById('filter-date-from').value;
+            const dateTo = document.getElementById('filter-date-to').value;
+            
+            filteredData = farmData.filter(data => {
+                // Status filter
+                if (statusFilter && data.status !== statusFilter) return false;
+                
+                // Soil filter
+                if (soilFilter && data.soilType !== soilFilter) return false;
+                
+                // Crop filter
+                if (cropFilter && data.cropType !== cropFilter) return false;
+                
+                // Date filter
+                if (dateFrom && data.plantingDate < dateFrom) return false;
+                if (dateTo && data.plantingDate > dateTo) return false;
+                
+                return true;
+            });
+            
+            renderFarmDataTable();
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Refresh data button
+            document.getElementById('refresh-admin-data').addEventListener('click', async function() {
+                try {
+                    console.log('🔄 Manual admin refresh triggered');
+                    await window.loadFarmData();
+                    farmData = window.farmData || [];
+                    filteredData = [...farmData];
+                    
+                    updateDashboard();
+                    renderFarmDataTable();
+                    generateAnalytics();
+                    
+                    showAlert('Admin data refreshed successfully!', 'success');
+                } catch (error) {
+                    console.error('Error refreshing admin data:', error);
+                    showAlert('Error refreshing data', 'danger');
+                }
+            });
+            
+            // Export data
+            document.getElementById('export-data').addEventListener('click', function() {
+                const dataStr = JSON.stringify(farmData, null, 2);
+                const dataBlob = new Blob([dataStr], {type: 'application/json'});
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'farm-data-export.json';
+                link.click();
+                URL.revokeObjectURL(url);
+                
+                showAlert('Data exported successfully!', 'success');
+            });
+            
+            // Apply filters
+            document.getElementById('apply-filters').addEventListener('click', function() {
+                applyFilters();
+                showAlert('Filters applied successfully!', 'info');
+            });
+            
+            // Select all checkbox
+            document.getElementById('select-all').addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.data-checkbox');
+                checkboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+            
+            // Delete selected
+            document.getElementById('delete-selected').addEventListener('click', async function() {
+                const selectedIds = [];
+                document.querySelectorAll('.data-checkbox:checked').forEach(checkbox => {
+                    selectedIds.push(checkbox.getAttribute('data-id'));
+                });
+                
+                if (selectedIds.length === 0) {
+                    showAlert('Please select at least one record to delete.', 'warning');
+                    return;
+                }
+                
+                if (confirm(`Are you sure you want to delete ${selectedIds.length} record(s)? This action cannot be undone.`)) {
+                    try {
+                        // Delete selected records
+                        for (const id of selectedIds) {
+                            await window.deleteFarmData(id);
+                        }
+                        
+                        showAlert(`${selectedIds.length} record(s) deleted successfully!`, 'success');
+                        
+                        // Refresh data
+                        await window.loadFarmData();
+                        farmData = window.farmData || [];
+                        applyFilters();
+                        updateDashboard();
+                    } catch (error) {
+                        console.error('Error deleting selected records:', error);
+                        showAlert('Error deleting records. Please try again.', 'danger');
+                    }
+                }
+            });
+            
+            // Add user button
+            document.getElementById('add-user-btn').addEventListener('click', function() {
+                showAlert('User management functionality would be implemented here.', 'info');
+            });
+            
+            // Backup data
+            document.getElementById('backup-data').addEventListener('click', function() {
+                showAlert('Backup process started successfully!', 'success');
+            });
+            
+            // Clear data
+            document.getElementById('clear-data').addEventListener('click', function() {
+                if (confirm('WARNING: This will delete ALL farm data. This action cannot be undone. Are you sure?')) {
+                    showAlert('Data clearance functionality would be implemented here.', 'warning');
+                }
+            });
+        }
+        
+        // Show alert message
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            // Create alert element
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                ${message}
+            `;
+            
+            // Insert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(alert, container.firstChild);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

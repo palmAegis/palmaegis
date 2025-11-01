@@ -1,0 +1,216 @@
+/* css/index.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    color: #fff;
+    min-height: 100vh;
+    background: 
+        linear-gradient(
+            rgba(26, 47, 59, 0.85), 
+            rgba(45, 90, 60, 0.85)
+        ),
+        url('../images/farm3.jpg') no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+}
+
+/* Remove or fix the background-overlay */
+.background-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(135deg, rgba(26, 47, 59, 0.85) 0%, rgba(45, 90, 60, 0.85) 100%),
+        url('../images/farm3.jpg') no-repeat center center fixed;
+    background-size: cover;
+    z-index: -1;
+}
+
+.container {
+    max-width: 1200px;
+    width: 100%;
+    text-align: center;
+    z-index: 1;
+}
+
+/* Header styles */
+header {
+    margin-bottom: 60px;
+    animation: fadeIn 1s ease-out;
+}
+
+.logo {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    background: linear-gradient(to right, #8bc34a, #4caf50);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+.tagline {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Button section */
+.access-section {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin: 60px 0;
+}
+
+.access-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 40px 30px;
+    width: 300px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.access-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.card-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.card-title {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.card-description {
+    font-size: 1rem;
+    margin-bottom: 25px;
+    opacity: 0.8;
+    line-height: 1.5;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 30px;
+    background: linear-gradient(to right, #8bc34a, #4caf50);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(139, 195, 74, 0.3);
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(139, 195, 74, 0.5);
+}
+
+.btn-secondary {
+    background: linear-gradient(to right, #8bc34a, #4caf50);
+}
+
+/* Features section */
+.features {
+    margin-top: 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 30px;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.feature {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 25px;
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.feature:hover {
+    transform: translateY(-5px);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: #8bc34a;
+}
+
+.feature-title {
+    font-size: 1.3rem;
+    margin-bottom: 10px;
+}
+
+.feature-desc {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    line-height: 1.5;
+}
+
+/* Footer */
+footer {
+    margin-top: 80px;
+    padding: 20px;
+    text-align: center;
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.access-card:nth-child(1) {
+    animation: fadeIn 0.8s ease-out 0.2s both;
+}
+
+.access-card:nth-child(2) {
+    animation: fadeIn 0.8s ease-out 0.4s both;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .access-section {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .logo {
+        font-size: 2.5rem;
+    }
+    
+    .tagline {
+        font-size: 1rem;
+    }
+}
