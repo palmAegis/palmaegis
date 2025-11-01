@@ -36,7 +36,7 @@ try {
 // Farm data array (fallback if Firebase fails)
 window.farmData = [];
 
-// Enhanced loadFarmData function with better error handling
+// Enhanced loadFarmData function with user-specific data
 window.loadFarmData = async function() {
     console.log('🔗 loadFarmData called');
     
@@ -55,19 +55,29 @@ window.loadFarmData = async function() {
             }
         }
         
+        // Get current user
+        const user = await window.getCurrentUser();
+        if (!user) {
+            console.log('⚠️ No user logged in, cannot load farm data');
+            window.farmData = [];
+            return window.farmData;
+        }
+        
+        console.log('👤 Loading data for user:', user.uid);
         console.log('✅ Firestore is available, making query...');
         
-        // Get all data without limits for testing
+        // Get only the current user's data
         const snapshot = await db.collection('farmData')
+            .where('userId', '==', user.uid) // Only get documents for this user
             .orderBy('createdAt', 'desc')
             .get();
             
         console.log('✅ Query completed, processing results...');
-        console.log(`📊 Found ${snapshot.size} documents in farmData collection`);
+        console.log(`📊 Found ${snapshot.size} documents for user ${user.uid}`);
             
         if (snapshot.empty) {
-            console.log('ℹ️ No data found in farmData collection');
-            window.farmData = getSampleData();
+            console.log('ℹ️ No data found for current user');
+            window.farmData = getSampleData(user.uid);
         } else {
             window.farmData = snapshot.docs.map(doc => {
                 const data = doc.data();
@@ -95,12 +105,15 @@ window.loadFarmData = async function() {
         console.error('Error message:', error.message);
         console.error('Full error:', error);
         
-        // Fallback to sample data
-        window.farmData = getSampleData();
+        // Fallback to sample data with user ID if available
+        const user = await window.getCurrentUser();
+        const userId = user ? user.uid : 'anonymous';
+        window.farmData = getSampleData(userId);
         console.log('🔄 Using offline mode with sample data:', window.farmData.length, 'records');
         return window.farmData;
     }
 };
+
 // Debug function to check Firebase connection and data
 window.debugFirebase = async function() {
     console.log('🔍 Debugging Firebase connection...');
@@ -112,22 +125,35 @@ window.debugFirebase = async function() {
             return { success: false, error: 'Firebase not initialized' };
         }
         
-        // Test Firestore connection
-        const testQuery = await db.collection('farmData').limit(1).get();
-        console.log('✅ Firebase connection successful');
-        console.log('📊 Documents in collection:', testQuery.size);
+        // Get current user
+        const user = await window.getCurrentUser();
+        if (!user) {
+            return { success: false, error: 'No user logged in' };
+        }
         
-        // Get all documents to see what's there
-        const allDocs = await db.collection('farmData').get();
-        console.log('📋 All documents:', allDocs.docs.map(doc => ({
+        // Test Firestore connection with user-specific query
+        const testQuery = await db.collection('farmData')
+            .where('userId', '==', user.uid)
+            .limit(1)
+            .get();
+            
+        console.log('✅ Firebase connection successful');
+        console.log('📊 Documents for current user:', testQuery.size);
+        
+        // Get all documents for current user to see what's there
+        const userDocs = await db.collection('farmData')
+            .where('userId', '==', user.uid)
+            .get();
+            
+        console.log('📋 All documents for current user:', userDocs.docs.map(doc => ({
             id: doc.id,
             data: doc.data()
         })));
         
         return { 
             success: true, 
-            documentCount: allDocs.size,
-            documents: allDocs.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            documentCount: userDocs.size,
+            documents: userDocs.docs.map(doc => ({ id: doc.id, ...doc.data() }))
         };
         
     } catch (error) {
@@ -139,13 +165,20 @@ window.debugFirebase = async function() {
         };
     }
 };
-// Save farm data to Firebase
+
+// Save farm data to Firebase with user ID
 window.saveFarmData = async function(farmData) {
     console.log('💾 saveFarmData called');
     
     try {
         if (!db) {
             throw new Error('Firestore not available');
+        }
+        
+        // Get current user
+        const user = await window.getCurrentUser();
+        if (!user) {
+            throw new Error('User must be logged in to save data');
         }
         
         const dataToSave = {
@@ -158,11 +191,14 @@ window.saveFarmData = async function(farmData) {
             disease: farmData.disease || 'None',
             yield: farmData.yield || null,
             status: 'Pending Review',
+            userId: user.uid, // Critical: Store user ID with data
+            userEmail: user.email || 'unknown', // Store email for reference
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            createdBy: auth?.currentUser ? auth.currentUser.uid : 'anonymous'
+            createdBy: user.uid
         };
         
-        console.log('📤 Saving data to Firebase:', dataToSave);
+        console.log('📤 Saving data to Firebase for user:', user.uid);
+        console.log('Data to save:', dataToSave);
         
         const docRef = await db.collection('farmData').add(dataToSave);
         console.log('✅ Farm data saved with ID:', docRef.id);
@@ -175,14 +211,18 @@ window.saveFarmData = async function(farmData) {
     } catch (error) {
         console.error('❌ Error saving farm data:', error);
         
-        // Fallback: Save locally
+        // Fallback: Save locally with user ID if available
+        const user = await window.getCurrentUser();
+        const userId = user ? user.uid : 'anonymous';
         const mockId = 'offline-' + Date.now();
         const offlineData = {
             id: mockId,
             ...farmData,
+            userId: userId,
+            userEmail: user ? user.email : 'offline',
             status: 'Pending Review',
             createdAt: new Date().toISOString(),
-            createdBy: 'offline-user'
+            createdBy: userId
         };
         
         window.farmData.unshift(offlineData);
@@ -197,14 +237,33 @@ window.saveFarmData = async function(farmData) {
     }
 };
 
-// Update farm data in Firebase
+// Update farm data in Firebase with user verification
 window.updateFarmData = async function(id, updatedData) {
     try {
         if (!db) {
             throw new Error('Firestore not available');
         }
         
-        await db.collection('farmData').doc(id).update({
+        // Get current user
+        const user = await window.getCurrentUser();
+        if (!user) {
+            throw new Error('User must be logged in to update data');
+        }
+        
+        // First, verify the document belongs to the current user
+        const docRef = db.collection('farmData').doc(id);
+        const doc = await docRef.get();
+        
+        if (!doc.exists) {
+            throw new Error('Document not found');
+        }
+        
+        const docData = doc.data();
+        if (docData.userId !== user.uid) {
+            throw new Error('Unauthorized: You can only update your own data');
+        }
+        
+        await docRef.update({
             ...updatedData,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
@@ -216,23 +275,42 @@ window.updateFarmData = async function(id, updatedData) {
     }
 };
 
-// Delete farm data from Firebase
+// Delete farm data from Firebase with user verification
 window.deleteFarmData = async function(id) {
     try {
         if (!db) {
             throw new Error('Firestore not available');
         }
         
-        await db.collection('farmData').doc(id).delete();
+        // Get current user
+        const user = await window.getCurrentUser();
+        if (!user) {
+            throw new Error('User must be logged in to delete data');
+        }
+        
+        // First, verify the document belongs to the current user
+        const docRef = db.collection('farmData').doc(id);
+        const doc = await docRef.get();
+        
+        if (!doc.exists) {
+            throw new Error('Document not found');
+        }
+        
+        const docData = doc.data();
+        if (docData.userId !== user.uid) {
+            throw new Error('Unauthorized: You can only delete your own data');
+        }
+        
+        await docRef.delete();
         console.log('✅ Farm data deleted:', id);
         
-    } catch (error) {
+    } catch ( error) {
         console.error('❌ Error deleting farm data:', error);
         throw error;
     }
 };
 
-// Real-time listener for farm data updates
+// Real-time listener for farm data updates - user specific
 window.setupFarmDataListener = function() {
     try {
         if (!db) {
@@ -242,24 +320,33 @@ window.setupFarmDataListener = function() {
         
         console.log('👂 Setting up real-time listener...');
         
-        return db.collection('farmData')
-            .orderBy('createdAt', 'desc')
-            .onSnapshot(
-                snapshot => {
-                    console.log('📡 Real-time update received');
-                    window.farmData = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    
-                    if (typeof window.updateFarmDataUI === 'function') {
-                        window.updateFarmDataUI();
+        // Get current user for the query
+        window.getCurrentUser().then(user => {
+            if (!user) {
+                console.warn('⚠️ No user logged in, cannot setup real-time listener');
+                return;
+            }
+            
+            return db.collection('farmData')
+                .where('userId', '==', user.uid) // Only listen to current user's data
+                .orderBy('createdAt', 'desc')
+                .onSnapshot(
+                    snapshot => {
+                        console.log('📡 Real-time update received for user:', user.uid);
+                        window.farmData = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        
+                        if (typeof window.updateFarmDataUI === 'function') {
+                            window.updateFarmDataUI();
+                        }
+                    },
+                    error => {
+                        console.error('❌ Real-time listener error:', error);
                     }
-                },
-                error => {
-                    console.error('❌ Real-time listener error:', error);
-                }
-            );
+                );
+        });
             
     } catch (error) {
         console.error('❌ Error setting up real-time listener:', error);
@@ -303,37 +390,23 @@ window.getUserData = async function(uid) {
     }
 };
 
-// Sample data for fallback
-function getSampleData() {
-    return [
-        {
-            id: 'sample-1',
-            farmerName: "John Smith",
-            locationFarm: "Green Valley Farm",
-            soilType: "loamy",
-            cropType: "Corn",
-            plantingDate: "2023-04-15",
-            weather: "sunny",
-            disease: "None",
-            yield: 8500,
-            status: "Approved",
-            createdAt: "2023-06-01T00:00:00Z"
-        },
-        {
-            id: 'sample-2',
-            farmerName: "Maria Garcia",
-            locationFarm: "Sunrise Acres",
-            soilType: "sandy",
-            cropType: "Wheat",
-            plantingDate: "2023-03-10",
-            weather: "cloudy",
-            disease: "Rust fungus detected",
-            yield: 4200,
-            status: "Pending Review",
-            createdAt: "2023-06-02T00:00:00Z"
-        }
-    ];
-}
+// Check if current user owns a specific farm data record
+window.userOwnsFarmData = async function(farmDataId) {
+    try {
+        const user = await window.getCurrentUser();
+        if (!user) return false;
+        
+        if (!db) return false;
+        
+        const doc = await db.collection('farmData').doc(farmDataId).get();
+        if (!doc.exists) return false;
+        
+        return doc.data().userId === user.uid;
+    } catch (error) {
+        console.error('❌ Error checking farm data ownership:', error);
+        return false;
+    }
+};
 
 // Test Firebase connection
 window.testFirebaseConnection = async function() {
@@ -345,14 +418,25 @@ window.testFirebaseConnection = async function() {
             return { success: false, error: 'Firestore not initialized' };
         }
         
-        // Test with a simple query
-        const testDoc = await db.collection('farmData').limit(1).get();
+        // Get current user
+        const user = await window.getCurrentUser();
+        if (!user) {
+            return { success: false, error: 'No user logged in' };
+        }
+        
+        // Test with a user-specific query
+        const testDoc = await db.collection('farmData')
+            .where('userId', '==', user.uid)
+            .limit(1)
+            .get();
+            
         console.log('✅ Firebase connection test passed');
         
         return { 
             success: true, 
             message: 'Firebase connection successful',
-            documentCount: testDoc.size
+            documentCount: testDoc.size,
+            userId: user.uid
         };
         
     } catch (error) {
