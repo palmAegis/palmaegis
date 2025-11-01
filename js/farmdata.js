@@ -77,7 +77,7 @@ window.loadFarmData = async function() {
             
         if (snapshot.empty) {
             console.log('ℹ️ No data found for current user');
-            window.farmData = getSampleData(user.uid);
+            window.farmData = [];
         } else {
             window.farmData = snapshot.docs.map(doc => {
                 const data = doc.data();
@@ -93,7 +93,9 @@ window.loadFarmData = async function() {
                 };
             });
             console.log(`✅ Farm data loaded from Firebase: ${window.farmData.length} records`);
-            console.log('📝 Sample record:', window.farmData[0]);
+            if (window.farmData.length > 0) {
+                console.log('📝 Sample record:', window.farmData[0]);
+            }
         }
         
         return window.farmData;
@@ -103,13 +105,10 @@ window.loadFarmData = async function() {
         console.error('Error name:', error.name);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
-        console.error('Full error:', error);
         
-        // Fallback to sample data with user ID if available
-        const user = await window.getCurrentUser();
-        const userId = user ? user.uid : 'anonymous';
-        window.farmData = getSampleData(userId);
-        console.log('🔄 Using offline mode with sample data:', window.farmData.length, 'records');
+        // Fallback to empty array instead of sample data
+        window.farmData = [];
+        console.log('🔄 Using offline mode with empty data');
         return window.farmData;
     }
 };
@@ -130,6 +129,8 @@ window.debugFirebase = async function() {
         if (!user) {
             return { success: false, error: 'No user logged in' };
         }
+        
+        console.log('👤 Current user:', user.uid, user.email);
         
         // Test Firestore connection with user-specific query
         const testQuery = await db.collection('farmData')
@@ -153,7 +154,8 @@ window.debugFirebase = async function() {
         return { 
             success: true, 
             documentCount: userDocs.size,
-            documents: userDocs.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            userId: user.uid,
+            userEmail: user.email
         };
         
     } catch (error) {
@@ -161,7 +163,8 @@ window.debugFirebase = async function() {
         return { 
             success: false, 
             error: error.message,
-            code: error.code 
+            code: error.code,
+            name: error.name
         };
     }
 };
@@ -194,7 +197,7 @@ window.saveFarmData = async function(farmData) {
             userId: user.uid, // Critical: Store user ID with data
             userEmail: user.email || 'unknown', // Store email for reference
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            createdBy: user.uid
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         
         console.log('📤 Saving data to Firebase for user:', user.uid);
@@ -222,7 +225,7 @@ window.saveFarmData = async function(farmData) {
             userEmail: user ? user.email : 'offline',
             status: 'Pending Review',
             createdAt: new Date().toISOString(),
-            createdBy: userId
+            updatedAt: new Date().toISOString()
         };
         
         window.farmData.unshift(offlineData);
@@ -304,7 +307,7 @@ window.deleteFarmData = async function(id) {
         await docRef.delete();
         console.log('✅ Farm data deleted:', id);
         
-    } catch ( error) {
+    } catch (error) {
         console.error('❌ Error deleting farm data:', error);
         throw error;
     }
@@ -320,29 +323,37 @@ window.setupFarmDataListener = function() {
         
         console.log('👂 Setting up real-time listener...');
         
+        let unsubscribe = null;
+        
         // Get current user for the query
         window.getCurrentUser().then(user => {
-            if (user) {
-                window.loadFarmData();
-                window.setupFarmDataListener();
-            } else {
-                // Redirect to login or show login prompt
-                console.log('Please log in to view your farm data');
+            if (!user) {
+                console.warn('⚠️ No user logged in, cannot setup real-time listener');
                 window.farmData = [];
                 if (typeof window.updateFarmDataUI === 'function') {
                     window.updateFarmDataUI();
                 }
+                return;
             }
-            return db.collection('farmData')
+            
+            unsubscribe = db.collection('farmData')
                 .where('userId', '==', user.uid) // Only listen to current user's data
                 .orderBy('createdAt', 'desc')
                 .onSnapshot(
                     snapshot => {
                         console.log('📡 Real-time update received for user:', user.uid);
-                        window.farmData = snapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        }));
+                        window.farmData = snapshot.docs.map(doc => {
+                            const data = doc.data();
+                            const createdAt = data.createdAt ? 
+                                (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt) : 
+                                new Date().toISOString();
+                            
+                            return {
+                                id: doc.id,
+                                ...data,
+                                createdAt: createdAt
+                            };
+                        });
                         
                         if (typeof window.updateFarmDataUI === 'function') {
                             window.updateFarmDataUI();
@@ -353,6 +364,12 @@ window.setupFarmDataListener = function() {
                     }
                 );
         });
+        
+        return () => {
+            if (unsubscribe) {
+                unsubscribe();
+            }
+        };
             
     } catch (error) {
         console.error('❌ Error setting up real-time listener:', error);
@@ -365,14 +382,30 @@ window.getCurrentUser = function() {
     return new Promise((resolve) => {
         try {
             if (!auth) {
+                console.log('❌ Auth not initialized');
                 resolve(null);
                 return;
             }
             
             const unsubscribe = auth.onAuthStateChanged(user => {
                 unsubscribe();
+                console.log('👤 Auth state changed, user:', user ? user.uid : 'null');
                 resolve(user);
+            }, error => {
+                console.error('❌ Auth state change error:', error);
+                resolve(null);
             });
+            
+            // Fallback in case auth doesn't respond
+            setTimeout(() => {
+                unsubscribe();
+                if (auth.currentUser) {
+                    resolve(auth.currentUser);
+                } else {
+                    resolve(null);
+                }
+            }, 1000);
+            
         } catch (error) {
             console.error('❌ Error getting current user:', error);
             resolve(null);
@@ -430,6 +463,8 @@ window.testFirebaseConnection = async function() {
             return { success: false, error: 'No user logged in' };
         }
         
+        console.log('👤 Testing with user:', user.uid);
+        
         // Test with a user-specific query
         const testDoc = await db.collection('farmData')
             .where('userId', '==', user.uid)
@@ -442,7 +477,8 @@ window.testFirebaseConnection = async function() {
             success: true, 
             message: 'Firebase connection successful',
             documentCount: testDoc.size,
-            userId: user.uid
+            userId: user.uid,
+            userEmail: user.email
         };
         
     } catch (error) {
@@ -460,9 +496,41 @@ window.testFirebaseConnection = async function() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 FarmData module loaded');
     
-    // Test connection
+    // Test connection after a short delay
     setTimeout(async () => {
+        console.log('🔧 Running initial connection test...');
         const testResult = await window.testFirebaseConnection();
         console.log('Connection test result:', testResult);
-    }, 1000);
+        
+        // If not logged in, show message
+        if (testResult.error === 'No user logged in') {
+            console.log('ℹ️ Please log in to access farm data');
+        }
+    }, 2000);
 });
+
+// Add this function to help diagnose the issue
+window.diagnoseIssue = async function() {
+    console.log('🔧 Diagnosing Firebase issue...');
+    
+    const results = {
+        firebaseInitialized: !!firebase.apps.length,
+        firestoreInitialized: !!db,
+        authInitialized: !!auth,
+        currentUser: null,
+        firestoreTest: null
+    };
+    
+    try {
+        results.currentUser = await window.getCurrentUser();
+        
+        if (db && results.currentUser) {
+            results.firestoreTest = await window.testFirebaseConnection();
+        }
+    } catch (error) {
+        results.error = error.message;
+    }
+    
+    console.log('🔧 Diagnosis results:', results);
+    return results;
+};
