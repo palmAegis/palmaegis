@@ -322,11 +322,17 @@ window.setupFarmDataListener = function() {
         
         // Get current user for the query
         window.getCurrentUser().then(user => {
-            if (!user) {
-                console.warn('⚠️ No user logged in, cannot setup real-time listener');
-                return;
+            if (user) {
+                window.loadFarmData();
+                window.setupFarmDataListener();
+            } else {
+                // Redirect to login or show login prompt
+                console.log('Please log in to view your farm data');
+                window.farmData = [];
+                if (typeof window.updateFarmDataUI === 'function') {
+                    window.updateFarmDataUI();
+                }
             }
-            
             return db.collection('farmData')
                 .where('userId', '==', user.uid) // Only listen to current user's data
                 .orderBy('createdAt', 'desc')
