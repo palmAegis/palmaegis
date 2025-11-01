@@ -41,18 +41,10 @@ window.loadFarmData = async function() {
     console.log('🔗 loadFarmData called');
     
     try {
-        console.log('📡 Attempting to connect to Firebase...');
-        
         // Check if Firebase is properly initialized
         if (!db) {
             console.error('❌ Firestore database not initialized');
-            // Try to reinitialize
-            if (firebase.apps.length) {
-                db = firebase.firestore();
-                console.log('🔄 Reinitialized Firestore');
-            } else {
-                throw new Error('Firestore not initialized');
-            }
+            throw new Error('Firestore not initialized');
         }
         
         // Get current user
@@ -63,17 +55,15 @@ window.loadFarmData = async function() {
             return window.farmData;
         }
         
-        console.log('👤 Loading data for user:', user.uid);
-        console.log('✅ Firestore is available, making query...');
+        console.log('👤 Loading data for user:', user.uid, user.email);
         
         // Get only the current user's data
         const snapshot = await db.collection('farmData')
-            .where('userId', '==', user.uid) // Only get documents for this user
+            .where('userId', '==', user.uid)
             .orderBy('createdAt', 'desc')
             .get();
             
-        console.log('✅ Query completed, processing results...');
-        console.log(`📊 Found ${snapshot.size} documents for user ${user.uid}`);
+        console.log(`✅ Query completed: ${snapshot.size} documents for user ${user.uid}`);
             
         if (snapshot.empty) {
             console.log('ℹ️ No data found for current user');
@@ -92,9 +82,16 @@ window.loadFarmData = async function() {
                     createdAt: createdAt
                 };
             });
-            console.log(`✅ Farm data loaded from Firebase: ${window.farmData.length} records`);
+            console.log(`✅ Farm data loaded: ${window.farmData.length} records`);
+            
+            // Log first record to verify data
             if (window.farmData.length > 0) {
-                console.log('📝 Sample record:', window.farmData[0]);
+                console.log('📝 First record:', {
+                    id: window.farmData[0].id,
+                    farmerName: window.farmData[0].farmerName,
+                    userId: window.farmData[0].userId,
+                    createdAt: window.farmData[0].createdAt
+                });
             }
         }
         
@@ -102,17 +99,20 @@ window.loadFarmData = async function() {
         
     } catch (error) {
         console.error('❌ Error loading farm data:');
-        console.error('Error name:', error.name);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
         
-        // Fallback to empty array instead of sample data
+        // More specific error handling
+        if (error.code === 'permission-denied') {
+            console.error('🔐 Permission denied - check Firestore security rules');
+        } else if (error.code === 'unauthenticated') {
+            console.error('🔐 User not authenticated');
+        }
+        
         window.farmData = [];
-        console.log('🔄 Using offline mode with empty data');
         return window.farmData;
     }
 };
-
 // Debug function to check Firebase connection and data
 window.debugFirebase = async function() {
     console.log('🔍 Debugging Firebase connection...');
@@ -168,6 +168,56 @@ window.debugFirebase = async function() {
         };
     }
 };
+// Add this function to debug the data access
+window.debugDataAccess = async function() {
+    console.log('🔍 Debugging data access...');
+    
+    try {
+        const user = await window.getCurrentUser();
+        console.log('👤 Current user:', user ? `${user.uid} (${user.email})` : 'No user');
+        
+        if (!user) {
+            console.error('❌ No user logged in');
+            return;
+        }
+
+        // Test 1: Check if we can query user's data
+        console.log('📡 Testing user-specific query...');
+        const userData = await db.collection('farmData')
+            .where('userId', '==', user.uid)
+            .get();
+        console.log(`✅ User data query: ${userData.size} documents found`);
+
+        // Test 2: Check ALL data in collection (temporarily)
+        console.log('📡 Testing collection access...');
+        const allData = await db.collection('farmData').limit(10).get();
+        console.log(`✅ All data query: ${allData.size} documents found`);
+        
+        // Show what's in the database
+        allData.forEach(doc => {
+            const data = doc.data();
+            console.log(`📄 Document ${doc.id}:`, {
+                farmerName: data.farmerName,
+                userId: data.userId,
+                userEmail: data.userEmail,
+                matchesCurrentUser: data.userId === user.uid
+            });
+        });
+
+        return {
+            user: user.uid,
+            userDocuments: userData.size,
+            totalDocuments: allData.size
+        };
+
+    } catch (error) {
+        console.error('❌ Debug failed:', error);
+        return { error: error.message };
+    }
+};
+
+// Call this in your console to see what's happening
+// await window.debugDataAccess();
 
 // Save farm data to Firebase with user ID
 window.saveFarmData = async function(farmData) {
@@ -239,7 +289,44 @@ window.saveFarmData = async function(farmData) {
         return mockId;
     }
 };
+// ONLY RUN THIS IF YOU NEED TO ADD USER IDs TO EXISTING DATA
+window.fixExistingData = async function() {
+    const user = await window.getCurrentUser();
+    if (!user) {
+        console.error('No user logged in');
+        return;
+    }
 
+    try {
+        // Get all documents without user filter
+        const snapshot = await db.collection('farmData').get();
+        
+        console.log(`Found ${snapshot.size} documents to check`);
+        
+        let updatedCount = 0;
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            
+            // If document doesn't have userId, add it
+            if (!data.userId) {
+                await db.collection('farmData').doc(doc.id).update({
+                    userId: user.uid,
+                    userEmail: user.email,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log(`Updated document: ${doc.id}`);
+                updatedCount++;
+            }
+        }
+        
+        console.log(`✅ Updated ${updatedCount} documents with user ID`);
+        
+    } catch (error) {
+        console.error('Error fixing data:', error);
+    }
+};
+
+// Use carefully: await window.fixExistingData();
 // Update farm data in Firebase with user verification
 window.updateFarmData = async function(id, updatedData) {
     try {
