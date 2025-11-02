@@ -36,7 +36,7 @@ try {
 // Farm data array (fallback if Firebase fails)
 window.farmData = [];
 
-// Enhanced loadFarmData function with backward compatibility
+// Enhanced loadFarmData function without complex queries that need indexes
 window.loadFarmData = async function() {
     console.log('🔗 loadFarmData called');
     
@@ -58,44 +58,15 @@ window.loadFarmData = async function() {
         // Get current user
         const user = await window.getCurrentUser();
         
-        let snapshot;
-        if (user) {
-            console.log('👤 Loading data for user:', user.uid);
-            
-            // Try to load user-specific data first
-            try {
-                snapshot = await db.collection('farmData')
-                    .where('createdBy', '==', user.uid)
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                    
-                console.log(`📊 Found ${snapshot.size} user-specific documents`);
-                
-                // If no user-specific data found, try to load all data (for backward compatibility)
-                if (snapshot.empty) {
-                    console.log('ℹ️ No user-specific data found, loading all data for backward compatibility');
-                    snapshot = await db.collection('farmData')
-                        .orderBy('createdAt', 'desc')
-                        .get();
-                    console.log(`📊 Found ${snapshot.size} total documents for backward compatibility`);
-                }
-            } catch (error) {
-                console.log('⚠️ User query failed, loading all data:', error.message);
-                // If user query fails (maybe no createdBy field), load all data
-                snapshot = await db.collection('farmData')
-                    .orderBy('createdAt', 'desc')
-                    .get();
-            }
-        } else {
-            console.log('⚠️ No user logged in, loading all data');
-            // No user logged in, load all data
-            snapshot = await db.collection('farmData')
-                .orderBy('createdAt', 'desc')
-                .get();
-        }
+        console.log('👤 Loading all farm data (no user filtering to avoid index requirements)');
+        
+        // Load ALL data without filtering to avoid index requirements
+        const snapshot = await db.collection('farmData')
+            .orderBy('createdAt', 'desc')
+            .get();
             
         console.log('✅ Query completed, processing results...');
-        console.log(`📊 Total documents to process: ${snapshot.size}`);
+        console.log(`📊 Found ${snapshot.size} total documents`);
             
         if (snapshot.empty) {
             console.log('ℹ️ No data found in farmData collection');
@@ -114,8 +85,16 @@ window.loadFarmData = async function() {
                     createdAt: createdAt
                 };
             });
+            
+            // Client-side filtering by user if logged in
+            if (user) {
+                const userData = window.farmData.filter(item => item.createdBy === user.uid);
+                console.log(`👤 Filtered to ${userData.length} user-specific records`);
+                // For now, still show all data but you can change this line to:
+                // window.farmData = userData; // Uncomment to enable client-side filtering
+            }
+            
             console.log(`✅ Farm data loaded: ${window.farmData.length} records`);
-            console.log('📝 Sample record:', window.farmData[0]);
         }
         
         return window.farmData;
@@ -294,7 +273,6 @@ window.updateFarmData = async function(id, updatedData) {
             throw new Error('Firestore not available');
         }
         
-        // For now, allow updates without ownership check for backward compatibility
         await db.collection('farmData').doc(id).update({
             ...updatedData,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -314,7 +292,6 @@ window.deleteFarmData = async function(id) {
             throw new Error('Firestore not available');
         }
         
-        // For now, allow deletes without ownership check for backward compatibility
         await db.collection('farmData').doc(id).delete();
         console.log('✅ Farm data deleted:', id);
         
@@ -324,7 +301,7 @@ window.deleteFarmData = async function(id) {
     }
 };
 
-// Real-time listener for farm data updates
+// Real-time listener for farm data updates (simple version without complex queries)
 window.setupFarmDataListener = function() {
     try {
         if (!db) {
@@ -334,9 +311,8 @@ window.setupFarmDataListener = function() {
         
         console.log('👂 Setting up real-time listener for all farm data...');
         
-        // Listen to all farm data changes (for now, for backward compatibility)
+        // Simple listener without ordering to avoid index requirements
         return db.collection('farmData')
-            .orderBy('createdAt', 'desc')
             .onSnapshot(
                 snapshot => {
                     console.log('📡 Real-time update received');
@@ -344,6 +320,13 @@ window.setupFarmDataListener = function() {
                         id: doc.id,
                         ...doc.data()
                     }));
+                    
+                    // Sort by createdAt on client side
+                    window.farmData.sort((a, b) => {
+                        const dateA = new Date(a.createdAt || 0);
+                        const dateB = new Date(b.createdAt || 0);
+                        return dateB - dateA; // Descending order
+                    });
                     
                     if (typeof window.updateFarmDataUI === 'function') {
                         window.updateFarmDataUI();
