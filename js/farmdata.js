@@ -36,7 +36,7 @@ try {
 // Farm data array (fallback if Firebase fails)
 window.farmData = [];
 
-// Enhanced loadFarmData function without complex queries that need indexes
+// Enhanced loadFarmData function with userEmail filtering
 window.loadFarmData = async function() {
     console.log('🔗 loadFarmData called');
     
@@ -58,18 +58,25 @@ window.loadFarmData = async function() {
         // Get current user
         const user = await window.getCurrentUser();
         
-        console.log('👤 Loading all farm data (no user filtering to avoid index requirements)');
+        if (!user) {
+            console.log('⚠️ No user logged in, showing empty data');
+            window.farmData = [];
+            return window.farmData;
+        }
         
-        // Load ALL data without filtering to avoid index requirements
+        console.log('👤 Loading farm data for user email:', user.email);
+        
+        // Load data filtered by userEmail
         const snapshot = await db.collection('farmData')
+            .where('userEmail', '==', user.email)
             .orderBy('createdAt', 'desc')
             .get();
             
         console.log('✅ Query completed, processing results...');
-        console.log(`📊 Found ${snapshot.size} total documents`);
+        console.log(`📊 Found ${snapshot.size} documents for user ${user.email}`);
             
         if (snapshot.empty) {
-            console.log('ℹ️ No data found in farmData collection');
+            console.log('ℹ️ No data found for current user');
             window.farmData = [];
         } else {
             window.farmData = snapshot.docs.map(doc => {
@@ -85,16 +92,7 @@ window.loadFarmData = async function() {
                     createdAt: createdAt
                 };
             });
-            
-            // Client-side filtering by user if logged in
-            if (user) {
-                const userData = window.farmData.filter(item => item.createdBy === user.uid);
-                console.log(`👤 Filtered to ${userData.length} user-specific records`);
-                // For now, still show all data but you can change this line to:
-                // window.farmData = userData; // Uncomment to enable client-side filtering
-            }
-            
-            console.log(`✅ Farm data loaded: ${window.farmData.length} records`);
+            console.log(`✅ User farm data loaded: ${window.farmData.length} records`);
         }
         
         return window.farmData;
@@ -105,12 +103,61 @@ window.loadFarmData = async function() {
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
         
+        // If there's an index error, fall back to client-side filtering
+        if (error.code === 'failed-precondition') {
+            console.log('🔄 Index required, falling back to client-side filtering');
+            return await loadFarmDataWithClientFiltering();
+        }
+        
         // Fallback to empty array
         window.farmData = [];
         console.log('🔄 Using offline mode with empty data');
         return window.farmData;
     }
 };
+
+// Fallback function for client-side filtering
+async function loadFarmDataWithClientFiltering() {
+    try {
+        const user = await window.getCurrentUser();
+        if (!user) {
+            window.farmData = [];
+            return window.farmData;
+        }
+        
+        // Load all data and filter by userEmail on client side
+        const snapshot = await db.collection('farmData')
+            .orderBy('createdAt', 'desc')
+            .get();
+            
+        if (snapshot.empty) {
+            window.farmData = [];
+        } else {
+            const allData = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const createdAt = data.createdAt ? 
+                    (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt) : 
+                    new Date().toISOString();
+                
+                return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: createdAt
+                };
+            });
+            
+            // Filter by userEmail on client side
+            window.farmData = allData.filter(item => item.userEmail === user.email);
+            console.log(`✅ Client-side filtered: ${window.farmData.length} records for user ${user.email}`);
+        }
+        
+        return window.farmData;
+    } catch (error) {
+        console.error('❌ Error in client-side filtering:', error);
+        window.farmData = [];
+        return window.farmData;
+    }
+}
 
 // Load ALL farm data (for admin users only)
 window.loadAllFarmData = async function() {
@@ -165,7 +212,7 @@ window.debugFirebase = async function() {
         
         // Get current user for context
         const user = await window.getCurrentUser();
-        console.log('👤 Current user:', user ? user.uid : 'No user');
+        console.log('👤 Current user:', user ? user.email : 'No user');
         
         // Test Firestore connection with all data
         const allDocs = await db.collection('farmData').get();
@@ -178,11 +225,20 @@ window.debugFirebase = async function() {
             console.log('  📄', doc.id, '=>', doc.data());
         });
         
+        // Show user-specific documents if logged in
+        if (user) {
+            const userDocs = allDocs.docs.filter(doc => doc.data().userEmail === user.email);
+            console.log(`📋 User-specific documents: ${userDocs.length} records`);
+            userDocs.forEach(doc => {
+                console.log('  👤', doc.id, '=>', doc.data());
+            });
+        }
+        
         return { 
             success: true, 
-            user: user ? user.uid : 'No user',
+            user: user ? user.email : 'No user',
             totalDocuments: allDocs.size,
-            documents: allDocs.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            userDocuments: user ? allDocs.docs.filter(doc => doc.data().userEmail === user.email).length : 0
         };
         
     } catch (error) {
@@ -206,6 +262,9 @@ window.saveFarmData = async function(farmData) {
         
         // Get current user
         const user = await window.getCurrentUser();
+        if (!user) {
+            throw new Error('User must be logged in to save data');
+        }
         
         const dataToSave = {
             farmerName: farmData.farmerName,
@@ -217,19 +276,12 @@ window.saveFarmData = async function(farmData) {
             disease: farmData.disease || 'None',
             yield: farmData.yield || null,
             status: 'Pending Review',
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: user.uid,
+            userEmail: user.email // Always save user email for filtering
         };
         
-        // Add user info if available
-        if (user) {
-            dataToSave.createdBy = user.uid;
-            dataToSave.userEmail = user.email || 'unknown';
-        } else {
-            dataToSave.createdBy = 'anonymous';
-            dataToSave.userEmail = 'anonymous';
-        }
-        
-        console.log('📤 Saving data to Firebase:', dataToSave);
+        console.log('📤 Saving data to Firebase for user:', user.email);
         
         const docRef = await db.collection('farmData').add(dataToSave);
         console.log('✅ Farm data saved with ID:', docRef.id);
@@ -245,24 +297,28 @@ window.saveFarmData = async function(farmData) {
         // Fallback: Save locally
         const mockId = 'offline-' + Date.now();
         const user = await window.getCurrentUser();
-        const offlineData = {
-            id: mockId,
-            ...farmData,
-            status: 'Pending Review',
-            createdAt: new Date().toISOString(),
-            createdBy: user ? user.uid : 'offline-user',
-            userEmail: user ? user.email : 'offline'
-        };
-        
-        window.farmData.unshift(offlineData);
-        console.log('🔄 Data saved locally (offline mode)');
-        
-        // Update UI
-        if (typeof window.updateFarmDataUI === 'function') {
-            window.updateFarmDataUI();
+        if (user) {
+            const offlineData = {
+                id: mockId,
+                ...farmData,
+                status: 'Pending Review',
+                createdAt: new Date().toISOString(),
+                createdBy: user.uid,
+                userEmail: user.email
+            };
+            
+            window.farmData.unshift(offlineData);
+            console.log('🔄 Data saved locally (offline mode)');
+            
+            // Update UI
+            if (typeof window.updateFarmDataUI === 'function') {
+                window.updateFarmDataUI();
+            }
+            
+            return mockId;
+        } else {
+            throw new Error('Cannot save data without user login');
         }
-        
-        return mockId;
     }
 };
 
@@ -271,6 +327,18 @@ window.updateFarmData = async function(id, updatedData) {
     try {
         if (!db) {
             throw new Error('Firestore not available');
+        }
+        
+        // Verify user owns this data before updating
+        const user = await window.getCurrentUser();
+        const doc = await db.collection('farmData').doc(id).get();
+        
+        if (!doc.exists) {
+            throw new Error('Document not found');
+        }
+        
+        if (doc.data().userEmail !== user.email) {
+            throw new Error('Unauthorized to update this document');
         }
         
         await db.collection('farmData').doc(id).update({
@@ -292,6 +360,18 @@ window.deleteFarmData = async function(id) {
             throw new Error('Firestore not available');
         }
         
+        // Verify user owns this data before deleting
+        const user = await window.getCurrentUser();
+        const doc = await db.collection('farmData').doc(id).get();
+        
+        if (!doc.exists) {
+            throw new Error('Document not found');
+        }
+        
+        if (doc.data().userEmail !== user.email) {
+            throw new Error('Unauthorized to delete this document');
+        }
+        
         await db.collection('farmData').doc(id).delete();
         console.log('✅ Farm data deleted:', id);
         
@@ -301,7 +381,7 @@ window.deleteFarmData = async function(id) {
     }
 };
 
-// Real-time listener for farm data updates (simple version without complex queries)
+// Real-time listener for farm data updates (user-specific)
 window.setupFarmDataListener = function() {
     try {
         if (!db) {
@@ -309,39 +389,76 @@ window.setupFarmDataListener = function() {
             return () => {};
         }
         
-        console.log('👂 Setting up real-time listener for all farm data...');
+        console.log('👂 Setting up real-time listener...');
         
-        // Simple listener without ordering to avoid index requirements
-        return db.collection('farmData')
-            .onSnapshot(
-                snapshot => {
-                    console.log('📡 Real-time update received');
-                    window.farmData = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    
-                    // Sort by createdAt on client side
-                    window.farmData.sort((a, b) => {
-                        const dateA = new Date(a.createdAt || 0);
-                        const dateB = new Date(b.createdAt || 0);
-                        return dateB - dateA; // Descending order
-                    });
-                    
-                    if (typeof window.updateFarmDataUI === 'function') {
-                        window.updateFarmDataUI();
-                    }
-                },
-                error => {
-                    console.error('❌ Real-time listener error:', error);
-                }
-            );
+        // Get current user for filtering
+        window.getCurrentUser().then(user => {
+            if (!user) {
+                console.warn('⚠️ No user logged in for real-time listener');
+                return;
+            }
+            
+            console.log('👤 Setting up real-time listener for user:', user.email);
+            
+            // Try to set up user-specific listener
+            try {
+                return db.collection('farmData')
+                    .where('userEmail', '==', user.email)
+                    .onSnapshot(
+                        snapshot => {
+                            console.log('📡 Real-time update received for user');
+                            window.farmData = snapshot.docs.map(doc => ({
+                                id: doc.id,
+                                ...doc.data()
+                            }));
+                            
+                            if (typeof window.updateFarmDataUI === 'function') {
+                                window.updateFarmDataUI();
+                            }
+                        },
+                        error => {
+                            console.error('❌ Real-time listener error:', error);
+                            // If specific listener fails, fall back to client filtering
+                            setupFallbackListener(user);
+                        }
+                    );
+            } catch (error) {
+                console.error('❌ Error setting up specific listener:', error);
+                setupFallbackListener(user);
+            }
+        });
             
     } catch (error) {
         console.error('❌ Error setting up real-time listener:', error);
         return () => {};
     }
 };
+
+// Fallback real-time listener with client-side filtering
+function setupFallbackListener(user) {
+    console.log('🔄 Setting up fallback real-time listener with client filtering');
+    
+    return db.collection('farmData')
+        .onSnapshot(
+            snapshot => {
+                console.log('📡 Fallback real-time update received');
+                const allData = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // Filter by userEmail on client side
+                window.farmData = allData.filter(item => item.userEmail === user.email);
+                
+                if (typeof window.updateFarmDataUI === 'function') {
+                    window.updateFarmDataUI();
+                }
+            },
+            error => {
+                console.error('❌ Fallback real-time listener error:', error);
+            }
+        );
+}
 
 // Get current user
 window.getCurrentUser = function() {
