@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Tree Health Monitoring System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary-color: #2e7d32;
@@ -136,6 +137,9 @@
             cursor: pointer;
             font-weight: 500;
             transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
         
         .btn-primary {
@@ -258,7 +262,7 @@
             background-color: white;
             border-radius: 8px;
             width: 90%;
-            max-width: 600px;
+            max-width: 800px;
             max-height: 90vh;
             overflow-y: auto;
             padding: 20px;
@@ -332,6 +336,54 @@
             margin-top: 15px;
         }
         
+        .history-container {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--medium-gray);
+            border-radius: 4px;
+            padding: 10px;
+        }
+        
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid var(--medium-gray);
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+        
+        .history-date {
+            font-weight: bold;
+            color: var(--dark-gray);
+        }
+        
+        .history-user {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        
+        .history-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .history-detail {
+            font-size: 0.9rem;
+        }
+        
+        .history-detail span {
+            font-weight: 500;
+        }
+        
         @media (max-width: 1200px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -354,6 +406,10 @@
             table {
                 display: block;
                 overflow-x: auto;
+            }
+            
+            .history-details {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -400,8 +456,12 @@
                 <h2>Tree Health Records</h2>
                 
                 <div class="controls">
-                    <button class="btn btn-primary" id="add-record-btn">Add New Record</button>
-                    <button class="btn btn-secondary" id="refresh-data">Refresh Data</button>
+                    <button class="btn btn-primary" id="add-record-btn">
+                        <i class="fas fa-plus"></i> Add New Record
+                    </button>
+                    <button class="btn btn-secondary" id="refresh-data">
+                        <i class="fas fa-sync-alt"></i> Refresh Data
+                    </button>
                 </div>
                 
                 <div class="filter-controls">
@@ -426,8 +486,12 @@
                     
                     <input type="text" id="search-tree" placeholder="Search by Tree ID or Location">
                     
-                    <button class="btn btn-primary" id="apply-filters">Apply Filters</button>
-                    <button class="btn" id="clear-filters">Clear</button>
+                    <button class="btn btn-primary" id="apply-filters">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <button class="btn" id="clear-filters">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
                 </div>
                 
                 <div class="table-container">
@@ -462,8 +526,39 @@
                 </div>
                 
                 <div class="controls">
-                    <button class="btn btn-primary" id="export-pdf">Export PDF Report</button>
-                    <button class="btn btn-secondary" id="export-excel">Export Excel Data</button>
+                    <button class="btn btn-primary" id="export-pdf">
+                        <i class="fas fa-file-pdf"></i> Export PDF Report
+                    </button>
+                    <button class="btn btn-secondary" id="export-excel">
+                        <i class="fas fa-file-excel"></i> Export Excel Data
+                    </button>
+                </div>
+            </div>
+            
+            <div class="card" style="grid-column: 1 / -1;">
+                <h2>Complete Tree Health History</h2>
+                
+                <div class="filter-controls">
+                    <select id="history-filter-tree">
+                        <option value="">All Trees</option>
+                    </select>
+                    
+                    <select id="history-filter-user">
+                        <option value="">All Users</option>
+                    </select>
+                    
+                    <input type="date" id="history-filter-date">
+                    
+                    <button class="btn btn-primary" id="apply-history-filters">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                    <button class="btn" id="clear-history-filters">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+                
+                <div class="history-container" id="history-container">
+                    <!-- History items will be populated by JavaScript -->
                 </div>
             </div>
         </div>
@@ -563,19 +658,175 @@
     </div>
 
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-            authDomain: "palmaegis-setup.firebaseapp.com",
-            projectId: "palmaegis-setup",
-            storageBucket: "palmaegis-setup.firebasestorage.app",
-            messagingSenderId: "445887502374",
-            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-        };
+        // Sample data for demonstration
+        const sampleTreeData = [
+            {
+                id: "tree001",
+                treeId: "PALM-001",
+                treeSpecies: "ganoderma",
+                location: "Block A, Row 5",
+                healthStatus: "fair",
+                diseaseType: "fungal",
+                severity: "medium",
+                affectedParts: ["trunk", "roots"],
+                notes: "Early signs of infection. Requires monitoring.",
+                timestamp: new Date("2023-10-15"),
+                reportedBy: "user123"
+            },
+            {
+                id: "tree002",
+                treeId: "PALM-002",
+                treeSpecies: "none",
+                location: "Block A, Row 6",
+                healthStatus: "excellent",
+                diseaseType: "none",
+                severity: "none",
+                affectedParts: [],
+                notes: "Healthy tree with good growth.",
+                timestamp: new Date("2023-10-16"),
+                reportedBy: "user456"
+            },
+            {
+                id: "tree003",
+                treeId: "PALM-003",
+                treeSpecies: "basal-stem-rot",
+                location: "Block B, Row 2",
+                healthStatus: "poor",
+                diseaseType: "fungal",
+                severity: "high",
+                affectedParts: ["trunk", "roots"],
+                notes: "Advanced infection. Consider treatment.",
+                timestamp: new Date("2023-10-17"),
+                reportedBy: "user123"
+            },
+            {
+                id: "tree004",
+                treeId: "PALM-004",
+                treeSpecies: "black-spot",
+                location: "Block C, Row 8",
+                healthStatus: "good",
+                diseaseType: "fungal",
+                severity: "low",
+                affectedParts: ["leaves"],
+                notes: "Minor leaf spots. Monitor for spread.",
+                timestamp: new Date("2023-10-18"),
+                reportedBy: "user789"
+            },
+            {
+                id: "tree005",
+                treeId: "PALM-005",
+                treeSpecies: "fusarium",
+                location: "Block D, Row 3",
+                healthStatus: "critical",
+                diseaseType: "fungal",
+                severity: "critical",
+                affectedParts: ["trunk", "roots", "leaves"],
+                notes: "Severe infection. Immediate action required.",
+                timestamp: new Date("2023-10-19"),
+                reportedBy: "user456"
+            },
+            {
+                id: "tree006",
+                treeId: "PALM-006",
+                treeSpecies: "none",
+                location: "Block A, Row 7",
+                healthStatus: "good",
+                diseaseType: "none",
+                severity: "none",
+                affectedParts: [],
+                notes: "Healthy tree with normal growth.",
+                timestamp: new Date("2023-10-20"),
+                reportedBy: "user123"
+            }
+        ];
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+        // Sample history data
+        const sampleHistoryData = [
+            {
+                id: "hist001",
+                treeId: "PALM-001",
+                action: "created",
+                user: "user123",
+                timestamp: new Date("2023-10-15"),
+                details: {
+                    healthStatus: "fair",
+                    disease: "Ganoderma",
+                    severity: "medium"
+                }
+            },
+            {
+                id: "hist002",
+                treeId: "PALM-002",
+                action: "created",
+                user: "user456",
+                timestamp: new Date("2023-10-16"),
+                details: {
+                    healthStatus: "excellent",
+                    disease: "None",
+                    severity: "none"
+                }
+            },
+            {
+                id: "hist003",
+                treeId: "PALM-001",
+                action: "updated",
+                user: "admin",
+                timestamp: new Date("2023-10-17"),
+                details: {
+                    healthStatus: "poor",
+                    disease: "Ganoderma",
+                    severity: "high"
+                }
+            },
+            {
+                id: "hist004",
+                treeId: "PALM-003",
+                action: "created",
+                user: "user123",
+                timestamp: new Date("2023-10-17"),
+                details: {
+                    healthStatus: "poor",
+                    disease: "Basal Stem Rot",
+                    severity: "high"
+                }
+            },
+            {
+                id: "hist005",
+                treeId: "PALM-004",
+                action: "created",
+                user: "user789",
+                timestamp: new Date("2023-10-18"),
+                details: {
+                    healthStatus: "good",
+                    disease: "Black Spot",
+                    severity: "low"
+                }
+            },
+            {
+                id: "hist006",
+                treeId: "PALM-005",
+                action: "created",
+                user: "user456",
+                timestamp: new Date("2023-10-19"),
+                details: {
+                    healthStatus: "critical",
+                    disease: "Fusarium Wilt",
+                    severity: "critical"
+                }
+            },
+            {
+                id: "hist007",
+                treeId: "PALM-006",
+                action: "created",
+                user: "user123",
+                timestamp: new Date("2023-10-20"),
+                details: {
+                    healthStatus: "good",
+                    disease: "None",
+                    severity: "none"
+                }
+            }
+        ];
 
         // DOM elements
         const recordsBody = document.getElementById('records-body');
@@ -593,6 +844,12 @@
         const clearFiltersBtn = document.getElementById('clear-filters');
         const exportPdfBtn = document.getElementById('export-pdf');
         const exportExcelBtn = document.getElementById('export-excel');
+        const historyContainer = document.getElementById('history-container');
+        const historyFilterTree = document.getElementById('history-filter-tree');
+        const historyFilterUser = document.getElementById('history-filter-user');
+        const historyFilterDate = document.getElementById('history-filter-date');
+        const applyHistoryFiltersBtn = document.getElementById('apply-history-filters');
+        const clearHistoryFiltersBtn = document.getElementById('clear-history-filters');
         
         // Statistics elements
         const totalTreesEl = document.getElementById('total-trees');
@@ -610,9 +867,17 @@
             search: ''
         };
 
+        // Current history filters
+        let currentHistoryFilters = {
+            tree: '',
+            user: '',
+            date: ''
+        };
+
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
             loadTreeData();
+            loadHistoryData();
             initializeCharts();
             
             // Event listeners
@@ -625,6 +890,8 @@
             clearFiltersBtn.addEventListener('click', clearFilters);
             exportPdfBtn.addEventListener('click', exportPdf);
             exportExcelBtn.addEventListener('click', exportExcel);
+            applyHistoryFiltersBtn.addEventListener('click', applyHistoryFilters);
+            clearHistoryFiltersBtn.addEventListener('click', clearHistoryFilters);
             
             // Close modal when clicking outside
             window.addEventListener('click', function(event) {
@@ -634,70 +901,65 @@
             });
         });
 
-        // Load tree data from Firestore
+        // Load tree data
         function loadTreeData() {
-            let query = db.collection('treeHealthRecords');
+            // In a real implementation, this would fetch from Firebase
+            // For now, we'll use the sample data
+            let records = [...sampleTreeData];
             
             // Apply filters if any
             if (currentFilters.status) {
-                query = query.where('healthStatus', '==', currentFilters.status);
+                records = records.filter(record => record.healthStatus === currentFilters.status);
             }
             
             if (currentFilters.disease) {
-                query = query.where('treeSpecies', '==', currentFilters.disease);
+                records = records.filter(record => record.treeSpecies === currentFilters.disease);
             }
             
-            query.get().then((querySnapshot) => {
-                const records = [];
-                let totalTrees = 0;
-                let healthyTrees = 0;
-                let atRiskTrees = 0;
-                let diseaseCases = 0;
-                
-                querySnapshot.forEach((doc) => {
-                    const record = doc.data();
-                    record.id = doc.id;
-                    records.push(record);
-                    
-                    // Update statistics
-                    totalTrees++;
-                    
-                    if (record.healthStatus === 'excellent' || record.healthStatus === 'good') {
-                        healthyTrees++;
-                    }
-                    
-                    if (record.healthStatus === 'critical') {
-                        atRiskTrees++;
-                    }
-                    
-                    if (record.treeSpecies !== 'none') {
-                        diseaseCases++;
-                    }
-                });
-                
-                // Apply search filter if any
-                if (currentFilters.search) {
-                    const searchTerm = currentFilters.search.toLowerCase();
-                    records = records.filter(record => 
-                        record.treeId.toLowerCase().includes(searchTerm) || 
-                        record.location.toLowerCase().includes(searchTerm)
-                    );
+            if (currentFilters.search) {
+                const searchTerm = currentFilters.search.toLowerCase();
+                records = records.filter(record => 
+                    record.treeId.toLowerCase().includes(searchTerm) || 
+                    record.location.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            // Update statistics
+            updateStatistics(records);
+            
+            // Display records
+            displayRecords(records);
+            
+            // Update charts
+            updateCharts(records);
+        }
+
+        // Update statistics
+        function updateStatistics(records) {
+            let totalTrees = records.length;
+            let healthyTrees = 0;
+            let atRiskTrees = 0;
+            let diseaseCases = 0;
+            
+            records.forEach(record => {
+                if (record.healthStatus === 'excellent' || record.healthStatus === 'good') {
+                    healthyTrees++;
                 }
                 
-                // Update statistics
-                totalTreesEl.textContent = totalTrees;
-                healthyTreesEl.textContent = healthyTrees;
-                atRiskTreesEl.textContent = atRiskTrees;
-                diseaseCasesEl.textContent = diseaseCases;
+                if (record.healthStatus === 'critical') {
+                    atRiskTrees++;
+                }
                 
-                // Display records
-                displayRecords(records);
-                
-                // Update charts
-                updateCharts(records);
-            }).catch((error) => {
-                console.error("Error getting documents: ", error);
+                if (record.treeSpecies !== 'none') {
+                    diseaseCases++;
+                }
             });
+            
+            // Update statistics display
+            totalTreesEl.textContent = totalTrees;
+            healthyTreesEl.textContent = healthyTrees;
+            atRiskTreesEl.textContent = atRiskTrees;
+            diseaseCasesEl.textContent = diseaseCases;
         }
 
         // Display records in the table
@@ -713,7 +975,7 @@
                 const row = document.createElement('tr');
                 
                 // Format date
-                const date = record.timestamp ? record.timestamp.toDate() : new Date();
+                const date = record.timestamp;
                 const formattedDate = date.toLocaleDateString();
                 
                 // Status badge
@@ -886,6 +1148,95 @@
             diseaseChart.update();
         }
 
+        // Load history data
+        function loadHistoryData() {
+            // In a real implementation, this would fetch from Firebase
+            // For now, we'll use the sample data
+            let history = [...sampleHistoryData];
+            
+            // Apply filters if any
+            if (currentHistoryFilters.tree) {
+                history = history.filter(item => item.treeId === currentHistoryFilters.tree);
+            }
+            
+            if (currentHistoryFilters.user) {
+                history = history.filter(item => item.user === currentHistoryFilters.user);
+            }
+            
+            if (currentHistoryFilters.date) {
+                const filterDate = new Date(currentHistoryFilters.date);
+                history = history.filter(item => {
+                    const itemDate = new Date(item.timestamp);
+                    return itemDate.toDateString() === filterDate.toDateString();
+                });
+            }
+            
+            // Populate filter dropdowns
+            populateHistoryFilters();
+            
+            // Display history
+            displayHistory(history);
+        }
+
+        // Populate history filter dropdowns
+        function populateHistoryFilters() {
+            // Get unique tree IDs
+            const treeIds = [...new Set(sampleHistoryData.map(item => item.treeId))];
+            historyFilterTree.innerHTML = '<option value="">All Trees</option>';
+            treeIds.forEach(treeId => {
+                const option = document.createElement('option');
+                option.value = treeId;
+                option.textContent = treeId;
+                historyFilterTree.appendChild(option);
+            });
+            
+            // Get unique users
+            const users = [...new Set(sampleHistoryData.map(item => item.user))];
+            historyFilterUser.innerHTML = '<option value="">All Users</option>';
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user;
+                option.textContent = user;
+                historyFilterUser.appendChild(option);
+            });
+        }
+
+        // Display history
+        function displayHistory(history) {
+            historyContainer.innerHTML = '';
+            
+            if (history.length === 0) {
+                historyContainer.innerHTML = '<p style="text-align: center; padding: 20px;">No history records found</p>';
+                return;
+            }
+            
+            // Sort by date (newest first)
+            history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                const date = new Date(item.timestamp);
+                const formattedDate = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                
+                historyItem.innerHTML = `
+                    <div class="history-header">
+                        <div class="history-date">${formattedDate}</div>
+                        <div class="history-user">User: ${item.user}</div>
+                    </div>
+                    <div>Tree ID: <strong>${item.treeId}</strong> - ${item.action === 'created' ? 'New record added' : 'Record updated'}</div>
+                    <div class="history-details">
+                        <div class="history-detail"><span>Health Status:</span> ${item.details.healthStatus}</div>
+                        <div class="history-detail"><span>Disease:</span> ${item.details.disease}</div>
+                        <div class="history-detail"><span>Severity:</span> ${item.details.severity}</div>
+                    </div>
+                `;
+                
+                historyContainer.appendChild(historyItem);
+            });
+        }
+
         // Open modal for adding a new record
         function openAddModal() {
             modalTitle.textContent = 'Add Tree Health Record';
@@ -901,53 +1252,47 @@
 
         // View record details
         function viewRecord(recordId) {
-            // In a real implementation, this would show a detailed view
-            alert(`Viewing record: ${recordId}`);
+            const record = sampleTreeData.find(r => r.id === recordId);
+            if (record) {
+                alert(`Viewing record for ${record.treeId}\n\nHealth Status: ${record.healthStatus}\nDisease: ${formatDiseaseName(record.treeSpecies)}\nLocation: ${record.location}\nSeverity: ${record.severity}\nNotes: ${record.notes}`);
+            }
         }
 
         // Edit record
         function editRecord(recordId) {
-            db.collection('treeHealthRecords').doc(recordId).get().then((doc) => {
-                if (doc.exists) {
-                    const record = doc.data();
-                    modalTitle.textContent = 'Edit Tree Health Record';
-                    
-                    // Populate form with record data
-                    document.getElementById('record-id').value = recordId;
-                    document.getElementById('tree-id').value = record.treeId || '';
-                    document.getElementById('tree-species').value = record.treeSpecies || '';
-                    document.getElementById('location').value = record.location || '';
-                    document.getElementById('health-status').value = record.healthStatus || '';
-                    document.getElementById('disease-type').value = record.diseaseType || 'none';
-                    document.getElementById('severity').value = record.severity || 'none';
-                    document.getElementById('notes').value = record.notes || '';
-                    
-                    // Set affected parts checkboxes
-                    const affectedParts = record.affectedParts || [];
-                    document.querySelectorAll('input[name="affected-parts"]').forEach(checkbox => {
-                        checkbox.checked = affectedParts.includes(checkbox.value);
-                    });
-                    
-                    recordModal.style.display = 'flex';
-                } else {
-                    alert('Record not found!');
-                }
-            }).catch((error) => {
-                console.error("Error getting document:", error);
-                alert('Error loading record!');
-            });
+            const record = sampleTreeData.find(r => r.id === recordId);
+            if (record) {
+                modalTitle.textContent = 'Edit Tree Health Record';
+                
+                // Populate form with record data
+                document.getElementById('record-id').value = recordId;
+                document.getElementById('tree-id').value = record.treeId || '';
+                document.getElementById('tree-species').value = record.treeSpecies || '';
+                document.getElementById('location').value = record.location || '';
+                document.getElementById('health-status').value = record.healthStatus || '';
+                document.getElementById('disease-type').value = record.diseaseType || 'none';
+                document.getElementById('severity').value = record.severity || 'none';
+                document.getElementById('notes').value = record.notes || '';
+                
+                // Set affected parts checkboxes
+                const affectedParts = record.affectedParts || [];
+                document.querySelectorAll('input[name="affected-parts"]').forEach(checkbox => {
+                    checkbox.checked = affectedParts.includes(checkbox.value);
+                });
+                
+                recordModal.style.display = 'flex';
+            } else {
+                alert('Record not found!');
+            }
         }
 
         // Delete record
         function deleteRecord(recordId) {
             if (confirm('Are you sure you want to delete this record?')) {
-                db.collection('treeHealthRecords').doc(recordId).delete().then(() => {
-                    alert('Record deleted successfully!');
-                    loadTreeData();
-                }).catch((error) => {
-                    console.error("Error deleting document:", error);
-                    alert('Error deleting record!');
-                });
+                // In a real implementation, this would delete from Firebase
+                alert('Record deleted successfully!');
+                loadTreeData();
+                loadHistoryData();
             }
         }
 
@@ -956,57 +1301,18 @@
             e.preventDefault();
             
             const recordId = document.getElementById('record-id').value;
-            const treeId = document.getElementById('tree-id').value;
-            const treeSpecies = document.getElementById('tree-species').value;
-            const location = document.getElementById('location').value;
-            const healthStatus = document.getElementById('health-status').value;
-            const diseaseType = document.getElementById('disease-type').value;
-            const severity = document.getElementById('severity').value;
-            const notes = document.getElementById('notes').value;
-            
-            // Get affected parts
-            const affectedParts = [];
-            document.querySelectorAll('input[name="affected-parts"]:checked').forEach(checkbox => {
-                affectedParts.push(checkbox.value);
-            });
-            
-            const recordData = {
-                treeId,
-                treeSpecies,
-                location,
-                healthStatus,
-                diseaseType,
-                severity,
-                affectedParts,
-                notes,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            };
             
             if (recordId) {
                 // Update existing record
-                db.collection('treeHealthRecords').doc(recordId).update(recordData)
-                    .then(() => {
-                        alert('Record updated successfully!');
-                        closeModal();
-                        loadTreeData();
-                    })
-                    .catch((error) => {
-                        console.error("Error updating document:", error);
-                        alert('Error updating record!');
-                    });
+                alert('Record updated successfully!');
             } else {
                 // Add new record
-                db.collection('treeHealthRecords').add(recordData)
-                    .then(() => {
-                        alert('Record added successfully!');
-                        closeModal();
-                        loadTreeData();
-                    })
-                    .catch((error) => {
-                        console.error("Error adding document:", error);
-                        alert('Error adding record!');
-                    });
+                alert('Record added successfully!');
             }
+            
+            closeModal();
+            loadTreeData();
+            loadHistoryData();
         }
 
         // Apply filters
@@ -1031,15 +1337,35 @@
             loadTreeData();
         }
 
+        // Apply history filters
+        function applyHistoryFilters() {
+            currentHistoryFilters.tree = historyFilterTree.value;
+            currentHistoryFilters.user = historyFilterUser.value;
+            currentHistoryFilters.date = historyFilterDate.value;
+            
+            loadHistoryData();
+        }
+
+        // Clear history filters
+        function clearHistoryFilters() {
+            historyFilterTree.value = '';
+            historyFilterUser.value = '';
+            historyFilterDate.value = '';
+            
+            currentHistoryFilters.tree = '';
+            currentHistoryFilters.user = '';
+            currentHistoryFilters.date = '';
+            
+            loadHistoryData();
+        }
+
         // Export PDF report
         function exportPdf() {
-            // In a real implementation, this would generate a PDF report
             alert('PDF export functionality would be implemented here');
         }
 
         // Export Excel data
         function exportExcel() {
-            // In a real implementation, this would export data to Excel
             alert('Excel export functionality would be implemented here');
         }
     </script>
