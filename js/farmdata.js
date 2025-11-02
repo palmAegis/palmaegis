@@ -36,7 +36,7 @@ try {
 // Farm data array (fallback if Firebase fails)
 window.farmData = [];
 
-// Enhanced loadFarmData function with better error handling
+// Enhanced loadFarmData function with user-specific filtering
 window.loadFarmData = async function() {
     console.log('🔗 loadFarmData called');
     
@@ -55,19 +55,28 @@ window.loadFarmData = async function() {
             }
         }
         
-        console.log('✅ Firestore is available, making query...');
+        // Get current user
+        const user = await window.getCurrentUser();
+        if (!user) {
+            console.log('⚠️ No user logged in, showing empty data');
+            window.farmData = [];
+            return window.farmData;
+        }
         
-        // Get all data without limits for testing
+        console.log('👤 Loading data for user:', user.uid);
+        
+        // Query only the current user's data
         const snapshot = await db.collection('farmData')
+            .where('createdBy', '==', user.uid)
             .orderBy('createdAt', 'desc')
             .get();
             
         console.log('✅ Query completed, processing results...');
-        console.log(`📊 Found ${snapshot.size} documents in farmData collection`);
+        console.log(`📊 Found ${snapshot.size} documents for user ${user.uid}`);
             
         if (snapshot.empty) {
-            console.log('ℹ️ No data found in farmData collection');
-            window.farmData = getSampleData();
+            console.log('ℹ️ No data found for current user');
+            window.farmData = [];
         } else {
             window.farmData = snapshot.docs.map(doc => {
                 const data = doc.data();
@@ -82,8 +91,7 @@ window.loadFarmData = async function() {
                     createdAt: createdAt
                 };
             });
-            console.log(`✅ Farm data loaded from Firebase: ${window.farmData.length} records`);
-            console.log('📝 Sample record:', window.farmData[0]);
+            console.log(`✅ User farm data loaded: ${window.farmData.length} records`);
         }
         
         return window.farmData;
@@ -93,14 +101,54 @@ window.loadFarmData = async function() {
         console.error('Error name:', error.name);
         console.error('Error code:', error.code);
         console.error('Error message:', error.message);
-        console.error('Full error:', error);
         
-        // Fallback to sample data
-        window.farmData = getSampleData();
-        console.log('🔄 Using offline mode with sample data:', window.farmData.length, 'records');
+        // Fallback to empty array
+        window.farmData = [];
+        console.log('🔄 Using offline mode with empty data');
         return window.farmData;
     }
 };
+
+// Load ALL farm data (for admin users only)
+window.loadAllFarmData = async function() {
+    console.log('🔗 loadAllFarmData called (admin function)');
+    
+    try {
+        if (!db) {
+            throw new Error('Firestore not available');
+        }
+        
+        const snapshot = await db.collection('farmData')
+            .orderBy('createdAt', 'desc')
+            .get();
+            
+        console.log(`📊 Admin: Found ${snapshot.size} total documents`);
+            
+        if (snapshot.empty) {
+            return [];
+        } else {
+            const allData = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const createdAt = data.createdAt ? 
+                    (data.createdAt.toDate ? data.createdAt.toDate().toISOString() : data.createdAt) : 
+                    new Date().toISOString();
+                
+                return {
+                    id: doc.id,
+                    ...data,
+                    createdAt: createdAt
+                };
+            });
+            console.log(`✅ All farm data loaded: ${allData.length} records`);
+            return allData;
+        }
+        
+    } catch (error) {
+        console.error('❌ Error loading all farm data:', error);
+        return [];
+    }
+};
+
 // Debug function to check Firebase connection and data
 window.debugFirebase = async function() {
     console.log('🔍 Debugging Firebase connection...');
@@ -112,22 +160,27 @@ window.debugFirebase = async function() {
             return { success: false, error: 'Firebase not initialized' };
         }
         
+        // Get current user for context
+        const user = await window.getCurrentUser();
+        console.log('👤 Current user:', user ? user.uid : 'No user');
+        
         // Test Firestore connection
         const testQuery = await db.collection('farmData').limit(1).get();
         console.log('✅ Firebase connection successful');
-        console.log('📊 Documents in collection:', testQuery.size);
+        console.log('📊 Total documents in collection:', testQuery.size);
         
-        // Get all documents to see what's there
-        const allDocs = await db.collection('farmData').get();
-        console.log('📋 All documents:', allDocs.docs.map(doc => ({
-            id: doc.id,
-            data: doc.data()
-        })));
+        // Get user-specific documents
+        if (user) {
+            const userDocs = await db.collection('farmData')
+                .where('createdBy', '==', user.uid)
+                .get();
+            console.log(`📋 User documents: ${userDocs.size} records`);
+        }
         
         return { 
             success: true, 
-            documentCount: allDocs.size,
-            documents: allDocs.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+            user: user ? user.uid : 'No user',
+            totalDocuments: testQuery.size
         };
         
     } catch (error) {
@@ -139,6 +192,7 @@ window.debugFirebase = async function() {
         };
     }
 };
+
 // Save farm data to Firebase
 window.saveFarmData = async function(farmData) {
     console.log('💾 saveFarmData called');
@@ -146,6 +200,12 @@ window.saveFarmData = async function(farmData) {
     try {
         if (!db) {
             throw new Error('Firestore not available');
+        }
+        
+        // Get current user
+        const user = await window.getCurrentUser();
+        if (!user) {
+            throw new Error('User not authenticated');
         }
         
         const dataToSave = {
@@ -159,10 +219,11 @@ window.saveFarmData = async function(farmData) {
             yield: farmData.yield || null,
             status: 'Pending Review',
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            createdBy: auth?.currentUser ? auth.currentUser.uid : 'anonymous'
+            createdBy: user.uid,
+            userEmail: user.email || 'unknown'
         };
         
-        console.log('📤 Saving data to Firebase:', dataToSave);
+        console.log('📤 Saving data to Firebase for user:', user.uid);
         
         const docRef = await db.collection('farmData').add(dataToSave);
         console.log('✅ Farm data saved with ID:', docRef.id);
@@ -177,12 +238,14 @@ window.saveFarmData = async function(farmData) {
         
         // Fallback: Save locally
         const mockId = 'offline-' + Date.now();
+        const user = await window.getCurrentUser();
         const offlineData = {
             id: mockId,
             ...farmData,
             status: 'Pending Review',
             createdAt: new Date().toISOString(),
-            createdBy: 'offline-user'
+            createdBy: user ? user.uid : 'offline-user',
+            userEmail: user ? user.email : 'offline'
         };
         
         window.farmData.unshift(offlineData);
@@ -204,6 +267,18 @@ window.updateFarmData = async function(id, updatedData) {
             throw new Error('Firestore not available');
         }
         
+        // Verify user owns this data before updating
+        const user = await window.getCurrentUser();
+        const doc = await db.collection('farmData').doc(id).get();
+        
+        if (!doc.exists) {
+            throw new Error('Document not found');
+        }
+        
+        if (doc.data().createdBy !== user.uid) {
+            throw new Error('Unauthorized to update this document');
+        }
+        
         await db.collection('farmData').doc(id).update({
             ...updatedData,
             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -223,6 +298,18 @@ window.deleteFarmData = async function(id) {
             throw new Error('Firestore not available');
         }
         
+        // Verify user owns this data before deleting
+        const user = await window.getCurrentUser();
+        const doc = await db.collection('farmData').doc(id).get();
+        
+        if (!doc.exists) {
+            throw new Error('Document not found');
+        }
+        
+        if (doc.data().createdBy !== user.uid) {
+            throw new Error('Unauthorized to delete this document');
+        }
+        
         await db.collection('farmData').doc(id).delete();
         console.log('✅ Farm data deleted:', id);
         
@@ -232,7 +319,7 @@ window.deleteFarmData = async function(id) {
     }
 };
 
-// Real-time listener for farm data updates
+// Real-time listener for farm data updates (user-specific)
 window.setupFarmDataListener = function() {
     try {
         if (!db) {
@@ -242,24 +329,35 @@ window.setupFarmDataListener = function() {
         
         console.log('👂 Setting up real-time listener...');
         
-        return db.collection('farmData')
-            .orderBy('createdAt', 'desc')
-            .onSnapshot(
-                snapshot => {
-                    console.log('📡 Real-time update received');
-                    window.farmData = snapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
-                    
-                    if (typeof window.updateFarmDataUI === 'function') {
-                        window.updateFarmDataUI();
+        // Get current user for filtering
+        window.getCurrentUser().then(user => {
+            if (!user) {
+                console.warn('⚠️ No user logged in for real-time listener');
+                return;
+            }
+            
+            console.log('👤 Setting up real-time listener for user:', user.uid);
+            
+            return db.collection('farmData')
+                .where('createdBy', '==', user.uid)
+                .orderBy('createdAt', 'desc')
+                .onSnapshot(
+                    snapshot => {
+                        console.log('📡 Real-time update received for user');
+                        window.farmData = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+                        
+                        if (typeof window.updateFarmDataUI === 'function') {
+                            window.updateFarmDataUI();
+                        }
+                    },
+                    error => {
+                        console.error('❌ Real-time listener error:', error);
                     }
-                },
-                error => {
-                    console.error('❌ Real-time listener error:', error);
-                }
-            );
+                );
+        });
             
     } catch (error) {
         console.error('❌ Error setting up real-time listener:', error);
@@ -302,38 +400,6 @@ window.getUserData = async function(uid) {
         return null;
     }
 };
-
-// Sample data for fallback
-function getSampleData() {
-    return [
-        {
-            id: 'sample-1',
-            farmerName: "John Smith",
-            locationFarm: "Green Valley Farm",
-            soilType: "loamy",
-            cropType: "Corn",
-            plantingDate: "2023-04-15",
-            weather: "sunny",
-            disease: "None",
-            yield: 8500,
-            status: "Approved",
-            createdAt: "2023-06-01T00:00:00Z"
-        },
-        {
-            id: 'sample-2',
-            farmerName: "Maria Garcia",
-            locationFarm: "Sunrise Acres",
-            soilType: "sandy",
-            cropType: "Wheat",
-            plantingDate: "2023-03-10",
-            weather: "cloudy",
-            disease: "Rust fungus detected",
-            yield: 4200,
-            status: "Pending Review",
-            createdAt: "2023-06-02T00:00:00Z"
-        }
-    ];
-}
 
 // Test Firebase connection
 window.testFirebaseConnection = async function() {
