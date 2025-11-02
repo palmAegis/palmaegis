@@ -162,7 +162,14 @@
     </style>
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+        import { 
+            getAuth, 
+            onAuthStateChanged, 
+            signOut, 
+            setPersistence, 
+            browserLocalPersistence,
+            browserSessionPersistence 
+        } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
         import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
         // Firebase configuration
@@ -180,10 +187,20 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Set persistence to LOCAL to maintain session across tabs/browser restarts
+        setPersistence(auth, browserLocalPersistence)
+            .then(() => {
+                console.log("Auth persistence set to LOCAL");
+            })
+            .catch((error) => {
+                console.error("Error setting auth persistence:", error);
+            });
+
         // Check authentication state
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log('User is signed in:', user.email);
+                console.log('User persistence state:', user.stsTokenManager.persistence);
                 window.currentUser = user;
                 
                 try {
@@ -203,7 +220,10 @@
                 }
             } else {
                 console.log('User is not signed in');
-                window.location.href = 'signin.html';
+                // Only redirect if we're not already on the signin page
+                if (!window.location.href.includes('signin.html')) {
+                    window.location.href = 'signin.html';
+                }
             }
         });
 
@@ -293,7 +313,11 @@
                 logoutBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     
+                    // Clear any local storage that might interfere with auth
+                    localStorage.removeItem('firebase:authUser:' + firebaseConfig.apiKey + ':[DEFAULT]');
+                    
                     signOut(auth).then(() => {
+                        console.log('User signed out successfully');
                         window.location.href = 'signin.html';
                     }).catch((error) => {
                         console.error('Logout error:', error);
