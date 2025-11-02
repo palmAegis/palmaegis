@@ -129,7 +129,7 @@
 
       <div>
         <!-- Add User Button -->
-        <button class="btn" id="btnAddUser"><i class="fa-solid fa-user-plus"></i>&nbsp;Add User</button>
+        <!-- <button class="btn" id="btnAddUser"><i class="fa-solid fa-user-plus"></i>&nbsp;Add User</button> -->
         
         <!-- Back to Dashboard Button -->
         <a href="admindashboard.html">
@@ -182,7 +182,7 @@
   </div>
 
   <!-- Modal (Add / Edit) -->
-  <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
+  <!-- <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
     <div class="modal" role="document">
       <h3 id="modalTitle">Add user</h3>
       <div>
@@ -216,7 +216,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <!-- Firebase SDKs (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -346,9 +346,6 @@
           </td>
           <td class="muted">${formatDate(user.createdAt)}</td>
           <td class="action-btns">
-            <button class="ghost edit-user" data-userid="${user.id}">
-              <i class="fa-solid fa-pen"></i>
-            </button>
             <button class="danger delete-user" data-userid="${user.id}">
               <i class="fa-solid fa-trash"></i>
             </button>
