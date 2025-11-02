@@ -10,15 +10,20 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase with error handling
-let db;
+let db, auth;
 try {
     firebase.initializeApp(firebaseConfig);
     db = firebase.firestore();
+    auth = firebase.auth();
     console.log("Firebase initialized successfully");
 } catch (error) {
     console.error("Firebase initialization error:", error);
     db = null;
+    auth = null;
 }
+
+// Current user state
+let currentUser = null;
 
 // DOM Elements
 const manualTab = document.getElementById('manual-tab');
@@ -37,6 +42,8 @@ const viewHistoryBtn = document.getElementById('view-history');
 const reportOutput = document.getElementById('report-output');
 const historySection = document.getElementById('history-section');
 const historyList = document.getElementById('history-list');
+const logoutBtn = document.getElementById('logout-btn');
+const userInfo = document.getElementById('user-info');
 
 // Create status message element
 const statusMessage = document.createElement('div');
@@ -57,6 +64,234 @@ statusMessage.style.cssText = `
 `;
 document.body.appendChild(statusMessage);
 
+// Authentication state observer
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        currentUser = user;
+        console.log("User is signed in:", user.email);
+        showStatus(`Welcome, ${user.email}`, 'success');
+        enableFormControls(true);
+        logoutBtn.style.display = 'block';
+        userInfo.style.display = 'block';
+        userInfo.innerHTML = `Signed in as: <strong>${user.email}</strong>`;
+        updateLanguage(); // Refresh language after login
+    } else {
+        currentUser = null;
+        console.log("User is signed out");
+        showStatus('Please sign in to use the application', 'warning');
+        enableFormControls(false);
+        logoutBtn.style.display = 'none';
+        userInfo.style.display = 'none';
+        showLoginModal();
+    }
+});
+
+// Function to enable/disable form controls based on auth state
+function enableFormControls(enabled) {
+    const formControls = [
+        'tree-id', 'tree-species', 'location', 'health-status', 
+        'disease-type', 'severity', 'notes', 'analyze-btn',
+        'generate-report', 'download-pdf', 'download-excel', 'view-history'
+    ];
+    
+    formControls.forEach(controlId => {
+        const element = document.getElementById(controlId);
+        if (element) {
+            element.disabled = !enabled;
+        }
+    });
+    
+    // Also disable file upload
+    const uploadArea = document.getElementById('upload-area');
+    if (uploadArea) {
+        uploadArea.style.opacity = enabled ? '1' : '0.5';
+        uploadArea.style.pointerEvents = enabled ? 'auto' : 'none';
+    }
+    
+    // Update submit button
+    const submitBtn = document.querySelector('.submit-btn');
+    if (submitBtn) {
+        submitBtn.disabled = !enabled;
+    }
+}
+
+// Login modal and functions
+function showLoginModal() {
+    // Remove existing modal if any
+    const existingModal = document.getElementById('login-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    const modalHTML = `
+        <div id="login-modal" class="modal-overlay" style="
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        ">
+            <div class="modal-content" style="
+                background: white;
+                padding: 30px;
+                border-radius: 10px;
+                width: 90%;
+                max-width: 400px;
+                text-align: center;
+            ">
+                <h3 style="margin-bottom: 20px;" data-en="Sign In Required" data-my="Log Masuk Diperlukan">Sign In Required</h3>
+                <p style="margin-bottom: 20px;" data-en="Please sign in to access tree health monitoring features." data-my="Sila log masuk untuk menggunakan sistem pemantauan kesihatan pokok.">Please sign in to access tree health monitoring features.</p>
+                <div style="margin-bottom: 15px;">
+                    <input type="email" id="login-email" placeholder="Email" style="
+                        width: 100%;
+                        padding: 10px;
+                        margin-bottom: 10px;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                    ">
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <input type="password" id="login-password" placeholder="Password" style="
+                        width: 100%;
+                        padding: 10px;
+                        margin-bottom: 10px;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                    ">
+                </div>
+                <button id="login-btn" style="
+                    background: #4caf50;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                    margin-right: 10px;
+                " data-en="Sign In" data-my="Log Masuk">Sign In</button>
+                <button id="signup-btn" style="
+                    background: #2196f3;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 5px;
+                    cursor: pointer;
+                " data-en="Sign Up" data-my="Daftar">Sign Up</button>
+                <div id="login-status" style="margin-top: 15px; color: #f44336;"></div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Add event listeners
+    document.getElementById('login-btn').addEventListener('click', handleLogin);
+    document.getElementById('signup-btn').addEventListener('click', handleSignUp);
+    
+    // Enter key support
+    const loginPassword = document.getElementById('login-password');
+    if (loginPassword) {
+        loginPassword.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+    }
+    
+    // Update language for modal elements
+    updateModalLanguage();
+}
+
+function updateModalLanguage() {
+    const modalElements = document.querySelectorAll('#login-modal [data-en]');
+    modalElements.forEach(element => {
+        const translation = element.getAttribute(`data-${currentLanguage}`);
+        if (translation) {
+            if (element.tagName === 'INPUT') {
+                element.placeholder = translation;
+            } else {
+                element.textContent = translation;
+            }
+        }
+    });
+}
+
+function handleLogin() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const statusElement = document.getElementById('login-status');
+    
+    if (!email || !password) {
+        statusElement.textContent = currentLanguage === 'en' ? 'Please enter both email and password' : 'Sila masukkan kedua-dua email dan kata laluan';
+        return;
+    }
+    
+    statusElement.textContent = currentLanguage === 'en' ? 'Signing in...' : 'Sedang log masuk...';
+    statusElement.style.color = '#2196f3';
+    
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Signed in successfully - modal will close automatically due to auth state change
+            statusElement.textContent = currentLanguage === 'en' ? 'Success!' : 'Berjaya!';
+            statusElement.style.color = '#4caf50';
+        })
+        .catch((error) => {
+            console.error('Login error:', error);
+            const errorMessage = currentLanguage === 'en' 
+                ? `Error: ${error.message}` 
+                : `Ralat: ${error.message}`;
+            statusElement.textContent = errorMessage;
+            statusElement.style.color = '#f44336';
+        });
+}
+
+function handleSignUp() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    const statusElement = document.getElementById('login-status');
+    
+    if (!email || !password) {
+        statusElement.textContent = currentLanguage === 'en' ? 'Please enter both email and password' : 'Sila masukkan kedua-dua email dan kata laluan';
+        return;
+    }
+    
+    if (password.length < 6) {
+        statusElement.textContent = currentLanguage === 'en' ? 'Password must be at least 6 characters' : 'Kata laluan mesti sekurang-kurangnya 6 aksara';
+        return;
+    }
+    
+    statusElement.textContent = currentLanguage === 'en' ? 'Creating account...' : 'Membuat akaun...';
+    statusElement.style.color = '#2196f3';
+    
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            statusElement.textContent = currentLanguage === 'en' ? 'Account created successfully!' : 'Akaun berjaya dibuat!';
+            statusElement.style.color = '#4caf50';
+        })
+        .catch((error) => {
+            console.error('Signup error:', error);
+            const errorMessage = currentLanguage === 'en' 
+                ? `Error: ${error.message}` 
+                : `Ralat: ${error.message}`;
+            statusElement.textContent = errorMessage;
+            statusElement.style.color = '#f44336';
+        });
+}
+
+// Logout functionality
+logoutBtn.addEventListener('click', () => {
+    auth.signOut().then(() => {
+        showStatus(currentLanguage === 'en' ? 'Signed out successfully' : 'Log keluar berjaya', 'info');
+    }).catch((error) => {
+        console.error('Logout error:', error);
+        showStatus(currentLanguage === 'en' ? 'Error signing out' : 'Ralat semasa log keluar', 'error');
+    });
+});
+
 // Tab Switching
 manualTab.addEventListener('click', () => {
     manualTab.classList.add('active');
@@ -74,12 +309,16 @@ aiTab.addEventListener('click', () => {
 
 // Image Upload Handling
 uploadArea.addEventListener('click', () => {
-    imageUpload.click();
+    if (currentUser) {
+        imageUpload.click();
+    }
 });
 
 uploadArea.addEventListener('dragover', (e) => {
     e.preventDefault();
-    uploadArea.style.backgroundColor = '#f1f8e9';
+    if (currentUser) {
+        uploadArea.style.backgroundColor = '#f1f8e9';
+    }
 });
 
 uploadArea.addEventListener('dragleave', () => {
@@ -89,12 +328,16 @@ uploadArea.addEventListener('dragleave', () => {
 uploadArea.addEventListener('drop', (e) => {
     e.preventDefault();
     uploadArea.style.backgroundColor = '';
-    const files = e.dataTransfer.files;
-    handleImageFiles(files);
+    if (currentUser) {
+        const files = e.dataTransfer.files;
+        handleImageFiles(files);
+    }
 });
 
 imageUpload.addEventListener('change', (e) => {
-    handleImageFiles(e.target.files);
+    if (currentUser) {
+        handleImageFiles(e.target.files);
+    }
 });
 
 function handleImageFiles(files) {
@@ -121,13 +364,18 @@ function handleImageFiles(files) {
 
 // AI Analysis Simulation
 analyzeBtn.addEventListener('click', () => {
+    if (!currentUser) {
+        showStatus('Please sign in to use AI analysis', 'warning');
+        return;
+    }
+    
     if (imagePreview.children.length === 0) {
         showStatus('Please upload at least one image first.', 'warning');
         return;
     }
     
     // Show loading state
-    analyzeBtn.textContent = 'Analyzing...';
+    analyzeBtn.textContent = currentLanguage === 'en' ? 'Analyzing...' : 'Menganalisis...';
     analyzeBtn.disabled = true;
     
     // Simulate AI processing delay
@@ -138,7 +386,7 @@ analyzeBtn.addEventListener('click', () => {
         // Populate form with AI results
         document.getElementById('tree-id').value = 'AI-' + Math.floor(1000 + Math.random() * 9000);
         document.getElementById('tree-species').value = mockResults.species;
-        document.getElementById('location').value = 'AI Detected Location';
+        document.getElementById('location').value = currentLanguage === 'en' ? 'AI Detected Location' : 'Lokasi Dikesan AI';
         document.getElementById('health-status').value = mockResults.healthStatus;
         document.getElementById('disease-type').value = mockResults.diseaseType;
         document.getElementById('severity').value = mockResults.severity;
@@ -157,7 +405,7 @@ analyzeBtn.addEventListener('click', () => {
         document.getElementById('notes').value = mockResults.notes;
         
         // Reset button
-        analyzeBtn.textContent = 'Analyze Images';
+        analyzeBtn.textContent = currentLanguage === 'en' ? 'Analyze Images' : 'Analisis Imej';
         analyzeBtn.disabled = false;
         
         // Switch to manual tab to show results
@@ -168,7 +416,7 @@ analyzeBtn.addEventListener('click', () => {
 });
 
 function generateMockAIAnalysis() {
-    const speciesOptions = ['oak', 'maple', 'pine', 'palm', 'birch'];
+    const speciesOptions = ['ganoderma', 'basal-stem-rot', 'black-spot', 'marasmius', 'fusarium'];
     const diseaseOptions = ['none', 'fungal', 'bacterial', 'pest', 'nutrient'];
     const severityOptions = ['none', 'low', 'medium', 'high', 'critical'];
     const healthOptions = ['excellent', 'good', 'fair', 'poor', 'critical'];
@@ -218,6 +466,11 @@ healthForm.addEventListener('submit', (e) => {
 generateReportBtn.addEventListener('click', generateHealthReport);
 
 function generateHealthReport() {
+    if (!currentUser) {
+        showStatus('Please sign in to generate reports', 'warning');
+        return;
+    }
+    
     // Get form values
     const treeId = document.getElementById('tree-id').value;
     const species = document.getElementById('tree-species').value;
@@ -251,7 +504,9 @@ function generateHealthReport() {
         affectedParts,
         notes,
         timestamp: new Date().toISOString(),
-        reportId: 'RPT-' + Date.now()
+        reportId: 'RPT-' + Date.now(),
+        userId: currentUser.uid,
+        userEmail: currentUser.email
     };
     
     // Display report
@@ -267,43 +522,45 @@ function displayReport(report) {
     const reportHTML = `
         <div class="health-report">
             <div class="report-header">
-                <h3>Tree Health Report</h3>
+                <h3 data-en="Tree Health Report" data-my="Laporan Kesihatan Pokok">Tree Health Report</h3>
                 <p>Generated on: ${new Date(report.timestamp).toLocaleString()}</p>
+                <p><small>User: ${report.userEmail}</small></p>
             </div>
             <div class="report-details">
                 <div class="detail-item">
-                    <span class="detail-label">Tree ID:</span> ${report.treeId}
+                    <span class="detail-label" data-en="Tree ID:" data-my="ID Pokok:">Tree ID:</span> ${report.treeId}
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Species:</span> ${report.species}
+                    <span class="detail-label" data-en="Species:" data-my="Spesies:">Species:</span> ${report.species}
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Location:</span> ${report.location}
+                    <span class="detail-label" data-en="Location:" data-my="Lokasi:">Location:</span> ${report.location}
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Health Status:</span> ${report.healthStatus}
+                    <span class="detail-label" data-en="Health Status:" data-my="Status Kesihatan:">Health Status:</span> ${report.healthStatus}
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Disease Type:</span> ${report.diseaseType}
+                    <span class="detail-label" data-en="Disease Type:" data-my="Jenis Penyakit:">Disease Type:</span> ${report.diseaseType}
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Severity:</span> 
+                    <span class="detail-label" data-en="Severity:" data-my="Keterukan:">Severity:</span> 
                     <span class="severity-indicator ${severityClass}">${report.severity}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Affected Parts:</span> ${report.affectedParts.join(', ') || 'None'}
+                    <span class="detail-label" data-en="Affected Parts:" data-my="Bahagian Terjejas:">Affected Parts:</span> ${report.affectedParts.join(', ') || 'None'}
                 </div>
             </div>
             <div class="detail-item">
-                <span class="detail-label">Notes:</span> ${report.notes || 'No additional notes.'}
+                <span class="detail-label" data-en="Notes:" data-my="Nota:">Notes:</span> ${report.notes || 'No additional notes.'}
             </div>
             <div class="save-status" id="save-status" style="margin-top: 15px; padding: 10px; border-radius: 5px; display: none;">
-                <span class="detail-label">Save Status:</span> <span id="save-status-text"></span>
+                <span class="detail-label" data-en="Save Status:" data-my="Status Simpan:">Save Status:</span> <span id="save-status-text"></span>
             </div>
         </div>
     `;
     
     reportOutput.innerHTML = reportHTML;
+    updateLanguage(); // Update language for the newly generated report
 }
 
 // Status message function
@@ -315,7 +572,112 @@ function showStatus(message, type = 'info') {
         info: '#2196f3'
     };
     
-    statusMessage.textContent = message;
+    // Language-specific messages
+    const messages = {
+        'Welcome, ${user.email}': {
+            en: `Welcome, ${currentUser?.email || 'User'}`,
+            my: `Selamat datang, ${currentUser?.email || 'Pengguna'}`
+        },
+        'Please sign in to use the application': {
+            en: 'Please sign in to use the application',
+            my: 'Sila log masuk untuk menggunakan aplikasi'
+        },
+        'Please sign in to use AI analysis': {
+            en: 'Please sign in to use AI analysis',
+            my: 'Sila log masuk untuk menggunakan analisis AI'
+        },
+        'Please upload at least one image first.': {
+            en: 'Please upload at least one image first.',
+            my: 'Sila muat naik sekurang-kurangnya satu imej dahulu.'
+        },
+        'AI analysis complete! Form populated with detected health issues.': {
+            en: 'AI analysis complete! Form populated with detected health issues.',
+            my: 'Analisis AI selesai! Borang diisi dengan isu kesihatan yang dikesan.'
+        },
+        'Please fill in all required fields (Tree ID, Species, Location, Health Status).': {
+            en: 'Please fill in all required fields (Tree ID, Species, Location, Health Status).',
+            my: 'Sila isi semua medan wajib (ID Pokok, Spesies, Lokasi, Status Kesihatan).'
+        },
+        'Please sign in to generate reports': {
+            en: 'Please sign in to generate reports',
+            my: 'Sila log masuk untuk menjana laporan'
+        },
+        'Report saved successfully to cloud database!': {
+            en: 'Report saved successfully to cloud database!',
+            my: 'Laporan berjaya disimpan ke pangkalan data awan!'
+        },
+        'Database permission denied. Report saved locally.': {
+            en: 'Database permission denied. Report saved locally.',
+            my: 'Kebenaran pangkalan data ditolak. Laporan disimpan secara tempatan.'
+        },
+        'Error connecting to database. Report saved locally instead.': {
+            en: 'Error connecting to database. Report saved locally instead.',
+            my: 'Ralat menyambung ke pangkalan data. Laporan disimpan secara tempatan.'
+        },
+        'Please sign in to view history': {
+            en: 'Please sign in to view history',
+            my: 'Sila log masuk untuk melihat sejarah'
+        },
+        'Historical reports loaded from cloud database.': {
+            en: 'Historical reports loaded from cloud database.',
+            my: 'Laporan sejarah dimuatkan dari pangkalan data awan.'
+        },
+        'No historical reports found.': {
+            en: 'No historical reports found.',
+            my: 'Tiada laporan sejarah ditemui.'
+        },
+        'Historical reports loaded from local storage.': {
+            en: 'Historical reports loaded from local storage.',
+            my: 'Laporan sejarah dimuatkan dari storan tempatan.'
+        },
+        'Error loading historical reports.': {
+            en: 'Error loading historical reports.',
+            my: 'Ralat memuatkan laporan sejarah.'
+        },
+        'Please generate a report first.': {
+            en: 'Please generate a report first.',
+            my: 'Sila hasilkan laporan dahulu.'
+        },
+        'PDF report downloaded successfully!': {
+            en: 'PDF report downloaded successfully!',
+            my: 'Laporan PDF berjaya dimuat turun!'
+        },
+        'Excel report downloaded successfully!': {
+            en: 'Excel report downloaded successfully!',
+            my: 'Laporan Excel berjaya dimuat turun!'
+        },
+        'Signed out successfully': {
+            en: 'Signed out successfully',
+            my: 'Log keluar berjaya'
+        },
+        'Error signing out': {
+            en: 'Error signing out',
+            my: 'Ralat semasa log keluar'
+        },
+        'Report saved successfully to local storage!': {
+            en: 'Report saved successfully to local storage!',
+            my: 'Laporan berjaya disimpan ke storan tempatan!'
+        },
+        'Error saving report locally. Please try again.': {
+            en: 'Error saving report locally. Please try again.',
+            my: 'Ralat menyimpan laporan secara tempatan. Sila cuba lagi.'
+        }
+    };
+    
+    // Get the translated message
+    let translatedMessage = message;
+    if (messages[message]) {
+        translatedMessage = messages[message][currentLanguage] || message;
+    } else {
+        // Handle dynamic messages with placeholders
+        Object.keys(messages).forEach(key => {
+            if (message.includes(key.replace('${user.email}', ''))) {
+                translatedMessage = messages[key][currentLanguage] || message;
+            }
+        });
+    }
+    
+    statusMessage.textContent = translatedMessage;
     statusMessage.style.backgroundColor = colors[type] || colors.info;
     statusMessage.style.opacity = '1';
     
@@ -326,6 +688,12 @@ function showStatus(message, type = 'info') {
 
 // Firebase Operations with fallback to localStorage
 function saveReportToFirebase(report) {
+    if (!currentUser) {
+        showStatus('Please sign in to save reports', 'warning');
+        saveReportToLocalStorage(report);
+        return;
+    }
+    
     // Show saving status in report
     const saveStatusElement = document.getElementById('save-status');
     const saveStatusText = document.getElementById('save-status-text');
@@ -334,7 +702,7 @@ function saveReportToFirebase(report) {
         saveStatusElement.style.display = 'block';
         saveStatusElement.style.backgroundColor = '#fff3cd';
         saveStatusElement.style.border = '1px solid #ffeaa7';
-        saveStatusText.textContent = 'Saving to database...';
+        saveStatusText.textContent = currentLanguage === 'en' ? 'Saving to database...' : 'Menyimpan ke pangkalan data...';
         saveStatusText.style.color = '#856404';
     }
     
@@ -352,7 +720,7 @@ function saveReportToFirebase(report) {
             if (saveStatusElement && saveStatusText) {
                 saveStatusElement.style.backgroundColor = '#d4edda';
                 saveStatusElement.style.border = '1px solid #c3e6cb';
-                saveStatusText.textContent = '✓ Successfully saved to cloud database';
+                saveStatusText.textContent = currentLanguage === 'en' ? '✓ Successfully saved to cloud database' : '✓ Berjaya disimpan ke pangkalan data awan';
                 saveStatusText.style.color = '#155724';
             }
             
@@ -363,21 +731,18 @@ function saveReportToFirebase(report) {
         })
         .catch((error) => {
             console.error('Error saving report to Firebase: ', error);
-            console.error('Error details:', error.code, error.message);
             
             // Update save status for error
             if (saveStatusElement && saveStatusText) {
                 saveStatusElement.style.backgroundColor = '#f8d7da';
                 saveStatusElement.style.border = '1px solid #f5c6cb';
-                saveStatusText.textContent = '⚠ Saved locally (cloud sync failed)';
+                saveStatusText.textContent = currentLanguage === 'en' ? '⚠ Saved locally (cloud sync failed)' : '⚠ Disimpan secara tempatan (sync awan gagal)';
                 saveStatusText.style.color = '#721c24';
             }
             
             // Fallback to localStorage
-            console.warn('Falling back to localStorage');
             saveReportToLocalStorage(report);
             
-            // Show user-friendly error message
             if (error.code === 'permission-denied') {
                 showStatus('Database permission denied. Report saved locally.', 'warning');
             } else {
@@ -400,7 +765,6 @@ function saveReportToLocalStorage(report) {
         
         console.log('Report saved to localStorage successfully');
         
-        // Only show success message if not already shown from Firebase
         const saveStatusElement = document.getElementById('save-status');
         if (saveStatusElement && saveStatusElement.style.display !== 'block') {
             showStatus('Report saved successfully to local storage!', 'success');
@@ -413,19 +777,24 @@ function saveReportToLocalStorage(report) {
 
 // View History - checks both Firebase and localStorage
 viewHistoryBtn.addEventListener('click', () => {
+    if (!currentUser) {
+        showStatus('Please sign in to view history', 'warning');
+        return;
+    }
+    
     if (historySection.style.display === 'none') {
         loadHistory();
         historySection.style.display = 'block';
-        viewHistoryBtn.textContent = 'Hide History';
+        viewHistoryBtn.textContent = currentLanguage === 'en' ? 'Hide History' : 'Sembunyi Sejarah';
         showStatus('Loading historical reports...', 'info');
     } else {
         historySection.style.display = 'none';
-        viewHistoryBtn.textContent = 'View History';
+        viewHistoryBtn.textContent = currentLanguage === 'en' ? 'View History' : 'Lihat Sejarah';
     }
 });
 
 function loadHistory() {
-    historyList.innerHTML = '<p>Loading history...</p>';
+    historyList.innerHTML = '<p>' + (currentLanguage === 'en' ? 'Loading history...' : 'Memuatkan sejarah...') + '</p>';
     
     // Try Firebase first, then fallback to localStorage
     if (db) {
@@ -436,7 +805,13 @@ function loadHistory() {
 }
 
 function loadHistoryFromFirebase() {
+    if (!currentUser) {
+        showStatus('Please sign in to view history', 'warning');
+        return;
+    }
+    
     db.collection('treeHealthReports')
+        .where('userId', '==', currentUser.uid) // Only get current user's reports
         .orderBy('timestamp', 'desc')
         .limit(10)
         .get()
@@ -459,16 +834,21 @@ function loadHistoryFromFirebase() {
 
 function loadHistoryFromLocalStorage() {
     try {
-        const reports = JSON.parse(localStorage.getItem('treeHealthReports') || '[]');
+        const allReports = JSON.parse(localStorage.getItem('treeHealthReports') || '[]');
         
-        if (reports.length === 0) {
-            historyList.innerHTML = '<p>No historical reports found.</p>';
+        // Filter reports by current user
+        const userReports = currentUser 
+            ? allReports.filter(report => report.userId === currentUser.uid)
+            : [];
+        
+        if (userReports.length === 0) {
+            historyList.innerHTML = '<p>' + (currentLanguage === 'en' ? 'No historical reports found.' : 'Tiada laporan sejarah ditemui.') + '</p>';
             showStatus('No historical reports found.', 'info');
             return;
         }
         
         // Sort by timestamp (newest first) and take latest 10
-        const sortedReports = reports
+        const sortedReports = userReports
             .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
             .slice(0, 10);
             
@@ -476,7 +856,7 @@ function loadHistoryFromLocalStorage() {
         showStatus('Historical reports loaded from local storage.', 'info');
     } catch (error) {
         console.error('Error loading history from localStorage:', error);
-        historyList.innerHTML = '<p>Error loading history.</p>';
+        historyList.innerHTML = '<p>' + (currentLanguage === 'en' ? 'Error loading history.' : 'Ralat memuatkan sejarah.') + '</p>';
         showStatus('Error loading historical reports.', 'error');
     }
 }
@@ -508,14 +888,15 @@ function addHistoryItemToDOM(report) {
             <span class="history-item-date">${new Date(report.timestamp).toLocaleDateString()}</span>
         </div>
         <div class="history-item-details">
-            <div>Species: ${report.species}</div>
-            <div>Health: ${report.healthStatus}</div>
-            <div>Disease: ${report.diseaseType}</div>
-            <div>Severity: <span class="severity-indicator severity-${report.severity}">${report.severity}</span></div>
+            <div><span data-en="Species:" data-my="Spesies:">Species:</span> ${report.species}</div>
+            <div><span data-en="Health:" data-my="Kesihatan:">Health:</span> ${report.healthStatus}</div>
+            <div><span data-en="Disease:" data-my="Penyakit:">Disease:</span> ${report.diseaseType}</div>
+            <div><span data-en="Severity:" data-my="Keterukan:">Severity:</span> <span class="severity-indicator severity-${report.severity}">${report.severity}</span></div>
         </div>
     `;
     
     historyList.appendChild(historyItem);
+    updateLanguage(); // Update language for history items
 }
 
 // Export Functions
@@ -523,6 +904,11 @@ downloadPdfBtn.addEventListener('click', downloadPDF);
 downloadExcelBtn.addEventListener('click', downloadExcel);
 
 function downloadPDF() {
+    if (!currentUser) {
+        showStatus('Please sign in to download reports', 'warning');
+        return;
+    }
+    
     const reportElement = document.querySelector('.health-report');
     
     if (!reportElement) {
@@ -535,21 +921,22 @@ function downloadPDF() {
     
     // Simple PDF generation
     doc.setFontSize(16);
-    doc.text('Tree Health Report', 20, 20);
+    doc.text(currentLanguage === 'en' ? 'Tree Health Report' : 'Laporan Kesihatan Pokok', 20, 20);
     
     doc.setFontSize(12);
     let yPosition = 40;
     
     const details = [
-        `Tree ID: ${document.getElementById('tree-id').value}`,
-        `Species: ${document.getElementById('tree-species').value}`,
-        `Location: ${document.getElementById('location').value}`,
-        `Health Status: ${document.getElementById('health-status').value}`,
-        `Disease Type: ${document.getElementById('disease-type').value}`,
-        `Severity: ${document.getElementById('severity').value}`,
-        `Affected Parts: ${Array.from(document.querySelectorAll('input[name="affected-parts"]:checked'))
-            .map(cb => cb.value).join(', ') || 'None'}`,
-        `Notes: ${document.getElementById('notes').value || 'None'}`
+        `${currentLanguage === 'en' ? 'Tree ID' : 'ID Pokok'}: ${document.getElementById('tree-id').value}`,
+        `${currentLanguage === 'en' ? 'Species' : 'Spesies'}: ${document.getElementById('tree-species').value}`,
+        `${currentLanguage === 'en' ? 'Location' : 'Lokasi'}: ${document.getElementById('location').value}`,
+        `${currentLanguage === 'en' ? 'Health Status' : 'Status Kesihatan'}: ${document.getElementById('health-status').value}`,
+        `${currentLanguage === 'en' ? 'Disease Type' : 'Jenis Penyakit'}: ${document.getElementById('disease-type').value}`,
+        `${currentLanguage === 'en' ? 'Severity' : 'Keterukan'}: ${document.getElementById('severity').value}`,
+        `${currentLanguage === 'en' ? 'Affected Parts' : 'Bahagian Terjejas'}: ${Array.from(document.querySelectorAll('input[name="affected-parts"]:checked'))
+            .map(cb => cb.value).join(', ') || (currentLanguage === 'en' ? 'None' : 'Tiada')}`,
+        `${currentLanguage === 'en' ? 'Notes' : 'Nota'}: ${document.getElementById('notes').value || (currentLanguage === 'en' ? 'None' : 'Tiada')}`,
+        `${currentLanguage === 'en' ? 'User' : 'Pengguna'}: ${currentUser.email}`
     ];
     
     details.forEach(detail => {
@@ -562,13 +949,18 @@ function downloadPDF() {
         yPosition += 10;
     });
     
-    doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, yPosition + 10);
+    doc.text(`${currentLanguage === 'en' ? 'Generated on' : 'Dijana pada'}: ${new Date().toLocaleString()}`, 20, yPosition + 10);
     
     doc.save(`tree-health-report-${document.getElementById('tree-id').value}.pdf`);
     showStatus('PDF report downloaded successfully!', 'success');
 }
 
 function downloadExcel() {
+    if (!currentUser) {
+        showStatus('Please sign in to download reports', 'warning');
+        return;
+    }
+    
     const reportElement = document.querySelector('.health-report');
     
     if (!reportElement) {
@@ -578,47 +970,42 @@ function downloadExcel() {
     
     // Create worksheet
     const worksheet = XLSX.utils.aoa_to_sheet([
-        ['Tree Health Report'],
+        [currentLanguage === 'en' ? 'Tree Health Report' : 'Laporan Kesihatan Pokok'],
         [''],
-        ['Tree ID', document.getElementById('tree-id').value],
-        ['Species', document.getElementById('tree-species').value],
-        ['Location', document.getElementById('location').value],
-        ['Health Status', document.getElementById('health-status').value],
-        ['Disease Type', document.getElementById('disease-type').value],
-        ['Severity', document.getElementById('severity').value],
-        ['Affected Parts', Array.from(document.querySelectorAll('input[name="affected-parts"]:checked'))
-            .map(cb => cb.value).join(', ') || 'None'],
-        ['Notes', document.getElementById('notes').value || 'None'],
+        [currentLanguage === 'en' ? 'Tree ID' : 'ID Pokok', document.getElementById('tree-id').value],
+        [currentLanguage === 'en' ? 'Species' : 'Spesies', document.getElementById('tree-species').value],
+        [currentLanguage === 'en' ? 'Location' : 'Lokasi', document.getElementById('location').value],
+        [currentLanguage === 'en' ? 'Health Status' : 'Status Kesihatan', document.getElementById('health-status').value],
+        [currentLanguage === 'en' ? 'Disease Type' : 'Jenis Penyakit', document.getElementById('disease-type').value],
+        [currentLanguage === 'en' ? 'Severity' : 'Keterukan', document.getElementById('severity').value],
+        [currentLanguage === 'en' ? 'Affected Parts' : 'Bahagian Terjejas', Array.from(document.querySelectorAll('input[name="affected-parts"]:checked'))
+            .map(cb => cb.value).join(', ') || (currentLanguage === 'en' ? 'None' : 'Tiada')],
+        [currentLanguage === 'en' ? 'Notes' : 'Nota', document.getElementById('notes').value || (currentLanguage === 'en' ? 'None' : 'Tiada')],
+        [currentLanguage === 'en' ? 'User' : 'Pengguna', currentUser.email],
         [''],
-        ['Generated on', new Date().toLocaleString()]
+        [currentLanguage === 'en' ? 'Generated on' : 'Dijana pada', new Date().toLocaleString()]
     ]);
     
     // Create workbook
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Health Report');
+    XLSX.utils.book_append_sheet(workbook, worksheet, currentLanguage === 'en' ? 'Health Report' : 'Laporan Kesihatan');
     
     // Generate and download file
     XLSX.writeFile(workbook, `tree-health-report-${document.getElementById('tree-id').value}.xlsx`);
     showStatus('Excel report downloaded successfully!', 'success');
 }
 
-// Initialize the application
-console.log('Tree Health Monitoring System initialized');
-showStatus('Tree Health Monitoring System ready!', 'success');
-// Add this to your treehealth.js file
-
 // Language Management
 let currentLanguage = 'en'; // Default language is English
 
-// DOM Elements for language
-const languageSwitcher = document.getElementById('language-switcher');
-
 // Language switching functionality
+const languageSwitcher = document.getElementById('language-switcher');
 languageSwitcher.addEventListener('click', toggleLanguage);
 
 function toggleLanguage() {
     currentLanguage = currentLanguage === 'en' ? 'my' : 'en';
     updateLanguage();
+    saveLanguagePreference();
 }
 
 function updateLanguage() {
@@ -664,13 +1051,25 @@ function updateLanguage() {
             : 'Tiada laporan dihasilkan lagi. Isi borang dan klik "Hasilkan Laporan".';
     }
     
-    // Update status messages if any are active
-    updateStatusMessagesLanguage();
-}
-
-function updateStatusMessagesLanguage() {
-    // This function would update any active status messages
-    // You can implement this based on your status message system
+    // Update logout button
+    if (logoutBtn) {
+        logoutBtn.textContent = currentLanguage === 'en' ? 'Logout' : 'Log Keluar';
+    }
+    
+    // Update view history button text if it's expanded
+    if (historySection.style.display !== 'none') {
+        viewHistoryBtn.textContent = currentLanguage === 'en' ? 'Hide History' : 'Sembunyi Sejarah';
+    } else {
+        viewHistoryBtn.textContent = currentLanguage === 'en' ? 'View History' : 'Lihat Sejarah';
+    }
+    
+    // Update analyze button if it's in loading state
+    if (analyzeBtn.textContent.includes('Analyzing') || analyzeBtn.textContent.includes('Menganalisis')) {
+        analyzeBtn.textContent = currentLanguage === 'en' ? 'Analyzing...' : 'Menganalisis...';
+    }
+    
+    // Update modal language if it's open
+    updateModalLanguage();
 }
 
 // Initialize language on page load
@@ -688,61 +1087,13 @@ function saveLanguagePreference() {
     localStorage.setItem('preferredLanguage', currentLanguage);
 }
 
-// Modify the toggleLanguage function to save preference
-function toggleLanguage() {
-    currentLanguage = currentLanguage === 'en' ? 'my' : 'en';
-    updateLanguage();
-    saveLanguagePreference();
-}
+// Initialize the application
+console.log('Tree Health Monitoring System initialized');
+// Don't show initial status until auth state is determined
 
-// Update your existing status message function to support multiple languages
-function showStatus(message, type = 'info') {
-    // You can create language-specific messages here
-    const messages = {
-        // Success messages
-        'Report saved successfully to cloud database!': {
-            en: 'Report saved successfully to cloud database!',
-            my: 'Laporan berjaya disimpan ke pangkalan data awan!'
-        },
-        'Oil palm analysis complete! Form populated with detected issues.': {
-            en: 'Oil palm analysis complete! Form populated with detected issues.',
-            my: 'Analisis kelapa sawit selesai! Borang diisi dengan isu yang dikesan.'
-        },
-        'PDF report downloaded successfully!': {
-            en: 'PDF report downloaded successfully!',
-            my: 'Laporan PDF berjaya dimuat turun!'
-        },
-        // Warning messages
-        'Please upload at least one image first.': {
-            en: 'Please upload at least one image first.',
-            my: 'Sila muat naik sekurang-kurangnya satu imej dahulu.'
-        },
-        'Please generate a report first.': {
-            en: 'Please generate a report first.',
-            my: 'Sila hasilkan laporan dahulu.'
-        },
-        // Error messages
-        'Error connecting to database. Report saved locally instead.': {
-            en: 'Error connecting to database. Report saved locally instead.',
-            my: 'Ralat menyambung ke pangkalan data. Laporan disimpan secara tempatan.'
-        }
-    };
-    
-    // Get the translated message or use the original
-    const translatedMessage = messages[message] ? messages[message][currentLanguage] : message;
-    
-    const colors = {
-        success: '#4caf50',
-        error: '#f44336',
-        warning: '#ff9800',
-        info: '#2196f3'
-    };
-    
-    statusMessage.textContent = translatedMessage;
-    statusMessage.style.backgroundColor = colors[type] || colors.info;
-    statusMessage.style.opacity = '1';
-    
-    setTimeout(() => {
-        statusMessage.style.opacity = '0';
-    }, 4000);
-}
+// Wait for auth state to be determined before showing initial status
+setTimeout(() => {
+    if (currentUser) {
+        showStatus(`Welcome, ${currentUser.email}`, 'success');
+    }
+}, 1000);

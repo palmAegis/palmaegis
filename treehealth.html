@@ -8,6 +8,7 @@
     <!-- Include Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <!-- Include jsPDF and SheetJS libraries for export functionality -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -17,9 +18,13 @@
         <header>
             <div class="header-top">
                 <h1>Tree Health Monitoring System</h1>
-                <button id="language-switcher" class="language-btn">BM / Malay</button>
+                <div class="header-buttons">
+                    <button id="language-switcher" class="language-btn">BM / Malay</button>
+                    <button id="logout-btn" class="logout-btn" style="display: none;">Logout</button>
+                </div>
             </div>
             <p>Track, analyze, and report on tree health conditions</p>
+            <div id="user-info" style="display: none; margin-top: 10px; font-size: 14px; color: #666;"></div>
         </header>
 
         <div class="main-content">
@@ -145,7 +150,6 @@
                     <h3 data-en="Historical Data" data-my="Data Sejarah">Historical Data</h3>
                     <div id="history-list" class="history-list"></div>
                 </div>
-                
             </div>
         </div>
     </div>
