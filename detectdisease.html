@@ -5,22 +5,62 @@
   <title>Disease Detection</title>
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 40px; }
-    #result { margin-top: 20px; font-weight: bold; }
-    video, canvas, img { max-width: 100%; margin-top: 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 40px;
+      background: #f4f4f9;
+      color: #333;
+      text-align: center;
+    }
+
+    h1 {
+      color: #2b7a78;
+    }
+
+    input, button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background-color: #3aafa9;
+      color: white;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #2b7a78;
+    }
+
+    video, canvas, img {
+      margin-top: 20px;
+      max-width: 300px;
+      border-radius: 8px;
+      border: 2px solid #ccc;
+    }
+
+    #result {
+      margin-top: 25px;
+      font-weight: bold;
+      font-size: 18px;
+      color: #17252a;
+    }
   </style>
 </head>
 <body>
-  <h1>Disease Detection</h1>
+  <h1>Oil Palm Disease Detection</h1>
 
-  <!-- Upload image -->
+  <!-- Upload Image -->
   <input type="file" id="fileInput" accept="image/*">
-  <br><br>
 
-  <!-- Take photo -->
-  <button onclick="startCamera()">Take Photo</button>
+  <br>
+
+  <!-- Camera Section -->
+  <button id="startCameraBtn" onclick="startCamera()">Take Photo</button>
+  <br>
   <video id="video" autoplay playsinline width="300" style="display:none;"></video>
-  <button onclick="capturePhoto()" style="display:none;" id="captureBtn">Capture</button>
+  <br>
+  <button id="captureBtn" onclick="capturePhoto()" style="display:none;">Capture Photo</button>
   <canvas id="canvas" width="224" height="224" style="display:none;"></canvas>
 
   <br><br>
@@ -29,16 +69,24 @@
 
   <script>
     let model;
-    let imageData;
+    let imageData = null;
 
+    // ✅ Load TensorFlow Model
     async function loadModel() {
-      model = await tf.loadLayersModel('model/model.json'); // Update with your model path
-      console.log('Model loaded');
+      try {
+        model = await tf.loadLayersModel('model/model.json'); // Update path if needed
+        console.log('✅ Model loaded successfully');
+      } catch (error) {
+        console.error('❌ Error loading model:', error);
+        alert('Failed to load model. Please check your model path.');
+      }
     }
 
+    // ✅ Start Camera
     function startCamera() {
       const video = document.getElementById('video');
       const captureBtn = document.getElementById('captureBtn');
+
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => {
           video.srcObject = stream;
@@ -48,38 +96,71 @@
         .catch(err => alert('Camera access denied: ' + err));
     }
 
+    // ✅ Capture Photo from Video
     function capturePhoto() {
       const video = document.getElementById('video');
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
+
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       imageData = tf.browser.fromPixels(canvas);
+
+      document.getElementById('result').innerText = "📸 Photo captured successfully!";
     }
 
+    // ✅ Make Prediction
     async function predict() {
       const fileInput = document.getElementById('fileInput');
       let tensor;
 
-      if (fileInput.files.length) {
+      if (!model) {
+        alert('Model not loaded yet. Please wait.');
+        return;
+      }
+
+      // If user uploaded an image
+      if (fileInput.files.length > 0) {
         const img = document.createElement('img');
         img.src = URL.createObjectURL(fileInput.files[0]);
         await new Promise(resolve => img.onload = resolve);
         tensor = tf.browser.fromPixels(img);
-      } else if (imageData) {
+      } 
+      // If photo captured
+      else if (imageData) {
         tensor = imageData;
-      } else {
+      } 
+      else {
         alert('Please upload an image or take a photo.');
         return;
       }
 
-      const input = tensor.resizeNearestNeighbor([224, 224])
+      // Preprocess image
+      const input = tensor
+        .resizeNearestNeighbor([224, 224])
         .toFloat()
-        .expandDims();
+        .expandDims(0)
+        .div(tf.scalar(255)); // Normalize 0-1 range
 
-      const prediction = await model.predict(input).data();
-      document.getElementById('result').innerText = `Prediction: ${Array.from(prediction).join(', ')}`;
+      // Predict
+      try {
+        const prediction = await model.predict(input).data();
+        const maxIndex = prediction.indexOf(Math.max(...prediction));
+
+        // Example: customize disease names here
+        const labels = ["Healthy", "Ganoderma", "Anthracnose", "Leaf Spot", "Fruit Rot"];
+        const predictedClass = labels[maxIndex] || "Unknown";
+
+        document.getElementById('result').innerHTML = `
+          🩺 <strong>Prediction:</strong> ${predictedClass}<br>
+          🔢 Confidence: ${(prediction[maxIndex] * 100).toFixed(2)}%
+        `;
+      } catch (err) {
+        console.error('Prediction error:', err);
+        alert('Prediction failed. Please check model compatibility.');
+      }
     }
 
+    // Auto load model when page opens
     loadModel();
   </script>
 </body>
