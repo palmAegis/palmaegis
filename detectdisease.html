@@ -2,65 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Oil Palm Disease Detection</title>
-  <link rel="stylesheet" href="css/style.css">
+  <title>Disease Detection</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; }
+    #result { margin-top: 20px; font-weight: bold; }
+    video, canvas, img { max-width: 100%; margin-top: 20px; }
+  </style>
 </head>
 <body>
+  <h1>Disease Detection</h1>
 
-  <h2>Teachable Machine - Oil Palm Disease Detection</h2>
+  <!-- Upload image -->
+  <input type="file" id="fileInput" accept="image/*">
+  <br><br>
 
-  <button type="button" onclick="init()">Start Camera</button>
+  <!-- Take photo -->
+  <button onclick="startCamera()">Take Photo</button>
+  <video id="video" autoplay playsinline width="300" style="display:none;"></video>
+  <button onclick="capturePhoto()" style="display:none;" id="captureBtn">Capture</button>
+  <canvas id="canvas" width="224" height="224" style="display:none;"></canvas>
 
-  <div id="webcam-container"></div>
-  <div id="label-container"></div>
+  <br><br>
+  <button onclick="predict()">Detect Disease</button>
+  <div id="result"></div>
 
-  <!-- TensorFlow.js and Teachable Machine -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
+  <script>
+    let model;
+    let imageData;
 
-  <script type="text/javascript">
-    const URL = "./my_model/";
-
-    let model, webcam, labelContainer, maxPredictions;
-
-    async function init() {
-      const modelURL = URL + "model.json";
-      const metadataURL = URL + "metadata.json";
-
-      // Load model and metadata
-      model = await tmImage.load(modelURL, metadataURL);
-      maxPredictions = model.getTotalClasses();
-
-      // Setup webcam
-      const flip = true;
-      webcam = new tmImage.Webcam(300, 300, flip);
-      await webcam.setup();
-      await webcam.play();
-      window.requestAnimationFrame(loop);
-
-      document.getElementById("webcam-container").appendChild(webcam.canvas);
-      labelContainer = document.getElementById("label-container");
-      for (let i = 0; i < maxPredictions; i++) {
-        labelContainer.appendChild(document.createElement("div"));
-      }
+    async function loadModel() {
+      model = await tf.loadLayersModel('model/model.json'); // Update with your model path
+      console.log('Model loaded');
     }
 
-    async function loop() {
-      webcam.update();
-      await predict();
-      window.requestAnimationFrame(loop);
+    function startCamera() {
+      const video = document.getElementById('video');
+      const captureBtn = document.getElementById('captureBtn');
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          video.srcObject = stream;
+          video.style.display = 'block';
+          captureBtn.style.display = 'inline';
+        })
+        .catch(err => alert('Camera access denied: ' + err));
+    }
+
+    function capturePhoto() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      imageData = tf.browser.fromPixels(canvas);
     }
 
     async function predict() {
-      const prediction = await model.predict(webcam.canvas);
-      for (let i = 0; i < maxPredictions; i++) {
-        const classPrediction =
-          prediction[i].className + ": " + (prediction[i].probability * 100).toFixed(2) + "%";
-        labelContainer.childNodes[i].innerHTML = classPrediction;
-      }
-    }
-  </script>
+      const fileInput = document.getElementById('fileInput');
+      let tensor;
 
+      if (fileInput.files.length) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(fileInput.files[0]);
+        await new Promise(resolve => img.onload = resolve);
+        tensor = tf.browser.fromPixels(img);
+      } else if (imageData) {
+        tensor = imageData;
+      } else {
+        alert('Please upload an image or take a photo.');
+        return;
+      }
+
+      const input = tensor.resizeNearestNeighbor([224, 224])
+        .toFloat()
+        .expandDims();
+
+      const prediction = await model.predict(input).data();
+      document.getElementById('result').innerText = `Prediction: ${Array.from(prediction).join(', ')}`;
+    }
+
+    loadModel();
+  </script>
 </body>
 </html>
