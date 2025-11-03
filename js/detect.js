@@ -115,6 +115,50 @@ function preprocessImage(image) {
         return tensor;
     });
 }
+function displayResults(predictions) {
+    const resultsContainer = document.getElementById('predictionResults');
+    const predictionsContainer = document.getElementById('predictions');
+    
+    const results = classes.map((className, index) => {
+        return {
+            class: className,
+            probability: predictions[index],
+            info: diseaseInfo[className] || {}
+        };
+    }).sort((a, b) => b.probability - a.probability);
+
+    // Filter out low confidence predictions (below 15%)
+    const filteredResults = results.filter(result => result.probability * 100 > 15);
+    
+    let html = '';
+    if (filteredResults.length === 0) {
+        html = `<div class="prediction-item">
+            <strong>⚠️ No confident prediction</strong>
+            <div>The model is not confident about any specific disease.</div>
+            <div>Please try a clearer image or consult an expert.</div>
+        </div>`;
+    } else {
+        filteredResults.forEach((result, index) => {
+            const confidence = result.probability * 100;
+            html += `
+                <div class="prediction-item ${confidence > 70 ? 'high-confidence' : ''}">
+                    <strong>${index + 1}. ${result.class}</strong>
+                    <div>Confidence: <strong>${confidence.toFixed(2)}%</strong></div>
+                    ${result.info.description ? `
+                        <div style="margin-top: 8px; font-size: 14px;">
+                            <div><strong>Description:</strong> ${result.info.description}</div>
+                            <div><strong>Treatment:</strong> ${result.info.treatment}</div>
+                            <div><strong>Prevention:</strong> ${result.info.prevention}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        });
+    }
+    
+    resultsContainer.innerHTML = html;
+    predictionsContainer.style.display = 'block';
+}
 
 // Analyze the uploaded image
 async function analyzeImage(image) {
