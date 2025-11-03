@@ -1,167 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Disease Detection</title>
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 40px;
-      background: #f4f4f9;
-      color: #333;
-      text-align: center;
-    }
-
-    h1 {
-      color: #2b7a78;
-    }
-
-    input, button {
-      margin: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      border: none;
-      border-radius: 8px;
-      background-color: #3aafa9;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #2b7a78;
-    }
-
-    video, canvas, img {
-      margin-top: 20px;
-      max-width: 300px;
-      border-radius: 8px;
-      border: 2px solid #ccc;
-    }
-
-    #result {
-      margin-top: 25px;
-      font-weight: bold;
-      font-size: 18px;
-      color: #17252a;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plant Disease Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            background-color: #ecf0f1;
+            border-color: #2980b9;
+        }
+        .upload-area.dragover {
+            background-color: #d6eaf8;
+            border-color: #1abc9c;
+        }
+        #fileInput {
+            display: none;
+        }
+        #preview {
+            max-width: 100%;
+            height: auto;
+            margin: 20px auto;
+            display: block;
+            border-radius: 5px;
+        }
+        .predictions {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .prediction-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .prediction-item.high-confidence {
+            border-left-color: #2ecc71;
+            background-color: #d5f4e6;
+        }
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+        }
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 10px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
-  <h1>Oil Palm Disease Detection</h1>
+    <div class="container">
+        <h1>🌿 Plant Disease Detection</h1>
+        
+        <div class="upload-area" id="uploadArea">
+            <p>📁 Click here or drag & drop an image</p>
+            <p style="color: #7f8c8d; font-size: 14px;">Supported formats: JPG, PNG, JPEG</p>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
 
-  <!-- Upload Image -->
-  <input type="file" id="fileInput" accept="image/*">
+        <div style="text-align: center;">
+            <button onclick="document.getElementById('fileInput').click()">Choose Image</button>
+            <button onclick="clearImage()">Clear</button>
+        </div>
 
-  <br>
+        <img id="preview" style="display: none;">
 
-  <!-- Camera Section -->
-  <button id="startCameraBtn" onclick="startCamera()">Take Photo</button>
-  <br>
-  <video id="video" autoplay playsinline width="300" style="display:none;"></video>
-  <br>
-  <button id="captureBtn" onclick="capturePhoto()" style="display:none;">Capture Photo</button>
-  <canvas id="canvas" width="224" height="224" style="display:none;"></canvas>
+        <div id="loading" class="loading" style="display: none;">
+            <p>🔍 Analyzing image... Please wait</p>
+        </div>
 
-  <br><br>
-  <button onclick="predict()">Detect Disease</button>
-  <div id="result"></div>
+        <div id="error" class="error" style="display: none;"></div>
 
-  <script>
-    let model;
-    let imageData = null;
+        <div id="predictions" class="predictions" style="display: none;">
+            <h3>Detection Results:</h3>
+            <div id="predictionResults"></div>
+        </div>
+    </div>
 
-    // ✅ Load TensorFlow Model
-    async function loadModel() {
-      try {
-        model = await tf.loadLayersModel('model/model.json'); // Update path if needed
-        console.log('✅ Model loaded successfully');
-      } catch (error) {
-        console.error('❌ Error loading model:', error);
-        alert('Failed to load model. Please check your model path.');
-      }
-    }
-
-    // ✅ Start Camera
-    function startCamera() {
-      const video = document.getElementById('video');
-      const captureBtn = document.getElementById('captureBtn');
-
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-          video.srcObject = stream;
-          video.style.display = 'block';
-          captureBtn.style.display = 'inline';
-        })
-        .catch(err => alert('Camera access denied: ' + err));
-    }
-
-    // ✅ Capture Photo from Video
-    function capturePhoto() {
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
-
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      imageData = tf.browser.fromPixels(canvas);
-
-      document.getElementById('result').innerText = "📸 Photo captured successfully!";
-    }
-
-    // ✅ Make Prediction
-    async function predict() {
-      const fileInput = document.getElementById('fileInput');
-      let tensor;
-
-      if (!model) {
-        alert('Model not loaded yet. Please wait.');
-        return;
-      }
-
-      // If user uploaded an image
-      if (fileInput.files.length > 0) {
-        const img = document.createElement('img');
-        img.src = URL.createObjectURL(fileInput.files[0]);
-        await new Promise(resolve => img.onload = resolve);
-        tensor = tf.browser.fromPixels(img);
-      } 
-      // If photo captured
-      else if (imageData) {
-        tensor = imageData;
-      } 
-      else {
-        alert('Please upload an image or take a photo.');
-        return;
-      }
-
-      // Preprocess image
-      const input = tensor
-        .resizeNearestNeighbor([224, 224])
-        .toFloat()
-        .expandDims(0)
-        .div(tf.scalar(255)); // Normalize 0-1 range
-
-      // Predict
-      try {
-        const prediction = await model.predict(input).data();
-        const maxIndex = prediction.indexOf(Math.max(...prediction));
-
-        // Example: customize disease names here
-        const labels = ["Healthy", "Ganoderma", "Anthracnose", "Leaf Spot", "Fruit Rot"];
-        const predictedClass = labels[maxIndex] || "Unknown";
-
-        document.getElementById('result').innerHTML = `
-          🩺 <strong>Prediction:</strong> ${predictedClass}<br>
-          🔢 Confidence: ${(prediction[maxIndex] * 100).toFixed(2)}%
-        `;
-      } catch (err) {
-        console.error('Prediction error:', err);
-        alert('Prediction failed. Please check model compatibility.');
-      }
-    }
-
-    // Auto load model when page opens
-    loadModel();
-  </script>
+    <script src="js/detect.js"></script>
 </body>
 </html>
