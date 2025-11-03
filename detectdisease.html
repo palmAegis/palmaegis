@@ -5,127 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Oil Palm Disease Detection</title>
   <link rel="stylesheet" href="css/style.css">
-
-  <!-- TensorFlow.js + Teachable Machine -->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
-  <script src="js/detect.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 20px;
-      background: #f4f7f9;
-    }
-    h1 {
-      color: #2e7d32;
-    }
-    #preview, canvas {
-      margin-top: 10px;
-      border-radius: 10px;
-      border: 2px solid #ccc;
-    }
-    button {
-      margin: 10px;
-      padding: 10px 20px;
-      background-color: #388e3c;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #2e7d32;
-    }
-    #label-container div {
-      margin-top: 5px;
-    }
-  </style>
 </head>
 <body>
-  <h1>🌴 Oil Palm Disease Detection</h1>
 
-  <!-- Upload image -->
-  <input type="file" accept="image/*" id="imageUpload" />
-  <br>
-  <img id="preview" width="300" alt="Preview will appear here">
-  <h2 id="result">Prediction: None</h2>
-  <h3 id="confidence"></h3>
+  <h2>Teachable Machine - Oil Palm Disease Detection</h2>
 
-  <hr>
+  <button type="button" onclick="init()">Start Camera</button>
 
-  <!-- Webcam Detection -->
-  <h2>Live Detection via Webcam</h2>
-  <button type="button" onclick="init()">Start Webcam</button>
   <div id="webcam-container"></div>
   <div id="label-container"></div>
 
-  <script>
-    // =============================
-    // File Upload Detection Section
-    // =============================
+  <!-- TensorFlow.js and Teachable Machine -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest"></script>
 
-    const fileInput = document.getElementById("imageUpload");
-    const preview = document.getElementById("preview");
-    const result = document.getElementById("result");
-    const confidence = document.getElementById("confidence");
+  <script type="text/javascript">
+    const URL = "./my_model/";
 
-    // If you downloaded the model locally, use this:
-    // const modelURL = "model/";
-    // Otherwise, use Teachable Machine hosted URL below:
-    const URL = "https://teachablemachine.withgoogle.com/models/your_model_url/";
-
-    let model;
-
-    async function loadModel() {
-      if (!model) {
-        const modelURL = URL + "model.json";
-        const metadataURL = URL + "metadata.json";
-        model = await tmImage.load(modelURL, metadataURL);
-        console.log("✅ Model loaded!");
-      }
-    }
-
-    fileInput.addEventListener("change", async function () {
-      const file = this.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = async function (e) {
-        preview.src = e.target.result;
-        await loadModel();
-
-        // Wait until the image is displayed
-        preview.onload = async function () {
-          const prediction = await model.predict(preview);
-          prediction.sort((a, b) => b.probability - a.probability);
-          result.textContent = `Prediction: ${prediction[0].className}`;
-          confidence.textContent = `Confidence: ${(prediction[0].probability * 100).toFixed(2)}%`;
-        };
-      };
-      reader.readAsDataURL(file);
-    });
-
-    // ==========================
-    // Webcam Live Detection
-    // ==========================
-    let webcam, labelContainer, maxPredictions;
+    let model, webcam, labelContainer, maxPredictions;
 
     async function init() {
-      await loadModel();
+      const modelURL = URL + "model.json";
+      const metadataURL = URL + "metadata.json";
 
+      // Load model and metadata
+      model = await tmImage.load(modelURL, metadataURL);
+      maxPredictions = model.getTotalClasses();
+
+      // Setup webcam
       const flip = true;
-      webcam = new tmImage.Webcam(200, 200, flip);
+      webcam = new tmImage.Webcam(300, 300, flip);
       await webcam.setup();
       await webcam.play();
       window.requestAnimationFrame(loop);
 
-      document.getElementById("webcam-container").innerHTML = "";
       document.getElementById("webcam-container").appendChild(webcam.canvas);
       labelContainer = document.getElementById("label-container");
-      labelContainer.innerHTML = "";
-
-      maxPredictions = model.getTotalClasses();
       for (let i = 0; i < maxPredictions; i++) {
         labelContainer.appendChild(document.createElement("div"));
       }
@@ -146,5 +61,6 @@
       }
     }
   </script>
+
 </body>
 </html>
