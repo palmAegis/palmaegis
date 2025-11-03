@@ -185,12 +185,10 @@ async function analyzeImage(image) {
     }
 }
 
-// Display prediction results
 function displayResults(predictions) {
     const resultsContainer = document.getElementById('predictionResults');
     const predictionsContainer = document.getElementById('predictions');
     
-    // Process and sort predictions
     const results = classes.map((className, index) => {
         return {
             class: className,
@@ -198,33 +196,51 @@ function displayResults(predictions) {
             info: diseaseInfo[className] || {}
         };
     }).sort((a, b) => b.probability - a.probability);
+
+    const topConfidence = results[0].probability * 100;
     
-    // Generate HTML for results
     let html = '';
-    results.forEach((result, index) => {
-        const confidence = result.probability * 100;
-        const isHighConfidence = confidence > 70;
-        
+    
+    // If low confidence, show warning
+    if (topConfidence < 60) {
         html += `
-            <div class="prediction-item ${isHighConfidence ? 'high-confidence' : ''}">
-                <strong>${index + 1}. ${result.class}</strong>
-                <div>Confidence: <strong>${confidence.toFixed(2)}%</strong></div>
-                ${isHighConfidence ? `
-                    <div style="margin-top: 8px; font-size: 14px;">
-                        <div><strong>Description:</strong> ${result.info.description || 'No description available'}</div>
-                        <div><strong>Treatment:</strong> ${result.info.treatment || 'No treatment information available'}</div>
-                        <div><strong>Prevention:</strong> ${result.info.prevention || 'No prevention information available'}</div>
-                    </div>
-                ` : ''}
+            <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                <strong>⚠️ Low Confidence Prediction</strong>
+                <div>The AI is not very confident. Consider consulting an agriculture expert.</div>
             </div>
         `;
+    }
+
+    results.forEach((result, index) => {
+        const confidence = result.probability * 100;
+        
+        // Only show detailed info for predictions above 10%
+        if (confidence > 10) {
+            const isHighConfidence = confidence > 70;
+            
+            html += `
+                <div class="prediction-item ${isHighConfidence ? 'high-confidence' : ''}">
+                    <strong>${index + 1}. ${result.class}</strong>
+                    <div>Confidence: <strong>${confidence.toFixed(2)}%</strong></div>
+                    ${isHighConfidence && result.info.description ? `
+                        <div style="margin-top: 8px; font-size: 14px;">
+                            <div><strong>Description:</strong> ${result.info.description}</div>
+                            <div><strong>Treatment:</strong> ${result.info.treatment}</div>
+                            <div><strong>Prevention:</strong> ${result.info.prevention}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
     });
-    
+
     resultsContainer.innerHTML = html;
     predictionsContainer.style.display = 'block';
     
-    // Scroll to results
-    predictionsContainer.scrollIntoView({ behavior: 'smooth' });
+    // Add manual override for low confidence cases
+    if (topConfidence < 70) {
+        addManualVerification();
+    }
 }
 
 // Clear the current image and results
