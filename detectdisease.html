@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plant Disease Detection</title>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="js/detect.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -44,18 +45,41 @@
         #fileInput {
             display: none;
         }
+        
+        /* Layout for results and preview */
+        .results-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .results-left {
+            flex: 1;
+        }
+        
+        .preview-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
         #preview {
             max-width: 100%;
+            max-height: 300px;
+            width: auto;
             height: auto;
-            margin: 20px auto;
+            margin: 0 auto;
             display: block;
             border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+        
         .predictions {
-            margin-top: 20px;
             padding: 20px;
             background-color: #f8f9fa;
             border-radius: 5px;
+            min-height: 200px;
         }
         .prediction-item {
             padding: 10px;
@@ -63,19 +87,42 @@
             background: white;
             border-radius: 5px;
             border-left: 4px solid #3498db;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .prediction-item.high-confidence {
             border-left-color: #2ecc71;
             background-color: #d5f4e6;
         }
+        .confidence-bar {
+            height: 8px;
+            background-color: #ecf0f1;
+            border-radius: 4px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        .confidence-fill {
+            height: 100%;
+            background-color: #3498db;
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .prediction-item.high-confidence .confidence-fill {
+            background-color: #2ecc71;
+        }
         .loading {
             text-align: center;
             color: #7f8c8d;
+            padding: 20px;
         }
         .error {
             color: #e74c3c;
             text-align: center;
             padding: 10px;
+            background-color: #fadbd8;
+            border-radius: 5px;
+            margin: 10px 0;
         }
         button {
             background-color: #3498db;
@@ -86,6 +133,7 @@
             cursor: pointer;
             font-size: 16px;
             margin: 10px 5px;
+            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #2980b9;
@@ -93,6 +141,21 @@
         button:disabled {
             background-color: #bdc3c7;
             cursor: not-allowed;
+        }
+        .button-clear {
+            background-color: #e74c3c;
+        }
+        .button-clear:hover {
+            background-color: #c0392b;
+        }
+        
+        @media (max-width: 768px) {
+            .results-container {
+                flex-direction: column;
+            }
+            .preview-right {
+                order: -1;
+            }
         }
     </style>
 </head>
@@ -108,23 +171,143 @@
 
         <div style="text-align: center;">
             <button onclick="document.getElementById('fileInput').click()">Choose Image</button>
-            <button onclick="clearImage()">Clear</button>
+            <button onclick="clearImage()" class="button-clear">Clear</button>
         </div>
 
-        <img id="preview" style="display: none;">
-
-        <div id="loading" class="loading" style="display: none;">
-            <p>🔍 Analyzing image... Please wait</p>
-        </div>
-
-        <div id="error" class="error" style="display: none;"></div>
-
-        <div id="predictions" class="predictions" style="display: none;">
-            <h3>Detection Results:</h3>
-            <div id="predictionResults"></div>
+        <div class="results-container">
+            <div class="results-left">
+                <div id="predictions" class="predictions" style="display: none;">
+                    <h3>Detection Results:</h3>
+                    <div id="predictionResults"></div>
+                </div>
+                
+                <div id="loading" class="loading" style="display: none;">
+                    <p>🔍 Analyzing image... Please wait</p>
+                </div>
+                
+                <div id="error" class="error" style="display: none;"></div>
+            </div>
+            
+            <div class="preview-right">
+                <img id="preview" style="display: none;">
+            </div>
         </div>
     </div>
 
-    <script src="js/detect.js"></script>
+    <script>
+        // DOM elements
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const preview = document.getElementById('preview');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+        const predictions = document.getElementById('predictions');
+        const predictionResults = document.getElementById('predictionResults');
+
+        // Event listeners
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleFileDrop);
+
+        // Functions
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleFileDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFileSelect();
+            }
+        }
+
+        function handleFileSelect() {
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            // Check if file is an image
+            if (!file.type.match('image.*')) {
+                showError('Please select an image file (JPG, PNG, JPEG)');
+                return;
+            }
+            
+            // Hide previous results
+            hideResults();
+            
+            // Display preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                
+                // Simulate analysis (replace with actual model prediction)
+                simulateAnalysis();
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function simulateAnalysis() {
+            // Show loading
+            loading.style.display = 'block';
+            
+            // Simulate processing time
+            setTimeout(() => {
+                loading.style.display = 'none';
+                
+                displayResults(mockResults);
+            }, 2000);
+        }
+
+        function displayResults(results) {
+            predictionResults.innerHTML = '';
+            
+            results.forEach(result => {
+                const confidencePercent = (result.confidence * 100).toFixed(1);
+                const item = document.createElement('div');
+                item.className = `prediction-item ${result.confidence > 0.7 ? 'high-confidence' : ''}`;
+                item.innerHTML = `
+                    <div>
+                        <strong>${result.disease}</strong>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidencePercent}%"></div>
+                        </div>
+                    </div>
+                    <span>${confidencePercent}%</span>
+                `;
+                predictionResults.appendChild(item);
+            });
+            
+            predictions.style.display = 'block';
+        }
+
+        function clearImage() {
+            fileInput.value = '';
+            preview.style.display = 'none';
+            hideResults();
+        }
+
+        function hideResults() {
+            loading.style.display = 'none';
+            error.style.display = 'none';
+            predictions.style.display = 'none';
+        }
+
+        function showError(message) {
+            error.textContent = message;
+            error.style.display = 'block';
+        }
+    </script>
 </body>
 </html>
