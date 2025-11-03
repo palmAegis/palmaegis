@@ -32,7 +32,7 @@ async function init() {
         showMessage('Loading AI model...', 'loading');
         
         // Load the TensorFlow.js model
-        model = await tf.loadLayersModel('model/model.json');
+        model = await tf.loadLayersModel('../model/model.json');
         console.log('✅ Model loaded successfully');
         
         hideMessage('loading');
