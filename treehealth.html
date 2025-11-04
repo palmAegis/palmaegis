@@ -5,160 +5,159 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree Health Monitoring System</title>
     <link rel="stylesheet" href="css/treehealth.css">
-    <!-- Include Firebase SDK -->
+
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <!-- Include jsPDF and SheetJS libraries for export functionality -->
+
+    <!-- jsPDF & SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <header>
+        <header class="header">
             <div class="header-top">
-            <div class="header-left">
-                <h1>Tree Health Monitoring System</h1>
-            </div>
+                <div class="header-left">
+                    <h1>🌴 Tree Health Monitoring System</h1>
+                </div>
 
-            <nav class="header-nav">
-                <ul>
-                <a href="homepage.html"><i class="fas fa-home"></i> Home</a>
-                </ul>
-            </nav>
+                <nav class="header-nav">
+                    <a href="homepage.html"><i class="fas fa-home"></i> Home</a>
+                </nav>
 
-            <div class="header-buttons">
-                <button id="language-switcher" class="language-btn">BM / Malay</button>
+                <div class="header-buttons">
+                    <button id="language-switcher" class="language-btn">BM / Malay</button>
+                </div>
             </div>
-            <!-- <p>Track, analyze, and report on tree health conditions</p> -->
-            <div id="user-info" style="display: none; margin-top: 10px; font-size: 14px; color: #666;"></div>
+            <div id="user-info" style="display:none;" class="user-info"></div>
         </header>
 
-        <div class="main-content">
-            <div class="input-section">
+        <main class="main-content">
+            <!-- Input Section -->
+            <section class="input-section">
                 <h2 data-en="Tree Health Assessment" data-my="Penilaian Kesihatan Pokok">Tree Health Assessment</h2>
-                
+
                 <div class="tabs">
                     <button class="tab-button active" id="manual-tab" data-en="Manual Input" data-my="Input Manual">Manual Input</button>
                     <button class="tab-button" id="ai-tab" data-en="AI Detection" data-my="Pengesanan AI">AI Detection</button>
                 </div>
-                
+
                 <div class="tab-content">
-                    <!-- Manual Input Form -->
+                    <!-- Manual Input -->
                     <div id="manual-form" class="form-container active">
                         <form id="health-form">
                             <div class="form-group">
-                                <label for="tree-id" data-en="Tree ID" data-my="ID Pokok">Tree ID</label>
-                                <input type="text" id="tree-id" required>
+                                <label for="tree-id">Tree ID</label>
+                                <input type="text" id="tree-id" placeholder="Enter Tree ID" required>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="tree-species" data-en="Oil Palm Disease" data-my="Penyakit Kelapa Sawit">Oil Palm Disease</label>
+                                <label for="tree-species">Oil Palm Disease</label>
                                 <select id="tree-species" required>
-                                    <option value="" data-en="Select Disease" data-my="Pilih Penyakit">Select Disease</option>
-                                    <option value="ganoderma" data-en="Ganoderma" data-my="Ganoderma">Ganoderma</option>
-                                    <option value="basal-stem-rot" data-en="Basal Stem Rot" data-my="Reput Batang Basal">Basal Stem Rot</option>
-                                    <option value="black-spot" data-en="Black Spot" data-my="Bintik Hitam">Black Spot</option>
-                                    <option value="marasmius" data-en="Marasmius Bunch Rot" data-my="Reput Tandan Marasmius">Marasmius Bunch Rot</option>
-                                    <option value="fusarium" data-en="Fusarium Wilt" data-my="Layu Fusarium">Fusarium Wilt</option>
+                                    <option value="">Select Disease</option>
+                                    <option value="ganoderma">Ganoderma</option>
+                                    <option value="basal-stem-rot">Basal Stem Rot</option>
+                                    <option value="black-spot">Black Spot</option>
+                                    <option value="marasmius">Marasmius Bunch Rot</option>
+                                    <option value="fusarium">Fusarium Wilt</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="location" data-en="Location" data-my="Lokasi">Location</label>
-                                <input type="text" id="location" required>
+                                <label for="location">Location</label>
+                                <input type="text" id="location" placeholder="Enter Location" required>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="health-status" data-en="Overall Health Status" data-my="Status Kesihatan Keseluruhan">Overall Health Status</label>
+                                <label for="health-status">Overall Health Status</label>
                                 <select id="health-status" required>
-                                    <option value="" data-en="Select Status" data-my="Pilih Status">Select Status</option>
-                                    <option value="excellent" data-en="Excellent" data-my="Cemerlang">Excellent</option>
-                                    <option value="good" data-en="Good" data-my="Baik">Good</option>
-                                    <option value="fair" data-en="Fair" data-my="Sederhana">Fair</option>
-                                    <option value="poor" data-en="Poor" data-my="Lemah">Poor</option>
-                                    <option value="critical" data-en="Critical" data-my="Kritikal">Critical</option>
+                                    <option value="">Select Status</option>
+                                    <option value="excellent">Excellent</option>
+                                    <option value="good">Good</option>
+                                    <option value="fair">Fair</option>
+                                    <option value="poor">Poor</option>
+                                    <option value="critical">Critical</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="disease-type" data-en="Disease Type (if any)" data-my="Jenis Penyakit (jika ada)">Disease Type (if any)</label>
+                                <label for="disease-type">Disease Type (if any)</label>
                                 <select id="disease-type">
-                                    <option value="none" data-en="None" data-my="Tiada">None</option>
-                                    <option value="fungal" data-en="Fungal Infection" data-my="Jangkitan Kulat">Fungal Infection</option>
-                                    <option value="bacterial" data-en="Bacterial Disease" data-my="Penyakit Bakteria">Bacterial Disease</option>
-                                    <option value="pest" data-en="Pest Infestation" data-my="Serangan Perosak">Pest Infestation</option>
-                                    <option value="nutrient" data-en="Nutrient Deficiency" data-my="Kekurangan Nutrien">Nutrient Deficiency</option>
-                                    <option value="other" data-en="Other" data-my="Lain-lain">Other</option>
+                                    <option value="none">None</option>
+                                    <option value="fungal">Fungal Infection</option>
+                                    <option value="bacterial">Bacterial Disease</option>
+                                    <option value="pest">Pest Infestation</option>
+                                    <option value="nutrient">Nutrient Deficiency</option>
+                                    <option value="other">Other</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="severity" data-en="Disease Severity" data-my="Keterukan Penyakit">Disease Severity</label>
+                                <label for="severity">Disease Severity</label>
                                 <select id="severity">
-                                    <option value="none" data-en="None" data-my="Tiada">None</option>
-                                    <option value="low" data-en="Low" data-my="Rendah">Low</option>
-                                    <option value="medium" data-en="Medium" data-my="Sederhana">Medium</option>
-                                    <option value="high" data-en="High" data-my="Tinggi">High</option>
-                                    <option value="critical" data-en="Critical" data-my="Kritikal">Critical</option>
+                                    <option value="none">None</option>
+                                    <option value="low">Low</option>
+                                    <option value="medium">Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label data-en="Affected Parts" data-my="Bahagian Terjejas">Affected Parts</label>
+                                <label>Affected Parts</label>
                                 <div class="checkbox-group">
-                                    <label><input type="checkbox" name="affected-parts" value="leaves"> <span data-en="Leaves" data-my="Daun">Leaves</span></label>
-                                    <label><input type="checkbox" name="affected-parts" value="branches"> <span data-en="Branches" data-my="Dahan">Branches</span></label>
-                                    <label><input type="checkbox" name="affected-parts" value="trunk"> <span data-en="Trunk" data-my="Batang">Trunk</span></label>
-                                    <label><input type="checkbox" name="affected-parts" value="roots"> <span data-en="Roots" data-my="Akar">Roots</span></label>
-                                    <label><input type="checkbox" name="affected-parts" value="flowers"> <span data-en="Flowers/Fruits" data-my="Bunga/Buah">Flowers/Fruits</span></label>
+                                    <label><input type="checkbox" value="leaves"> Leaves</label>
+                                    <label><input type="checkbox" value="branches"> Branches</label>
+                                    <label><input type="checkbox" value="trunk"> Trunk</label>
+                                    <label><input type="checkbox" value="roots"> Roots</label>
+                                    <label><input type="checkbox" value="flowers"> Flowers/Fruits</label>
                                 </div>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="notes" data-en="Additional Notes" data-my="Nota Tambahan">Additional Notes</label>
-                                <textarea id="notes" rows="3"></textarea>
+                                <label for="notes">Additional Notes</label>
+                                <textarea id="notes" rows="3" placeholder="Enter any additional notes..."></textarea>
                             </div>
-                            
-                            <button type="submit" class="submit-btn" data-en="Generate Health Report" data-my="Hasilkan Laporan Kesihatan">Generate Health Report</button>
+
+                            <button type="submit" class="submit-btn">Generate Health Report</button>
                         </form>
                     </div>
-                    
-                    <!-- AI Detection Section -->
+
+                    <!-- AI Detection -->
                     <div id="ai-form" class="form-container">
                         <div class="ai-upload">
-                            <h3 data-en="Upload Tree Images for AI Analysis" data-my="Muat Naik Imej Pokok untuk Analisis AI">Upload Tree Images for AI Analysis</h3>
+                            <h3>Upload Tree Images for AI Analysis</h3>
                             <div class="upload-area" id="upload-area">
-                                <p data-en="Drag & drop images here or click to browse" data-my="Seret & lepas imej di sini atau klik untuk melayari">Drag & drop images here or click to browse</p>
-                                <input type="file" id="image-upload" accept="image/*" multiple style="display: none;">
+                                <p>Drag & drop images here or click to browse</p>
+                                <input type="file" id="image-upload" accept="image/*" multiple style="display:none;">
                             </div>
                             <div id="image-preview" class="image-preview"></div>
-                            <button id="analyze-btn" class="analyze-btn" disabled data-en="Analyze Images" data-my="Analisis Imej">Analyze Images</button>
+                            <button id="analyze-btn" class="analyze-btn" disabled>Analyze Images</button>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="report-section">
-                <h2 data-en="Health Reports" data-my="Laporan Kesihatan">Health Reports</h2>
-                
+            </section>
+
+            <!-- Report Section -->
+            <section class="report-section">
+                <h2>Health Reports</h2>
                 <div class="report-controls">
-                    <button id="generate-report" class="action-btn" data-en="Generate Report" data-my="Hasilkan Laporan">Generate Report</button>
-                    <button id="download-pdf" class="action-btn" data-en="Download PDF" data-my="Muat Turun PDF">Download PDF</button>
-                    <button id="download-excel" class="action-btn" data-en="Download Excel" data-my="Muat Turun Excel">Download Excel</button>
-                    <button id="view-history" class="action-btn" data-en="View History" data-my="Lihat Sejarah">View History</button>
+                    <button id="generate-report" class="action-btn">Generate Report</button>
+                    <button id="download-pdf" class="action-btn">Download PDF</button>
+                    <button id="download-excel" class="action-btn">Download Excel</button>
+                    <button id="view-history" class="action-btn">View History</button>
                 </div>
-                
                 <div id="report-output" class="report-output">
-                    <p class="placeholder" data-en="No report generated yet. Fill out the form and click 'Generate Report'." data-my="Tiada laporan dihasilkan lagi. Isi borang dan klik 'Hasilkan Laporan'.">No report generated yet. Fill out the form and click "Generate Report".</p>
+                    <p class="placeholder">No report generated yet. Fill out the form and click "Generate Report".</p>
                 </div>
-                
-                <div id="history-section" class="history-section" style="display: none;">
-                    <h3 data-en="Historical Data" data-my="Data Sejarah">Historical Data</h3>
+                <div id="history-section" class="history-section" style="display:none;">
+                    <h3>Historical Data</h3>
                     <div id="history-list" class="history-list"></div>
                 </div>
-            </div>
-        </div>
+            </section>
+        </main>
     </div>
 
     <script src="js/treehealth.js"></script>
