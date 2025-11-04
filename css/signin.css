@@ -525,7 +525,7 @@ input:focus-visible {
     left: 0;
     right: 0;
     height: 1px;
-    background: #e0e0e0;
+    background: #8bc34a;
     z-index: 1;
 }
 
@@ -561,7 +561,7 @@ input:focus-visible {
 }
 
 .btn-google i {
-    color: #4285f4;
+    color: #8bc34a;
     font-size: 18px;
 }
 
