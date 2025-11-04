@@ -445,3 +445,51 @@ input:focus, select:focus, textarea:focus {
         flex-direction: column;
     }
 }
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #2b7a78; /* nice green-blue tone */
+  color: white;
+  padding: 15px 30px;
+  border-radius: 8px;
+}
+
+.header-top h1 {
+  font-size: 22px;
+  margin: 0;
+}
+
+.header-nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 20px;
+}
+
+.header-nav a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.header-nav a:hover {
+  color: #def2f1;
+}
+
+.header-buttons .language-btn {
+  background-color: #17252a;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.header-buttons .language-btn:hover {
+  background-color: #3aafa9;
+}
