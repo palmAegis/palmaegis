@@ -228,32 +228,86 @@ body {
 }
 
 /* Message Display */
+/* Message Display - Modernized */
 .messageDiv {
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
-    text-align: center;
+    position: relative;
+    padding: 16px 20px 16px 50px;
+    border-radius: 14px;
+    margin-bottom: 25px;
+    text-align: left;
     font-weight: 500;
-    animation: slideDown 0.3s ease;
+    font-size: 0.95rem;
+    animation: slideInFade 0.4s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
 }
 
+/* Common icon circle on the left */
+.messageDiv::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+}
+
+/* Success Message */
 .messageDiv.success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background: #e6f7ed;
+    color: #2e7d32;
+    border: 1px solid #b2dfdb;
 }
 
+.messageDiv.success::before {
+    background: #4caf50;
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.4);
+}
+
+/* Error Message */
 .messageDiv.error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background: #fdecea;
+    color: #c62828;
+    border: 1px solid #f5c2c0;
 }
 
-.messageDiv.info {
-    background: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb;
+.messageDiv.error::before {
+    background: #f44336;
+    box-shadow: 0 0 8px rgba(244, 67, 54, 0.4);
 }
+
+/* Info Message */
+.messageDiv.info {
+    background: #e8f4fd;
+    color: #0277bd;
+    border: 1px solid #b3e5fc;
+}
+
+.messageDiv.info::before {
+    background: #03a9f4;
+    box-shadow: 0 0 8px rgba(3, 169, 244, 0.4);
+}
+
+/* Hover animation for subtle feedback */
+.messageDiv:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Entrance Animation */
+@keyframes slideInFade {
+    0% {
+        opacity: 0;
+        transform: translateY(-15px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 
 /* Logo Section (Right Side) */
 .auth-logo-section {
