@@ -5,8 +5,9 @@ import {
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword, 
     signOut,
-    updateProfile
-    
+    updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup
 } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js";
 import { 
     getFirestore, 
@@ -31,6 +32,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
 // ✅ Message Display Helper
 function showMessage(message, divId, isError = true) {
@@ -45,6 +47,66 @@ function showMessage(message, divId, isError = true) {
     setTimeout(() => {
         messageDiv.style.opacity = 0;
     }, 5000);
+}
+
+// ✅ Handle Google Sign In
+export async function signInWithGoogle() {
+    try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+        
+        // Check if user already exists in Firestore
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+        
+        if (!userDoc.exists()) {
+            // Create new user document if it doesn't exist
+            await setDoc(userDocRef, {
+                email: user.email,
+                displayName: user.displayName || "",
+                imageBase64: user.photoURL || "", // Store Google profile picture
+                role: "user",
+                createdAt: new Date(),
+                status: "active",
+                provider: "google"
+            });
+        } else {
+            // Update existing user document
+            await updateDoc(userDocRef, {
+                lastLogin: serverTimestamp(),
+                displayName: user.displayName || userDoc.data().displayName,
+                imageBase64: user.photoURL || userDoc.data().imageBase64
+            });
+        }
+
+        localStorage.setItem('loggedInUserId', user.uid);
+        
+        // Load avatar
+        await loadUserAvatarFromFirestore(user.uid);
+        
+        showMessage('Google login successful!', 'signInMessage', false);
+        
+        // Redirect based on role
+        setTimeout(() => {
+            if (userDoc.exists() && userDoc.data().role === "admin") {
+                window.location.href = 'admin.html';
+            } else {
+                window.location.href = 'homepage.html';
+            }
+        }, 1000);
+        
+    } catch (error) {
+        console.error('Google sign-in error:', error);
+        
+        let errorMessage = 'Google sign-in failed. Please try again.';
+        if (error.code === 'auth/popup-closed-by-user') {
+            errorMessage = 'Sign-in was cancelled.';
+        } else if (error.code === 'auth/popup-blocked') {
+            errorMessage = 'Sign-in popup was blocked. Please allow popups for this site.';
+        }
+        
+        showMessage(errorMessage, 'signInMessage');
+    }
 }
 
 // ✅ Handle Sign Up

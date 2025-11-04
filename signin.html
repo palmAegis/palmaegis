@@ -44,6 +44,17 @@
                 
                 <button type="submit" class="btn btn-primary btn-block" id="submitSignIn">Sign In</button>
                 
+                <!-- Google Sign In Button -->
+                <div class="social-login">
+                    <div class="divider">
+                        <span>Or continue with</span>
+                    </div>
+                    <button type="button" class="btn btn-google btn-block" id="googleSignIn">
+                        <i class="fab fa-google"></i>
+                        Sign in with Google
+                    </button>
+                </div>
+                
                 <div class="auth-footer">
                     Don't have an account? <a href="register.html">Sign up</a>
                 </div>
@@ -64,5 +75,17 @@
     
     <script src="js/script.js"></script>
     <script type="module" src="js/firebaseauth.js"></script>
+    
+    <script type="module">
+        // Add Google Sign-In button functionality
+        import { signInWithGoogle } from './js/firebaseauth.js';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const googleSignInBtn = document.getElementById('googleSignIn');
+            if (googleSignInBtn) {
+                googleSignInBtn.addEventListener('click', signInWithGoogle);
+            }
+        });
+    </script>
 </body>
 </html>
