@@ -53,7 +53,7 @@
         .header {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            padding: 1rem 0;
+            padding: 0.8rem 0; /* Reduced from 1rem 0 */
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 2rem;
         }
@@ -70,16 +70,26 @@
             font-weight: 600;
         }
 
+        .header-nav {
+            display: flex;
+            align-items: center;
+        }
+
         .header-nav a {
             color: white;
             text-decoration: none;
-            margin-left: 1.5rem;
             font-weight: 500;
             transition: opacity 0.3s;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .header-nav a:hover {
             opacity: 0.8;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .language-btn {
@@ -430,16 +440,31 @@
         .back-btn:hover {
             background: #f57c00;
         }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-family: Arial, sans-serif;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .logo-img {
+            width: 50px;
+            height: 50px; /* Changed from 100px to 50px */
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header class="header">
             <div class="header-top">
-                <div class="header-left">
-                    <h1>🌴 Tree Health Monitoring System</h1>
+                <div class="logo">
+                    <img src="images/logo.png" alt="Logo" class="logo-img">
+                    Farm Data Palm Aegis
                 </div>
-
+                
                 <nav class="header-nav">
                     <a href="homepage.html"><i class="fas fa-home"></i> Home</a>
                 </nav>
