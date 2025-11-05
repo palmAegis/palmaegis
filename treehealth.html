@@ -614,7 +614,7 @@
                 newTreeId = `TREE_${randomPart}`;
                 
                 // Check if this ID already exists
-                const querySnapshot = await db.collection('treeHealthRecords')
+                const querySnapshot = await db.collection('treeHealthReports')
                     .where('treeId', '==', newTreeId)
                     .get();
                 
@@ -662,7 +662,7 @@
                 };
                 
                 // Save to Firestore
-                await db.collection('treeHealthRecords').add(formData);
+                await db.collection('treeHealthReports').add(formData);
                 
                 // Show success message
                 reportOutput.innerHTML = `
@@ -703,7 +703,7 @@
             if (!currentUserId) return;
             
             try {
-                const querySnapshot = await db.collection('treeHealthRecords')
+                const querySnapshot = await db.collection('treeHealthReports')
                     .where('userId', '==', currentUserId)
                     .orderBy('timestamp', 'desc')
                     .limit(10)
