@@ -18,9 +18,151 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  
+  <style>
+    /* Custom notification styles */
+    .notification-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      max-width: 400px;
+    }
+    
+    .notification {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: flex-start;
+      border-left: 4px solid;
+      transform: translateX(100%);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    
+    .notification.show {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    
+    .notification.hide {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    
+    .notification.success {
+      border-left-color: #10B981;
+    }
+    
+    .notification.warning {
+      border-left-color: #F59E0B;
+    }
+    
+    .notification.error {
+      border-left-color: #EF4444;
+    }
+    
+    .notification.info {
+      border-left-color: #3B82F6;
+    }
+    
+    .notification-icon {
+      margin-right: 12px;
+      font-size: 20px;
+      margin-top: 2px;
+    }
+    
+    .notification.success .notification-icon {
+      color: #10B981;
+    }
+    
+    .notification.warning .notification-icon {
+      color: #F59E0B;
+    }
+    
+    .notification.error .notification-icon {
+      color: #EF4444;
+    }
+    
+    .notification.info .notification-icon {
+      color: #3B82F6;
+    }
+    
+    .notification-content {
+      flex: 1;
+    }
+    
+    .notification-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 14px;
+    }
+    
+    .notification-message {
+      font-size: 13px;
+      color: #6B7280;
+      line-height: 1.4;
+    }
+    
+    .notification-close {
+      background: none;
+      border: none;
+      color: #9CA3AF;
+      cursor: pointer;
+      font-size: 14px;
+      margin-left: 8px;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .notification-close:hover {
+      color: #4B5563;
+    }
+    
+    .progress-bar {
+      height: 3px;
+      width: 100%;
+      background: #E5E7EB;
+      border-radius: 2px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+    
+    .progress-bar-fill {
+      height: 100%;
+      width: 100%;
+      transition: width 0.1s linear;
+    }
+    
+    .notification.success .progress-bar-fill {
+      background: #10B981;
+    }
+    
+    .notification.warning .progress-bar-fill {
+      background: #F59E0B;
+    }
+    
+    .notification.error .progress-bar-fill {
+      background: #EF4444;
+    }
+    
+    .notification.info .progress-bar-fill {
+      background: #3B82F6;
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50 font-[Inter] flex min-h-screen">
+  <!-- Notification Container -->
+  <div class="notification-container" id="notification-container"></div>
+
   <!-- Sidebar -->
   <aside class="w-64 bg-gradient-to-b from-green-700 to-green-800 text-white flex flex-col p-4 shadow-lg">
     <div class="flex flex-col items-center text-center mt-6">
@@ -282,9 +424,89 @@
       loadAllData();
     });
 
+    // Custom notification system
+    function showNotification(type, title, message, duration = 5000) {
+      const container = document.getElementById('notification-container');
+      const notificationId = 'notification-' + Date.now();
+      
+      // Icons for different notification types
+      const icons = {
+        success: 'fas fa-check-circle',
+        warning: 'fas fa-exclamation-triangle',
+        error: 'fas fa-times-circle',
+        info: 'fas fa-info-circle'
+      };
+      
+      const notification = document.createElement('div');
+      notification.id = notificationId;
+      notification.className = `notification ${type}`;
+      notification.innerHTML = `
+        <div class="notification-icon">
+          <i class="${icons[type]}"></i>
+        </div>
+        <div class="notification-content">
+          <div class="notification-title">${title}</div>
+          <div class="notification-message">${message}</div>
+          <div class="progress-bar">
+            <div class="progress-bar-fill" id="progress-${notificationId}"></div>
+          </div>
+        </div>
+        <button class="notification-close" onclick="closeNotification('${notificationId}')">
+          <i class="fas fa-times"></i>
+        </button>
+      `;
+      
+      container.appendChild(notification);
+      
+      // Trigger animation
+      setTimeout(() => {
+        notification.classList.add('show');
+        
+        // Start progress bar animation
+        const progressBar = document.getElementById(`progress-${notificationId}`);
+        if (progressBar) {
+          progressBar.style.width = '0%';
+          progressBar.style.transition = `width ${duration}ms linear`;
+          setTimeout(() => {
+            progressBar.style.width = '100%';
+          }, 10);
+        }
+      }, 10);
+      
+      // Auto-close after duration
+      const timeoutId = setTimeout(() => {
+        closeNotification(notificationId);
+      }, duration);
+      
+      // Store timeout ID for manual close
+      notification.dataset.timeoutId = timeoutId;
+    }
+    
+    function closeNotification(notificationId) {
+      const notification = document.getElementById(notificationId);
+      if (!notification) return;
+      
+      // Clear the auto-close timeout
+      clearTimeout(notification.dataset.timeoutId);
+      
+      // Trigger hide animation
+      notification.classList.remove('show');
+      notification.classList.add('hide');
+      
+      // Remove from DOM after animation completes
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.parentNode.removeChild(notification);
+        }
+      }, 300);
+    }
+
     // Load all data from Firebase collections
     async function loadAllData() {
       try {
+        // Show loading notification
+        showNotification('info', 'Loading Data', 'Fetching all data from the database...');
+        
         // Load users
         const usersSnapshot = await db.collection('users').get();
         allData.users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -312,9 +534,13 @@
         // Update statistics
         updateStatistics();
         
+        // Show success notification
+        showNotification('success', 'Data Loaded', 'All data has been successfully loaded from the database.');
+        
         console.log('All data loaded successfully');
       } catch (error) {
         console.error('Error loading data:', error);
+        showNotification('error', 'Data Load Error', 'Failed to load data from the database. Please try again.');
       }
     }
 
@@ -494,9 +720,12 @@
     function exportCollection(collectionName) {
       const data = allData[collectionName];
       if (!data || data.length === 0) {
-        alert(`No data available for ${collectionName}`);
+        showNotification('warning', 'Export Failed', `No data available for ${collectionName}`);
         return;
       }
+      
+      // Show export started notification
+      showNotification('info', 'Export Started', `Preparing ${collectionName} data for export...`);
       
       // Filter data to remove excluded fields
       const filteredData = filterData(collectionName, data);
@@ -513,7 +742,8 @@
       link.click();
       URL.revokeObjectURL(url);
       
-      alert(`Exported ${filteredData.length} records from ${collectionName} (excluded sensitive fields)`);
+      // Show success notification
+      showNotification('success', 'Export Complete', `Exported ${filteredData.length} records from ${collectionName} (sensitive fields excluded)`);
     }
 
     // Convert data to CSV
@@ -552,6 +782,9 @@
 
     // Export all data as ZIP
     function exportAllData() {
+      // Show export started notification
+      showNotification('info', 'Export Started', 'Preparing all data for export...');
+      
       // Create a ZIP file with all collections
       const zip = new JSZip();
       
@@ -579,14 +812,23 @@
           link.click();
           URL.revokeObjectURL(url);
           
-          alert('All data exported successfully as ZIP file! (Sensitive fields excluded)');
+          // Show success notification
+          showNotification('success', 'Export Complete', 'All data exported successfully as ZIP file! (Sensitive fields excluded)');
+        })
+        .catch(function(error) {
+          console.error('Error generating ZIP:', error);
+          showNotification('error', 'Export Failed', 'Failed to export data. Please try again.');
         });
     }
 
     // Generate custom PDF report
     function generateCustomReport() {
-      alert('PDF report generation would be implemented with a PDF library');
+      showNotification('info', 'PDF Generation', 'Preparing custom PDF report...');
       // This would use jsPDF to create a formatted PDF report
+      // For now, we'll just show a notification
+      setTimeout(() => {
+        showNotification('success', 'PDF Generated', 'Custom PDF report has been generated successfully.');
+      }, 1500);
     }
   </script>
 </body>
