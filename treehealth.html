@@ -363,21 +363,41 @@
             to { transform: rotate(360deg); }
         }
 
-        .tree-id-suggestions {
-            margin-top: 0.5rem;
+        .tree-id-display {
+            background: #f8f9fa;
+            border: 2px solid var(--primary);
+            border-radius: 4px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .tree-id-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        .tree-id-note {
             font-size: 0.9rem;
             color: var(--text-light);
+            font-style: italic;
         }
 
-        .suggestion {
-            color: var(--primary);
+        .generate-new-id {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
             cursor: pointer;
-            text-decoration: underline;
-            margin-right: 10px;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
 
-        .suggestion:hover {
-            color: var(--primary-dark);
+        .generate-new-id:hover {
+            background: #f57c00;
         }
     </style>
 </head>
@@ -415,16 +435,15 @@
                     <div id="manual-form" class="form-container active">
                         <form id="health-form">
                             <div class="form-group">
-                                <label for="tree-id">Tree ID <small>(Must be unique across the system)</small></label>
-                                <input type="text" id="tree-id" placeholder="Enter unique Tree ID" required>
-                                <div id="tree-id-error" class="error-message">This Tree ID already exists in the system. Please use a unique ID.</div>
-                                <div id="tree-id-success" class="success-message">Tree ID is available.</div>
-                                <div id="tree-id-suggestions" class="tree-id-suggestions" style="display:none;">
-                                    Suggested unique IDs: 
-                                    <span class="suggestion" id="suggestion-1"></span>
-                                    <span class="suggestion" id="suggestion-2"></span>
-                                    <span class="suggestion" id="suggestion-3"></span>
+                                <div class="tree-id-display">
+                                    <label>Tree ID (Automatically Generated)</label>
+                                    <div class="tree-id-value" id="tree-id-display">Generating...</div>
+                                    <div class="tree-id-note">This ID is unique and cannot be changed</div>
+                                    <button type="button" class="generate-new-id" id="generate-new-id">
+                                        <i class="fas fa-sync-alt"></i> Generate New ID
+                                    </button>
                                 </div>
+                                <input type="hidden" id="tree-id" required>
                             </div>
 
                             <div class="form-group">
@@ -555,9 +574,8 @@
 
         // DOM Elements
         const treeIdInput = document.getElementById('tree-id');
-        const treeIdError = document.getElementById('tree-id-error');
-        const treeIdSuccess = document.getElementById('tree-id-success');
-        const treeIdSuggestions = document.getElementById('tree-id-suggestions');
+        const treeIdDisplay = document.getElementById('tree-id-display');
+        const generateNewIdBtn = document.getElementById('generate-new-id');
         const healthForm = document.getElementById('health-form');
         const submitBtn = document.getElementById('submit-btn');
         const submitText = document.getElementById('submit-text');
@@ -567,8 +585,9 @@
         const historyList = document.getElementById('history-list');
         const viewHistoryBtn = document.getElementById('view-history');
 
-        // Current user ID
+        // Current user ID and generated Tree ID
         let currentUserId = null;
+        let currentTreeId = null;
 
         // Initialize authentication
         auth.onAuthStateChanged(user => {
@@ -576,6 +595,7 @@
                 currentUserId = user.uid;
                 document.getElementById('user-info').style.display = 'block';
                 document.getElementById('user-info').textContent = `Logged in as: ${user.email}`;
+                generateUniqueTreeId();
                 loadUserTreeHistory();
             } else {
                 // Redirect to login if not authenticated
@@ -583,96 +603,40 @@
             }
         });
 
-        // Check Tree ID uniqueness (GLOBALLY across all users)
-        treeIdInput.addEventListener('blur', checkTreeIdUniqueness);
-        
-        async function checkTreeIdUniqueness() {
-            const treeId = treeIdInput.value.trim();
+        // Generate unique Tree ID
+        async function generateUniqueTreeId() {
+            let isUnique = false;
+            let newTreeId = '';
             
-            if (!treeId) {
-                hideTreeIdMessages();
-                return;
-            }
-            
-            try {
+            while (!isUnique) {
+                // Generate a Tree ID with format: TREE_XXXXXX (6 random alphanumeric characters)
+                const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+                newTreeId = `TREE_${randomPart}`;
+                
+                // Check if this ID already exists
                 const querySnapshot = await db.collection('treeHealthRecords')
-                    .where('treeId', '==', treeId)
+                    .where('treeId', '==', newTreeId)
                     .get();
                 
                 if (querySnapshot.empty) {
-                    // Tree ID is unique globally
-                    showTreeIdSuccess();
-                } else {
-                    // Tree ID already exists in the system
-                    showTreeIdError();
-                    generateUniqueSuggestions(treeId);
+                    isUnique = true;
                 }
-            } catch (error) {
-                console.error('Error checking Tree ID:', error);
-                // In case of error, we'll allow submission but show a warning
-                hideTreeIdMessages();
             }
+            
+            currentTreeId = newTreeId;
+            treeIdInput.value = currentTreeId;
+            treeIdDisplay.textContent = currentTreeId;
         }
 
-        // Generate unique Tree ID suggestions
-        function generateUniqueSuggestions(baseId) {
-            const suggestions = [
-                `${baseId}_${Math.floor(Math.random() * 1000)}`,
-                `${baseId}_${Date.now().toString().slice(-4)}`,
-                `${baseId}_${Math.random().toString(36).substring(2, 6)}`
-            ];
-            
-            suggestions.forEach((suggestion, index) => {
-                const suggestionElement = document.getElementById(`suggestion-${index + 1}`);
-                suggestionElement.textContent = suggestion;
-                suggestionElement.onclick = () => {
-                    treeIdInput.value = suggestion;
-                    checkTreeIdUniqueness();
-                };
-            });
-            
-            treeIdSuggestions.style.display = 'block';
-        }
-        
-        function showTreeIdError() {
-            treeIdError.style.display = 'block';
-            treeIdSuccess.style.display = 'none';
-            treeIdInput.style.borderColor = 'var(--error)';
-        }
-        
-        function showTreeIdSuccess() {
-            treeIdError.style.display = 'none';
-            treeIdSuccess.style.display = 'none';
-            treeIdSuggestions.style.display = 'none';
-            treeIdInput.style.borderColor = 'var(--success)';
-        }
-        
-        function hideTreeIdMessages() {
-            treeIdError.style.display = 'none';
-            treeIdSuccess.style.display = 'none';
-            treeIdSuggestions.style.display = 'none';
-            treeIdInput.style.borderColor = '#ddd';
-        }
+        // Generate new ID button
+        generateNewIdBtn.addEventListener('click', generateUniqueTreeId);
 
-        // Form submission with GLOBAL uniqueness validation
+        // Form submission
         healthForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const treeId = treeIdInput.value.trim();
-            
-            if (!treeId) {
-                alert('Please enter a Tree ID');
-                return;
-            }
-            
-            // Validate Tree ID uniqueness before submission (GLOBALLY)
-            const querySnapshot = await db.collection('treeHealthRecords')
-                .where('treeId', '==', treeId)
-                .get();
-            
-            if (!querySnapshot.empty) {
-                showTreeIdError();
-                alert('This Tree ID already exists in the system. Please use a unique ID.');
+            if (!currentTreeId) {
+                alert('Please wait for Tree ID generation to complete');
                 return;
             }
             
@@ -684,7 +648,7 @@
             try {
                 // Get form values
                 const formData = {
-                    treeId: treeId,
+                    treeId: currentTreeId,
                     disease: document.getElementById('tree-species').value,
                     location: document.getElementById('location').value,
                     healthStatus: document.getElementById('health-status').value,
@@ -700,19 +664,19 @@
                 // Save to Firestore
                 await db.collection('treeHealthRecords').add(formData);
                 
-                // Reset form
-                healthForm.reset();
-                hideTreeIdMessages();
-                
                 // Show success message
                 reportOutput.innerHTML = `
                     <div style="text-align: center; padding: 2rem;">
                         <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem;"></i>
                         <h3 style="color: var(--success); margin-bottom: 1rem;">Health Report Generated Successfully!</h3>
                         <p>Tree ID: <strong>${formData.treeId}</strong> has been recorded.</p>
-                        <p><small>This Tree ID is now unique across the entire system.</small></p>
+                        <p><small>This Tree ID is unique and cannot be duplicated.</small></p>
                     </div>
                 `;
+                
+                // Reset form and generate new Tree ID for next entry
+                healthForm.reset();
+                generateUniqueTreeId();
                 
                 // Reload history
                 loadUserTreeHistory();
