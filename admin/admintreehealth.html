@@ -791,7 +791,7 @@
                     }
                     
                     if (currentFilters.disease) {
-                        filteredData = filteredData.filter(record => record.treeSpecies === currentFilters.disease);
+                        filteredData = filteredData.filter(record => record.disease === currentFilters.disease);
                     }
                     
                     if (currentFilters.search) {
@@ -837,7 +837,7 @@
                             timestamp: record.timestamp || new Date(),
                             details: {
                                 healthStatus: record.healthStatus || 'Unknown',
-                                disease: formatDiseaseName(record.treeSpecies),
+                                disease: formatDiseaseName(record.disease ),
                                 severity: record.severity || 'Unknown'
                             }
                         });
@@ -890,7 +890,7 @@
                     atRiskTrees++;
                 }
                 
-                if (record.treeSpecies && record.treeSpecies !== 'none') {
+                if (record.disease && record.disease  !== 'none') {
                     diseaseCases++;
                 }
             });
@@ -928,7 +928,7 @@
                 
                 row.innerHTML = `
                     <td>${record.treeId || 'Unknown'}</td>
-                    <td>${formatDiseaseName(record.treeSpecies)}</td>
+                    <td>${formatDiseaseName(record.disease)}</td>
                     <td>${record.location || 'Unknown'}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
                     <td>${formatSeverity(record.severity)}</td>
@@ -1066,8 +1066,8 @@
                 }
                 
                 // Count diseases (excluding 'none')
-                if (record.treeSpecies && record.treeSpecies !== 'none' && diseaseCounts.hasOwnProperty(record.treeSpecies)) {
-                    diseaseCounts[record.treeSpecies]++;
+                if (record.disease && record.disease !== 'none' && diseaseCounts.hasOwnProperty(record.treeSpecies)) {
+                    diseaseCounts[record.disease ]++;
                 }
             });
             
@@ -1168,7 +1168,7 @@
         function viewRecord(recordId) {
             const record = treeData.find(r => r.id === recordId);
             if (record) {
-                alert(`Viewing record for ${record.treeId}\n\nHealth Status: ${record.healthStatus}\nDisease: ${formatDiseaseName(record.treeSpecies)}\nLocation: ${record.location}\nSeverity: ${record.severity}\nNotes: ${record.notes}`);
+                alert(`Viewing record for ${record.treeId}\n\nHealth Status: ${record.healthStatus}\nDisease: ${formatDiseaseName(record.disease )}\nLocation: ${record.location}\nSeverity: ${record.severity}\nNotes: ${record.notes}`);
             } else {
                 alert('Record not found!');
             }
@@ -1183,7 +1183,7 @@
                 // Populate form with record data
                 document.getElementById('record-id').value = recordId;
                 document.getElementById('tree-id').value = record.treeId || '';
-                document.getElementById('tree-species').value = record.treeSpecies || '';
+                document.getElementById('tree-species').value = record.disease  || '';
                 document.getElementById('location').value = record.location || '';
                 document.getElementById('health-status').value = record.healthStatus || '';
                 document.getElementById('disease-type').value = record.diseaseType || 'none';
@@ -1224,7 +1224,7 @@
             
             const recordId = document.getElementById('record-id').value;
             const treeId = document.getElementById('tree-id').value;
-            const treeSpecies = document.getElementById('tree-species').value;
+            const disease  = document.getElementById('tree-disease ').value;
             const location = document.getElementById('location').value;
             const healthStatus = document.getElementById('health-status').value;
             const diseaseType = document.getElementById('disease-type').value;
@@ -1239,7 +1239,7 @@
             
             const recordData = {
                 treeId,
-                treeSpecies,
+                disease ,
                 location,
                 healthStatus,
                 diseaseType,
