@@ -7,17 +7,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="../admin/css/admin.css">
   
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Export Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body class="bg-gray-50 font-[Inter] flex min-h-screen">
-  <!-- Same Sidebar as Dashboard -->
+  <!-- Sidebar -->
   <aside class="w-64 bg-gradient-to-b from-green-700 to-green-800 text-white flex flex-col p-4 shadow-lg">
     <div class="flex flex-col items-center text-center mt-6">
       <img src="../images/logo.png" alt="Palm Aegis Logo" class="w-24 mb-3">
@@ -80,207 +83,158 @@
     <!-- Header -->
     <header class="flex justify-between items-center mb-8">
       <div>
-        <h1 class="text-3xl font-bold text-gray-800">Reports & Analytics</h1>
-        <p class="text-gray-500">Comprehensive reports and insights</p>
+        <h1 class="text-3xl font-bold text-gray-800">Reports & Data Export</h1>
+        <p class="text-gray-500">View and export all system data</p>
       </div>
       <div class="flex items-center space-x-4">
-        <button onclick="generatePDFReport()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg flex items-center transition">
-          <i class="fas fa-file-pdf mr-2"></i> Export PDF
-        </button>
         <div id="current-date" class="text-gray-600 text-sm"></div>
       </div>
     </header>
 
-    <!-- Report Filters -->
-    <section class="bg-white rounded-xl shadow p-6 mb-6">
-      <h3 class="text-lg font-semibold mb-4">Report Filters</h3>
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-          <select id="date-range" class="w-full p-2 border border-gray-300 rounded-lg" onchange="handleDateRangeChange()">
-            <option value="7">Last 7 Days</option>
-            <option value="30" selected>Last 30 Days</option>
-            <option value="90">Last 3 Months</option>
-            <option value="365">Last Year</option>
-          </select>
+    <!-- Data Collection Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-2xl font-bold text-green-700" id="users-count">0</h3>
+            <p class="text-gray-500">Users</p>
+          </div>
+          <i class="fas fa-users text-2xl text-green-600"></i>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
-          <select id="report-type" class="w-full p-2 border border-gray-300 rounded-lg">
-            <option value="all">All Reports</option>
-            <option value="user">User Activity</option>
-            <option value="disease">Disease Detection</option>
-            <option value="treatment">Treatment Reports</option>
-          </select>
+        <button onclick="exportCollection('users')" class="mt-4 w-full bg-green-600 hover:bg-green-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+          <i class="fas fa-download mr-2"></i> Export
+        </button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-2xl font-bold text-blue-700" id="scans-count">0</h3>
+            <p class="text-gray-500">Scans</p>
+          </div>
+          <i class="fas fa-camera text-2xl text-blue-600"></i>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Disease Type</label>
-          <select id="disease-filter" class="w-full p-2 border border-gray-300 rounded-lg">
-            <option value="all">All Diseases</option>
-            <option value="Basal Stem Rot">Basal Stem Rot</option>
-            <option value="Bud Rot">Bud Rot</option>
-            <option value="Leaf Spot">Leaf Spot</option>
-            <option value="Healthy">Healthy</option>
-          </select>
+        <button onclick="exportCollection('scans')" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+          <i class="fas fa-download mr-2"></i> Export
+        </button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-2xl font-bold text-purple-700" id="tree-health-count">0</h3>
+            <p class="text-gray-500">Tree Health</p>
+          </div>
+          <i class="fas fa-leaf text-2xl text-purple-600"></i>
         </div>
-        <div class="flex items-end">
-          <button onclick="applyFilters()" class="w-full bg-green-600 hover:bg-green-500 text-white py-2 px-4 rounded-lg transition">
-            Generate Report
+        <button onclick="exportCollection('treeHealthReports')" class="mt-4 w-full bg-purple-600 hover:bg-purple-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+          <i class="fas fa-download mr-2"></i> Export
+        </button>
+      </div>
+
+      <div class="bg-white rounded-xl shadow p-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-2xl font-bold text-orange-700" id="farm-data-count">0</h3>
+            <p class="text-gray-500">Farm Data</p>
+          </div>
+          <i class="fas fa-tractor text-2xl text-orange-600"></i>
+        </div>
+        <button onclick="exportCollection('farmData')" class="mt-4 w-full bg-orange-600 hover:bg-orange-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+          <i class="fas fa-download mr-2"></i> Export
+        </button>
+      </div>
+    </section>
+
+    <!-- Export Options -->
+    <section class="bg-white rounded-xl shadow p-6 mb-8">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">Bulk Export Options</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h4 class="font-medium text-gray-700 mb-2">Export All Data</h4>
+          <p class="text-sm text-gray-500 mb-4">Download complete system data as a ZIP file containing all collections</p>
+          <button onclick="exportAllData()" class="w-full bg-green-600 hover:bg-green-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+            <i class="fas fa-file-archive mr-2"></i> Export All as ZIP
+          </button>
+        </div>
+        
+        <div class="border border-gray-200 rounded-lg p-4">
+          <h4 class="font-medium text-gray-700 mb-2">Custom Report</h4>
+          <p class="text-sm text-gray-500 mb-4">Generate a custom PDF report with selected data and analytics</p>
+          <button onclick="generateCustomReport()" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+            <i class="fas fa-file-pdf mr-2"></i> Generate PDF Report
           </button>
         </div>
       </div>
     </section>
 
-    <!-- Key Metrics -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <div class="bg-white rounded-xl shadow p-6">
-        <div class="flex justify-between items-start">
-          <div>
-            <h3 class="text-2xl font-bold text-green-700" id="total-scans">0</h3>
-            <p class="text-gray-500">Total Scans</p>
-          </div>
-          <i class="fas fa-camera text-2xl text-green-600"></i>
-        </div>
-        <div class="mt-2 text-sm text-green-600">
-          <span id="scan-change">+0%</span> from last period
-        </div>
-      </div>
-
-      <div class="bg-white rounded-xl shadow p-6">
-        <div class="flex justify-between items-start">
-          <div>
-            <h3 class="text-2xl font-bold text-blue-700" id="detection-rate">0%</h3>
-            <p class="text-gray-500">Detection Rate</p>
-          </div>
-          <i class="fas fa-chart-line text-2xl text-blue-600"></i>
-        </div>
-        <div class="mt-2 text-sm text-blue-600">
-          <span id="detection-change">+0%</span> accuracy
+    <!-- Data Preview Section -->
+    <section class="bg-white rounded-xl shadow p-6 mb-8">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-semibold text-gray-800">Data Preview</h3>
+        <div class="flex space-x-2">
+          <select id="collection-select" class="p-2 border border-gray-300 rounded-lg">
+            <option value="users">Users</option>
+            <option value="scans">Scans</option>
+            <option value="treeHealthReports">Tree Health</option>
+            <option value="farmData">Farm Data</option>
+            <option value="treatments">Treatments</option>
+          </select>
+          <button onclick="loadCollectionPreview()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg transition">
+            <i class="fas fa-sync-alt mr-2"></i> Load
+          </button>
         </div>
       </div>
-
-      <div class="bg-white rounded-xl shadow p-6">
-        <div class="flex justify-between items-start">
-          <div>
-            <h3 class="text-2xl font-bold text-purple-700" id="disease-positive">0%</h3>
-            <p class="text-gray-500">Disease Positive</p>
-          </div>
-          <i class="fas fa-exclamation-triangle text-2xl text-purple-600"></i>
-        </div>
-        <div class="mt-2 text-sm text-purple-600">
-          <span id="disease-change">+0%</span> cases
-        </div>
-      </div>
-    </section>
-
-    <!-- Charts Section -->
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      <!-- Disease Distribution Chart -->
-      <div class="bg-white rounded-xl shadow p-6">
-        <h3 class="text-lg font-semibold mb-4">Disease Distribution</h3>
-        <canvas id="diseaseDistributionChart" height="250"></canvas>
-      </div>
-
-      <!-- Scan Activity Over Time -->
-      <div class="bg-white rounded-xl shadow p-6">
-        <h3 class="text-lg font-semibold mb-4">Scan Activity Trend</h3>
-        <canvas id="activityTrendChart" height="250"></canvas>
-      </div>
-    </section>
-
-    <!-- Detailed Reports Table -->
-    <section class="bg-white rounded-xl shadow p-6 mb-6">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Scan History</h3>
-        <button onclick="exportToCSV()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg flex items-center transition">
-          <i class="fas fa-download mr-2"></i> Export CSV
-        </button>
-      </div>
+      
       <div class="overflow-x-auto">
         <table class="w-full text-sm text-left text-gray-700">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-            <tr>
-              <th class="px-4 py-3">Date & Time</th>
-              <th class="px-4 py-3">User Email</th>
-              <th class="px-4 py-3">Disease Detected</th>
-              <th class="px-4 py-3">Confidence</th>
-              <th class="px-4 py-3">Location</th>
-              <th class="px-4 py-3">Status</th>
+            <tr id="preview-table-headers">
+              <!-- Headers will be populated dynamically -->
             </tr>
           </thead>
-          <tbody id="report-table-body">
+          <tbody id="preview-table-body">
             <tr>
-              <td colspan="6" class="px-4 py-8 text-center text-gray-500">
-                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
-                <p>Loading scan data...</p>
+              <td colspan="10" class="px-4 py-8 text-center text-gray-500">
+                <i class="fas fa-database text-2xl mb-2"></i>
+                <p>Select a collection and click Load to preview data</p>
               </td>
             </tr>
           </tbody>
         </table>
       </div>
       <div class="mt-4 flex justify-between items-center">
-        <div class="text-sm text-gray-500" id="table-info">Loading...</div>
-        <div class="flex space-x-2" id="pagination-controls">
+        <div class="text-sm text-gray-500" id="preview-table-info">No data loaded</div>
+        <div class="flex space-x-2" id="preview-pagination-controls">
           <!-- Pagination will be added dynamically -->
         </div>
       </div>
     </section>
 
-    <!-- Summary Statistics -->
-    <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-white rounded-xl shadow p-6">
-        <h3 class="text-lg font-semibold mb-4">User Activity Summary</h3>
-        <div id="user-summary" class="space-y-3">
-          <div class="flex justify-between">
-            <span>Most Active User:</span>
-            <span id="most-active-user" class="font-semibold">Loading...</span>
-          </div>
-          <div class="flex justify-between">
-            <span>Average Scans per User:</span>
-            <span id="avg-scans-user" class="font-semibold">0</span>
-          </div>
-          <div class="flex justify-between">
-            <span>Peak Activity Time:</span>
-            <span id="peak-activity" class="font-semibold">Loading...</span>
-          </div>
-          <div class="flex justify-between">
-            <span>Unique Users (30 days):</span>
-            <span id="unique-users" class="font-semibold">0</span>
-          </div>
+    <!-- System Statistics -->
+    <section class="bg-white rounded-xl shadow p-6">
+      <h3 class="text-xl font-semibold text-gray-800 mb-4">System Statistics</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="text-sm text-gray-500">Total Collections</div>
+          <div class="text-2xl font-bold text-gray-800" id="total-collections">5</div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="text-sm text-gray-500">Total Records</div>
+          <div class="text-2xl font-bold text-gray-800" id="total-records">0</div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="text-sm text-gray-500">Last Updated</div>
+          <div class="text-2xl font-bold text-gray-800" id="last-updated">-</div>
+        </div>
+        <div class="bg-gray-50 p-4 rounded-lg">
+          <div class="text-sm text-gray-500">Database Size</div>
+          <div class="text-2xl font-bold text-gray-800" id="db-size">-</div>
         </div>
       </div>
-
-      <div class="bg-white rounded-xl shadow p-6">
-        <h3 class="text-lg font-semibold mb-4">System Performance</h3>
-        <div class="space-y-4">
-          <div>
-            <div class="flex justify-between mb-1">
-              <span>Database Response Time</span>
-              <span id="db-response">0ms</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div id="db-bar" class="bg-green-600 h-2 rounded-full" style="width: 95%"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between mb-1">
-              <span>Detection Accuracy</span>
-              <span id="accuracy-rate">92%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div id="accuracy-bar" class="bg-blue-600 h-2 rounded-full" style="width: 92%"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between mb-1">
-              <span>Data Uptime</span>
-              <span id="uptime-rate">99.9%</span>
-            </div>
-            <div class="w-full bg-gray-200 rounded-full h-2">
-              <div id="uptime-bar" class="bg-purple-600 h-2 rounded-full" style="width: 99%"></div>
-            </div>
-          </div>
-        </div>
+      
+      <div class="chart-container">
+        <canvas id="data-distribution-chart" height="100"></canvas>
       </div>
     </section>
   </main>
@@ -288,312 +242,291 @@
   <script>
     // Firebase configuration
     const firebaseConfig = {
-        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-        authDomain: "palmaegis-setup.firebaseapp.com",
-        projectId: "palmaegis-setup",
-        storageBucket: "palmaegis-setup.firebasestorage.app",
-        messagingSenderId: "445887502374",
-        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+      apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+      authDomain: "palmaegis-setup.firebaseapp.com",
+      projectId: "palmaegis-setup",
+      storageBucket: "palmaegis-setup.firebasestorage.app",
+      messagingSenderId: "445887502374",
+      appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
     };
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let scanData = [];
-    let userData = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
+    // Global variables
+    let allData = {
+      users: [],
+      scans: [],
+      treeHealthReports: [],
+      farmData: [],
+      treatments: []
+    };
 
-    // Initialize date
-    document.getElementById("current-date").innerText = new Date().toLocaleDateString();
-
-    // Load all data when page loads
+    // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
-        loadAllData();
+      document.getElementById("current-date").innerText = new Date().toLocaleDateString();
+      loadAllData();
     });
 
+    // Load all data from Firebase collections
     async function loadAllData() {
-        try {
-            await Promise.all([
-                loadScanData(),
-                loadUserData()
-            ]);
-            updateMetrics();
-            renderCharts();
-            renderTable();
-        } catch (error) {
-            console.error('Error loading data:', error);
-        }
-    }
+      try {
+        // Load users
+        const usersSnapshot = await db.collection('users').get();
+        allData.users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('users-count').textContent = allData.users.length;
 
-    async function loadScanData() {
-        const snapshot = await db.collection('scans')
-            .orderBy('timestamp', 'desc')
-            .get();
+        // Load scans
+        const scansSnapshot = await db.collection('scans').get();
+        allData.scans = scansSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('scans-count').textContent = allData.scans.length;
+
+        // Load tree health reports
+        const treeHealthSnapshot = await db.collection('treeHealthReports').get();
+        allData.treeHealthReports = treeHealthSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('tree-health-count').textContent = allData.treeHealthReports.length;
+
+        // Load farm data
+        const farmDataSnapshot = await db.collection('farmData').get();
+        allData.farmData = farmDataSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        document.getElementById('farm-data-count').textContent = allData.farmData.length;
+
+        // Load treatments
+        const treatmentsSnapshot = await db.collection('treatments').get();
+        allData.treatments = treatmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Update statistics
+        updateStatistics();
         
-        scanData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data(),
-            timestamp: doc.data().timestamp?.toDate()
-        }));
+        console.log('All data loaded successfully');
+      } catch (error) {
+        console.error('Error loading data:', error);
+      }
     }
 
-    async function loadUserData() {
-        const snapshot = await db.collection('users').get();
-        userData = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+    // Update statistics
+    function updateStatistics() {
+      const totalRecords = Object.values(allData).reduce((sum, collection) => sum + collection.length, 0);
+      document.getElementById('total-records').textContent = totalRecords;
+      document.getElementById('last-updated').textContent = new Date().toLocaleTimeString();
+      
+      // Update chart
+      updateDataDistributionChart();
     }
 
-    function updateMetrics() {
-        // Total Scans
-        const totalScans = scanData.length;
-        document.getElementById('total-scans').textContent = totalScans.toLocaleString();
-
-        // Detection Rate (scans with disease detected)
-        const diseaseScans = scanData.filter(scan => 
-            scan.diseaseDetected && scan.diseaseDetected !== 'Healthy'
-        ).length;
-        const detectionRate = totalScans > 0 ? (diseaseScans / totalScans * 100).toFixed(1) : 0;
-        document.getElementById('detection-rate').textContent = detectionRate + '%';
-
-        // Disease Positive Rate
-        const diseaseRate = totalScans > 0 ? (diseaseScans / totalScans * 100).toFixed(1) : 0;
-        document.getElementById('disease-positive').textContent = diseaseRate + '%';
-
-        // Update trend indicators (simplified)
-        document.getElementById('scan-change').textContent = '+12% from last period';
-        document.getElementById('detection-change').textContent = '+2.5% accuracy';
-        document.getElementById('disease-change').textContent = '-1.2% cases';
-    }
-
-    function renderCharts() {
-        renderDiseaseDistributionChart();
-        renderActivityTrendChart();
-    }
-
-    function renderDiseaseDistributionChart() {
-        const ctx = document.getElementById('diseaseDistributionChart').getContext('2d');
-        
-        // Count diseases
-        const diseaseCount = {};
-        scanData.forEach(scan => {
-            const disease = scan.diseaseDetected || 'Unknown';
-            diseaseCount[disease] = (diseaseCount[disease] || 0) + 1;
-        });
-
-        const diseases = Object.keys(diseaseCount);
-        const counts = Object.values(diseaseCount);
-
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: diseases,
-                datasets: [{
-                    data: counts,
-                    backgroundColor: [
-                        '#10B981', // Green for Healthy
-                        '#EF4444', // Red for Basal Stem Rot
-                        '#F59E0B', // Amber for Bud Rot
-                        '#3B82F6', // Blue for Leaf Spot
-                        '#6B7280'  // Gray for Unknown
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#FFFFFF'
-                }]
+    // Update data distribution chart
+    function updateDataDistributionChart() {
+      const ctx = document.getElementById('data-distribution-chart').getContext('2d');
+      
+      const collections = Object.keys(allData);
+      const counts = collections.map(collection => allData[collection].length);
+      
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: collections.map(name => name.charAt(0).toUpperCase() + name.slice(1)),
+          datasets: [{
+            label: 'Record Count',
+            data: counts,
+            backgroundColor: [
+              '#10B981',
+              '#3B82F6',
+              '#8B5CF6',
+              '#F59E0B',
+              '#EF4444'
+            ],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              display: false
             },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
+            title: {
+              display: true,
+              text: 'Data Distribution by Collection'
             }
-        });
-    }
-
-    function renderActivityTrendChart() {
-        const ctx = document.getElementById('activityTrendChart').getContext('2d');
-        
-        // Last 7 days activity
-        const last7Days = [];
-        for (let i = 6; i >= 0; i--) {
-            const date = new Date();
-            date.setDate(date.getDate() - i);
-            last7Days.push(date.toISOString().split('T')[0]);
-        }
-
-        const dailyCounts = last7Days.map(date => {
-            return scanData.filter(scan => {
-                const scanDate = scan.timestamp?.toISOString().split('T')[0];
-                return scanDate === date;
-            }).length;
-        });
-
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: last7Days.map(date => new Date(date).toLocaleDateString()),
-                datasets: [{
-                    label: 'Daily Scans',
-                    data: dailyCounts,
-                    borderColor: '#10B981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
-                        }
-                    }
-                }
+          },
+          scales: {
+            y: {
+              beginAtZero: true
             }
-        });
+          }
+        }
+      });
     }
 
-    function renderTable() {
-        const tableBody = document.getElementById('report-table-body');
-        const tableInfo = document.getElementById('table-info');
-        
-        if (scanData.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
-                        <i class="fas fa-search text-2xl mb-2"></i>
-                        <p>No scan data found</p>
-                    </td>
-                </tr>
-            `;
-            tableInfo.textContent = 'Showing 0 entries';
-            return;
-        }
-
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const endIndex = startIndex + itemsPerPage;
-        const paginatedData = scanData.slice(startIndex, endIndex);
-
-        tableBody.innerHTML = paginatedData.map(scan => `
-            <tr class="border-b hover:bg-gray-50">
-                <td class="px-4 py-3">${scan.timestamp ? scan.timestamp.toLocaleString() : 'N/A'}</td>
-                <td class="px-4 py-3">${scan.userEmail || 'Unknown'}</td>
-                <td class="px-4 py-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                        scan.diseaseDetected === 'Healthy' ? 'bg-green-100 text-green-800' :
-                        scan.diseaseDetected ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
-                    }">
-                        ${scan.diseaseDetected || 'Pending'}
-                    </span>
-                </td>
-                <td class="px-4 py-3">${scan.confidence ? (scan.confidence * 100).toFixed(1) + '%' : 'N/A'}</td>
-                <td class="px-4 py-3">${scan.location || 'N/A'}</td>
-                <td class="px-4 py-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                        scan.status === 'completed' ? 'bg-green-100 text-green-800' :
-                        scan.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                    }">
-                        ${scan.status || 'unknown'}
-                    </span>
-                </td>
-            </tr>
-        `).join('');
-
-        // Update table info
-        tableInfo.textContent = `Showing ${startIndex + 1} to ${Math.min(endIndex, scanData.length)} of ${scanData.length} entries`;
-
-        // Render pagination
-        renderPagination();
-    }
-
-    function renderPagination() {
-        const totalPages = Math.ceil(scanData.length / itemsPerPage);
-        const paginationContainer = document.getElementById('pagination-controls');
-        
-        if (totalPages <= 1) {
-            paginationContainer.innerHTML = '';
-            return;
-        }
-
-        let paginationHTML = '';
-        
-        // Previous button
-        if (currentPage > 1) {
-            paginationHTML += `<button onclick="changePage(${currentPage - 1})" class="px-3 py-1 border rounded-lg hover:bg-gray-50">Previous</button>`;
-        }
-
-        // Page numbers
-        for (let i = 1; i <= totalPages; i++) {
-            if (i === currentPage) {
-                paginationHTML += `<button class="px-3 py-1 border rounded-lg bg-green-600 text-white">${i}</button>`;
+    // Load collection preview
+    function loadCollectionPreview() {
+      const collectionName = document.getElementById('collection-select').value;
+      const data = allData[collectionName];
+      
+      if (!data || data.length === 0) {
+        document.getElementById('preview-table-body').innerHTML = `
+          <tr>
+            <td colspan="10" class="px-4 py-8 text-center text-gray-500">
+              <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+              <p>No data available for this collection</p>
+            </td>
+          </tr>
+        `;
+        document.getElementById('preview-table-info').textContent = 'No data available';
+        document.getElementById('preview-pagination-controls').innerHTML = '';
+        return;
+      }
+      
+      // Get all unique keys from the data
+      const allKeys = [...new Set(data.flatMap(item => Object.keys(item)))];
+      
+      // Create table headers
+      const headersHtml = allKeys.map(key => 
+        `<th class="px-4 py-3">${formatHeader(key)}</th>`
+      ).join('');
+      
+      document.getElementById('preview-table-headers').innerHTML = headersHtml;
+      
+      // Create table rows (show first 10 records)
+      const previewData = data.slice(0, 10);
+      const rowsHtml = previewData.map(item => {
+        const cellsHtml = allKeys.map(key => {
+          let value = item[key];
+          
+          // Format special values
+          if (value && typeof value === 'object') {
+            if (value.toDate) {
+              value = value.toDate().toLocaleDateString();
             } else {
-                paginationHTML += `<button onclick="changePage(${i})" class="px-3 py-1 border rounded-lg hover:bg-gray-50">${i}</button>`;
+              value = JSON.stringify(value);
             }
+          }
+          
+          // Truncate long values
+          if (typeof value === 'string' && value.length > 50) {
+            value = value.substring(0, 50) + '...';
+          }
+          
+          return `<td class="px-4 py-3 border-t">${value || '-'}</td>`;
+        }).join('');
+        
+        return `<tr>${cellsHtml}</tr>`;
+      }).join('');
+      
+      document.getElementById('preview-table-body').innerHTML = rowsHtml;
+      document.getElementById('preview-table-info').textContent = `Showing ${previewData.length} of ${data.length} records`;
+      
+      // Add pagination if needed
+      if (data.length > 10) {
+        document.getElementById('preview-pagination-controls').innerHTML = `
+          <button class="px-3 py-1 border rounded-lg bg-green-600 text-white">1</button>
+          <span class="px-2">...</span>
+          <button class="px-3 py-1 border rounded-lg hover:bg-gray-50">View All (${data.length})</button>
+        `;
+      } else {
+        document.getElementById('preview-pagination-controls').innerHTML = '';
+      }
+    }
+
+    // Format header for display
+    function formatHeader(key) {
+      return key
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .replace('Id', 'ID');
+    }
+
+    // Export a specific collection
+    function exportCollection(collectionName) {
+      const data = allData[collectionName];
+      if (!data || data.length === 0) {
+        alert(`No data available for ${collectionName}`);
+        return;
+      }
+      
+      // Convert to CSV
+      const csvContent = convertToCSV(data);
+      
+      // Create download link
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${collectionName}-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+      
+      alert(`Exported ${data.length} records from ${collectionName}`);
+    }
+
+    // Convert data to CSV
+    function convertToCSV(data) {
+      if (!data || data.length === 0) return '';
+      
+      // Get all keys
+      const keys = [...new Set(data.flatMap(item => Object.keys(item)))];
+      
+      // Create header row
+      const header = keys.map(key => `"${formatHeader(key)}"`).join(',');
+      
+      // Create data rows
+      const rows = data.map(item => {
+        return keys.map(key => {
+          let value = item[key];
+          
+          // Format special values
+          if (value && typeof value === 'object') {
+            if (value.toDate) {
+              value = value.toDate().toISOString();
+            } else {
+              value = JSON.stringify(value);
+            }
+          }
+          
+          // Escape quotes and wrap in quotes
+          return `"${String(value || '').replace(/"/g, '""')}"`;
+        }).join(',');
+      });
+      
+      return [header, ...rows].join('\n');
+    }
+
+    // Export all data as ZIP
+    function exportAllData() {
+      // Create a ZIP file with all collections
+      const zip = new JSZip();
+      
+      Object.keys(allData).forEach(collectionName => {
+        const data = allData[collectionName];
+        if (data && data.length > 0) {
+          const csvContent = convertToCSV(data);
+          zip.file(`${collectionName}.csv`, csvContent);
         }
-
-        // Next button
-        if (currentPage < totalPages) {
-            paginationHTML += `<button onclick="changePage(${currentPage + 1})" class="px-3 py-1 border rounded-lg hover:bg-gray-50">Next</button>`;
-        }
-
-        paginationContainer.innerHTML = paginationHTML;
+      });
+      
+      // Add a README file
+      const readmeContent = `Palm Aegis Data Export\nGenerated on: ${new Date().toISOString()}\nTotal Collections: ${Object.keys(allData).length}\nTotal Records: ${Object.values(allData).reduce((sum, collection) => sum + collection.length, 0)}`;
+      zip.file("README.txt", readmeContent);
+      
+      // Generate and download the ZIP file
+      zip.generateAsync({type:"blob"})
+        .then(function(content) {
+          const url = URL.createObjectURL(content);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `palm-aegis-full-export-${new Date().toISOString().split('T')[0]}.zip`;
+          link.click();
+          URL.revokeObjectURL(url);
+          
+          alert('All data exported successfully as ZIP file!');
+        });
     }
 
-    function changePage(page) {
-        currentPage = page;
-        renderTable();
-    }
-
-    function applyFilters() {
-        // This would implement the actual filtering logic
-        console.log('Filters applied - would filter data based on selections');
-        // For now, just reload the data
-        loadAllData();
-    }
-
-    function handleDateRangeChange() {
-        // This would handle custom date range selection
-        console.log('Date range changed');
-    }
-
-    function generatePDFReport() {
-        // Implement PDF generation
-        alert('PDF report generation would be implemented here');
-        console.log('Generating PDF report...');
-    }
-
-    function exportToCSV() {
-        // Simple CSV export implementation
-        const headers = ['Date', 'User Email', 'Disease Detected', 'Confidence', 'Location', 'Status'];
-        const csvData = scanData.map(scan => [
-            scan.timestamp ? scan.timestamp.toLocaleString() : '',
-            scan.userEmail || '',
-            scan.diseaseDetected || '',
-            scan.confidence ? (scan.confidence * 100).toFixed(1) + '%' : '',
-            scan.location || '',
-            scan.status || ''
-        ]);
-
-        const csvContent = [headers, ...csvData]
-            .map(row => row.map(field => `"${field}"`).join(','))
-            .join('\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `palm-aegis-report-${new Date().toISOString().split('T')[0]}.csv`;
-        a.click();
-        window.URL.revokeObjectURL(url);
+    // Generate custom PDF report
+    function generateCustomReport() {
+      alert('PDF report generation would be implemented with a PDF library');
+      // This would use jsPDF to create a formatted PDF report
     }
   </script>
 </body>
