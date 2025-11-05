@@ -1076,64 +1076,67 @@ function migrateExistingData() {
         }
 
         // Update charts with data
-        function updateCharts(records) {
-            // Health status distribution
-            const healthCounts = {
-                excellent: 0,
-                good: 0,
-                fair: 0,
-                poor: 0,
-                critical: 0
-            };
-            
-            // Disease distribution - include "No Disease"
-            const diseaseCounts = {
-                ganoderma: 0,
-                'basal-stem-rot': 0,
-                'black-spot': 0,
-                marasmius: 0,
-                fusarium: 0,
-                'none': 0  // Add count for no disease
-            };
-            
-            records.forEach(record => {
-                // Count health status
-                if (record.healthStatus && healthCounts.hasOwnProperty(record.healthStatus)) {
-                    healthCounts[record.healthStatus]++;
-                }
-                
-                // Count diseases (including 'none')
-                if (record.disease) {
-                    if (diseaseCounts.hasOwnProperty(record.disease)) {
-                        diseaseCounts[record.disease]++;
-                    }
-                } else {
-                    // If disease field doesn't exist, count as 'none'
-                    diseaseCounts['none']++;
-                }
-            });
-            
-            // Update health chart
-            healthChart.data.datasets[0].data = [
-                healthCounts.excellent,
-                healthCounts.good,
-                healthCounts.fair,
-                healthCounts.poor,
-                healthCounts.critical
-            ];
-            healthChart.update();
-            
-            // Update disease chart to include "No Disease"
-            diseaseChart.data.labels = ['Ganoderma', 'Basal Stem Rot', 'Black Spot', 'Marasmius', 'Fusarium', 'No Disease'];
-            diseaseChart.data.datasets[0].data = [
-                diseaseCounts.ganoderma,
-                diseaseCounts['basal-stem-rot'],
-                diseaseCounts['black-spot'],
-                diseaseCounts.marasmius,
-                diseaseCounts.fusarium,
-                diseaseCounts.none
-            ];
-            diseaseChart.update();
+function updateCharts(records) {
+    // Health status distribution
+    const healthCounts = {
+        excellent: 0,
+        good: 0,
+        fair: 0,
+        poor: 0,
+        critical: 0
+    };
+    
+    // Disease distribution - include "No Disease"
+    const diseaseCounts = {
+        ganoderma: 0,
+        'basal-stem-rot': 0,
+        'black-spot': 0,
+        marasmius: 0,
+        fusarium: 0,
+        'none': 0  // Add count for no disease
+    };
+    
+    records.forEach(record => {
+        // Count health status
+        if (record.healthStatus && healthCounts.hasOwnProperty(record.healthStatus)) {
+            healthCounts[record.healthStatus]++;
+        }
+        
+        // Count diseases (including 'none')
+        if (record.disease) {
+            if (diseaseCounts.hasOwnProperty(record.disease)) {
+                diseaseCounts[record.disease]++;
+            } else {
+                // If disease is not in our list, count it as 'none'
+                diseaseCounts['none']++;
+            }
+        } else {
+            // If disease field doesn't exist, count as 'none'
+            diseaseCounts['none']++;
+        }
+    });
+    
+    // Update health chart
+    healthChart.data.datasets[0].data = [
+        healthCounts.excellent,
+        healthCounts.good,
+        healthCounts.fair,
+        healthCounts.poor,
+        healthCounts.critical
+    ];
+    healthChart.update();
+    
+    // Update disease chart to include "No Disease"
+    diseaseChart.data.labels = ['Ganoderma', 'Basal Stem Rot', 'Black Spot', 'Marasmius', 'Fusarium', 'No Disease'];
+    diseaseChart.data.datasets[0].data = [
+        diseaseCounts.ganoderma,
+        diseaseCounts['basal-stem-rot'],
+        diseaseCounts['black-spot'],
+        diseaseCounts.marasmius,
+        diseaseCounts.fusarium,
+        diseaseCounts.none
+    ];
+    diseaseChart.update();
 }
 
         // Populate history filter dropdowns
