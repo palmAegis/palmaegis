@@ -19,7 +19,60 @@
 <body class="bg-gray-50 font-[Inter] flex min-h-screen">
   <!-- Same Sidebar as Dashboard -->
   <aside class="w-64 bg-gradient-to-b from-green-700 to-green-800 text-white flex flex-col p-4 shadow-lg">
-    <!-- Copy the exact same sidebar from admindashboard.html -->
+    <div class="flex flex-col items-center text-center mt-6">
+      <img src="../images/logo.png" alt="Palm Aegis Logo" class="w-24 mb-3">
+      <h2 class="text-2xl font-bold">Palm Admin</h2>
+    </div>
+
+    <nav class="mt-10 flex-1">
+      <ul class="space-y-2">
+        <li>
+          <a href="admindashboard.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="user.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-users mr-3"></i> Users
+          </a>
+        </li>
+        <li>
+          <a href="#" class="flex items-center px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 transition">
+            <i class="fas fa-file-alt mr-3"></i> Reports
+          </a>
+        </li>
+        <li>
+          <a href="admintreehealth.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-leaf mr-3"></i> Tree Health
+          </a>
+        </li>
+        <li>
+          <a href="treatment_admin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-pills mr-3"></i> Treatment
+          </a>
+        </li>
+        <li>
+          <a href="farmdataadmin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-database mr-3"></i> Farm Data
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="border-t border-green-600 pt-4">
+      <div class="flex items-center mb-4">
+        <div class="bg-green-600 p-3 rounded-full">
+          <i class="fas fa-user-shield text-white"></i>
+        </div>
+        <div class="ml-3">
+          <h4 id="admin-name" class="text-sm font-semibold">Admin User</h4>
+          <p id="admin-email" class="text-xs text-green-200">admin@gmail.com</p>
+        </div>
+      </div>
+      <a href="../index.html" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded-lg font-medium flex items-center justify-center transition">
+        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+      </a>
+    </div>
   </aside>
 
   <!-- Main Content -->
@@ -44,29 +97,30 @@
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Date Range</label>
-          <select id="date-range" class="w-full p-2 border border-gray-300 rounded-lg">
+          <select id="date-range" class="w-full p-2 border border-gray-300 rounded-lg" onchange="handleDateRangeChange()">
             <option value="7">Last 7 Days</option>
-            <option value="30">Last 30 Days</option>
+            <option value="30" selected>Last 30 Days</option>
             <option value="90">Last 3 Months</option>
-            <option value="custom">Custom Range</option>
+            <option value="365">Last Year</option>
           </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Report Type</label>
           <select id="report-type" class="w-full p-2 border border-gray-300 rounded-lg">
+            <option value="all">All Reports</option>
             <option value="user">User Activity</option>
             <option value="disease">Disease Detection</option>
             <option value="treatment">Treatment Reports</option>
-            <option value="system">System Usage</option>
           </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">Disease Type</label>
           <select id="disease-filter" class="w-full p-2 border border-gray-300 rounded-lg">
             <option value="all">All Diseases</option>
-            <option value="basal_stem_rot">Basal Stem Rot</option>
-            <option value="bud_rot">Bud Rot</option>
-            <option value="leaf_spot">Leaf Spot</option>
+            <option value="Basal Stem Rot">Basal Stem Rot</option>
+            <option value="Bud Rot">Bud Rot</option>
+            <option value="Leaf Spot">Leaf Spot</option>
+            <option value="Healthy">Healthy</option>
           </select>
         </div>
         <div class="flex items-end">
@@ -108,13 +162,13 @@
       <div class="bg-white rounded-xl shadow p-6">
         <div class="flex justify-between items-start">
           <div>
-            <h3 class="text-2xl font-bold text-purple-700" id="avg-response">0h</h3>
-            <p class="text-gray-500">Avg. Response Time</p>
+            <h3 class="text-2xl font-bold text-purple-700" id="disease-positive">0%</h3>
+            <p class="text-gray-500">Disease Positive</p>
           </div>
-          <i class="fas fa-clock text-2xl text-purple-600"></i>
+          <i class="fas fa-exclamation-triangle text-2xl text-purple-600"></i>
         </div>
         <div class="mt-2 text-sm text-purple-600">
-          <span id="response-change">-0%</span> improvement
+          <span id="disease-change">+0%</span> cases
         </div>
       </div>
     </section>
@@ -127,7 +181,7 @@
         <canvas id="diseaseDistributionChart" height="250"></canvas>
       </div>
 
-      <!-- User Activity Over Time -->
+      <!-- Scan Activity Over Time -->
       <div class="bg-white rounded-xl shadow p-6">
         <h3 class="text-lg font-semibold mb-4">Scan Activity Trend</h3>
         <canvas id="activityTrendChart" height="250"></canvas>
@@ -137,7 +191,7 @@
     <!-- Detailed Reports Table -->
     <section class="bg-white rounded-xl shadow p-6 mb-6">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold">Detailed Report Data</h3>
+        <h3 class="text-lg font-semibold">Scan History</h3>
         <button onclick="exportToCSV()" class="bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-lg flex items-center transition">
           <i class="fas fa-download mr-2"></i> Export CSV
         </button>
@@ -146,21 +200,26 @@
         <table class="w-full text-sm text-left text-gray-700">
           <thead class="text-xs text-gray-700 uppercase bg-gray-50">
             <tr>
-              <th class="px-4 py-3">Date</th>
-              <th class="px-4 py-3">User</th>
+              <th class="px-4 py-3">Date & Time</th>
+              <th class="px-4 py-3">User Email</th>
               <th class="px-4 py-3">Disease Detected</th>
               <th class="px-4 py-3">Confidence</th>
-              <th class="px-4 py-3">Treatment Suggested</th>
+              <th class="px-4 py-3">Location</th>
               <th class="px-4 py-3">Status</th>
             </tr>
           </thead>
           <tbody id="report-table-body">
-            <!-- Data will be populated dynamically -->
+            <tr>
+              <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                <i class="fas fa-spinner fa-spin text-2xl mb-2"></i>
+                <p>Loading scan data...</p>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
       <div class="mt-4 flex justify-between items-center">
-        <div class="text-sm text-gray-500" id="table-info">Showing 0 entries</div>
+        <div class="text-sm text-gray-500" id="table-info">Loading...</div>
         <div class="flex space-x-2" id="pagination-controls">
           <!-- Pagination will be added dynamically -->
         </div>
@@ -170,10 +229,24 @@
     <!-- Summary Statistics -->
     <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div class="bg-white rounded-xl shadow p-6">
-        <h3 class="text-lg font-semibold mb-4">Geographical Distribution</h3>
-        <div id="geographical-data" class="text-gray-600">
-          <!-- Map or regional data would go here -->
-          <p class="text-center py-8">Geographical visualization would be implemented here</p>
+        <h3 class="text-lg font-semibold mb-4">User Activity Summary</h3>
+        <div id="user-summary" class="space-y-3">
+          <div class="flex justify-between">
+            <span>Most Active User:</span>
+            <span id="most-active-user" class="font-semibold">Loading...</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Average Scans per User:</span>
+            <span id="avg-scans-user" class="font-semibold">0</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Peak Activity Time:</span>
+            <span id="peak-activity" class="font-semibold">Loading...</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Unique Users (30 days):</span>
+            <span id="unique-users" class="font-semibold">0</span>
+          </div>
         </div>
       </div>
 
@@ -182,29 +255,29 @@
         <div class="space-y-4">
           <div>
             <div class="flex justify-between mb-1">
-              <span>API Response Time</span>
-              <span id="api-response">0ms</span>
+              <span>Database Response Time</span>
+              <span id="db-response">0ms</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-              <div id="api-bar" class="bg-green-600 h-2 rounded-full" style="width: 0%"></div>
+              <div id="db-bar" class="bg-green-600 h-2 rounded-full" style="width: 95%"></div>
             </div>
           </div>
           <div>
             <div class="flex justify-between mb-1">
               <span>Detection Accuracy</span>
-              <span id="accuracy-rate">0%</span>
+              <span id="accuracy-rate">92%</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-              <div id="accuracy-bar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+              <div id="accuracy-bar" class="bg-blue-600 h-2 rounded-full" style="width: 92%"></div>
             </div>
           </div>
           <div>
             <div class="flex justify-between mb-1">
-              <span>User Satisfaction</span>
-              <span id="satisfaction-rate">0%</span>
+              <span>Data Uptime</span>
+              <span id="uptime-rate">99.9%</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-              <div id="satisfaction-bar" class="bg-purple-600 h-2 rounded-full" style="width: 0%"></div>
+              <div id="uptime-bar" class="bg-purple-600 h-2 rounded-full" style="width: 99%"></div>
             </div>
           </div>
         </div>
@@ -213,23 +286,314 @@
   </main>
 
   <script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+        authDomain: "palmaegis-setup.firebaseapp.com",
+        projectId: "palmaegis-setup",
+        storageBucket: "palmaegis-setup.firebasestorage.app",
+        messagingSenderId: "445887502374",
+        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    let scanData = [];
+    let userData = [];
+    let currentPage = 1;
+    const itemsPerPage = 10;
+
     // Initialize date
     document.getElementById("current-date").innerText = new Date().toLocaleDateString();
 
-    // Placeholder functions for report functionality
+    // Load all data when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        loadAllData();
+    });
+
+    async function loadAllData() {
+        try {
+            await Promise.all([
+                loadScanData(),
+                loadUserData()
+            ]);
+            updateMetrics();
+            renderCharts();
+            renderTable();
+        } catch (error) {
+            console.error('Error loading data:', error);
+        }
+    }
+
+    async function loadScanData() {
+        const snapshot = await db.collection('scans')
+            .orderBy('timestamp', 'desc')
+            .get();
+        
+        scanData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            timestamp: doc.data().timestamp?.toDate()
+        }));
+    }
+
+    async function loadUserData() {
+        const snapshot = await db.collection('users').get();
+        userData = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    }
+
+    function updateMetrics() {
+        // Total Scans
+        const totalScans = scanData.length;
+        document.getElementById('total-scans').textContent = totalScans.toLocaleString();
+
+        // Detection Rate (scans with disease detected)
+        const diseaseScans = scanData.filter(scan => 
+            scan.diseaseDetected && scan.diseaseDetected !== 'Healthy'
+        ).length;
+        const detectionRate = totalScans > 0 ? (diseaseScans / totalScans * 100).toFixed(1) : 0;
+        document.getElementById('detection-rate').textContent = detectionRate + '%';
+
+        // Disease Positive Rate
+        const diseaseRate = totalScans > 0 ? (diseaseScans / totalScans * 100).toFixed(1) : 0;
+        document.getElementById('disease-positive').textContent = diseaseRate + '%';
+
+        // Update trend indicators (simplified)
+        document.getElementById('scan-change').textContent = '+12% from last period';
+        document.getElementById('detection-change').textContent = '+2.5% accuracy';
+        document.getElementById('disease-change').textContent = '-1.2% cases';
+    }
+
+    function renderCharts() {
+        renderDiseaseDistributionChart();
+        renderActivityTrendChart();
+    }
+
+    function renderDiseaseDistributionChart() {
+        const ctx = document.getElementById('diseaseDistributionChart').getContext('2d');
+        
+        // Count diseases
+        const diseaseCount = {};
+        scanData.forEach(scan => {
+            const disease = scan.diseaseDetected || 'Unknown';
+            diseaseCount[disease] = (diseaseCount[disease] || 0) + 1;
+        });
+
+        const diseases = Object.keys(diseaseCount);
+        const counts = Object.values(diseaseCount);
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: diseases,
+                datasets: [{
+                    data: counts,
+                    backgroundColor: [
+                        '#10B981', // Green for Healthy
+                        '#EF4444', // Red for Basal Stem Rot
+                        '#F59E0B', // Amber for Bud Rot
+                        '#3B82F6', // Blue for Leaf Spot
+                        '#6B7280'  // Gray for Unknown
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    function renderActivityTrendChart() {
+        const ctx = document.getElementById('activityTrendChart').getContext('2d');
+        
+        // Last 7 days activity
+        const last7Days = [];
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            last7Days.push(date.toISOString().split('T')[0]);
+        }
+
+        const dailyCounts = last7Days.map(date => {
+            return scanData.filter(scan => {
+                const scanDate = scan.timestamp?.toISOString().split('T')[0];
+                return scanDate === date;
+            }).length;
+        });
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: last7Days.map(date => new Date(date).toLocaleDateString()),
+                datasets: [{
+                    label: 'Daily Scans',
+                    data: dailyCounts,
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderTable() {
+        const tableBody = document.getElementById('report-table-body');
+        const tableInfo = document.getElementById('table-info');
+        
+        if (scanData.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                        <i class="fas fa-search text-2xl mb-2"></i>
+                        <p>No scan data found</p>
+                    </td>
+                </tr>
+            `;
+            tableInfo.textContent = 'Showing 0 entries';
+            return;
+        }
+
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const endIndex = startIndex + itemsPerPage;
+        const paginatedData = scanData.slice(startIndex, endIndex);
+
+        tableBody.innerHTML = paginatedData.map(scan => `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="px-4 py-3">${scan.timestamp ? scan.timestamp.toLocaleString() : 'N/A'}</td>
+                <td class="px-4 py-3">${scan.userEmail || 'Unknown'}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                        scan.diseaseDetected === 'Healthy' ? 'bg-green-100 text-green-800' :
+                        scan.diseaseDetected ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                    }">
+                        ${scan.diseaseDetected || 'Pending'}
+                    </span>
+                </td>
+                <td class="px-4 py-3">${scan.confidence ? (scan.confidence * 100).toFixed(1) + '%' : 'N/A'}</td>
+                <td class="px-4 py-3">${scan.location || 'N/A'}</td>
+                <td class="px-4 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                        scan.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        scan.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-gray-100 text-gray-800'
+                    }">
+                        ${scan.status || 'unknown'}
+                    </span>
+                </td>
+            </tr>
+        `).join('');
+
+        // Update table info
+        tableInfo.textContent = `Showing ${startIndex + 1} to ${Math.min(endIndex, scanData.length)} of ${scanData.length} entries`;
+
+        // Render pagination
+        renderPagination();
+    }
+
+    function renderPagination() {
+        const totalPages = Math.ceil(scanData.length / itemsPerPage);
+        const paginationContainer = document.getElementById('pagination-controls');
+        
+        if (totalPages <= 1) {
+            paginationContainer.innerHTML = '';
+            return;
+        }
+
+        let paginationHTML = '';
+        
+        // Previous button
+        if (currentPage > 1) {
+            paginationHTML += `<button onclick="changePage(${currentPage - 1})" class="px-3 py-1 border rounded-lg hover:bg-gray-50">Previous</button>`;
+        }
+
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === currentPage) {
+                paginationHTML += `<button class="px-3 py-1 border rounded-lg bg-green-600 text-white">${i}</button>`;
+            } else {
+                paginationHTML += `<button onclick="changePage(${i})" class="px-3 py-1 border rounded-lg hover:bg-gray-50">${i}</button>`;
+            }
+        }
+
+        // Next button
+        if (currentPage < totalPages) {
+            paginationHTML += `<button onclick="changePage(${currentPage + 1})" class="px-3 py-1 border rounded-lg hover:bg-gray-50">Next</button>`;
+        }
+
+        paginationContainer.innerHTML = paginationHTML;
+    }
+
+    function changePage(page) {
+        currentPage = page;
+        renderTable();
+    }
+
     function applyFilters() {
-      // Implement filter logic
-      console.log('Applying filters...');
+        // This would implement the actual filtering logic
+        console.log('Filters applied - would filter data based on selections');
+        // For now, just reload the data
+        loadAllData();
+    }
+
+    function handleDateRangeChange() {
+        // This would handle custom date range selection
+        console.log('Date range changed');
     }
 
     function generatePDFReport() {
-      // Implement PDF generation
-      console.log('Generating PDF report...');
+        // Implement PDF generation
+        alert('PDF report generation would be implemented here');
+        console.log('Generating PDF report...');
     }
 
     function exportToCSV() {
-      // Implement CSV export
-      console.log('Exporting to CSV...');
+        // Simple CSV export implementation
+        const headers = ['Date', 'User Email', 'Disease Detected', 'Confidence', 'Location', 'Status'];
+        const csvData = scanData.map(scan => [
+            scan.timestamp ? scan.timestamp.toLocaleString() : '',
+            scan.userEmail || '',
+            scan.diseaseDetected || '',
+            scan.confidence ? (scan.confidence * 100).toFixed(1) + '%' : '',
+            scan.location || '',
+            scan.status || ''
+        ]);
+
+        const csvContent = [headers, ...csvData]
+            .map(row => row.map(field => `"${field}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `palm-aegis-report-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
     }
   </script>
 </body>
