@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tree Health Monitoring System</title>
     <link rel="stylesheet" href="css/treehealth.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -14,6 +15,371 @@
     <!-- jsPDF & SheetJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2e7d32;
+            --primary-dark: #1b5e20;
+            --primary-light: #4caf50;
+            --secondary: #ff9800;
+            --text: #333;
+            --text-light: #666;
+            --background: #f5f5f5;
+            --white: #ffffff;
+            --error: #d32f2f;
+            --warning: #ffa000;
+            --success: #388e3c;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .header-left h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .header-nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1.5rem;
+            font-weight: 500;
+            transition: opacity 0.3s;
+        }
+
+        .header-nav a:hover {
+            opacity: 0.8;
+        }
+
+        .language-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        .language-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .user-info {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-section, .report-section {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-light);
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab-button {
+            background: none;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab-button.active {
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .tab-content {
+            position: relative;
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .checkbox-group input {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+
+        .submit-btn, .analyze-btn, .action-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+            width: 100%;
+        }
+
+        .submit-btn:hover, .analyze-btn:hover, .action-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .ai-upload {
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            cursor: pointer;
+            transition: border 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+        }
+
+        .upload-area p {
+            color: var(--text-light);
+        }
+
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .preview-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .analyze-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .report-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .action-btn {
+            width: auto;
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .report-output {
+            min-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1.5rem;
+            background: #f9f9f9;
+        }
+
+        .placeholder {
+            color: var(--text-light);
+            text-align: center;
+            font-style: italic;
+        }
+
+        .history-section {
+            margin-top: 2rem;
+        }
+
+        .history-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 1rem;
+        }
+
+        .history-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .tree-id {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .health-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-excellent { background: #e8f5e9; color: var(--success); }
+        .status-good { background: #f1f8e9; color: #689f38; }
+        .status-fair { background: #fff3e0; color: var(--warning); }
+        .status-poor { background: #ffebee; color: #e53935; }
+        .status-critical { background: #fce4ec; color: var(--error); }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .success-message {
+            color: var(--success);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .tree-id-suggestions {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .suggestion {
+            color: var(--primary);
+            cursor: pointer;
+            text-decoration: underline;
+            margin-right: 10px;
+        }
+
+        .suggestion:hover {
+            color: var(--primary-dark);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -49,8 +415,16 @@
                     <div id="manual-form" class="form-container active">
                         <form id="health-form">
                             <div class="form-group">
-                                <label for="tree-id">Tree ID</label>
-                                <input type="text" id="tree-id" placeholder="Enter Tree ID" required>
+                                <label for="tree-id">Tree ID <small>(Must be unique across the system)</small></label>
+                                <input type="text" id="tree-id" placeholder="Enter unique Tree ID" required>
+                                <div id="tree-id-error" class="error-message">This Tree ID already exists in the system. Please use a unique ID.</div>
+                                <div id="tree-id-success" class="success-message">Tree ID is available.</div>
+                                <div id="tree-id-suggestions" class="tree-id-suggestions" style="display:none;">
+                                    Suggested unique IDs: 
+                                    <span class="suggestion" id="suggestion-1"></span>
+                                    <span class="suggestion" id="suggestion-2"></span>
+                                    <span class="suggestion" id="suggestion-3"></span>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -121,7 +495,10 @@
                                 <textarea id="notes" rows="3" placeholder="Enter any additional notes..."></textarea>
                             </div>
 
-                            <button type="submit" class="submit-btn">Generate Health Report</button>
+                            <button type="submit" class="submit-btn" id="submit-btn">
+                                <span id="submit-text">Generate Health Report</span>
+                                <span id="submit-loading" class="loading" style="display:none;"></span>
+                            </button>
                         </form>
                     </div>
 
@@ -160,6 +537,302 @@
         </main>
     </div>
 
-    <script src="js/treehealth.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // DOM Elements
+        const treeIdInput = document.getElementById('tree-id');
+        const treeIdError = document.getElementById('tree-id-error');
+        const treeIdSuccess = document.getElementById('tree-id-success');
+        const treeIdSuggestions = document.getElementById('tree-id-suggestions');
+        const healthForm = document.getElementById('health-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const submitText = document.getElementById('submit-text');
+        const submitLoading = document.getElementById('submit-loading');
+        const reportOutput = document.getElementById('report-output');
+        const historySection = document.getElementById('history-section');
+        const historyList = document.getElementById('history-list');
+        const viewHistoryBtn = document.getElementById('view-history');
+
+        // Current user ID
+        let currentUserId = null;
+
+        // Initialize authentication
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                document.getElementById('user-info').style.display = 'block';
+                document.getElementById('user-info').textContent = `Logged in as: ${user.email}`;
+                loadUserTreeHistory();
+            } else {
+                // Redirect to login if not authenticated
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Check Tree ID uniqueness (GLOBALLY across all users)
+        treeIdInput.addEventListener('blur', checkTreeIdUniqueness);
+        
+        async function checkTreeIdUniqueness() {
+            const treeId = treeIdInput.value.trim();
+            
+            if (!treeId) {
+                hideTreeIdMessages();
+                return;
+            }
+            
+            try {
+                const querySnapshot = await db.collection('treeHealthRecords')
+                    .where('treeId', '==', treeId)
+                    .get();
+                
+                if (querySnapshot.empty) {
+                    // Tree ID is unique globally
+                    showTreeIdSuccess();
+                } else {
+                    // Tree ID already exists in the system
+                    showTreeIdError();
+                    generateUniqueSuggestions(treeId);
+                }
+            } catch (error) {
+                console.error('Error checking Tree ID:', error);
+                // In case of error, we'll allow submission but show a warning
+                hideTreeIdMessages();
+            }
+        }
+
+        // Generate unique Tree ID suggestions
+        function generateUniqueSuggestions(baseId) {
+            const suggestions = [
+                `${baseId}_${Math.floor(Math.random() * 1000)}`,
+                `${baseId}_${Date.now().toString().slice(-4)}`,
+                `${baseId}_${Math.random().toString(36).substring(2, 6)}`
+            ];
+            
+            suggestions.forEach((suggestion, index) => {
+                const suggestionElement = document.getElementById(`suggestion-${index + 1}`);
+                suggestionElement.textContent = suggestion;
+                suggestionElement.onclick = () => {
+                    treeIdInput.value = suggestion;
+                    checkTreeIdUniqueness();
+                };
+            });
+            
+            treeIdSuggestions.style.display = 'block';
+        }
+        
+        function showTreeIdError() {
+            treeIdError.style.display = 'block';
+            treeIdSuccess.style.display = 'none';
+            treeIdInput.style.borderColor = 'var(--error)';
+        }
+        
+        function showTreeIdSuccess() {
+            treeIdError.style.display = 'none';
+            treeIdSuccess.style.display = 'none';
+            treeIdSuggestions.style.display = 'none';
+            treeIdInput.style.borderColor = 'var(--success)';
+        }
+        
+        function hideTreeIdMessages() {
+            treeIdError.style.display = 'none';
+            treeIdSuccess.style.display = 'none';
+            treeIdSuggestions.style.display = 'none';
+            treeIdInput.style.borderColor = '#ddd';
+        }
+
+        // Form submission with GLOBAL uniqueness validation
+        healthForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const treeId = treeIdInput.value.trim();
+            
+            if (!treeId) {
+                alert('Please enter a Tree ID');
+                return;
+            }
+            
+            // Validate Tree ID uniqueness before submission (GLOBALLY)
+            const querySnapshot = await db.collection('treeHealthRecords')
+                .where('treeId', '==', treeId)
+                .get();
+            
+            if (!querySnapshot.empty) {
+                showTreeIdError();
+                alert('This Tree ID already exists in the system. Please use a unique ID.');
+                return;
+            }
+            
+            // Show loading state
+            submitText.textContent = 'Processing...';
+            submitLoading.style.display = 'inline-block';
+            submitBtn.disabled = true;
+            
+            try {
+                // Get form values
+                const formData = {
+                    treeId: treeId,
+                    disease: document.getElementById('tree-species').value,
+                    location: document.getElementById('location').value,
+                    healthStatus: document.getElementById('health-status').value,
+                    diseaseType: document.getElementById('disease-type').value,
+                    severity: document.getElementById('severity').value,
+                    affectedParts: getSelectedCheckboxes(),
+                    notes: document.getElementById('notes').value,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    userId: currentUserId,
+                    userEmail: auth.currentUser.email
+                };
+                
+                // Save to Firestore
+                await db.collection('treeHealthRecords').add(formData);
+                
+                // Reset form
+                healthForm.reset();
+                hideTreeIdMessages();
+                
+                // Show success message
+                reportOutput.innerHTML = `
+                    <div style="text-align: center; padding: 2rem;">
+                        <i class="fas fa-check-circle" style="font-size: 3rem; color: var(--success); margin-bottom: 1rem;"></i>
+                        <h3 style="color: var(--success); margin-bottom: 1rem;">Health Report Generated Successfully!</h3>
+                        <p>Tree ID: <strong>${formData.treeId}</strong> has been recorded.</p>
+                        <p><small>This Tree ID is now unique across the entire system.</small></p>
+                    </div>
+                `;
+                
+                // Reload history
+                loadUserTreeHistory();
+                
+            } catch (error) {
+                console.error('Error saving data:', error);
+                alert('Error saving data. Please try again.');
+            } finally {
+                // Reset button state
+                submitText.textContent = 'Generate Health Report';
+                submitLoading.style.display = 'none';
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Helper function to get selected checkboxes
+        function getSelectedCheckboxes() {
+            const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]:checked');
+            return Array.from(checkboxes).map(cb => cb.value);
+        }
+
+        // Load user's tree history
+        async function loadUserTreeHistory() {
+            if (!currentUserId) return;
+            
+            try {
+                const querySnapshot = await db.collection('treeHealthRecords')
+                    .where('userId', '==', currentUserId)
+                    .orderBy('timestamp', 'desc')
+                    .limit(10)
+                    .get();
+                
+                historyList.innerHTML = '';
+                
+                if (querySnapshot.empty) {
+                    historyList.innerHTML = '<p class="placeholder">No historical data found.</p>';
+                    return;
+                }
+                
+                querySnapshot.forEach(doc => {
+                    const data = doc.data();
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    
+                    const date = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : 'Unknown date';
+                    
+                    historyItem.innerHTML = `
+                        <div>
+                            <span class="tree-id">${data.treeId}</span>
+                            <span> - ${data.location} - ${date}</span>
+                        </div>
+                        <span class="health-status status-${data.healthStatus}">${data.healthStatus}</span>
+                    `;
+                    
+                    historyList.appendChild(historyItem);
+                });
+            } catch (error) {
+                console.error('Error loading history:', error);
+                historyList.innerHTML = '<p class="placeholder">Error loading history.</p>';
+            }
+        }
+
+        // Toggle history view
+        viewHistoryBtn.addEventListener('click', () => {
+            if (historySection.style.display === 'none') {
+                historySection.style.display = 'block';
+                viewHistoryBtn.textContent = 'Hide History';
+            } else {
+                historySection.style.display = 'none';
+                viewHistoryBtn.textContent = 'View History';
+            }
+        });
+
+        // Tab switching
+        document.getElementById('manual-tab').addEventListener('click', () => {
+            document.getElementById('manual-tab').classList.add('active');
+            document.getElementById('ai-tab').classList.remove('active');
+            document.getElementById('manual-form').classList.add('active');
+            document.getElementById('ai-form').classList.remove('active');
+        });
+
+        document.getElementById('ai-tab').addEventListener('click', () => {
+            document.getElementById('ai-tab').classList.add('active');
+            document.getElementById('manual-tab').classList.remove('active');
+            document.getElementById('ai-form').classList.add('active');
+            document.getElementById('manual-form').classList.remove('active');
+        });
+
+        // Language switching (placeholder)
+        document.getElementById('language-switcher').addEventListener('click', () => {
+            alert('Language switching functionality would be implemented here');
+        });
+
+        // Image upload functionality (placeholder)
+        document.getElementById('upload-area').addEventListener('click', () => {
+            document.getElementById('image-upload').click();
+        });
+
+        document.getElementById('image-upload').addEventListener('change', (e) => {
+            // Handle image preview (simplified for this example)
+            const files = e.target.files;
+            if (files.length > 0) {
+                document.getElementById('analyze-btn').disabled = false;
+            }
+        });
+
+        // Generate report button
+        document.getElementById('generate-report').addEventListener('click', () => {
+            alert('Report generation would be implemented here');
+        });
+
+        // Download PDF button
+        document.getElementById('download-pdf').addEventListener('click', () => {
+            alert('PDF download would be implemented here');
+        });
+
+        // Download Excel button
+        document.getElementById('download-excel').addEventListener('click', () => {
+            alert('Excel download would be implemented here');
+        });
+    </script>
 </body>
 </html>

@@ -1262,11 +1262,6 @@
                         alert('Geolocation is not supported by your browser. Showing Batu Pahat view.');
                     }
                 });
-
-                // Add report button functionality
-                document.getElementById('addReportBtn').addEventListener('click', function () {
-                    window.location.href = 'report.html';
-                });
             }
         }
     </script>
@@ -1350,12 +1345,12 @@
                 <div class="header-left">
                     <h1>Dashboard</h1>
                 </div>
-                <div class="header-right">
+                <!-- <div class="header-right">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Search...">
                     </div>
-                </div>
+                </div> -->
             </header>
 
             <section class="profile-section">
@@ -1390,9 +1385,9 @@
                             <button class="map-btn" id="locateMeBtn">
                                 <i class="fas fa-location-arrow"></i> Locate Me
                             </button>
-                            <button class="map-btn" id="addReportBtn">
+                            <!-- <button class="map-btn" id="addReportBtn">
                                 <i class="fas fa-plus"></i> Add Report
-                            </button>
+                            </button> -->
                         </div>
                     </div>
                     <div id="palmMap"></div>
