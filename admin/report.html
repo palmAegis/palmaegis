@@ -17,6 +17,7 @@
   <!-- Export Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 </head>
 
 <body class="bg-gray-50 font-[Inter] flex min-h-screen">
@@ -104,6 +105,7 @@
         <button onclick="exportCollection('users')" class="mt-4 w-full bg-green-600 hover:bg-green-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
           <i class="fas fa-download mr-2"></i> Export
         </button>
+        <p class="text-xs text-gray-500 mt-2">Excludes: profile pictures</p>
       </div>
 
       <div class="bg-white rounded-xl shadow p-6">
@@ -117,6 +119,7 @@
         <button onclick="exportCollection('scans')" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
           <i class="fas fa-download mr-2"></i> Export
         </button>
+        <p class="text-xs text-gray-500 mt-2">All data included</p>
       </div>
 
       <div class="bg-white rounded-xl shadow p-6">
@@ -130,6 +133,7 @@
         <button onclick="exportCollection('treeHealthReports')" class="mt-4 w-full bg-purple-600 hover:bg-purple-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
           <i class="fas fa-download mr-2"></i> Export
         </button>
+        <p class="text-xs text-gray-500 mt-2">Excludes: userID</p>
       </div>
 
       <div class="bg-white rounded-xl shadow p-6">
@@ -143,6 +147,7 @@
         <button onclick="exportCollection('farmData')" class="mt-4 w-full bg-orange-600 hover:bg-orange-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
           <i class="fas fa-download mr-2"></i> Export
         </button>
+        <p class="text-xs text-gray-500 mt-2">Excludes: userID</p>
       </div>
     </section>
 
@@ -263,6 +268,14 @@
       treatments: []
     };
 
+    // Field exclusion configuration
+    const excludedFields = {
+      users: ['profilePicture', 'image', 'photo', 'picture', 'avatar', 'base64'],
+      treeHealthReports: ['userId', 'userID', 'user_id'],
+      treatments: ['image', 'images', 'picture', 'photo'],
+      farmData: ['userId', 'userID', 'user_id']
+    };
+
     // Initialize the page
     document.addEventListener('DOMContentLoaded', function() {
       document.getElementById("current-date").innerText = new Date().toLocaleDateString();
@@ -303,6 +316,41 @@
       } catch (error) {
         console.error('Error loading data:', error);
       }
+    }
+
+    // Filter data by removing excluded fields
+    function filterData(collectionName, data) {
+      const fieldsToExclude = excludedFields[collectionName] || [];
+      
+      return data.map(item => {
+        const filteredItem = { ...item };
+        
+        fieldsToExclude.forEach(field => {
+          // Check for exact field name and case variations
+          const fieldVariations = [
+            field,
+            field.toLowerCase(),
+            field.toUpperCase(),
+            field.charAt(0).toUpperCase() + field.slice(1)
+          ];
+          
+          fieldVariations.forEach(fieldVar => {
+            if (filteredItem.hasOwnProperty(fieldVar)) {
+              delete filteredItem[fieldVar];
+            }
+          });
+          
+          // Also check for fields that contain the excluded term (for base64 images)
+          Object.keys(filteredItem).forEach(key => {
+            if (fieldsToExclude.some(excluded => 
+              key.toLowerCase().includes(excluded.toLowerCase()))) {
+              delete filteredItem[key];
+            }
+          });
+        });
+        
+        return filteredItem;
+      });
     }
 
     // Update statistics
@@ -378,8 +426,11 @@
         return;
       }
       
-      // Get all unique keys from the data
-      const allKeys = [...new Set(data.flatMap(item => Object.keys(item)))];
+      // Filter data for preview (remove excluded fields)
+      const filteredData = filterData(collectionName, data);
+      
+      // Get all unique keys from the filtered data
+      const allKeys = [...new Set(filteredData.flatMap(item => Object.keys(item)))];
       
       // Create table headers
       const headersHtml = allKeys.map(key => 
@@ -389,7 +440,7 @@
       document.getElementById('preview-table-headers').innerHTML = headersHtml;
       
       // Create table rows (show first 10 records)
-      const previewData = data.slice(0, 10);
+      const previewData = filteredData.slice(0, 10);
       const rowsHtml = previewData.map(item => {
         const cellsHtml = allKeys.map(key => {
           let value = item[key];
@@ -398,6 +449,8 @@
           if (value && typeof value === 'object') {
             if (value.toDate) {
               value = value.toDate().toLocaleDateString();
+            } else if (Array.isArray(value)) {
+              value = value.join(', ');
             } else {
               value = JSON.stringify(value);
             }
@@ -415,7 +468,7 @@
       }).join('');
       
       document.getElementById('preview-table-body').innerHTML = rowsHtml;
-      document.getElementById('preview-table-info').textContent = `Showing ${previewData.length} of ${data.length} records`;
+      document.getElementById('preview-table-info').textContent = `Showing ${previewData.length} of ${data.length} records (filtered)`;
       
       // Add pagination if needed
       if (data.length > 10) {
@@ -445,8 +498,11 @@
         return;
       }
       
+      // Filter data to remove excluded fields
+      const filteredData = filterData(collectionName, data);
+      
       // Convert to CSV
-      const csvContent = convertToCSV(data);
+      const csvContent = convertToCSV(filteredData);
       
       // Create download link
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -457,7 +513,7 @@
       link.click();
       URL.revokeObjectURL(url);
       
-      alert(`Exported ${data.length} records from ${collectionName}`);
+      alert(`Exported ${filteredData.length} records from ${collectionName} (excluded sensitive fields)`);
     }
 
     // Convert data to CSV
@@ -479,6 +535,8 @@
           if (value && typeof value === 'object') {
             if (value.toDate) {
               value = value.toDate().toISOString();
+            } else if (Array.isArray(value)) {
+              value = value.join('; ');
             } else {
               value = JSON.stringify(value);
             }
@@ -500,13 +558,15 @@
       Object.keys(allData).forEach(collectionName => {
         const data = allData[collectionName];
         if (data && data.length > 0) {
-          const csvContent = convertToCSV(data);
+          // Filter data to remove excluded fields
+          const filteredData = filterData(collectionName, data);
+          const csvContent = convertToCSV(filteredData);
           zip.file(`${collectionName}.csv`, csvContent);
         }
       });
       
       // Add a README file
-      const readmeContent = `Palm Aegis Data Export\nGenerated on: ${new Date().toISOString()}\nTotal Collections: ${Object.keys(allData).length}\nTotal Records: ${Object.values(allData).reduce((sum, collection) => sum + collection.length, 0)}`;
+      const readmeContent = `Palm Aegis Data Export\nGenerated on: ${new Date().toISOString()}\nTotal Collections: ${Object.keys(allData).length}\nTotal Records: ${Object.values(allData).reduce((sum, collection) => sum + collection.length, 0)}\n\nExcluded Fields:\n- Users: profile pictures and base64 images\n- Tree Health: userID fields\n- Treatments: image fields\n- Farm Data: userID fields`;
       zip.file("README.txt", readmeContent);
       
       // Generate and download the ZIP file
@@ -519,7 +579,7 @@
           link.click();
           URL.revokeObjectURL(url);
           
-          alert('All data exported successfully as ZIP file!');
+          alert('All data exported successfully as ZIP file! (Sensitive fields excluded)');
         });
     }
 
