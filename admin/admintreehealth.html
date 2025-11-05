@@ -781,6 +781,12 @@
                     querySnapshot.forEach((doc) => {
                         const record = doc.data();
                         record.id = doc.id;
+                        
+                        // Ensure disease field exists and has proper value
+                        if (!record.disease) {
+                            record.disease = 'none'; // Default to 'none' if disease field is missing
+                        }
+                        
                         treeData.push(record);
                     });
                     
@@ -792,8 +798,15 @@
                     }
                     
                     if (currentFilters.disease) {
-                        // FIXED: Look for 'disease' field instead of 'treeSpecies'
-                        filteredData = filteredData.filter(record => record.disease === currentFilters.disease);
+                        if (currentFilters.disease === 'none') {
+                            // Filter for records with no disease
+                            filteredData = filteredData.filter(record => 
+                                !record.disease || record.disease === 'none' || record.disease === ''
+                            );
+                        } else {
+                            // Filter for specific disease
+                            filteredData = filteredData.filter(record => record.disease === currentFilters.disease);
+                        }
                     }
                     
                     if (currentFilters.search) {
@@ -893,7 +906,7 @@
                     atRiskTrees++;
                 }
                 
-                // FIXED: Look for 'disease' field instead of 'treeSpecies'
+                // Count disease cases (excluding 'none')
                 if (record.disease && record.disease !== 'none') {
                     diseaseCases++;
                 }
@@ -967,6 +980,24 @@
                 });
             });
         }
+        // Run this once in browser console to fix existing data
+function migrateExistingData() {
+    db.collection('treeHealthReports').get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            if (!data.disease) {
+                // If disease field doesn't exist, set it to 'none'
+                db.collection('treeHealthReports').doc(doc.id).update({
+                    disease: 'none'
+                });
+            }
+        });
+        console.log('Data migration completed');
+    });
+}
+
+// Uncomment the line below and run in browser console if needed
+// migrateExistingData();
 
         // Format disease name for display
         function formatDiseaseName(disease) {
@@ -1055,13 +1086,14 @@
                 critical: 0
             };
             
-            // Disease distribution
+            // Disease distribution - include "No Disease"
             const diseaseCounts = {
                 ganoderma: 0,
                 'basal-stem-rot': 0,
                 'black-spot': 0,
                 marasmius: 0,
-                fusarium: 0
+                fusarium: 0,
+                'none': 0  // Add count for no disease
             };
             
             records.forEach(record => {
@@ -1070,10 +1102,14 @@
                     healthCounts[record.healthStatus]++;
                 }
                 
-                // Count diseases (excluding 'none')
-                // FIXED: Look for 'disease' field instead of 'treeSpecies'
-                if (record.disease && record.disease !== 'none' && diseaseCounts.hasOwnProperty(record.disease)) {
-                    diseaseCounts[record.disease]++;
+                // Count diseases (including 'none')
+                if (record.disease) {
+                    if (diseaseCounts.hasOwnProperty(record.disease)) {
+                        diseaseCounts[record.disease]++;
+                    }
+                } else {
+                    // If disease field doesn't exist, count as 'none'
+                    diseaseCounts['none']++;
                 }
             });
             
@@ -1087,16 +1123,18 @@
             ];
             healthChart.update();
             
-            // Update disease chart
+            // Update disease chart to include "No Disease"
+            diseaseChart.data.labels = ['Ganoderma', 'Basal Stem Rot', 'Black Spot', 'Marasmius', 'Fusarium', 'No Disease'];
             diseaseChart.data.datasets[0].data = [
                 diseaseCounts.ganoderma,
                 diseaseCounts['basal-stem-rot'],
                 diseaseCounts['black-spot'],
                 diseaseCounts.marasmius,
-                diseaseCounts.fusarium
+                diseaseCounts.fusarium,
+                diseaseCounts.none
             ];
             diseaseChart.update();
-        }
+}
 
         // Populate history filter dropdowns
         function populateHistoryFilters() {
