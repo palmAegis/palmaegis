@@ -297,7 +297,7 @@
         }
 
         .history-list {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -307,9 +307,12 @@
         .history-item {
             padding: 1rem;
             border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .history-item:hover {
+            background: #f5f5f5;
         }
 
         .history-item:last-child {
@@ -326,6 +329,8 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 500;
+            display: inline-block;
+            margin-left: 0.5rem;
         }
 
         .status-excellent { background: #e8f5e9; color: var(--success); }
@@ -333,6 +338,18 @@
         .status-fair { background: #fff3e0; color: var(--warning); }
         .status-poor { background: #ffebee; color: #e53935; }
         .status-critical { background: #fce4ec; color: var(--error); }
+
+        .history-details {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .history-date {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.3rem;
+        }
 
         .error-message {
             color: var(--error);
@@ -397,6 +414,20 @@
         }
 
         .generate-new-id:hover {
+            background: #f57c00;
+        }
+
+        .back-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+
+        .back-btn:hover {
             background: #f57c00;
         }
     </style>
@@ -596,7 +627,6 @@
                 document.getElementById('user-info').style.display = 'block';
                 document.getElementById('user-info').textContent = `Logged in as: ${user.email}`;
                 generateUniqueTreeId();
-                loadUserTreeHistory();
             } else {
                 // Redirect to login if not authenticated
                 window.location.href = 'login.html';
@@ -678,9 +708,6 @@
                 healthForm.reset();
                 generateUniqueTreeId();
                 
-                // Reload history
-                loadUserTreeHistory();
-                
             } catch (error) {
                 console.error('Error saving data:', error);
                 alert('Error saving data. Please try again.');
@@ -698,45 +725,168 @@
             return Array.from(checkboxes).map(cb => cb.value);
         }
 
-        // Load user's tree history
+        // Load user's tree history - NO INDEXES REQUIRED
         async function loadUserTreeHistory() {
             if (!currentUserId) return;
             
             try {
+                console.log("Loading history for user:", currentUserId);
+                
+                // Get all documents for this user without ordering
                 const querySnapshot = await db.collection('treeHealthReports')
                     .where('userId', '==', currentUserId)
-                    .orderBy('timestamp', 'desc')
-                    .limit(10)
                     .get();
                 
-                historyList.innerHTML = '';
+                displayHistory(querySnapshot);
                 
-                if (querySnapshot.empty) {
-                    historyList.innerHTML = '<p class="placeholder">No historical data found.</p>';
-                    return;
-                }
-                
-                querySnapshot.forEach(doc => {
-                    const data = doc.data();
-                    const historyItem = document.createElement('div');
-                    historyItem.className = 'history-item';
-                    
-                    const date = data.timestamp ? data.timestamp.toDate().toLocaleDateString() : 'Unknown date';
-                    
-                    historyItem.innerHTML = `
-                        <div>
-                            <span class="tree-id">${data.treeId}</span>
-                            <span> - ${data.location} - ${date}</span>
-                        </div>
-                        <span class="health-status status-${data.healthStatus}">${data.healthStatus}</span>
-                    `;
-                    
-                    historyList.appendChild(historyItem);
-                });
             } catch (error) {
                 console.error('Error loading history:', error);
-                historyList.innerHTML = '<p class="placeholder">Error loading history.</p>';
+                historyList.innerHTML = `
+                    <div style="text-align: center; padding: 1rem; color: var(--error);">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Error loading history: ${error.message}</p>
+                    </div>
+                `;
             }
+        }
+
+        // Helper function to display history
+        function displayHistory(querySnapshot) {
+            historyList.innerHTML = '';
+            
+            if (querySnapshot.empty) {
+                historyList.innerHTML = '<p class="placeholder">No historical data found.</p>';
+                return;
+            }
+            
+            // Convert to array
+            const historyData = [];
+            querySnapshot.forEach(doc => {
+                historyData.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            // Sort by timestamp client-side (no index needed)
+            historyData.sort((a, b) => {
+                // Handle cases where timestamp might be missing
+                const timeA = a.timestamp ? a.timestamp.toDate().getTime() : 0;
+                const timeB = b.timestamp ? b.timestamp.toDate().getTime() : 0;
+                return timeB - timeA; // Descending order (newest first)
+            });
+            
+            // Display the history
+            historyData.forEach(data => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                
+                let date = 'Unknown date';
+                if (data.timestamp) {
+                    try {
+                        date = data.timestamp.toDate().toLocaleDateString();
+                    } catch (e) {
+                        console.log("Error parsing timestamp:", e);
+                    }
+                }
+                
+                // Format affected parts for display
+                let affectedPartsDisplay = '';
+                if (data.affectedParts && data.affectedParts.length > 0) {
+                    affectedPartsDisplay = `Affected: ${data.affectedParts.join(', ')}`;
+                }
+                
+                historyItem.innerHTML = `
+                    <div>
+                        <span class="tree-id">${data.treeId}</span>
+                        <span class="health-status status-${data.healthStatus}">${data.healthStatus}</span>
+                        <div class="history-details">
+                            <strong>Location:</strong> ${data.location} | 
+                            <strong>Disease:</strong> ${data.disease}
+                        </div>
+                        <div class="history-details">
+                            ${affectedPartsDisplay}
+                        </div>
+                        <div class="history-date">
+                            ${date}
+                        </div>
+                    </div>
+                `;
+                
+                // Add click event to view details
+                historyItem.addEventListener('click', () => {
+                    showHistoryDetails(data);
+                });
+                
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        // Show detailed view of a history item
+        function showHistoryDetails(data) {
+            let date = 'Unknown date';
+            if (data.timestamp) {
+                try {
+                    date = data.timestamp.toDate().toLocaleString();
+                } catch (e) {
+                    console.log("Error parsing timestamp:", e);
+                }
+            }
+            
+            reportOutput.innerHTML = `
+                <button class="back-btn" onclick="showHistoryList()">
+                    <i class="fas fa-arrow-left"></i> Back to History
+                </button>
+                <div style="padding: 1rem;">
+                    <h3 style="color: var(--primary); margin-bottom: 1rem; border-bottom: 2px solid var(--primary-light); padding-bottom: 0.5rem;">
+                        Tree Health Report Details
+                    </h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                            <strong>Tree ID:</strong><br> ${data.treeId}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                            <strong>Date Recorded:</strong><br> ${date}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                            <strong>Location:</strong><br> ${data.location}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                            <strong>Disease:</strong><br> ${data.disease}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                            <strong>Health Status:</strong><br> 
+                            <span class="health-status status-${data.healthStatus}">${data.healthStatus}</span>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                            <strong>Disease Type:</strong><br> ${data.diseaseType || 'None'}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                            <strong>Severity:</strong><br> ${data.severity || 'None'}
+                        </div>
+                        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+                            <strong>Affected Parts:</strong><br> 
+                            ${data.affectedParts && data.affectedParts.length > 0 ? data.affectedParts.join(', ') : 'None'}
+                        </div>
+                    </div>
+                    ${data.notes ? `
+                    <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <strong>Additional Notes:</strong><br>${data.notes}
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Hide history list and show report output
+            historySection.style.display = 'none';
+            reportOutput.style.display = 'block';
+        }
+
+        // Show history list
+        function showHistoryList() {
+            reportOutput.style.display = 'block';
+            historySection.style.display = 'block';
+            loadUserTreeHistory();
         }
 
         // Toggle history view
@@ -744,6 +894,7 @@
             if (historySection.style.display === 'none') {
                 historySection.style.display = 'block';
                 viewHistoryBtn.textContent = 'Hide History';
+                loadUserTreeHistory(); // Load data when showing history
             } else {
                 historySection.style.display = 'none';
                 viewHistoryBtn.textContent = 'View History';
@@ -797,6 +948,10 @@
         document.getElementById('download-excel').addEventListener('click', () => {
             alert('Excel download would be implemented here');
         });
+
+        // Make functions available globally
+        window.showHistoryDetails = showHistoryDetails;
+        window.showHistoryList = showHistoryList;
     </script>
 </body>
 </html>
