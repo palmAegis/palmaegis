@@ -6,6 +6,7 @@
     <title>Admin - Tree Health Monitoring System</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Your existing CSS styles remain the same */
         :root {
             --primary-color: #2e7d32;
             --primary-light: #60ad5e;
@@ -602,8 +603,8 @@
                 </div>
                 
                 <div class="form-group">
-                    <label for="tree-species">Oil Palm Disease</label>
-                    <select id="tree-species" required>
+                    <label for="disease">Oil Palm Disease</label>
+                    <select id="disease" required>
                         <option value="">Select Disease</option>
                         <option value="ganoderma">Ganoderma</option>
                         <option value="basal-stem-rot">Basal Stem Rot</option>
@@ -791,6 +792,7 @@
                     }
                     
                     if (currentFilters.disease) {
+                        // FIXED: Look for 'disease' field instead of 'treeSpecies'
                         filteredData = filteredData.filter(record => record.disease === currentFilters.disease);
                     }
                     
@@ -833,11 +835,12 @@
                             id: doc.id,
                             treeId: record.treeId || 'Unknown',
                             action: 'created', // In a real app, you'd track create/update actions
-                            user: record.reportedBy || 'admin',
+                            user: record.userEmail || record.reportedBy || 'admin',
                             timestamp: record.timestamp || new Date(),
                             details: {
                                 healthStatus: record.healthStatus || 'Unknown',
-                                disease: formatDiseaseName(record.disease ),
+                                // FIXED: Look for 'disease' field instead of 'treeSpecies'
+                                disease: formatDiseaseName(record.disease),
                                 severity: record.severity || 'Unknown'
                             }
                         });
@@ -890,7 +893,8 @@
                     atRiskTrees++;
                 }
                 
-                if (record.disease && record.disease  !== 'none') {
+                // FIXED: Look for 'disease' field instead of 'treeSpecies'
+                if (record.disease && record.disease !== 'none') {
                     diseaseCases++;
                 }
             });
@@ -928,6 +932,7 @@
                 
                 row.innerHTML = `
                     <td>${record.treeId || 'Unknown'}</td>
+                    <!-- FIXED: Use 'disease' field instead of 'treeSpecies' -->
                     <td>${formatDiseaseName(record.disease)}</td>
                     <td>${record.location || 'Unknown'}</td>
                     <td><span class="status-badge ${statusClass}">${statusText}</span></td>
@@ -1066,8 +1071,9 @@
                 }
                 
                 // Count diseases (excluding 'none')
-                if (record.disease && record.disease !== 'none' && diseaseCounts.hasOwnProperty(record.treeSpecies)) {
-                    diseaseCounts[record.disease ]++;
+                // FIXED: Look for 'disease' field instead of 'treeSpecies'
+                if (record.disease && record.disease !== 'none' && diseaseCounts.hasOwnProperty(record.disease)) {
+                    diseaseCounts[record.disease]++;
                 }
             });
             
@@ -1168,7 +1174,7 @@
         function viewRecord(recordId) {
             const record = treeData.find(r => r.id === recordId);
             if (record) {
-                alert(`Viewing record for ${record.treeId}\n\nHealth Status: ${record.healthStatus}\nDisease: ${formatDiseaseName(record.disease )}\nLocation: ${record.location}\nSeverity: ${record.severity}\nNotes: ${record.notes}`);
+                alert(`Viewing record for ${record.treeId}\n\nHealth Status: ${record.healthStatus}\nDisease: ${formatDiseaseName(record.disease)}\nLocation: ${record.location}\nSeverity: ${record.severity}\nNotes: ${record.notes}`);
             } else {
                 alert('Record not found!');
             }
@@ -1183,7 +1189,8 @@
                 // Populate form with record data
                 document.getElementById('record-id').value = recordId;
                 document.getElementById('tree-id').value = record.treeId || '';
-                document.getElementById('tree-species').value = record.disease  || '';
+                // FIXED: Use 'disease' field instead of 'treeSpecies'
+                document.getElementById('disease').value = record.disease || '';
                 document.getElementById('location').value = record.location || '';
                 document.getElementById('health-status').value = record.healthStatus || '';
                 document.getElementById('disease-type').value = record.diseaseType || 'none';
@@ -1224,7 +1231,8 @@
             
             const recordId = document.getElementById('record-id').value;
             const treeId = document.getElementById('tree-id').value;
-            const disease  = document.getElementById('tree-disease ').value;
+            // FIXED: Use 'disease' field instead of 'treeSpecies'
+            const disease = document.getElementById('disease').value;
             const location = document.getElementById('location').value;
             const healthStatus = document.getElementById('health-status').value;
             const diseaseType = document.getElementById('disease-type').value;
@@ -1239,7 +1247,8 @@
             
             const recordData = {
                 treeId,
-                disease ,
+                // FIXED: Store as 'disease' to match the original form
+                disease,
                 location,
                 healthStatus,
                 diseaseType,
