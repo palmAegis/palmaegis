@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Health Assessment</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        .form-section {
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .form-row {
+            display: flex;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        label {
+            width: 150px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        input[type="text"], select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+        }
+        .checkbox-item input {
+            margin-right: 5px;
+        }
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto 0;
+        }
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+        .notes {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Farm Health Assessment</h1>
+        
+        <form id="farmAssessmentForm">
+            <div class="form-section">
+                <div class="form-row">
+                    <label for="location">Location:</label>
+                    <input type="text" id="location" name="location" placeholder="Enter location">
+                </div>
+                <div class="form-row">
+                    <label for="date">Date:</label>
+                    <input type="text" id="date" name="date" placeholder="Enter date">
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="form-row">
+                    <label for="disease">Check Disease:</label>
+                    <input type="text" id="disease" name="disease" placeholder="Enter disease">
+                    <span style="margin-left: 10px;">D.L.</span>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Result</h3>
+                <div class="form-row">
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="healthy" name="result" value="healthy">
+                            <label for="healthy">Healthy</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="non-healthy" name="result" value="non-healthy">
+                            <label for="non-healthy">Non-Healthy</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="breast-none" name="result" value="breast-none">
+                            <label for="breast-none">Breast: None</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="name" name="result" value="name">
+                            <label for="name">Name</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="black-spot" name="result" value="black-spot">
+                            <label for="black-spot">Black K-spot</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <h3>Treatment</h3>
+                <div class="form-row">
+                    <label for="reassessment">Re-assessment:</label>
+                    <input type="text" id="reassessment" name="reassessment" placeholder="Enter re-assessment details">
+                </div>
+                <div class="form-row">
+                    <label for="solution">Solution:</label>
+                    <input type="text" id="solution" name="solution" placeholder="Enter solution">
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-btn">Submit Assessment</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('farmAssessmentForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Assessment submitted successfully!');
+            // In a real application, you would send the form data to a server here
+        });
+    </script>
+</body>
+</html>
