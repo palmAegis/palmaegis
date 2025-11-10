@@ -4,28 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farm Health Assessment</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <style>
         * {
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         body {
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background-color: #f0f7f0;
+            color: #333;
         }
         .container {
             max-width: 800px;
             margin: 0 auto;
             background-color: white;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         h1 {
             text-align: center;
             margin-bottom: 30px;
-            color: #333;
+            color: #2d5a2d;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 15px;
         }
         .form-section {
             margin-bottom: 25px;
@@ -41,12 +46,14 @@
             width: 150px;
             font-weight: bold;
             margin-right: 10px;
+            color: #2d5a2d;
         }
         input[type="text"], select {
             flex: 1;
-            padding: 8px;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            font-size: 16px;
         }
         .checkbox-group {
             display: flex;
@@ -56,52 +63,127 @@
         .checkbox-item {
             display: flex;
             align-items: center;
+            background-color: #f9f9f9;
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
         }
         .checkbox-item input {
-            margin-right: 5px;
+            margin-right: 8px;
         }
         .submit-btn {
             background-color: #4CAF50;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
             display: block;
             margin: 20px auto 0;
+            transition: background-color 0.3s;
         }
         .submit-btn:hover {
             background-color: #45a049;
         }
-        .notes {
-            margin-top: 10px;
-            font-style: italic;
-            color: #666;
+        .firebase-status {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .demo-controls {
+            background-color: #e9f7e9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .demo-controls h3 {
+            margin-top: 0;
+            color: #2d5a2d;
+        }
+        .demo-btn {
+            background-color: #2d5a2d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .demo-btn:hover {
+            background-color: #1e3f1e;
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1000;
+        }
+        .farm-info {
+            background-color: #f0f7f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
         }
     </style>
 </head>
 <body>
+    <div class="notification" id="notification"></div>
+    
     <div class="container">
         <h1>Farm Health Assessment</h1>
         
+        <div class="firebase-status" id="firebaseStatus">Connecting to Firebase...</div>
+        
+        <div class="demo-controls">
+            <h3>Demo Controls</h3>
+            <p>Simulate farmer scanning and saving data to Firebase:</p>
+            <button class="demo-btn" id="simulateScan1">Simulate Scan: Farm A (Healthy)</button>
+            <button class="demo-btn" id="simulateScan2">Simulate Scan: Farm B (Disease)</button>
+            <button class="demo-btn" id="clearData">Clear Form</button>
+        </div>
+        
         <form id="farmAssessmentForm">
+            <div class="farm-info">
+                <p><strong>Note:</strong> Location and Disease data will be automatically populated from Firebase when a farmer scans using the mobile app.</p>
+            </div>
+            
             <div class="form-section">
                 <div class="form-row">
                     <label for="location">Location:</label>
-                    <input type="text" id="location" name="location" placeholder="Enter location">
+                    <input type="text" id="location" name="location" placeholder="Will be populated from Firebase" readonly>
                 </div>
                 <div class="form-row">
                     <label for="date">Date:</label>
-                    <input type="text" id="date" name="date" placeholder="Enter date">
+                    <input type="text" id="date" name="date" placeholder="Auto-generated">
                 </div>
             </div>
             
             <div class="form-section">
                 <div class="form-row">
                     <label for="disease">Check Disease:</label>
-                    <input type="text" id="disease" name="disease" placeholder="Enter disease">
-                    <span style="margin-left: 10px;">D.L.</span>
+                    <input type="text" id="disease" name="disease" placeholder="Will be populated from Firebase" readonly>
+                    <span style="margin-left: 10px; color: #666;">D.L.</span>
                 </div>
             </div>
             
@@ -150,11 +232,153 @@
     </div>
 
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            // In a real application, you would use your actual Firebase config here
+            apiKey: "demo-api-key",
+            authDomain: "farm-assessment-demo.firebaseapp.com",
+            projectId: "farm-assessment-demo",
+            storageBucket: "farm-assessment-demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "demo-app-id"
+        };
+
+        // Initialize Firebase
+        let db;
+        try {
+            // In a real app, we would initialize Firebase with the config above
+            // For this demo, we'll simulate Firebase functionality
+            console.log("Firebase initialized successfully");
+            document.getElementById('firebaseStatus').textContent = "Connected to Firebase (Demo Mode)";
+            document.getElementById('firebaseStatus').className = "firebase-status connected";
+            
+            // Set up a mock database for our demo
+            db = {
+                currentScan: null,
+                scans: []
+            };
+        } catch (error) {
+            console.error("Error initializing Firebase:", error);
+            document.getElementById('firebaseStatus').textContent = "Failed to connect to Firebase";
+            document.getElementById('firebaseStatus').className = "firebase-status disconnected";
+        }
+
+        // Set current date
+        document.getElementById('date').value = new Date().toLocaleDateString();
+
+        // Function to show notification
+        function showNotification(message, isSuccess = true) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.backgroundColor = isSuccess ? '#4CAF50' : '#f44336';
+            notification.style.display = 'block';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Function to load data from Firebase (simulated)
+        function loadDataFromFirebase() {
+            if (db && db.currentScan) {
+                document.getElementById('location').value = db.currentScan.location;
+                document.getElementById('disease').value = db.currentScan.disease;
+                showNotification('Data loaded from Firebase successfully!');
+            } else {
+                showNotification('No scan data available in Firebase', false);
+            }
+        }
+
+        // Function to simulate farmer scanning and saving to Firebase
+        function simulateFarmerScan(location, disease) {
+            if (db) {
+                db.currentScan = {
+                    location: location,
+                    disease: disease,
+                    timestamp: new Date().toISOString()
+                };
+                
+                db.scans.push(db.currentScan);
+                
+                // Update the form with the scanned data
+                document.getElementById('location').value = location;
+                document.getElementById('disease').value = disease;
+                
+                showNotification(`Scan data saved to Firebase: ${location} - ${disease}`);
+            }
+        }
+
+        // Form submission handler
         document.getElementById('farmAssessmentForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            alert('Assessment submitted successfully!');
-            // In a real application, you would send the form data to a server here
+            
+            // Get form values
+            const location = document.getElementById('location').value;
+            const disease = document.getElementById('disease').value;
+            const reassessment = document.getElementById('reassessment').value;
+            const solution = document.getElementById('solution').value;
+            
+            // Get checked results
+            const checkedResults = [];
+            document.querySelectorAll('input[name="result"]:checked').forEach(checkbox => {
+                checkedResults.push(checkbox.value);
+            });
+            
+            // Validate form
+            if (!location || !disease) {
+                showNotification('Please ensure location and disease data are loaded from Firebase', false);
+                return;
+            }
+            
+            if (checkedResults.length === 0) {
+                showNotification('Please select at least one result option', false);
+                return;
+            }
+            
+            // In a real application, you would save the assessment to Firebase here
+            console.log('Assessment submitted:', {
+                location,
+                disease,
+                results: checkedResults,
+                reassessment,
+                solution,
+                date: document.getElementById('date').value
+            });
+            
+            showNotification('Assessment submitted successfully!');
+            
+            // Reset form (except for location and disease which come from Firebase)
+            document.getElementById('reassessment').value = '';
+            document.getElementById('solution').value = '';
+            document.querySelectorAll('input[name="result"]:checked').forEach(checkbox => {
+                checkbox.checked = false;
+            });
         });
+
+        // Demo button event handlers
+        document.getElementById('simulateScan1').addEventListener('click', function() {
+            simulateFarmerScan('Farm A - North Field', 'None (Healthy)');
+        });
+        
+        document.getElementById('simulateScan2').addEventListener('click', function() {
+            simulateFarmerScan('Farm B - South Field', 'Black Spot Disease');
+        });
+        
+        document.getElementById('clearData').addEventListener('click', function() {
+            document.getElementById('location').value = '';
+            document.getElementById('disease').value = '';
+            document.getElementById('reassessment').value = '';
+            document.getElementById('solution').value = '';
+            document.querySelectorAll('input[name="result"]:checked').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            showNotification('Form cleared');
+        });
+
+        // Simulate initial data load (as if a scan was just completed)
+        setTimeout(() => {
+            simulateFarmerScan('Farm Demo - Central Field', 'None (Healthy)');
+        }, 1000);
     </script>
 </body>
 </html>
