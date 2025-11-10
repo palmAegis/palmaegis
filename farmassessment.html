@@ -125,6 +125,11 @@
             width: 100%;
         }
         
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
         .results-section {
             background-color: white;
             border-radius: 8px;
@@ -200,6 +205,9 @@
         .history-item {
             padding: 15px;
             border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .history-item:last-child {
@@ -216,7 +224,25 @@
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 0.8rem;
-            margin-left: 10px;
+        }
+        
+        .message {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
         }
         
         @media (max-width: 768px) {
@@ -230,6 +256,11 @@
             
             h1 {
                 font-size: 2rem;
+            }
+            
+            .history-item {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
     </style>
@@ -315,11 +346,16 @@
                 <p id="reassessment-info">Reassessment timeline will appear here</p>
             </div>
             
-            <button class="btn" id="save-assessment">Save Assessment</button>
+            <button class="btn" id="save-assessment">Save Assessment to Firebase</button>
+            <div id="save-message"></div>
         </section>
         
         <section class="history-section">
-            <h2 class="section-title">Assessment History</h2>
+            <h2 class="section-title">Assessment History (From Firebase)</h2>
+            <div id="history-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading assessment history...</p>
+            </div>
             <ul class="history-list" id="history-list">
                 <!-- History items will be added here -->
             </ul>
@@ -357,7 +393,12 @@
         const treatmentInfo = document.getElementById('treatment-info');
         const reassessmentInfo = document.getElementById('reassessment-info');
         const saveButton = document.getElementById('save-assessment');
+        const saveMessage = document.getElementById('save-message');
         const historyList = document.getElementById('history-list');
+        const historyLoading = document.getElementById('history-loading');
+
+        // Current assessment data
+        let currentAssessment = null;
 
         // Event listeners
         locationSelect.addEventListener('change', function() {
@@ -397,7 +438,7 @@
         });
 
         submitButton.addEventListener('click', processAssessment);
-        saveButton.addEventListener('click', saveAssessment);
+        saveButton.addEventListener('click', saveAssessmentToFirebase);
 
         // Functions
         function displayImagePreview(file) {
@@ -413,6 +454,8 @@
         function processAssessment() {
             // Validate form
             const location = locationSelect.value === 'other' ? customLocationInput.value : locationSelect.value;
+            const plantType = document.getElementById('plant-type').value;
+            
             if (!location) {
                 alert('Please select or enter a location');
                 return;
@@ -426,6 +469,7 @@
             // Show loading
             loadingDiv.style.display = 'block';
             resultsSection.style.display = 'none';
+            submitButton.disabled = true;
 
             // Simulate AI processing (in a real app, this would call an AI service)
             setTimeout(() => {
@@ -454,9 +498,21 @@
 
                 const selectedDisease = diseases[Math.floor(Math.random() * diseases.length)];
 
+                // Store current assessment data
+                currentAssessment = {
+                    location: location,
+                    plantType: plantType,
+                    date: new Date(),
+                    isHealthy: isHealthy,
+                    disease: isHealthy ? null : selectedDisease,
+                    notes: document.getElementById('notes').value,
+                    imageFile: diseaseImageInput.files[0]
+                };
+
                 // Display results
                 loadingDiv.style.display = 'none';
                 resultsSection.style.display = 'block';
+                submitButton.disabled = false;
 
                 if (isHealthy) {
                     healthStatusDiv.textContent = "Healthy";
@@ -476,53 +532,109 @@
             }, 2000);
         }
 
-        function saveAssessment() {
-            const location = locationSelect.value === 'other' ? customLocationInput.value : locationSelect.value;
-            const isHealthy = healthStatusDiv.classList.contains('healthy');
-            const disease = isHealthy ? "None" : diseaseName.textContent;
-            const date = new Date().toLocaleDateString();
+        async function saveAssessmentToFirebase() {
+            if (!currentAssessment) {
+                showMessage('No assessment data to save', 'error');
+                return;
+            }
 
-            // In a real app, this would save to Firebase
-            // For now, we'll just add to the history list
-            const historyItem = document.createElement('li');
-            historyItem.className = 'history-item';
-            historyItem.innerHTML = `
-                <span class="history-date">${date}</span> - 
-                <span>${location}</span> - 
-                <span class="history-status ${isHealthy ? 'healthy' : 'unhealthy'}">
-                    ${isHealthy ? 'Healthy' : 'Unhealthy'}
-                </span>
-            `;
-            historyList.prepend(historyItem);
+            saveButton.disabled = true;
+            saveMessage.innerHTML = '<div class="loading"><div class="spinner"></div><p>Saving to Firebase...</p></div>';
 
-            alert('Assessment saved successfully!');
+            try {
+                // Upload image to Firebase Storage if available
+                let imageUrl = '';
+                if (currentAssessment.imageFile) {
+                    const storageRef = storage.ref();
+                    const imageRef = storageRef.child(`assessments/${Date.now()}_${currentAssessment.imageFile.name}`);
+                    const snapshot = await imageRef.put(currentAssessment.imageFile);
+                    imageUrl = await snapshot.ref.getDownloadURL();
+                }
+
+                // Prepare data for Firestore
+                const assessmentData = {
+                    location: currentAssessment.location,
+                    plantType: currentAssessment.plantType,
+                    date: firebase.firestore.Timestamp.fromDate(currentAssessment.date),
+                    isHealthy: currentAssessment.isHealthy,
+                    diseaseName: currentAssessment.isHealthy ? 'None' : currentAssessment.disease.name,
+                    diseaseDescription: currentAssessment.isHealthy ? 'No disease detected' : currentAssessment.disease.description,
+                    treatment: currentAssessment.isHealthy ? 'No treatment needed' : currentAssessment.disease.treatment,
+                    reassessment: currentAssessment.isHealthy ? 'Schedule next assessment in 6 months' : currentAssessment.disease.reassessment,
+                    notes: currentAssessment.notes,
+                    imageUrl: imageUrl,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Save to Firestore
+                const docRef = await db.collection('assessments').add(assessmentData);
+                
+                showMessage(`Assessment saved successfully! Document ID: ${docRef.id}`, 'success');
+                saveButton.disabled = false;
+                
+                // Reload history to show the new assessment
+                loadAssessmentHistory();
+                
+            } catch (error) {
+                console.error('Error saving assessment: ', error);
+                showMessage(`Error saving assessment: ${error.message}`, 'error');
+                saveButton.disabled = false;
+            }
         }
 
-        // Load assessment history (in a real app, this would fetch from Firebase)
-        function loadAssessmentHistory() {
-            // For demo, we'll add some sample history items
-            const sampleHistory = [
-                { date: '2023-10-15', location: 'Farm North', status: 'Healthy' },
-                { date: '2023-09-28', location: 'Farm South', status: 'Unhealthy' },
-                { date: '2023-09-10', location: 'Farm East', status: 'Healthy' }
-            ];
+        function showMessage(text, type) {
+            saveMessage.innerHTML = `<div class="message ${type}">${text}</div>`;
+        }
 
-            sampleHistory.forEach(item => {
-                const historyItem = document.createElement('li');
-                historyItem.className = 'history-item';
-                historyItem.innerHTML = `
-                    <span class="history-date">${item.date}</span> - 
-                    <span>${item.location}</span> - 
-                    <span class="history-status ${item.status === 'Healthy' ? 'healthy' : 'unhealthy'}">
-                        ${item.status}
-                    </span>
-                `;
-                historyList.appendChild(historyItem);
-            });
+        // Load assessment history from Firebase
+        function loadAssessmentHistory() {
+            historyLoading.style.display = 'block';
+            historyList.innerHTML = '';
+            
+            db.collection('assessments')
+                .orderBy('createdAt', 'desc')
+                .limit(10)
+                .get()
+                .then((querySnapshot) => {
+                    historyLoading.style.display = 'none';
+                    
+                    if (querySnapshot.empty) {
+                        historyList.innerHTML = '<li class="history-item">No assessments found</li>';
+                        return;
+                    }
+                    
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const historyItem = document.createElement('li');
+                        historyItem.className = 'history-item';
+                        
+                        // Format date
+                        const date = data.date ? data.date.toDate().toLocaleDateString() : 'Unknown date';
+                        
+                        historyItem.innerHTML = `
+                            <div>
+                                <span class="history-date">${date}</span> - 
+                                <span>${data.location}</span> - 
+                                <span>${data.plantType}</span>
+                            </div>
+                            <span class="history-status ${data.isHealthy ? 'healthy' : 'unhealthy'}">
+                                ${data.isHealthy ? 'Healthy' : data.diseaseName}
+                            </span>
+                        `;
+                        historyList.appendChild(historyItem);
+                    });
+                })
+                .catch((error) => {
+                    historyLoading.style.display = 'none';
+                    console.error('Error loading assessments: ', error);
+                    historyList.innerHTML = '<li class="history-item">Error loading assessments</li>';
+                });
         }
 
         // Initialize the page
-        loadAssessmentHistory();
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAssessmentHistory();
+        });
     </script>
 </body>
 </html>
