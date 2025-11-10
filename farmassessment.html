@@ -3,382 +3,526 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farm Health Assessment</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <title>Farm Assessment System</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        
         body {
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f7f0;
+            background-color: #f5f5f5;
             color: #333;
+            line-height: 1.6;
         }
+        
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
         }
-        h1 {
+        
+        header {
+            background-color: #2e7d32;
+            color: white;
+            padding: 20px 0;
             text-align: center;
+            border-radius: 8px;
             margin-bottom: 30px;
-            color: #2d5a2d;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .form-section {
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .assessment-form {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
             margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
         }
-        .form-row {
-            display: flex;
-            margin-bottom: 15px;
-            align-items: center;
-        }
+        
         label {
-            width: 150px;
-            font-weight: bold;
-            margin-right: 10px;
-            color: #2d5a2d;
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2e7d32;
         }
-        input[type="text"], select {
-            flex: 1;
-            padding: 10px;
+        
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 4px;
             font-size: 16px;
         }
-        .checkbox-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            background-color: #f9f9f9;
-            padding: 8px 12px;
+        
+        .file-upload {
+            border: 2px dashed #2e7d32;
+            padding: 20px;
+            text-align: center;
             border-radius: 4px;
-            border: 1px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        .checkbox-item input {
-            margin-right: 8px;
+        
+        .file-upload:hover {
+            background-color: #f0f9f0;
         }
-        .submit-btn {
-            background-color: #4CAF50;
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .preview-container {
+            margin-top: 15px;
+            text-align: center;
+        }
+        
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn {
+            background-color: #2e7d32;
             color: white;
             border: none;
-            padding: 12px 25px;
+            padding: 12px 24px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            display: block;
-            margin: 20px auto 0;
+            font-weight: 600;
             transition: background-color 0.3s;
+            display: inline-block;
         }
-        .submit-btn:hover {
-            background-color: #45a049;
+        
+        .btn:hover {
+            background-color: #1b5e20;
         }
-        .firebase-status {
-            text-align: center;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 4px;
-            font-weight: bold;
+        
+        .btn-block {
+            display: block;
+            width: 100%;
         }
-        .connected {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .disconnected {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        .demo-controls {
-            background-color: #e9f7e9;
-            padding: 15px;
+        
+        .results-section {
+            background-color: white;
             border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .demo-controls h3 {
-            margin-top: 0;
-            color: #2d5a2d;
-        }
-        .demo-btn {
-            background-color: #2d5a2d;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-        .demo-btn:hover {
-            background-color: #1e3f1e;
-        }
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border-radius: 4px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
             display: none;
-            z-index: 1000;
         }
-        .farm-info {
-            background-color: #f0f7f0;
+        
+        .health-status {
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 4px;
             margin-bottom: 20px;
-            border-left: 4px solid #4CAF50;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .healthy {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .unhealthy {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+        
+        .disease-info, .treatment-info, .reassessment-info {
+            margin-bottom: 25px;
+        }
+        
+        .section-title {
+            color: #2e7d32;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #2e7d32;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .history-section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .history-list {
+            list-style-type: none;
+        }
+        
+        .history-item {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .history-date {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        .history-status {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .assessment-form, .results-section, .history-section {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="notification" id="notification"></div>
-    
     <div class="container">
-        <h1>Farm Health Assessment</h1>
+        <header>
+            <h1>Farm Assessment System</h1>
+            <p class="subtitle">Monitor and manage plant health with AI-powered disease detection</p>
+        </header>
         
-        <div class="firebase-status" id="firebaseStatus">Connecting to Firebase...</div>
+        <section class="assessment-form">
+            <h2 class="section-title">New Assessment</h2>
+            
+            <div class="form-group">
+                <label for="location">Location</label>
+                <select id="location">
+                    <option value="">Select a location</option>
+                    <option value="farm-north">Farm North</option>
+                    <option value="farm-south">Farm South</option>
+                    <option value="farm-east">Farm East</option>
+                    <option value="farm-west">Farm West</option>
+                    <option value="other">Other (specify below)</option>
+                </select>
+                <input type="text" id="custom-location" placeholder="Enter custom location" style="margin-top: 10px; display: none;">
+            </div>
+            
+            <div class="form-group">
+                <label for="plant-type">Plant Type</label>
+                <select id="plant-type">
+                    <option value="oil-palm">Oil Palm</option>
+                    <option value="coconut">Coconut</option>
+                    <option value="rubber">Rubber</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Disease Image</label>
+                <div class="file-upload" id="file-upload-area">
+                    <p>Click to upload or drag and drop</p>
+                    <p>PNG, JPG, JPEG up to 5MB</p>
+                    <input type="file" id="disease-image" accept="image/*">
+                </div>
+                <div class="preview-container" id="preview-container">
+                    <!-- Image preview will appear here -->
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="notes">Additional Notes</label>
+                <textarea id="notes" rows="4" placeholder="Any additional observations or notes..."></textarea>
+            </div>
+            
+            <button class="btn btn-block" id="submit-assessment">Submit Assessment</button>
+        </section>
         
-        <div class="demo-controls">
-            <h3>Demo Controls</h3>
-            <p>Simulate farmer scanning and saving data to Firebase:</p>
-            <button class="demo-btn" id="simulateScan1">Simulate Scan: Farm A (Healthy)</button>
-            <button class="demo-btn" id="simulateScan2">Simulate Scan: Farm B (Disease)</button>
-            <button class="demo-btn" id="clearData">Clear Form</button>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing image and generating assessment...</p>
         </div>
         
-        <form id="farmAssessmentForm">
-            <div class="farm-info">
-                <p><strong>Note:</strong> Location and Disease data will be automatically populated from Firebase when a farmer scans using the mobile app.</p>
+        <section class="results-section" id="results-section">
+            <h2 class="section-title">Assessment Results</h2>
+            
+            <div class="health-status" id="health-status">
+                <!-- Health status will appear here -->
             </div>
             
-            <div class="form-section">
-                <div class="form-row">
-                    <label for="location">Location:</label>
-                    <input type="text" id="location" name="location" placeholder="Will be populated from Firebase" readonly>
-                </div>
-                <div class="form-row">
-                    <label for="date">Date:</label>
-                    <input type="text" id="date" name="date" placeholder="Auto-generated">
-                </div>
+            <div class="disease-info">
+                <h3>Disease Information</h3>
+                <p id="disease-name">Disease name will appear here</p>
+                <p id="disease-description">Description will appear here</p>
             </div>
             
-            <div class="form-section">
-                <div class="form-row">
-                    <label for="disease">Check Disease:</label>
-                    <input type="text" id="disease" name="disease" placeholder="Will be populated from Firebase" readonly>
-                    <span style="margin-left: 10px; color: #666;">D.L.</span>
-                </div>
+            <div class="treatment-info">
+                <h3>Recommended Treatment</h3>
+                <p id="treatment-info">Treatment information will appear here</p>
             </div>
             
-            <div class="form-section">
-                <h3>Result</h3>
-                <div class="form-row">
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="healthy" name="result" value="healthy">
-                            <label for="healthy">Healthy</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="non-healthy" name="result" value="non-healthy">
-                            <label for="non-healthy">Non-Healthy</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="breast-none" name="result" value="breast-none">
-                            <label for="breast-none">Breast: None</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="name" name="result" value="name">
-                            <label for="name">Name</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="black-spot" name="result" value="black-spot">
-                            <label for="black-spot">Black K-spot</label>
-                        </div>
-                    </div>
-                </div>
+            <div class="reassessment-info">
+                <h3>Reassessment Recommendation</h3>
+                <p id="reassessment-info">Reassessment timeline will appear here</p>
             </div>
             
-            <div class="form-section">
-                <h3>Treatment</h3>
-                <div class="form-row">
-                    <label for="reassessment">Re-assessment:</label>
-                    <input type="text" id="reassessment" name="reassessment" placeholder="Enter re-assessment details">
-                </div>
-                <div class="form-row">
-                    <label for="solution">Solution:</label>
-                    <input type="text" id="solution" name="solution" placeholder="Enter solution">
-                </div>
-            </div>
-            
-            <button type="submit" class="submit-btn">Submit Assessment</button>
-        </form>
+            <button class="btn" id="save-assessment">Save Assessment</button>
+        </section>
+        
+        <section class="history-section">
+            <h2 class="section-title">Assessment History</h2>
+            <ul class="history-list" id="history-list">
+                <!-- History items will be added here -->
+            </ul>
+        </section>
     </div>
 
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            // In a real application, you would use your actual Firebase config here
-            apiKey: "demo-api-key",
-            authDomain: "farm-assessment-demo.firebaseapp.com",
-            projectId: "farm-assessment-demo",
-            storageBucket: "farm-assessment-demo.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "demo-app-id"
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
         };
 
         // Initialize Firebase
-        let db;
-        try {
-            // In a real app, we would initialize Firebase with the config above
-            // For this demo, we'll simulate Firebase functionality
-            console.log("Firebase initialized successfully");
-            document.getElementById('firebaseStatus').textContent = "Connected to Firebase (Demo Mode)";
-            document.getElementById('firebaseStatus').className = "firebase-status connected";
-            
-            // Set up a mock database for our demo
-            db = {
-                currentScan: null,
-                scans: []
-            };
-        } catch (error) {
-            console.error("Error initializing Firebase:", error);
-            document.getElementById('firebaseStatus').textContent = "Failed to connect to Firebase";
-            document.getElementById('firebaseStatus').className = "firebase-status disconnected";
-        }
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const storage = firebase.storage();
 
-        // Set current date
-        document.getElementById('date').value = new Date().toLocaleDateString();
+        // DOM elements
+        const locationSelect = document.getElementById('location');
+        const customLocationInput = document.getElementById('custom-location');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const diseaseImageInput = document.getElementById('disease-image');
+        const previewContainer = document.getElementById('preview-container');
+        const submitButton = document.getElementById('submit-assessment');
+        const loadingDiv = document.getElementById('loading');
+        const resultsSection = document.getElementById('results-section');
+        const healthStatusDiv = document.getElementById('health-status');
+        const diseaseName = document.getElementById('disease-name');
+        const diseaseDescription = document.getElementById('disease-description');
+        const treatmentInfo = document.getElementById('treatment-info');
+        const reassessmentInfo = document.getElementById('reassessment-info');
+        const saveButton = document.getElementById('save-assessment');
+        const historyList = document.getElementById('history-list');
 
-        // Function to show notification
-        function showNotification(message, isSuccess = true) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.backgroundColor = isSuccess ? '#4CAF50' : '#f44336';
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
-
-        // Function to load data from Firebase (simulated)
-        function loadDataFromFirebase() {
-            if (db && db.currentScan) {
-                document.getElementById('location').value = db.currentScan.location;
-                document.getElementById('disease').value = db.currentScan.disease;
-                showNotification('Data loaded from Firebase successfully!');
+        // Event listeners
+        locationSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                customLocationInput.style.display = 'block';
             } else {
-                showNotification('No scan data available in Firebase', false);
+                customLocationInput.style.display = 'none';
             }
-        }
+        });
 
-        // Function to simulate farmer scanning and saving to Firebase
-        function simulateFarmerScan(location, disease) {
-            if (db) {
-                db.currentScan = {
-                    location: location,
-                    disease: disease,
-                    timestamp: new Date().toISOString()
-                };
-                
-                db.scans.push(db.currentScan);
-                
-                // Update the form with the scanned data
-                document.getElementById('location').value = location;
-                document.getElementById('disease').value = disease;
-                
-                showNotification(`Scan data saved to Firebase: ${location} - ${disease}`);
-            }
-        }
+        fileUploadArea.addEventListener('click', function() {
+            diseaseImageInput.click();
+        });
 
-        // Form submission handler
-        document.getElementById('farmAssessmentForm').addEventListener('submit', function(e) {
+        fileUploadArea.addEventListener('dragover', function(e) {
             e.preventDefault();
-            
-            // Get form values
-            const location = document.getElementById('location').value;
-            const disease = document.getElementById('disease').value;
-            const reassessment = document.getElementById('reassessment').value;
-            const solution = document.getElementById('solution').value;
-            
-            // Get checked results
-            const checkedResults = [];
-            document.querySelectorAll('input[name="result"]:checked').forEach(checkbox => {
-                checkedResults.push(checkbox.value);
-            });
-            
+            this.style.backgroundColor = '#f0f9f0';
+        });
+
+        fileUploadArea.addEventListener('dragleave', function() {
+            this.style.backgroundColor = '';
+        });
+
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = '';
+            if (e.dataTransfer.files.length) {
+                diseaseImageInput.files = e.dataTransfer.files;
+                displayImagePreview(e.dataTransfer.files[0]);
+            }
+        });
+
+        diseaseImageInput.addEventListener('change', function() {
+            if (this.files.length) {
+                displayImagePreview(this.files[0]);
+            }
+        });
+
+        submitButton.addEventListener('click', processAssessment);
+        saveButton.addEventListener('click', saveAssessment);
+
+        // Functions
+        function displayImagePreview(file) {
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Disease preview">`;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function processAssessment() {
             // Validate form
-            if (!location || !disease) {
-                showNotification('Please ensure location and disease data are loaded from Firebase', false);
+            const location = locationSelect.value === 'other' ? customLocationInput.value : locationSelect.value;
+            if (!location) {
+                alert('Please select or enter a location');
                 return;
             }
-            
-            if (checkedResults.length === 0) {
-                showNotification('Please select at least one result option', false);
+
+            if (!diseaseImageInput.files.length) {
+                alert('Please upload an image of the plant');
                 return;
             }
-            
-            // In a real application, you would save the assessment to Firebase here
-            console.log('Assessment submitted:', {
-                location,
-                disease,
-                results: checkedResults,
-                reassessment,
-                solution,
-                date: document.getElementById('date').value
-            });
-            
-            showNotification('Assessment submitted successfully!');
-            
-            // Reset form (except for location and disease which come from Firebase)
-            document.getElementById('reassessment').value = '';
-            document.getElementById('solution').value = '';
-            document.querySelectorAll('input[name="result"]:checked').forEach(checkbox => {
-                checkbox.checked = false;
-            });
-        });
 
-        // Demo button event handlers
-        document.getElementById('simulateScan1').addEventListener('click', function() {
-            simulateFarmerScan('Farm A - North Field', 'None (Healthy)');
-        });
-        
-        document.getElementById('simulateScan2').addEventListener('click', function() {
-            simulateFarmerScan('Farm B - South Field', 'Black Spot Disease');
-        });
-        
-        document.getElementById('clearData').addEventListener('click', function() {
-            document.getElementById('location').value = '';
-            document.getElementById('disease').value = '';
-            document.getElementById('reassessment').value = '';
-            document.getElementById('solution').value = '';
-            document.querySelectorAll('input[name="result"]:checked').forEach(checkbox => {
-                checkbox.checked = false;
-            });
-            showNotification('Form cleared');
-        });
+            // Show loading
+            loadingDiv.style.display = 'block';
+            resultsSection.style.display = 'none';
 
-        // Simulate initial data load (as if a scan was just completed)
-        setTimeout(() => {
-            simulateFarmerScan('Farm Demo - Central Field', 'None (Healthy)');
-        }, 1000);
+            // Simulate AI processing (in a real app, this would call an AI service)
+            setTimeout(() => {
+                // For demo purposes, we'll simulate a response
+                const isHealthy = Math.random() > 0.5;
+                const diseases = [
+                    {
+                        name: "Ganoderma Basal Stem Rot",
+                        description: "A fungal disease that affects the base of oil palm trees, causing rot and eventual collapse.",
+                        treatment: "Apply fungicide around the base of the tree. Remove and destroy severely infected trees to prevent spread.",
+                        reassessment: "Reassess in 2 weeks if symptoms persist."
+                    },
+                    {
+                        name: "Leaf Spot Disease",
+                        description: "Characterized by brown or black spots on leaves, often caused by fungal pathogens.",
+                        treatment: "Apply copper-based fungicide. Improve air circulation by pruning affected leaves.",
+                        reassessment: "Reassess in 1 month."
+                    },
+                    {
+                        name: "Bud Rot",
+                        description: "Affects the growing point of the palm, leading to rotting of the central bud.",
+                        treatment: "Remove affected tissue and apply protective fungicide. Improve drainage if necessary.",
+                        reassessment: "Reassess in 3 weeks."
+                    }
+                ];
+
+                const selectedDisease = diseases[Math.floor(Math.random() * diseases.length)];
+
+                // Display results
+                loadingDiv.style.display = 'none';
+                resultsSection.style.display = 'block';
+
+                if (isHealthy) {
+                    healthStatusDiv.textContent = "Healthy";
+                    healthStatusDiv.className = "health-status healthy";
+                    diseaseName.textContent = "No disease detected";
+                    diseaseDescription.textContent = "The plant appears to be in good health with no signs of disease.";
+                    treatmentInfo.textContent = "No treatment needed. Continue regular maintenance.";
+                    reassessmentInfo.textContent = "Schedule next assessment in 6 months for routine check.";
+                } else {
+                    healthStatusDiv.textContent = "Unhealthy - Disease Detected";
+                    healthStatusDiv.className = "health-status unhealthy";
+                    diseaseName.textContent = selectedDisease.name;
+                    diseaseDescription.textContent = selectedDisease.description;
+                    treatmentInfo.textContent = selectedDisease.treatment;
+                    reassessmentInfo.textContent = selectedDisease.reassessment;
+                }
+            }, 2000);
+        }
+
+        function saveAssessment() {
+            const location = locationSelect.value === 'other' ? customLocationInput.value : locationSelect.value;
+            const isHealthy = healthStatusDiv.classList.contains('healthy');
+            const disease = isHealthy ? "None" : diseaseName.textContent;
+            const date = new Date().toLocaleDateString();
+
+            // In a real app, this would save to Firebase
+            // For now, we'll just add to the history list
+            const historyItem = document.createElement('li');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                <span class="history-date">${date}</span> - 
+                <span>${location}</span> - 
+                <span class="history-status ${isHealthy ? 'healthy' : 'unhealthy'}">
+                    ${isHealthy ? 'Healthy' : 'Unhealthy'}
+                </span>
+            `;
+            historyList.prepend(historyItem);
+
+            alert('Assessment saved successfully!');
+        }
+
+        // Load assessment history (in a real app, this would fetch from Firebase)
+        function loadAssessmentHistory() {
+            // For demo, we'll add some sample history items
+            const sampleHistory = [
+                { date: '2023-10-15', location: 'Farm North', status: 'Healthy' },
+                { date: '2023-09-28', location: 'Farm South', status: 'Unhealthy' },
+                { date: '2023-09-10', location: 'Farm East', status: 'Healthy' }
+            ];
+
+            sampleHistory.forEach(item => {
+                const historyItem = document.createElement('li');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <span class="history-date">${item.date}</span> - 
+                    <span>${item.location}</span> - 
+                    <span class="history-status ${item.status === 'Healthy' ? 'healthy' : 'unhealthy'}">
+                        ${item.status}
+                    </span>
+                `;
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        // Initialize the page
+        loadAssessmentHistory();
     </script>
 </body>
 </html>
