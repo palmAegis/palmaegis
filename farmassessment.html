@@ -8,6 +8,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
     <style>
+        /* Your existing CSS styles remain the same */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -451,7 +452,67 @@
             }
         }
 
-        function processAssessment() {
+        // Simple image analysis to detect if image shows healthy or diseased plant
+        // In a real application, this would be replaced with an actual ML model API call
+        function analyzeImage(imageFile) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        // Create a canvas to analyze the image
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        
+                        // Get image data for analysis
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+                        
+                        // Simple color analysis to detect potential disease indicators
+                        // This is a simplified example - real analysis would be more sophisticated
+                        
+                        let brownCount = 0;
+                        let yellowCount = 0;
+                        let greenCount = 0;
+                        let totalPixels = data.length / 4;
+                        
+                        for (let i = 0; i < data.length; i += 4) {
+                            const r = data[i];
+                            const g = data[i + 1];
+                            const b = data[i + 2];
+                            
+                            // Count pixels that might indicate disease (brown/yellow spots)
+                            if (r > 150 && g < 120 && b < 100) { // Brownish colors
+                                brownCount++;
+                            } else if (r > 200 && g > 180 && b < 100) { // Yellowish colors
+                                yellowCount++;
+                            } else if (g > r && g > b) { // Green colors (healthy)
+                                greenCount++;
+                            }
+                        }
+                        
+                        // Calculate percentages
+                        const brownPercentage = (brownCount / totalPixels) * 100;
+                        const yellowPercentage = (yellowCount / totalPixels) * 100;
+                        const greenPercentage = (greenCount / totalPixels) * 100;
+                        
+                        // Determine if plant is healthy or diseased based on color analysis
+                        // This is a simplified heuristic - real ML would be more accurate
+                        const isHealthy = (greenPercentage > 60) && (brownPercentage < 5) && (yellowPercentage < 10);
+                        
+                        // If we can't determine clearly, default to healthy
+                        resolve(isHealthy);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(imageFile);
+            });
+        }
+
+        async function processAssessment() {
             // Validate form
             const location = locationSelect.value === 'other' ? customLocationInput.value : locationSelect.value;
             const plantType = document.getElementById('plant-type').value;
@@ -471,10 +532,11 @@
             resultsSection.style.display = 'none';
             submitButton.disabled = true;
 
-            // Simulate AI processing (in a real app, this would call an AI service)
-            setTimeout(() => {
-                // For demo purposes, we'll simulate a response
-                const isHealthy = Math.random() > 0.5;
+            try {
+                // Analyze the image to determine if it shows a healthy or diseased plant
+                const isHealthy = await analyzeImage(diseaseImageInput.files[0]);
+                
+                // Define possible diseases (only used if plant is unhealthy)
                 const diseases = [
                     {
                         name: "Ganoderma Basal Stem Rot",
@@ -496,7 +558,8 @@
                     }
                 ];
 
-                const selectedDisease = diseases[Math.floor(Math.random() * diseases.length)];
+                // Select a disease only if the plant is unhealthy
+                const selectedDisease = isHealthy ? null : diseases[Math.floor(Math.random() * diseases.length)];
 
                 // Store current assessment data
                 currentAssessment = {
@@ -504,7 +567,7 @@
                     plantType: plantType,
                     date: new Date(),
                     isHealthy: isHealthy,
-                    disease: isHealthy ? null : selectedDisease,
+                    disease: selectedDisease,
                     notes: document.getElementById('notes').value,
                     imageFile: diseaseImageInput.files[0]
                 };
@@ -515,7 +578,7 @@
                 submitButton.disabled = false;
 
                 if (isHealthy) {
-                    healthStatusDiv.textContent = "Healthy";
+                    healthStatusDiv.textContent = "Healthy - No Disease Detected";
                     healthStatusDiv.className = "health-status healthy";
                     diseaseName.textContent = "No disease detected";
                     diseaseDescription.textContent = "The plant appears to be in good health with no signs of disease.";
@@ -529,7 +592,12 @@
                     treatmentInfo.textContent = selectedDisease.treatment;
                     reassessmentInfo.textContent = selectedDisease.reassessment;
                 }
-            }, 2000);
+            } catch (error) {
+                console.error('Error processing assessment:', error);
+                loadingDiv.style.display = 'none';
+                submitButton.disabled = false;
+                alert('Error processing image. Please try again.');
+            }
         }
 
         async function saveAssessmentToFirebase() {
