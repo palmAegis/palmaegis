@@ -1,47 +1,183 @@
 // Plant Disease Detection using TensorFlow.js
 let model;
-const classes = ['Genoderma', 'Black Spot Leaf', 'Fruit Rod', 'Fusarium Wilt'];
+let classes = [];
+let datasetCategories = [];
+let modelMetadata = null;
 
-// Enhanced disease information with symptoms
+// Valid oil palm disease classes based on dataset
+// Only these classes are considered valid for oil palm tree disease detection
+const validOilPalmClasses = [
+    'Genoderma',
+    'Ganoderma',
+    'Ganoderma Fungus',
+    'oil-palm-tree'
+];
+
+// Minimum confidence threshold for oil palm detection (default)
+const MIN_OIL_PALM_CONFIDENCE = 65; // stricter: 65% minimum confidence for valid detection
+
+// Class-specific confidence overrides (allows Ganoderma Fungus images to pass at slightly lower confidence)
+const CLASS_MIN_CONFIDENCE = {
+    'Genoderma': 55,        // accept at 55%
+    'Ganoderma': 55,        // accept at 55%
+    'Ganoderma Fungus': 50, // accept at 50%
+    'oil-palm-tree': 65     // keep strict for tree presence
+};
+
+// Enhanced disease information with symptoms - updated based on dataset
 const diseaseInfo = {
     'Genoderma': {
-        description: 'Ganoderma is a fungal disease that affects palm trees, causing basal stem rot.',
-        symptoms: 'Yellowing leaves, wilting, mushroom-like growth at base',
-        treatment: 'Remove infected trees, improve drainage, and use fungicides like thiophanate-methyl.',
-        prevention: 'Maintain tree health, avoid wounding trees, practice good sanitation, and use resistant varieties.',
-        confidenceThreshold: 75
+        description: 'Ganoderma is a serious fungal disease that affects oil palm trees, causing basal stem rot. It is one of the most destructive diseases in oil palm plantations.',
+        symptoms: 'Yellowing and wilting of leaves, mushroom-like growth (conks) at the base of the tree, rotting of the stem base, tree collapse',
+        treatment: 'Remove infected trees immediately, improve drainage, apply fungicides like thiophanate-methyl or propiconazole, and practice proper sanitation.',
+        prevention: 'Maintain tree health, avoid wounding trees, practice good sanitation, use disease-free planting material, ensure proper drainage, and monitor regularly for early signs.',
+        confidenceThreshold: 75,
+        datasetInfo: 'This disease is the primary focus of the dataset, with extensive training data available.'
+    },
+    'Ganoderma': {
+        description: 'Ganoderma is a serious fungal disease that affects oil palm trees, causing basal stem rot. It is one of the most destructive diseases in oil palm plantations.',
+        symptoms: 'Yellowing and wilting of leaves, mushroom-like growth (conks) at the base of the tree, rotting of the stem base, tree collapse',
+        treatment: 'Remove infected trees immediately, improve drainage, apply fungicides like thiophanate-methyl or propiconazole, and practice proper sanitation.',
+        prevention: 'Maintain tree health, avoid wounding trees, practice good sanitation, use disease-free planting material, ensure proper drainage, and monitor regularly for early signs.',
+        confidenceThreshold: 75,
+        datasetInfo: 'This disease is the primary focus of the dataset, with extensive training data available.'
+    },
+    'Ganoderma Fungus': {
+        description: 'Ganoderma Fungus refers to the visible fungal growth (conks or basidiocarps) of Ganoderma disease on oil palm trees. This is a clear indicator of advanced infection.',
+        symptoms: 'Mushroom-like structures (conks) growing at the base of the tree, brown to reddish-brown fungal bodies, woody texture',
+        treatment: 'Remove conks manually if possible, but tree removal is usually necessary as the disease is advanced. Apply fungicides and improve drainage.',
+        prevention: 'Early detection is critical. Regular monitoring and removal of infected trees before conks form can prevent spread.',
+        confidenceThreshold: 80,
+        datasetInfo: 'Dataset contains specific annotations for Ganoderma Fungus detection.'
+    },
+    'oil-palm-tree': {
+        description: 'Healthy oil palm tree or tree showing early signs that need monitoring.',
+        symptoms: 'Healthy green leaves, proper growth, or early signs of stress',
+        treatment: 'Monitor regularly, maintain proper nutrition and watering, and consult experts if symptoms appear.',
+        prevention: 'Practice good plantation management, regular monitoring, proper spacing, and maintain tree health.',
+        confidenceThreshold: 70,
+        datasetInfo: 'Dataset includes healthy oil palm tree images for comparison.'
     },
     'Black Spot Leaf': {
-        description: 'Black spot is a common fungal disease that affects leaves with circular black spots.',
-        symptoms: 'Circular black spots with yellow halos on leaves, premature leaf drop',
-        treatment: 'Apply fungicides (chlorothalonil, mancozeb) and remove infected leaves.',
+        description: 'Black spot is a common fungal disease that affects palm leaves with circular black spots.',
+        symptoms: 'Circular black spots with yellow halos on leaves, premature leaf drop, leaf discoloration',
+        treatment: 'Apply fungicides (chlorothalonil, mancozeb) and remove infected leaves. Prune affected areas.',
         prevention: 'Ensure good air circulation, water at the base, clean up fallen leaves, and avoid overhead watering.',
         confidenceThreshold: 70
     },
     'Fruit Rod': {
-        description: 'Fruit rot is caused by various fungi and bacteria affecting fruits.',
-        symptoms: 'Soft, watery spots on fruits, mold growth, fruit decay',
-        treatment: 'Remove infected fruits and apply appropriate fungicides (copper-based).',
+        description: 'Fruit rot is caused by various fungi and bacteria affecting oil palm fruits.',
+        symptoms: 'Soft, watery spots on fruits, mold growth, fruit decay, premature fruit drop',
+        treatment: 'Remove infected fruits and apply appropriate fungicides (copper-based). Improve harvesting practices.',
         prevention: 'Practice crop rotation, ensure proper spacing, avoid overhead watering, and harvest carefully.',
         confidenceThreshold: 70
     },
     'Fusarium Wilt': {
-        description: 'Fusarium wilt is a soil-borne fungal disease causing vascular wilting.',
-        symptoms: 'Yellowing and wilting of lower leaves, brown vascular tissue, stunted growth',
-        treatment: 'Use resistant varieties, soil solarization, and biological controls.',
-        prevention: 'Practice crop rotation, use disease-free planting material, and maintain soil health.',
+        description: 'Fusarium wilt is a soil-borne fungal disease causing vascular wilting in oil palm trees.',
+        symptoms: 'Yellowing and wilting of lower leaves, brown vascular tissue, stunted growth, one-sided leaf death',
+        treatment: 'Use resistant varieties, soil solarization, and biological controls. Remove infected trees.',
+        prevention: 'Practice crop rotation, use disease-free planting material, maintain soil health, and avoid waterlogging.',
         confidenceThreshold: 80
     }
 };
 
+// Load dataset categories from JSON files
+async function loadDatasetCategories() {
+    try {
+        // Try to load from train dataset first
+        // Use a timeout to avoid hanging on large files
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+        
+        const response = await fetch('dataset/train/_annotations.coco.json', {
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok) {
+            // For large JSON files, we only need the categories part
+            // Read as text first to parse more efficiently if needed
+            const text = await response.text();
+            const data = JSON.parse(text);
+            
+            if (data.categories && Array.isArray(data.categories)) {
+                datasetCategories = data.categories.map(cat => ({
+                    id: cat.id,
+                    name: cat.name,
+                    supercategory: cat.supercategory || 'none'
+                }));
+                console.log('✅ Dataset categories loaded:', datasetCategories);
+                return datasetCategories;
+            }
+        } else {
+            console.warn('⚠️ Dataset JSON file not accessible (might need a local server)');
+        }
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            console.warn('⚠️ Dataset loading timeout - file might be too large');
+        } else {
+            console.warn('⚠️ Could not load dataset categories:', error.message);
+        }
+    }
+    
+    // Fallback to default categories from dataset structure (known from dataset structure)
+    if (datasetCategories.length === 0) {
+        datasetCategories = [
+            { id: 0, name: 'oil-palm-tree', supercategory: 'none' },
+            { id: 1, name: 'Ganoderma', supercategory: 'oil-palm-tree' },
+            { id: 2, name: 'Ganoderma Fungus', supercategory: 'oil-palm-tree' }
+        ];
+        console.log('✅ Using default dataset categories:', datasetCategories);
+    }
+    
+    return datasetCategories;
+}
+
+// Load model metadata to get actual classes
+async function loadModelMetadata() {
+    try {
+        const response = await fetch('model/metadata.json');
+        if (response.ok) {
+            modelMetadata = await response.json();
+            if (modelMetadata.labels && Array.isArray(modelMetadata.labels)) {
+                classes = modelMetadata.labels;
+                console.log('✅ Model classes loaded from metadata:', classes);
+                return modelMetadata;
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ Could not load model metadata, using default classes:', error);
+        // Fallback to default classes
+        classes = ['Genoderma', 'Black Spot Leaf', 'Fruit Rod', 'Fusarium Wilt'];
+    }
+    return modelMetadata;
+}
+
 // Initialize the application
 async function init() {
     try {
+        showMessage('Loading dataset information...', 'loading');
+        
+        // Load dataset categories and model metadata in parallel
+        await Promise.all([
+            loadDatasetCategories(),
+            loadModelMetadata()
+        ]);
+        
+        // Verify classes are loaded
+        if (classes.length === 0) {
+            console.warn('⚠️ No classes loaded, using default classes');
+            classes = ['Genoderma', 'Black Spot Leaf', 'Fruit Rod', 'Fusarium Wilt'];
+        }
+        
         showMessage('Loading AI model...', 'loading');
         
-        // Load the TensorFlow.js model
-        model = await tf.loadLayersModel('../model/model.json');
+        // Load the TensorFlow.js model - use relative path from HTML file location
+        model = await tf.loadLayersModel('model/model.json');
         console.log('✅ Model loaded successfully');
+        console.log('✅ Using classes:', classes);
+        console.log('✅ Dataset categories:', datasetCategories);
         
         // Warm up the model
         await warmUpModel();
@@ -49,9 +185,18 @@ async function init() {
         hideMessage('loading');
         setupEventListeners();
         
+        // Display dataset information in console
+        if (datasetCategories.length > 0) {
+            console.log('📊 Dataset Information:');
+            console.log(`   - Total categories: ${datasetCategories.length}`);
+            datasetCategories.forEach(cat => {
+                console.log(`   - ${cat.name} (ID: ${cat.id}, Supercategory: ${cat.supercategory})`);
+            });
+        }
+        
     } catch (error) {
-        console.error('❌ Error loading model:', error);
-        showMessage('Failed to load AI model. Please check if model files exist.', 'error');
+        console.error('❌ Error initializing application:', error);
+        showMessage('Failed to load AI model or dataset. Please check if files exist. Error: ' + error.message, 'error');
     }
 }
 
@@ -203,6 +348,110 @@ function enhanceConfidence(predictions) {
     return enhanced.map(x => x / sum);
 }
 
+// Check if a class name is a valid oil palm disease
+function isValidOilPalmClass(className) {
+    if (!className) return false;
+    
+    // Normalize class name for comparison (case insensitive, handle variations)
+    const normalizedName = className.toLowerCase().trim().replace(/\s+/g, '');
+    
+    // Check against valid oil palm classes
+    // Handle variations: Genoderma/Ganoderma, etc.
+    const oilPalmKeywords = ['genoderma', 'ganoderma', 'oilpalm', 'oil-palm'];
+    
+    // Check if class name contains any oil palm keywords
+    const containsOilPalmKeyword = oilPalmKeywords.some(keyword => 
+        normalizedName.includes(keyword)
+    );
+    
+    // Also check exact matches with valid classes (case insensitive)
+    const exactMatch = validOilPalmClasses.some(validClass => {
+        const normalizedValid = validClass.toLowerCase().trim().replace(/\s+/g, '');
+        return normalizedName === normalizedValid || 
+               normalizedName.includes(normalizedValid) || 
+               normalizedValid.includes(normalizedName);
+    });
+    
+    return containsOilPalmKeyword || exactMatch;
+}
+
+// Validate if the prediction is for an oil palm tree disease
+function validateOilPalmDetection(results) {
+    if (!results || results.length === 0) {
+        return {
+            isValid: false,
+            isOilPalmClass: false,
+            hasValidConfidence: false,
+            hasAnyOilPalmPrediction: false,
+            topClassName: 'Unknown',
+            topConfidence: 0,
+            requiredThreshold: MIN_OIL_PALM_CONFIDENCE
+        };
+    }
+    
+    const topResult = results[0];
+    const topConfidence = topResult.probability * 100;
+    const topClassName = topResult.class;
+    
+    // Check if top prediction is a valid oil palm class
+    const isOilPalmClass = isValidOilPalmClass(topClassName);
+
+    // Determine required confidence threshold per class (fallback to default)
+    const requiredThreshold = CLASS_MIN_CONFIDENCE[topClassName] ?? MIN_OIL_PALM_CONFIDENCE;
+    
+    // Check if confidence is high enough
+    const hasValidConfidence = topConfidence >= requiredThreshold;
+    
+    // Check all predictions for oil palm related classes with decent confidence
+    const oilPalmPredictions = results.filter(result => {
+        const confidence = result.probability * 100;
+        return isValidOilPalmClass(result.class) && confidence >= 30;
+    });
+    
+    const hasAnyOilPalmPrediction = oilPalmPredictions.length > 0;
+    
+    // Strict rule: reject obviously wrong non-oil-palm with very high confidence
+    if (!isOilPalmClass && topConfidence > 70) {
+        return {
+            isValid: false,
+            isOilPalmClass: false,
+            hasValidConfidence: false,
+            hasAnyOilPalmPrediction: hasAnyOilPalmPrediction,
+            topClassName: topClassName,
+            topConfidence: topConfidence,
+            topOilPalmPrediction: oilPalmPredictions[0] || null,
+            topOilPalmConfidence: oilPalmPredictions[0] ? oilPalmPredictions[0].probability * 100 : 0,
+            requiredThreshold: requiredThreshold,
+            rejectionReason: 'High confidence non-oil palm prediction'
+        };
+    }
+
+    // Final decision: TOP must be oil palm class and meet its threshold
+    const isValid = isOilPalmClass && hasValidConfidence;
+
+    return {
+        isValid: isValid,
+        isOilPalmClass: isOilPalmClass,
+        hasValidConfidence: hasValidConfidence,
+        hasAnyOilPalmPrediction: hasAnyOilPalmPrediction,
+        topClassName: topClassName,
+        topConfidence: topConfidence,
+        topOilPalmPrediction: oilPalmPredictions[0] || null,
+        topOilPalmConfidence: oilPalmPredictions[0] ? oilPalmPredictions[0].probability * 100 : 0,
+        requiredThreshold: requiredThreshold,
+        rejectionReason: isValid ? null : (!isOilPalmClass ? 'Top prediction is not an oil palm disease' : 'Confidence too low for oil palm detection')
+    };
+}
+
+// Check if there are strong non-oil palm predictions that might indicate wrong image
+function hasStrongNonOilPalmPrediction(results) {
+    // Check if any non-oil palm class has very high confidence (might indicate wrong image type)
+    return results.some(result => {
+        const confidence = result.probability * 100;
+        return !isValidOilPalmClass(result.class) && confidence >= 70;
+    });
+}
+
 // Enhanced results display with better confidence handling
 function displayEnhancedResults(predictions) {
     const resultsContainer = document.getElementById('predictionResults');
@@ -216,6 +465,16 @@ function displayEnhancedResults(predictions) {
             threshold: diseaseInfo[className]?.confidenceThreshold || 70
         };
     }).sort((a, b) => b.probability - a.probability);
+
+    // Validate if this is an oil palm tree disease detection
+    const validation = validateOilPalmDetection(results);
+    
+    // If not a valid oil palm detection, show "Please try again" message
+    // Only allow Genoderma/Ganoderma related predictions (based on dataset)
+    if (!validation.isValid) {
+        showNotOilPalmMessage(resultsContainer, predictionsContainer, validation);
+        return;
+    }
 
     const topResult = results[0];
     const topConfidence = topResult.probability * 100;
@@ -233,6 +492,16 @@ function displayEnhancedResults(predictions) {
     } else if (topConfidence >= topThreshold - 15) {
         confidenceLevel = 'medium';
         confidenceColor = '#f39c12';
+    }
+    
+    // Add warning if top prediction is not oil palm related but there's an oil palm prediction
+    if (!validation.isOilPalmClass && validation.hasAnyOilPalmPrediction) {
+        html += `
+            <div style="background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 15px; border-left: 4px solid #ffc107;">
+                <strong>⚠️ Detection Note:</strong> Top prediction is "${topResult.class}" but oil palm disease detected. 
+                Please ensure the image shows an oil palm tree for accurate results.
+            </div>
+        `;
     }
 
     // Header with confidence indicator
@@ -270,9 +539,10 @@ function displayEnhancedResults(predictions) {
                     ${isAboveThreshold && result.info.description ? `
                         <div style="margin-top: 8px; font-size: 14px; background: #f8f9fa; padding: 10px; border-radius: 5px;">
                             <div><strong>Description:</strong> ${result.info.description}</div>
-                            ${result.info.symptoms ? `<div><strong>Symptoms:</strong> ${result.info.symptoms}</div>` : ''}
-                            <div><strong>Treatment:</strong> ${result.info.treatment}</div>
-                            <div><strong>Prevention:</strong> ${result.info.prevention}</div>
+                            ${result.info.symptoms ? `<div style="margin-top: 5px;"><strong>Symptoms:</strong> ${result.info.symptoms}</div>` : ''}
+                            <div style="margin-top: 5px;"><strong>Treatment:</strong> ${result.info.treatment}</div>
+                            <div style="margin-top: 5px;"><strong>Prevention:</strong> ${result.info.prevention}</div>
+                            ${result.info.datasetInfo ? `<div style="margin-top: 5px; font-size: 12px; color: #3498db;"><strong>Dataset Info:</strong> ${result.info.datasetInfo}</div>` : ''}
                         </div>
                     ` : ''}
                     
@@ -286,6 +556,15 @@ function displayEnhancedResults(predictions) {
         }
     });
 
+    // Add dataset information footer
+    if (datasetCategories.length > 0) {
+        html += `
+            <div style="margin-top: 20px; padding: 10px; background: #e8f4fd; border-radius: 5px; font-size: 12px; color: #2c3e50;">
+                <strong>📊 Dataset Information:</strong> This model was trained using a dataset with ${datasetCategories.length} categories: ${datasetCategories.map(cat => cat.name).join(', ')}.
+            </div>
+        `;
+    }
+    
     resultsContainer.innerHTML = html;
     predictionsContainer.style.display = 'block';
     
@@ -293,6 +572,47 @@ function displayEnhancedResults(predictions) {
     if (confidenceLevel === 'low') {
         addExpertConsultation();
     }
+}
+
+// Show "Please try again" message for non-oil palm images
+function showNotOilPalmMessage(resultsContainer, predictionsContainer, validation) {
+    hideMessage('loading');
+    
+    let html = `
+        <div style="background: #f8d7da; padding: 20px; border-radius: 5px; border-left: 4px solid #dc3545; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 15px;">⚠️</div>
+            <h3 style="color: #721c24; margin-top: 0;">Please Try Again</h3>
+            <p style="color: #721c24; font-size: 16px; margin: 15px 0;">
+                The uploaded image does not appear to be an oil palm tree or an oil palm tree disease.
+            </p>
+            <div style="background: white; padding: 15px; border-radius: 5px; margin: 15px 0; text-align: left;">
+                <strong>Detection Details:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Top prediction: <strong>${validation.topClassName}</strong> (${validation.topConfidence.toFixed(1)}%)</li>
+                    <li>Oil palm disease detected: <strong>${validation.isOilPalmClass ? 'Yes' : 'No'}</strong></li>
+                    <li>Confidence level: <strong>${validation.hasValidConfidence ? 'Sufficient' : 'Too Low'}</strong> ${!validation.hasValidConfidence && validation.requiredThreshold ? `(needs ≥ ${validation.requiredThreshold}%)` : ''}</li>
+                    ${validation.rejectionReason ? `<li>Reason: <strong style="color: #e74c3c;">${validation.rejectionReason}</strong></li>` : ''}
+                    ${validation.topOilPalmConfidence > 0 ? `<li>Best oil palm prediction: <strong>${validation.topOilPalmPrediction?.class || 'N/A'}</strong> (${validation.topOilPalmConfidence.toFixed(1)}%)</li>` : ''}
+                </ul>
+            </div>
+            <div style="background: #e8f4fd; padding: 15px; border-radius: 5px; margin-top: 15px; text-align: left;">
+                <strong>📋 Please ensure your image:</strong>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>Shows an oil palm tree (Elaeis guineensis)</li>
+                    <li>Is clear and well-lit</li>
+                    <li>Focuses on the tree trunk, base, or leaves</li>
+                    <li>Shows visible signs of disease (if detecting disease)</li>
+                </ul>
+            </div>
+            <button onclick="clearImage(); document.getElementById('fileInput').click();" 
+                    style="background: #3498db; color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 15px;">
+                📷 Try Another Image
+            </button>
+        </div>
+    `;
+    
+    resultsContainer.innerHTML = html;
+    predictionsContainer.style.display = 'block';
 }
 
 // Add expert consultation section
