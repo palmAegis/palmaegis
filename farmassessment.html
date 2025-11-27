@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -25,7 +26,7 @@
             margin: 0 auto;
             background: white;
             border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             overflow: hidden;
         }
 
@@ -228,8 +229,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .no-image {
@@ -334,9 +340,10 @@
         .blackspot-badge {
             background: #dc3545;
         }
-        
+
         .threshold-info {
-            display: none; /* Hidden but still in DOM */
+            display: none;
+            /* Hidden but still in DOM */
             background: #fff3cd;
             border: 1px solid #ffeaa7;
             border-radius: 5px;
@@ -402,6 +409,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -417,12 +425,12 @@
                     </div>
                     <canvas id="previewCanvas" style="display: none;"></canvas>
                 </div>
-                
+
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
                     <p>Processing image...</p>
                 </div>
-                
+
                 <div class="results-panel">
                     <div class="results-header">
                         <span class="results-title">DETECTIONS</span>
@@ -458,7 +466,8 @@
                         <!-- <span>Confidence Threshold:</span> -->
                         <span class="slider-value" id="confidenceValue">50%</span>
                     </div>
-                    <input type="range" id="confidenceSlider" min="1" max="100" value="50" oninput="updateConfidence(this.value)">
+                    <input type="range" id="confidenceSlider" min="1" max="100" value="50"
+                        oninput="updateConfidence(this.value)">
                     <!-- Hidden threshold info element -->
                     <div class="threshold-info" id="thresholdInfo" style="display: none;">
                         Default: 50% for all diseases
@@ -472,8 +481,10 @@
 
                 <div class="form-group">
                     <label class="form-label">Location</label>
-                    <input type="text" class="form-input" id="locationInput" placeholder="Enter location or use current location">
-                    <button type="button" class="camera-btn" style="margin-top: 10px; background: #28a745;" onclick="getCurrentLocation()">Use Current Location</button>
+                    <input type="text" class="form-input" id="locationInput" placeho l
+                        der="Enter location or use current location">
+                    <button type="button" class="camera-btn" style="margin-top: 10px; background: #28a745;"
+                        onclick="getCurrentLocation()">Use Current Location</button>
                     <div class="map-container" id="mapContainer"></div>
                 </div>
 
@@ -490,7 +501,7 @@
 
                 <div class="form-group">
                     <label class="form-label">Detected Disease</label>
-                    <input type="text" class="form-input disease-input" id="diseaseInput" placeholder="" readonly>
+                    <input type="text" class="form-input disease-input" id="diseaseInput" placeholder="" readonl y>
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
                     </small>
                 </div>
@@ -502,7 +513,8 @@
 
                 <div class="form-group">
                     <label class="form-label">Treatment</label>
-                    <textarea class="form-textarea" id="treatmentText" placeholder="Treatment recommendations will appear here"></textarea>
+                    <textarea class="form-textarea" id="treatmentText" placeho l
+                        der="Treatment recommendations will appear here"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -559,7 +571,7 @@
         const cameraVideo = document.getElementById('cameraVideo');
         const cameraBtn = document.getElementById('cameraBtn');
         const thresholdInfo = document.getElementById('thresholdInfo');
-        
+
         // Form elements
         const assessmentId = document.getElementById('assessmentId');
         const locationInput = document.getElementById('locationInput');
@@ -607,12 +619,12 @@
         function updateMap(lat, lng, locationName = 'Current Location') {
             if (map) {
                 map.setView([lat, lng], 15);
-                
+
                 // Remove existing marker if any
                 if (marker) {
                     map.removeLayer(marker);
                 }
-                
+
                 // Add new marker
                 marker = L.marker([lat, lng]).addTo(map)
                     .bindPopup(locationName)
@@ -627,13 +639,13 @@
                     position => {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
-                        
+
                         // Update location input
                         locationInput.value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-                        
+
                         // Update map
                         updateMap(lat, lng, 'Your Current Location');
-                        
+
                         // Reverse geocoding to get address (optional)
                         getAddressFromCoordinates(lat, lng);
                     },
@@ -650,7 +662,7 @@
         // Get address from coordinates using Nominatim (OpenStreetMap's geocoding service)
         function getAddressFromCoordinates(lat, lng) {
             const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-            
+
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -673,7 +685,7 @@
 
             // Get unique disease names from detections
             const uniqueDiseases = [...new Set(detections.map(detection => detection.class))];
-            
+
             if (uniqueDiseases.length === 1) {
                 diseaseInput.value = uniqueDiseases[0];
                 diseaseInput.className = "form-input disease-input auto-detected";
@@ -686,48 +698,48 @@
         // Update health status and treatment based on detection results
         function updateHealthStatus(detections) {
             const hasDisease = detections && detections.length > 0;
-            
+
             if (hasDisease) {
                 healthStatus.textContent = "Not Healthy";
                 healthStatus.className = "health-status not-healthy";
-                
+
                 // Auto-fill treatment based on detected disease
                 let treatment = "";
                 let nextAssessmentDate = "";
-                
+
                 // Get current date
                 const today = new Date();
-                
+
                 // Check for specific diseases and set treatment accordingly
                 const hasGanoderma = detections.some(d => d.model === 'ganoderma');
                 const hasBlackspot = detections.some(d => d.model === 'blackspot');
-                
+
                 if (hasGanoderma) {
                     treatment += "Ganoderma Treatment:\n";
                     treatment += "- Remove and destroy infected plants\n";
                     treatment += "- Apply fungicide treatment\n";
                     treatment += "- Improve soil drainage\n";
                     treatment += "- Avoid wounding plants\n\n";
-                    
+
                     // Set next assessment to tomorrow
                     const tomorrow = new Date(today);
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     nextAssessmentDate = tomorrow.toISOString().split('T')[0];
                 }
-                
+
                 if (hasBlackspot) {
                     treatment += "Blackspot Treatment:\n";
                     treatment += "- Remove infected leaves\n";
                     treatment += "- Apply fungicide spray\n";
                     treatment += "- Improve air circulation\n";
                     treatment += "- Water at the base, not on leaves\n\n";
-                    
+
                     // Set next assessment to tomorrow
                     const tomorrow = new Date(today);
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     nextAssessmentDate = tomorrow.toISOString().split('T')[0];
                 }
-                
+
                 // If no specific disease but still detected something
                 if (!hasGanoderma && !hasBlackspot) {
                     treatment = "General Plant Disease Treatment:\n";
@@ -735,22 +747,22 @@
                     treatment += "- Apply broad-spectrum fungicide\n";
                     treatment += "- Improve growing conditions\n";
                     treatment += "- Monitor daily for changes\n";
-                    
+
                     // Set next assessment to tomorrow
                     const tomorrow = new Date(today);
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     nextAssessmentDate = tomorrow.toISOString().split('T')[0];
                 }
-                
+
                 treatmentText.value = treatment;
                 nextAssessment.value = nextAssessmentDate;
             } else {
                 healthStatus.textContent = "Healthy";
                 healthStatus.className = "health-status healthy";
-                
+
                 // Set treatment for healthy plants
                 treatmentText.value = "No treatment needed. Plant appears healthy.";
-                
+
                 // Set next assessment to 6 months from now
                 const today = new Date();
                 const sixMonthsLater = new Date(today);
@@ -763,10 +775,10 @@
         function updateConfidence(value) {
             confidenceThreshold = value / 100;
             confidenceValue.textContent = value + '%';
-            
+
             // Update threshold info (function still works but element is hidden)
             updateThresholdInfo();
-            
+
             // Re-process image jika ada detection sebelumnya
             if (originalImage) {
                 processImage();
@@ -796,7 +808,7 @@
         // Function untuk set threshold berdasarkan jenis penyakit
         function setThresholdByDisease(diseaseType) {
             currentDiseaseType = diseaseType;
-            
+
             if (diseaseType === 'ganoderma') {
                 confidenceThreshold = models.ganoderma.defaultThreshold;
                 confidenceSlider.value = models.ganoderma.defaultThreshold * 100;
@@ -806,7 +818,7 @@
                 confidenceSlider.value = models.blackspot.defaultThreshold * 100;
                 confidenceValue.textContent = Math.round(models.blackspot.defaultThreshold * 100) + '%';
             }
-            
+
             updateThresholdInfo();
         }
 
@@ -835,24 +847,24 @@
         function captureImage() {
             const tempCanvas = document.createElement('canvas');
             const tempContext = tempCanvas.getContext('2d');
-            
+
             tempCanvas.width = cameraVideo.videoWidth;
             tempCanvas.height = cameraVideo.videoHeight;
             tempContext.drawImage(cameraVideo, 0, 0);
-            
+
             // Convert canvas to blob
-            tempCanvas.toBlob(function(blob) {
+            tempCanvas.toBlob(function (blob) {
                 // Create a File object from the blob
                 const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-                
+
                 // Create a FileList-like object
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 fileInput.files = dataTransfer.files;
-                
+
                 // Process the image
                 processFileInput();
-                
+
                 // Close camera
                 closeCamera();
             }, 'image/jpeg');
@@ -864,29 +876,29 @@
                 const file = fileInput.files[0];
                 const reader = new FileReader();
 
-                reader.onload = function(e) {
+                reader.onload = function (e) {
                     originalImage = new Image();
-                    originalImage.onload = function() {
+                    originalImage.onload = function () {
                         // Setup canvas
                         const maxWidth = 800;
                         const scale = Math.min(maxWidth / originalImage.width, 1);
-                        
+
                         previewCanvas.width = originalImage.width * scale;
                         previewCanvas.height = originalImage.height * scale;
                         previewCanvas.style.maxWidth = '100%';
                         previewCanvas.style.height = 'auto';
-                        
+
                         // Draw image on canvas (scaled)
                         canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
-                        
+
                         // Show canvas, hide no-image message
                         previewCanvas.style.display = 'block';
                         noImage.style.display = 'none';
-                        
+
                         // Reset disease type
                         currentDiseaseType = null;
                         updateThresholdInfo();
-                        
+
                         // Automatically process the image
                         processImage();
                     }
@@ -911,12 +923,12 @@
 
             // Convert image to base64
             const reader = new FileReader();
-            reader.onload = async function(e) {
+            reader.onload = async function (e) {
                 try {
                     const base64Image = e.target.result.split(',')[1];
-                    
+
                     // Process dengan kedua-dua model secara serentak
-                    const promises = Object.values(models).map(model => 
+                    const promises = Object.values(models).map(model =>
                         axios({
                             method: "POST",
                             url: model.url,
@@ -931,7 +943,7 @@
                     );
 
                     const responses = await Promise.all(promises);
-                    
+
                     // Gabungkan hasil dari kedua model
                     const combinedResults = {
                         predictions: []
@@ -951,7 +963,7 @@
 
                     // Auto-detect disease type and set threshold
                     autoDetectDiseaseType(combinedResults);
-                    
+
                     displayDetections(combinedResults);
 
                 } catch (error) {
@@ -962,7 +974,7 @@
                     loading.style.display = 'none';
                 }
             };
-            
+
             reader.readAsDataURL(fileInput.files[0]);
         }
 
@@ -974,12 +986,12 @@
             }
 
             // Check if there are any ganoderma detections
-            const hasGanoderma = data.predictions.some(pred => 
+            const hasGanoderma = data.predictions.some(pred =>
                 pred.model === 'ganoderma' && pred.confidence >= models.ganoderma.defaultThreshold
             );
 
             // Check if there are any blackspot detections
-            const hasBlackspot = data.predictions.some(pred => 
+            const hasBlackspot = data.predictions.some(pred =>
                 pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
             );
 
@@ -1005,7 +1017,7 @@
                     </div>
                 `;
                 objectsCount.textContent = '0 objects';
-                
+
                 // Update disease field and health status for no detections
                 updateDiseaseField([]);
                 updateHealthStatus([]);
@@ -1022,7 +1034,7 @@
                     </div>
                 `;
                 objectsCount.textContent = '0 objects';
-                
+
                 // Update disease field and health status for no detections
                 updateDiseaseField([]);
                 updateHealthStatus([]);
@@ -1040,7 +1052,7 @@
             filteredPredictions.forEach((prediction, index) => {
                 const confidencePercent = Math.round(prediction.confidence * 100);
                 const modelConfig = models[prediction.model];
-                
+
                 detectionsHTML += `
                     <div class="detection-item" style="border-left-color: ${modelConfig.color}">
                         <span class="detection-class">
@@ -1053,7 +1065,7 @@
             });
 
             detectionsList.innerHTML = detectionsHTML;
-            
+
             // Update disease field and health status based on detections
             updateDiseaseField(filteredPredictions);
             updateHealthStatus(filteredPredictions);
@@ -1069,7 +1081,7 @@
             predictions.forEach((prediction, index) => {
                 const confidencePercent = Math.round(prediction.confidence * 100);
                 const modelConfig = models[prediction.model];
-                
+
                 // Calculate box coordinates (scaled to canvas)
                 const x = (prediction.x - prediction.width / 2) * scaleX;
                 const y = (prediction.y - prediction.height / 2) * scaleY;
@@ -1108,7 +1120,7 @@
         function init() {
             initializeDateTime();
             initializeMap();
-            
+
             // Generate a random assessment ID
             assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
         }
@@ -1117,4 +1129,5 @@
         window.onload = init;
     </script>
 </body>
+
 </html>

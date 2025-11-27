@@ -94,46 +94,15 @@
             background-color: #bdc3c7;
             cursor: not-allowed;
         }
-        .dataset-info {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e8f4fd;
-            border-radius: 5px;
-            border-left: 4px solid #3498db;
-            font-size: 14px;
-        }
-        .dataset-info h4 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
-        .dataset-info ul {
-            margin: 10px 0;
-            padding-left: 20px;
-        }
-        .dataset-info li {
-            margin: 5px 0;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🌿 Oil Palm Disease Detection</h1>
-        <p style="text-align: center; color: #7f8c8d; margin-bottom: 20px;">
-            AI-powered detection using dataset from <strong>Oil Palm Ganoderma Detection</strong> dataset
-        </p>
+        <h1>🌿 Plant Disease Detection</h1>
         
         <div class="upload-area" id="uploadArea">
             <p>📁 Click here or drag & drop an image</p>
             <p style="color: #7f8c8d; font-size: 14px;">Supported formats: JPG, PNG, JPEG</p>
-            <p style="color: #e74c3c; font-size: 13px; margin-top: 10px; font-weight: bold;">
-                ⚠️ IMPORTANT: Only oil palm tree images are accepted
-            </p>
-            <p style="color: #95a5a6; font-size: 12px; margin-top: 5px;">
-                💡 Tip: Upload clear images of oil palm trees (Elaeis guineensis) showing the trunk, base, or leaves
-            </p>
-            <p style="color: #95a5a6; font-size: 11px; margin-top: 5px; font-style: italic;">
-                Non-oil palm images will show "Please try again" message
-            </p>
             <input type="file" id="fileInput" accept="image/*">
         </div>
 
@@ -154,43 +123,8 @@
             <h3>Detection Results:</h3>
             <div id="predictionResults"></div>
         </div>
-
-        <div class="dataset-info" id="datasetInfo" style="display: none;">
-            <h4>📊 About the Dataset</h4>
-            <p>This detection system uses the <strong>Oil Palm Ganoderma Detection</strong> dataset, which contains:</p>
-            <ul>
-                <li><strong>Training Set:</strong> 990 images with annotations</li>
-                <li><strong>Validation Set:</strong> 96 images with annotations</li>
-                <li><strong>Test Set:</strong> 48 images with annotations</li>
-                <li><strong>Categories:</strong> Oil Palm Tree, Ganoderma, Ganoderma Fungus</li>
-                <li><strong>Format:</strong> COCO format annotations for object detection</li>
-                <li><strong>Source:</strong> Roboflow Universe (CC BY 4.0 License)</li>
-            </ul>
-            <p style="margin-top: 10px; font-size: 12px; color: #7f8c8d;">
-                The model has been trained on this dataset to identify oil palm tree diseases, with a primary focus on <strong>Ganoderma disease detection</strong>. 
-                The dataset is located in the <code>dataset/</code> folder and contains train, valid, and test subsets.
-            </p>
-            <p style="margin-top: 10px; font-size: 11px; color: #e74c3c; font-weight: bold;">
-                ⚠️ Detection is restricted to oil palm tree diseases only. Images of other plants or trees will show "Please try again" message.
-            </p>
-            <p style="margin-top: 10px; font-size: 11px; color: #95a5a6; font-style: italic;">
-                💡 Note: For best results, run this page through a local web server (e.g., Python's http.server or Node.js http-server) 
-                to ensure proper loading of dataset files and model assets.
-            </p>
-        </div>
     </div>
 
     <script src="js/detect.js"></script>
-    <script>
-        // Show dataset info after page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const datasetInfo = document.getElementById('datasetInfo');
-                if (datasetInfo) {
-                    datasetInfo.style.display = 'block';
-                }
-            }, 1000);
-        });
-    </script>
 </body>
 </html>
