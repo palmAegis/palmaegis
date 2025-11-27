@@ -837,17 +837,53 @@
             updateThresholdInfo();
         }
 
-        // Function untuk membuka kamera
+        // Function untuk membuka kamera dengan back camera
         async function openCamera() {
             try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                cameraVideo.srcObject = stream;
-                cameraContainer.style.display = 'flex';
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                alert('Unable to access camera. Please ensure you have granted camera permissions.');
-            }
-        }
+                // Get all available cameras
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                let constraints = { 
+                    video: {
+                        facingMode: { ideal: 'environment' } // Prefer back camera
+                    } 
+                };
+                
+                // If multiple cameras are available, try to find the back camera
+                if (videoDevices.length > 1) {
+                    const backCamera = videoDevices.find(device => 
+                        device.label.toLowerCase().includes('back') || 
+                        device.label.toLowerCase().includes('rear') ||
+                        device.label.toLowerCase().includes('environment')
+                    );
+                    
+                    if (backCamera) {
+                        constraints = {
+                            video: {
+                                deviceId: { exact: backCamera.deviceId }
+                            }
+                        };
+                    }
+                }
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        cameraVideo.srcObject = stream;
+                        cameraContainer.style.display = 'flex';
+                    } catch (error) {
+                        console.error('Error accessing camera:', error);
+                        
+                        // Fallback to default camera if back camera fails
+                        try {
+                            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                            cameraVideo.srcObject = stream;
+                            cameraContainer.style.display = 'flex';
+                        } catch (fallbackError) {
+                            console.error('Fallback camera also failed:', fallbackError);
+                            alert('Unable to access camera. Please ensure you have granted camera permissions.');
+                        }
+                    }
+                }
 
         // Function untuk menutup kamera
         function closeCamera() {
