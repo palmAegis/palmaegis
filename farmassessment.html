@@ -1,14 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plant Disease Detection - Assessment Form</title>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- Add Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>Assessment | Palm Aegis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/homepage.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
+        /* Light theme color palette */
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --secondary-color: #66bb6a;
+            --accent-color: #aed581;
+            --text-color: #333333;
+            --text-light: #666666;
+            --text-lighter: #888888;
+            --bg-color: #c8f0c8;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --border-radius: 12px;
+            --transition-speed: 0.3s;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --gradient: linear-gradient(135deg, #2e7d32, #4caf50);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -17,1117 +39,1138 @@
         }
 
         body {
-            background: #f5f5f5;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            background: linear-gradient(135deg, #eafbea, #c8f0c8);
+            color: var(--text-color);
+            display: block;
+            height: 100vh;
             overflow: hidden;
         }
 
-        .header {
-            background: #2c3e50;
+        /* Dashboard Container */
+        .dashboard-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            position: fixed;
+            height: 100%;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all var(--transition-speed);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 80px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 12px;
+            border-radius: 8px;
+            transition: all var(--transition-speed);
+        }
+
+        .logo h1 {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li {
+            margin: 0.3rem 0;
+        }
+
+        .sidebar-nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all var(--transition-speed);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .sidebar-nav a i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: margin-right var(--transition-speed);
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(46, 125, 50, 0.05);
+            color: var(--primary-color);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .sidebar-nav .nav-item.active a {
+            background: rgba(46, 125, 50, 0.1);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+            transition: all var(--transition-speed);
+        }
+
+        .user-profile-mini {
+            display: flex;
+            object-fit: cover;
+            align-items: center;
+            transition: all var(--transition-speed);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid var(--accent-color);
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
-            padding: 20px;
-            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all var(--transition-speed);
         }
 
-        .header h1 {
-            font-size: 1.8em;
-            font-weight: 600;
-        }
-
-        .content {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        @media (max-width: 768px) {
-            .content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .image-section {
-            position: relative;
-            background: #f8f9fa;
-            border-radius: 8px;
+        .user-info {
+            line-height: 1.3;
+            transition: all var(--transition-speed);
             overflow: hidden;
-            min-height: 400px;
         }
 
-        .image-container {
-            position: relative;
-            display: inline-block;
-            width: 100%;
-        }
-
-        #previewCanvas {
-            max-width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .form-section {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 5px;
+        .user-name {
             font-weight: 600;
-            color: #2c3e50;
+            font-size: 0.95rem;
+            color: var(--text-color);
         }
 
-        .form-input {
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-lighter);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            transition: margin-left var(--transition-speed);
+            background-color: var(--bg-color);
+        }
+
+        /* Header */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .header-left h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            padding: 0.7rem 1.5rem 0.7rem 2.5rem;
+            border-radius: 25px;
+            border: 1px solid var(--border-color);
+            outline: none;
+            background: white;
+            color: var(--text-color);
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 14px;
+            font-size: 0.9rem;
+            transition: all 0.3s;
         }
 
-        .form-textarea {
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-lighter);
+        }
+
+        /* Profile Section */
+        .profile-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-header {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-cover img {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-size: 14px;
-            resize: vertical;
-            min-height: 100px;
+            height: 120px;
+            object-fit: cover;
+            filter: brightness(0.9);
         }
 
-        .upload-area {
-            border: 2px dashed #6c757d;
-            border-radius: 8px;
-            padding: 30px 20px;
-            text-align: center;
-            margin-bottom: 20px;
+        .profile-info {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .profile-avatar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: var(--shadow);
+            margin-right: 1.2rem;
+        }
+
+        .profile-details h2 {
+            font-size: 1.6rem;
+            color: var(--text-color);
+            margin-bottom: 0.3rem;
+        }
+
+        .profile-title {
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .profile-location {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .profile-location i {
+            margin-right: 5px;
+            color: var(--primary-color);
+        }
+
+        .edit-profile-btn {
+            position: absolute;
+            right: 1.5rem;
+            top: 1.5rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 0.6rem 1.5rem;
             cursor: pointer;
+            transition: 0.3s;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+        }
+
+        .edit-profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            transition: 0.3s;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            background: var(--gradient);
+        }
+
+        .stat-info {
+            text-align: right;
+        }
+
+        .stat-info h3 {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            margin-left: 0.3rem;
+        }
+
+        .positive {
+            color: #2e7d32;
+        }
+
+        .negative {
+            color: #e53935;
+        }
+
+        /* Map Styles */
+        .map-container {
+            margin: 20px 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--gradient);
+            color: white;
+        }
+
+        .map-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .map-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .map-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #palmMap {
+            height: 400px;
+            width: 100%;
+        }
+
+        /* Chatbot Styles */
+        .chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: var(--shadow-hover);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .chatbot-container {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow-hover);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .chatbot-container.active {
+            display: flex;
+        }
+
+        .chatbot-header {
+            background: var(--gradient);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chatbot-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chatbot-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .chatbot-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.user .message-content {
+            background: var(--gradient);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin: 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+        }
+
+        .message.bot .message-avatar {
+            background: var(--gradient);
+        }
+
+        .message.user .message-avatar {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .chatbot-input {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chatbot-input input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .chatbot-send {
+            background: var(--gradient);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.3s ease;
         }
 
-        .upload-area:hover {
-            border-color: #007bff;
-            background: #e7f3ff;
+        .chatbot-send:hover {
+            transform: scale(1.1);
         }
 
-        .file-input {
-            display: none;
-        }
-
-        .camera-btn {
-            width: 100%;
-            padding: 12px;
-            background: #17a2b8;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        .camera-btn:hover {
-            background: #138496;
-        }
-
-        .camera-btn:disabled {
-            background: #6c757d;
+        .chatbot-send:disabled {
+            background: #ccc;
             cursor: not-allowed;
+            transform: none;
         }
 
-        .results-panel {
-            background: white;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        .results-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        .results-title {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .objects-count {
-            background: #007bff;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .detections-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .detection-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            margin-bottom: 8px;
-            background: #f8f9fa;
-            border-radius: 5px;
-            border-left: 4px solid;
-        }
-
-        .detection-class {
-            font-weight: 600;
-            color: #2c3e50;
-        }
-
-        .detection-confidence {
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .loading {
+        /* Typing indicator */
+        .typing-indicator {
             display: none;
-            text-align: center;
-            padding: 20px;
+            padding: 10px 15px;
+            align-items: center;
+            gap: 5px;
         }
 
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #007bff;
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #666;
             border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
+            animation: typing-bounce 1.3s linear infinite;
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
+        .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes typing-bounce {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-height: 800px) {
+            #palmMap {
+                height: 300px;
+            }
+            
+            .main-content {
+                padding-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+                overflow: visible;
             }
 
-            100% {
-                transform: rotate(360deg);
+            .sidebar:hover {
+                width: 260px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            }
+
+            /* Hide text elements when collapsed */
+            .sidebar:not(:hover) .logo h1,
+            .sidebar:not(:hover) .sidebar-nav a span,
+            .sidebar:not(:hover) .user-info,
+            .sidebar:not(:hover) .logout-btn span {
+                opacity: 0;
+                visibility: hidden;
+                width: 0;
+                height: 0;
+                margin: 0;
+            }
+
+            /* Center align when collapsed */
+            .sidebar:not(:hover) .logo {
+                justify-content: center;
+            }
+
+            .sidebar:not(:hover) .logo img {
+                margin-right: 0;
+            }
+
+            .sidebar:not(:hover) .sidebar-nav a {
+                justify-content: center;
+                padding: 1rem;
+            }
+
+            .sidebar:not(:hover) .sidebar-nav a i {
+                margin-right: 0;
+            }
+
+            .sidebar:not(:hover) .user-profile-mini {
+                justify-content: center;
+            }
+
+            .sidebar:not(:hover) .user-avatar {
+                margin-right: 0;
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .sidebar:not(:hover) .logout-btn {
+                padding: 0.7rem;
+                justify-content: center;
+            }
+
+            .sidebar:not(:hover) .logout-btn i {
+                margin-right: 0;
+            }
+
+            /* Tooltips for collapsed state */
+            .sidebar:not(:hover) .sidebar-nav li {
+                position: relative;
+            }
+
+            .sidebar:not(:hover) .sidebar-nav a::after {
+                content: attr(data-tooltip);
+                position: absolute;
+                left: 100%;
+                top: 50%;
+                transform: translateY(-50%);
+                background: var(--sidebar-bg);
+                color: var(--text-color);
+                padding: 0.5rem 1rem;
+                border-radius: 6px;
+                white-space: nowrap;
+                opacity: 0;
+                visibility: hidden;
+                transition: all 0.3s;
+                z-index: 1001;
+                box-shadow: var(--shadow);
+                font-size: 0.9rem;
+                border: 1px solid var(--border-color);
+            }
+
+            .sidebar:not(:hover) .sidebar-nav a:hover::after {
+                opacity: 1;
+                visibility: visible;
+                left: 110%;
+            }
+
+            .main-content {
+                margin-left: 80px;
             }
         }
 
-        .no-image {
-            text-align: center;
-            color: #6c757d;
-            padding: 50px 20px;
-        }
-
-        .model-info {
-            background: #e8f4fc;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        .confidence-slider {
-            margin: 15px 0;
-        }
-
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-        }
-
-        .slider-value {
-            font-weight: bold;
-            display: none;
-            color: #007bff;
-        }
-
-        input[type="range"] {
-            display: none;
-            width: 100%;
-            height: 5px;
-            border-radius: 5px;
-            background: #ddd;
-            outline: none;
-        }
-
-        .camera-container {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-
-        .camera-video {
-            max-width: 90%;
-            max-height: 70%;
-            border-radius: 8px;
-        }
-
-        .camera-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 10px;
-        }
-
-        .capture-btn {
-            padding: 10px 20px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .cancel-btn {
-            padding: 10px 20px;
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .model-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-            margin-left: 5px;
-            color: white;
-        }
-
-        .ganoderma-badge {
-            background: #28a745;
-        }
-
-        .blackspot-badge {
-            background: #dc3545;
-        }
-
-        .threshold-info {
-            display: none;
-            /* Hidden but still in DOM */
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            border-radius: 5px;
-            padding: 8px;
-            margin-top: 10px;
-            font-size: 12px;
-            color: #856404;
-        }
-
-        .health-status {
-            padding: 10px;
-            border-radius: 5px;
-            margin: 10px 0;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .healthy {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .not-healthy {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .map-container {
-            height: 200px;
-            width: 100%;
-            margin-top: 10px;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        /* Leaflet map styles */
-        .leaflet-container {
-            height: 100%;
-            width: 100%;
-        }
-
-        .disease-input {
-            background-color: #f8f9fa;
-            font-weight: 600;
-        }
-
-        .auto-detected {
-            background-color: #e8f5e8;
-            border: 1px solid #28a745;
+        @media (max-width: 768px) {
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+            
+            .map-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .map-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .profile-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .profile-avatar {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+            
+            .edit-profile-btn {
+                position: static;
+                margin-top: 1rem;
+            }
+            
+            .chatbot-container {
+                width: 300px;
+            }
         }
     </style>
-</head>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Plant Disease Detection - Assessment Form</h1>
-        </div>
-
-        <div class="content">
-            <div class="image-section">
-                <div class="image-container" id="imageContainer">
-                    <div class="no-image" id="noImage">
-                        <i>📷</i>
-                        <p>Drag and drop image here</p>
-                    </div>
-                    <canvas id="previewCanvas" style="display: none;"></canvas>
-                </div>
-
-                <div class="loading" id="loading">
-                    <div class="spinner"></div>
-                    <p>Processing image...</p>
-                </div>
-
-                <div class="results-panel">
-                    <div class="results-header">
-                        <span class="results-title">DETECTIONS</span>
-                        <span class="objects-count" id="objectsCount">0 objects</span>
-                    </div>
-                    <div class="detections-list" id="detectionsList">
-                        <div style="text-align: center; color: #6c757d; padding: 20px;">
-                            No detections
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-section">
-                <div class="model-info" id="modelInfo">
-                    <strong>Active Model:</strong> Ganoderma & Blackspot Detection<br>
-                    <strong>API Key:</strong> Roboflow Serverless
-                </div>
-
-                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                    <i>📁</i>
-                    <p>Click to upload image</p>
-                    <p style="font-size: 12px; color: #6c757d; margin-top: 5px;">Supported: JPG, PNG, JPEG</p>
-                    <input type="file" id="fileInput" class="file-input" accept="image/*">
-                </div>
-
-                <button onclick="openCamera()" class="camera-btn" id="cameraBtn">
-                    📷 Take Photo
-                </button>
-
-                <div class="confidence-slider">
-                    <div class="slider-label">
-                        <!-- <span>Confidence Threshold:</span> -->
-                        <span class="slider-value" id="confidenceValue">50%</span>
-                    </div>
-                    <input type="range" id="confidenceSlider" min="1" max="100" value="50"
-                        oninput="updateConfidence(this.value)">
-                    <!-- Hidden threshold info element -->
-                    <div class="threshold-info" id="thresholdInfo" style="display: none;">
-                        Default: 50% for all diseases
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Assessment ID</label>
-                    <input type="text" class="form-input" id="assessmentId" placeholder="Enter assessment ID">
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Location</label>
-                    <input type="text" class="form-input" id="locationInput" placeho l
-                        der="Enter location or use current location">
-                    <button type="button" class="camera-btn" style="margin-top: 10px; background: #28a745;"
-                        onclick="getCurrentLocation()">Use Current Location</button>
-                    <div class="map-container" id="mapContainer"></div>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label">Date</label>
-                        <input type="date" class="form-input" id="assessmentDate">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Assessment Time</label>
-                        <input type="time" class="form-input" id="assessmentTime">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Detected Disease</label>
-                    <input type="text" class="form-input disease-input" id="diseaseInput" placeholder="" readonl y>
-                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
-                    </small>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Health Status</label>
-                    <div id="healthStatus" class="health-status">Not assessed</div>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Treatment</label>
-                    <textarea class="form-textarea" id="treatmentText" placeho l
-                        der="Treatment recommendations will appear here"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">Next Assessment</label>
-                    <input type="text" class="form-input" id="nextAssessment" readonly>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="camera-container" id="cameraContainer">
-        <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
-        <div class="camera-controls">
-            <button class="capture-btn" onclick="captureImage()">Capture Image</button>
-            <button class="cancel-btn" onclick="closeCamera()">Cancel</button>
-        </div>
-    </div>
-
-    <!-- Add Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Konfigurasi untuk multiple models
-        const models = {
-            'ganoderma': {
-                name: 'Ganoderma Detection',
-                url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
-                apiKey: 'KOIYcp3E5rAFhgSploex',
-                color: '#28a745',
-                badgeClass: 'ganoderma-badge',
-                defaultThreshold: 0.7 // 70% for Ganoderma
-            },
-            'blackspot': {
-                name: 'Blackspot Disease Detection',
-                url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
-                apiKey: 'KOIYcp3E5rAFhgSploex',
-                color: '#dc3545',
-                badgeClass: 'blackspot-badge',
-                defaultThreshold: 0.5 // 50% for Blackspot
-            }
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
         };
 
-        // Variables
-        const fileInput = document.getElementById('fileInput');
-        const loading = document.getElementById('loading');
-        const noImage = document.getElementById('noImage');
-        const previewCanvas = document.getElementById('previewCanvas');
-        const imageContainer = document.getElementById('imageContainer');
-        const detectionsList = document.getElementById('detectionsList');
-        const objectsCount = document.getElementById('objectsCount');
-        const modelInfo = document.getElementById('modelInfo');
-        const confidenceSlider = document.getElementById('confidenceSlider');
-        const confidenceValue = document.getElementById('confidenceValue');
-        const cameraContainer = document.getElementById('cameraContainer');
-        const cameraVideo = document.getElementById('cameraVideo');
-        const cameraBtn = document.getElementById('cameraBtn');
-        const thresholdInfo = document.getElementById('thresholdInfo');
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        // Form elements
-        const assessmentId = document.getElementById('assessmentId');
-        const locationInput = document.getElementById('locationInput');
-        const assessmentDate = document.getElementById('assessmentDate');
-        const assessmentTime = document.getElementById('assessmentTime');
-        const diseaseInput = document.getElementById('diseaseInput');
-        const healthStatus = document.getElementById('healthStatus');
-        const treatmentText = document.getElementById('treatmentText');
-        const nextAssessment = document.getElementById('nextAssessment');
-        const mapContainer = document.getElementById('mapContainer');
-
-        let originalImage = null;
-        let canvasContext = previewCanvas.getContext('2d');
-        let confidenceThreshold = 0.5;
-        let stream = null;
-        let currentDiseaseType = null; // Track current disease type for auto threshold
-        let map = null;
-        let marker = null;
-
-        // Initialize date and time
-        function initializeDateTime() {
-            const now = new Date();
-            assessmentDate.value = now.toISOString().split('T')[0];
-            assessmentTime.value = now.toTimeString().slice(0, 5);
-        }
-
-        // Initialize map
-        function initializeMap() {
-            // Initialize map with default view (world view)
-            map = L.map('mapContainer').setView([0, 0], 2);
-
-            // Add OpenStreetMap tile layer
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-                maxZoom: 19
-            }).addTo(map);
-
-            // Add a default marker
-            marker = L.marker([0, 0]).addTo(map)
-                .bindPopup('Default location')
-                .openPopup();
-        }
-
-        // Update map with current location
-        function updateMap(lat, lng, locationName = 'Current Location') {
-            if (map) {
-                map.setView([lat, lng], 15);
-
-                // Remove existing marker if any
-                if (marker) {
-                    map.removeLayer(marker);
-                }
-
-                // Add new marker
-                marker = L.marker([lat, lng]).addTo(map)
-                    .bindPopup(locationName)
-                    .openPopup();
-            }
-        }
-
-        // Get current location
-        function getCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        const lat = position.coords.latitude;
-                        const lng = position.coords.longitude;
-
-                        // Update location input
-                        locationInput.value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-
-                        // Update map
-                        updateMap(lat, lng, 'Your Current Location');
-
-                        // Reverse geocoding to get address (optional)
-                        getAddressFromCoordinates(lat, lng);
-                    },
-                    error => {
-                        console.error('Error getting location:', error);
-                        alert('Unable to get current location. Please enter manually.');
-                    }
-                );
-            } else {
-                alert('Geolocation is not supported by this browser.');
-            }
-        }
-
-        // Get address from coordinates using Nominatim (OpenStreetMap's geocoding service)
-        function getAddressFromCoordinates(lat, lng) {
-            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data && data.display_name) {
-                        locationInput.value = data.display_name;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error getting address:', error);
-                });
-        }
-
-        // Update disease field based on detection results
-        function updateDiseaseField(detections) {
-            if (!detections || detections.length === 0) {
-                diseaseInput.value = "No disease detected";
-                diseaseInput.className = "form-input disease-input";
-                return;
-            }
-
-            // Get unique disease names from detections
-            const uniqueDiseases = [...new Set(detections.map(detection => detection.class))];
-
-            if (uniqueDiseases.length === 1) {
-                diseaseInput.value = uniqueDiseases[0];
-                diseaseInput.className = "form-input disease-input auto-detected";
-            } else {
-                diseaseInput.value = uniqueDiseases.join(", ");
-                diseaseInput.className = "form-input disease-input auto-detected";
-            }
-        }
-
-        // Update health status and treatment based on detection results
-        function updateHealthStatus(detections) {
-            const hasDisease = detections && detections.length > 0;
-
-            if (hasDisease) {
-                healthStatus.textContent = "Not Healthy";
-                healthStatus.className = "health-status not-healthy";
-
-                // Auto-fill treatment based on detected disease
-                let treatment = "";
-                let nextAssessmentDate = "";
-
-                // Get current date
-                const today = new Date();
-
-                // Check for specific diseases and set treatment accordingly
-                const hasGanoderma = detections.some(d => d.model === 'ganoderma');
-                const hasBlackspot = detections.some(d => d.model === 'blackspot');
-
-                if (hasGanoderma) {
-                    treatment += "Ganoderma Treatment:\n";
-                    treatment += "- Remove and destroy infected plants\n";
-                    treatment += "- Apply fungicide treatment\n";
-                    treatment += "- Improve soil drainage\n";
-                    treatment += "- Avoid wounding plants\n\n";
-
-                    // Set next assessment to tomorrow
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
-                }
-
-                if (hasBlackspot) {
-                    treatment += "Blackspot Treatment:\n";
-                    treatment += "- Remove infected leaves\n";
-                    treatment += "- Apply fungicide spray\n";
-                    treatment += "- Improve air circulation\n";
-                    treatment += "- Water at the base, not on leaves\n\n";
-
-                    // Set next assessment to tomorrow
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
-                }
-
-                // If no specific disease but still detected something
-                if (!hasGanoderma && !hasBlackspot) {
-                    treatment = "General Plant Disease Treatment:\n";
-                    treatment += "- Isolate affected plant\n";
-                    treatment += "- Apply broad-spectrum fungicide\n";
-                    treatment += "- Improve growing conditions\n";
-                    treatment += "- Monitor daily for changes\n";
-
-                    // Set next assessment to tomorrow
-                    const tomorrow = new Date(today);
-                    tomorrow.setDate(tomorrow.getDate() + 1);
-                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
-                }
-
-                treatmentText.value = treatment;
-                nextAssessment.value = nextAssessmentDate;
-            } else {
-                healthStatus.textContent = "Healthy";
-                healthStatus.className = "health-status healthy";
-
-                // Set treatment for healthy plants
-                treatmentText.value = "No treatment needed. Plant appears healthy.";
-
-                // Set next assessment to 6 months from now
-                const today = new Date();
-                const sixMonthsLater = new Date(today);
-                sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-                nextAssessment.value = sixMonthsLater.toISOString().split('T')[0];
-            }
-        }
-
-        // Function untuk update confidence threshold
-        function updateConfidence(value) {
-            confidenceThreshold = value / 100;
-            confidenceValue.textContent = value + '%';
-
-            // Update threshold info (function still works but element is hidden)
-            updateThresholdInfo();
-
-            // Re-process image jika ada detection sebelumnya
-            if (originalImage) {
-                processImage();
-            }
-        }
-
-        // Function untuk update threshold info display (kept but element is hidden)
-        function updateThresholdInfo() {
-            if (currentDiseaseType === 'ganoderma') {
-                thresholdInfo.textContent = 'Auto-adjusted: 70% for Ganoderma disease';
-                thresholdInfo.style.background = '#d4edda';
-                thresholdInfo.style.borderColor = '#c3e6cb';
-                thresholdInfo.style.color = '#155724';
-            } else if (currentDiseaseType === 'blackspot') {
-                thresholdInfo.textContent = 'Auto-adjusted: 50% for Blackspot disease';
-                thresholdInfo.style.background = '#d1ecf1';
-                thresholdInfo.style.borderColor = '#bee5eb';
-                thresholdInfo.style.color = '#0c5460';
-            } else {
-                thresholdInfo.textContent = 'Default: 50% for all diseases';
-                thresholdInfo.style.background = '#fff3cd';
-                thresholdInfo.style.borderColor = '#ffeaa7';
-                thresholdInfo.style.color = '#856404';
-            }
-        }
-
-        // Function untuk set threshold berdasarkan jenis penyakit
-        function setThresholdByDisease(diseaseType) {
-            currentDiseaseType = diseaseType;
-
-            if (diseaseType === 'ganoderma') {
-                confidenceThreshold = models.ganoderma.defaultThreshold;
-                confidenceSlider.value = models.ganoderma.defaultThreshold * 100;
-                confidenceValue.textContent = Math.round(models.ganoderma.defaultThreshold * 100) + '%';
-            } else if (diseaseType === 'blackspot') {
-                confidenceThreshold = models.blackspot.defaultThreshold;
-                confidenceSlider.value = models.blackspot.defaultThreshold * 100;
-                confidenceValue.textContent = Math.round(models.blackspot.defaultThreshold * 100) + '%';
-            }
-
-            updateThresholdInfo();
-        }
-
-        // Function untuk membuka kamera
-        async function openCamera() {
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                cameraVideo.srcObject = stream;
-                cameraContainer.style.display = 'flex';
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                alert('Unable to access camera. Please ensure you have granted camera permissions.');
-            }
-        }
-
-        // Function untuk menutup kamera
-        function closeCamera() {
-            if (stream) {
-                stream.getTracks().forEach(track => track.stop());
-                stream = null;
-            }
-            cameraContainer.style.display = 'none';
-        }
-
-        // Function untuk mengambil gambar dari kamera
-        function captureImage() {
-            const tempCanvas = document.createElement('canvas');
-            const tempContext = tempCanvas.getContext('2d');
-
-            tempCanvas.width = cameraVideo.videoWidth;
-            tempCanvas.height = cameraVideo.videoHeight;
-            tempContext.drawImage(cameraVideo, 0, 0);
-
-            // Convert canvas to blob
-            tempCanvas.toBlob(function (blob) {
-                // Create a File object from the blob
-                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-
-                // Create a FileList-like object
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-
-                // Process the image
-                processFileInput();
-
-                // Close camera
-                closeCamera();
-            }, 'image/jpeg');
-        }
-
-        // Function untuk memproses input file
-        function processFileInput() {
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-
-                reader.onload = function (e) {
-                    originalImage = new Image();
-                    originalImage.onload = function () {
-                        // Setup canvas
-                        const maxWidth = 800;
-                        const scale = Math.min(maxWidth / originalImage.width, 1);
-
-                        previewCanvas.width = originalImage.width * scale;
-                        previewCanvas.height = originalImage.height * scale;
-                        previewCanvas.style.maxWidth = '100%';
-                        previewCanvas.style.height = 'auto';
-
-                        // Draw image on canvas (scaled)
-                        canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
-
-                        // Show canvas, hide no-image message
-                        previewCanvas.style.display = 'block';
-                        noImage.style.display = 'none';
-
-                        // Reset disease type
-                        currentDiseaseType = null;
-                        updateThresholdInfo();
-
-                        // Automatically process the image
-                        processImage();
-                    }
-                    originalImage.src = e.target.result;
-                }
-
-                reader.readAsDataURL(file);
-            }
-        }
-
-        // Event listener untuk file input
-        fileInput.addEventListener('change', processFileInput);
-
-        async function processImage() {
-            if (!fileInput.files[0]) {
-                alert('Please select an image first!');
-                return;
-            }
-
-            // Show loading
-            loading.style.display = 'block';
-
-            // Convert image to base64
-            const reader = new FileReader();
-            reader.onload = async function (e) {
+        // Check authentication state
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log('User is signed in:', user.email);
+                window.currentUser = user;
+                
                 try {
-                    const base64Image = e.target.result.split(',')[1];
-
-                    // Process dengan kedua-dua model secara serentak
-                    const promises = Object.values(models).map(model =>
-                        axios({
-                            method: "POST",
-                            url: model.url,
-                            params: {
-                                api_key: model.apiKey
-                            },
-                            data: base64Image,
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            }
-                        })
-                    );
-
-                    const responses = await Promise.all(promises);
-
-                    // Gabungkan hasil dari kedua model
-                    const combinedResults = {
-                        predictions: []
-                    };
-
-                    responses.forEach((response, index) => {
-                        const modelKey = Object.keys(models)[index];
-                        if (response.data.predictions) {
-                            // Tambahkan model info ke setiap prediction
-                            const predictionsWithModel = response.data.predictions.map(pred => ({
-                                ...pred,
-                                model: modelKey
-                            }));
-                            combinedResults.predictions.push(...predictionsWithModel);
-                        }
-                    });
-
-                    // Auto-detect disease type and set threshold
-                    autoDetectDiseaseType(combinedResults);
-
-                    displayDetections(combinedResults);
-
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        window.userData = userData;
+                        console.log('🔍 User data from Firestore:', userData);
+                        updateUserProfile(user, userData);
+                    } else {
+                        console.log('No user data found in Firestore');
+                        updateUserProfile(user, {});
+                    }
                 } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error processing image: ' + error.message);
-                } finally {
-                    // Hide loading
-                    loading.style.display = 'none';
+                    console.error('Error loading user data:', error);
+                    updateUserProfile(user, {});
                 }
-            };
-
-            reader.readAsDataURL(fileInput.files[0]);
-        }
-
-        // Function untuk auto-detect jenis penyakit dan set threshold
-        function autoDetectDiseaseType(data) {
-            if (!data.predictions || data.predictions.length === 0) {
-                currentDiseaseType = null;
-                return;
-            }
-
-            // Check if there are any ganoderma detections
-            const hasGanoderma = data.predictions.some(pred =>
-                pred.model === 'ganoderma' && pred.confidence >= models.ganoderma.defaultThreshold
-            );
-
-            // Check if there are any blackspot detections
-            const hasBlackspot = data.predictions.some(pred =>
-                pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
-            );
-
-            // Priority: Ganoderma > Blackspot
-            if (hasGanoderma) {
-                setThresholdByDisease('ganoderma');
-            } else if (hasBlackspot) {
-                setThresholdByDisease('blackspot');
             } else {
-                currentDiseaseType = null;
-                updateThresholdInfo();
+                console.log('User is not signed in');
+                window.location.href = 'signin.html';
             }
+        });
+
+        function updateUserProfile(user, userData) {
+            console.log('🔄 Updating user profile with data:', userData);
+            
+            const userNameElement = document.querySelector('.user-name');
+            const profileNameElement = document.querySelector('.profile-details h2');
+            const profileTitleElement = document.querySelector('.profile-title');
+            const profileLocationElement = document.querySelector('.profile-location');
+            const userRoleElement = document.querySelector('.user-role');
+            
+            const displayName = userData.firstName && userData.lastName 
+                ? `${userData.firstName} ${userData.lastName}`
+                : userData.username 
+                ? userData.username
+                : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+            
+            if (userNameElement) userNameElement.textContent = displayName;
+            if (profileNameElement) profileNameElement.textContent = displayName;
+
+            if (profileTitleElement) {
+                profileTitleElement.textContent = userData.bio || 'Professional Farmer';
+            }
+            
+            if (profileLocationElement) {
+                profileLocationElement.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${userData.location || 'Location not set'}`;
+            }
+
+            if (userRoleElement) {
+                userRoleElement.textContent = userData.bio || 'Farmer';
+            }
+
+            updateProfilePicture(userData);
+            updateUserStats(userData);
         }
 
-        function displayDetections(data) {
-            // Clear previous detections
-            clearDetections();
-
-            if (!data.predictions || data.predictions.length === 0) {
-                detectionsList.innerHTML = `
-                    <div style="text-align: center; color: #6c757d; padding: 20px;">
-                        No objects detected
-                    </div>
-                `;
-                objectsCount.textContent = '0 objects';
-
-                // Update disease field and health status for no detections
-                updateDiseaseField([]);
-                updateHealthStatus([]);
-                return;
+        function updateProfilePicture(userData) {
+            const avatarElements = document.querySelectorAll('.user-avatar, .profile-avatar img');
+            
+            let imageSource = 'images/user-avatar.jpg';
+            
+            if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
+                imageSource = userData.imageBase64.trim();
+                console.log('🎯 Using Base64 image from Firestore');
+            } else if (userData.picture && userData.picture.trim() !== '') {
+                imageSource = userData.picture.trim();
+                console.log('🎯 Using picture URL from Firestore');
+            } else if (userData.photoURL && userData.photoURL.trim() !== '') {
+                imageSource = userData.photoURL.trim();
+                console.log('🎯 Using photoURL from Firestore');
             }
 
-            // Filter predictions based on confidence threshold
-            const filteredPredictions = data.predictions.filter(pred => pred.confidence >= confidenceThreshold);
-
-            if (filteredPredictions.length === 0) {
-                detectionsList.innerHTML = `
-                    <div style="text-align: center; color: #6c757d; padding: 20px;">
-                        No objects above confidence threshold (${Math.round(confidenceThreshold * 100)}%)
-                    </div>
-                `;
-                objectsCount.textContent = '0 objects';
-
-                // Update disease field and health status for no detections
-                updateDiseaseField([]);
-                updateHealthStatus([]);
-                return;
-            }
-
-            // Update objects count
-            objectsCount.textContent = filteredPredictions.length + ' objects';
-
-            // Draw detection boxes on canvas
-            drawDetectionBoxes(filteredPredictions);
-
-            // Update detections list
-            let detectionsHTML = '';
-            filteredPredictions.forEach((prediction, index) => {
-                const confidencePercent = Math.round(prediction.confidence * 100);
-                const modelConfig = models[prediction.model];
-
-                detectionsHTML += `
-                    <div class="detection-item" style="border-left-color: ${modelConfig.color}">
-                        <span class="detection-class">
-                            ${prediction.class}
-                            <span class="model-badge ${modelConfig.badgeClass}">${prediction.model}</span>
-                        </span>
-                        <span class="detection-confidence" style="background: ${modelConfig.color}">${confidencePercent}%</span>
-                    </div>
-                `;
+            avatarElements.forEach(img => {
+                img.src = imageSource;
+                img.alt = 'User Avatar';
+                img.onerror = function() {
+                    console.warn('⚠️ Failed to load user image, reverting to default.');
+                    this.src = 'images/user-avatar.jpg';
+                };
             });
 
-            detectionsList.innerHTML = detectionsHTML;
-
-            // Update disease field and health status based on detections
-            updateDiseaseField(filteredPredictions);
-            updateHealthStatus(filteredPredictions);
+            console.log('🔄 Updated avatar images with source:', imageSource);
         }
 
-        function drawDetectionBoxes(predictions) {
-            // Clear canvas and redraw original image
-            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+        function updateUserStats(userData) {
+            const quickStats = document.querySelectorAll('.quick-stats .stat-number');
+            if (quickStats.length >= 4) {
+                quickStats[0].textContent = userData.activeCrops || '24';
+                quickStats[1].textContent = userData.waterLevel || '78%';
+                quickStats[2].textContent = userData.weather || '72°F';
+                quickStats[3].textContent = userData.revenue || '$12,450';
+            }
 
-            const scaleX = previewCanvas.width / originalImage.width;
-            const scaleY = previewCanvas.height / originalImage.height;
-
-            predictions.forEach((prediction, index) => {
-                const confidencePercent = Math.round(prediction.confidence * 100);
-                const modelConfig = models[prediction.model];
-
-                // Calculate box coordinates (scaled to canvas)
-                const x = (prediction.x - prediction.width / 2) * scaleX;
-                const y = (prediction.y - prediction.height / 2) * scaleY;
-                const width = prediction.width * scaleX;
-                const height = prediction.height * scaleY;
-
-                // Draw detection box dengan warna model
-                canvasContext.strokeStyle = modelConfig.color;
-                canvasContext.lineWidth = 3;
-                canvasContext.strokeRect(x, y, width, height);
-
-                // Draw background for label
-                canvasContext.fillStyle = modelConfig.color;
-                const labelText = `${prediction.class} (${prediction.model}) ${confidencePercent}%`;
-                const textMetrics = canvasContext.measureText(labelText);
-                const textWidth = textMetrics.width + 10;
-                const textHeight = 20;
-
-                canvasContext.fillRect(x, y - textHeight, textWidth, textHeight);
-
-                // Draw label text
-                canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = 'bold 12px Arial';
-                canvasContext.fillText(labelText, x + 5, y - 5);
-            });
-        }
-
-        function clearDetections() {
-            // Clear canvas and redraw original image only
-            if (originalImage) {
-                canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+            const statChanges = document.querySelectorAll('.stat-change');
+            if (statChanges.length >= 3 && userData.statChanges) {
+                statChanges[0].textContent = userData.statChanges.crops || '+12%';
+                statChanges[1].textContent = userData.statChanges.water || '-5%';
+                statChanges[3].textContent = userData.statChanges.revenue || '+8%';
             }
         }
 
-        // Initialize the application
-        function init() {
-            initializeDateTime();
+        // Add logout functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    signOut(auth).then(() => {
+                        window.location.href = 'signin.html';
+                    }).catch((error) => {
+                        console.error('Logout error:', error);
+                    });
+                });
+            }
+
+            // Initialize the map
             initializeMap();
 
-            // Generate a random assessment ID
-            assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
-        }
+            // Chatbot functionality - COMPLETELY FIXED VERSION
+            const chatbotToggle = document.getElementById('chatbotToggle');
+            const chatbotContainer = document.getElementById('chatbotContainer');
+            const chatbotClose = document.getElementById('chatbotClose');
+            const chatbotInput = document.getElementById('chatbotInput');
+            const chatbotSend = document.getElementById('chatbotSend');
+            const chatbotMessages = document.getElementById('chatbotMessages');
+            const typingIndicator = document.getElementById('typingIndicator');
 
-        // Initialize when page loads
-        window.onload = init;
+            // Toggle chatbot
+            chatbotToggle.addEventListener('click', () => {
+                chatbotContainer.classList.add('active');
+                chatbotInput.focus();
+            });
+
+            chatbotClose.addEventListener('click', () => {
+                chatbotContainer.classList.remove('active');
+            });
+
+            // Send message function - USING INTELLIGENT FALLBACK
+            async function sendChatbotMessage() {
+                const message = chatbotInput.value.trim();
+                if (!message) return;
+
+                // Add user message
+                addMessage(message, 'user');
+                chatbotInput.value = '';
+
+                // Show typing indicator
+                typingIndicator.style.display = 'flex';
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+
+                // Simulate AI thinking time
+                setTimeout(() => {
+                    typingIndicator.style.display = 'none';
+                    const botResponse = generateIntelligentResponse(message);
+                    addMessage(botResponse, 'bot');
+                }, 1500);
+            }
+
+            // Add message to chat
+            function addMessage(content, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                
+                // Parse markdown for bot messages
+                if (sender === 'bot') {
+                    try {
+                        messageContent.innerHTML = marked.parse(content);
+                    } catch (error) {
+                        console.warn('Markdown parsing error, using plain text:', error);
+                        messageContent.textContent = content;
+                    }
+                } else {
+                    messageContent.textContent = content;
+                }
+                
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(messageContent);
+                chatbotMessages.appendChild(messageDiv);
+                
+                // Scroll to bottom
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            }
+
+            // Event listeners
+            chatbotSend.addEventListener('click', sendChatbotMessage);
+            chatbotInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendChatbotMessage();
+                }
+            });
+
+            // Auto-focus input when chatbot opens
+            chatbotToggle.addEventListener('click', () => {
+                setTimeout(() => {
+                    chatbotInput.focus();
+                }, 300);
+            });
+
+            // Quick action buttons for common questions
+            function addQuickActions() {
+                const quickActions = [
+                    "Common palm diseases?",
+                    "Watering schedule?",
+                    "Best fertilizer?",
+                    "Pest control?",
+                    "When to harvest?"
+                ];
+                
+                const actionsContainer = document.createElement('div');
+                actionsContainer.className = 'quick-actions';
+                actionsContainer.style.padding = '10px';
+                actionsContainer.style.borderTop = '1px solid #eee';
+                
+                quickActions.forEach(action => {
+                    const button = document.createElement('button');
+                    button.textContent = action;
+                    button.style.margin = '2px';
+                    button.style.padding = '5px 10px';
+                    button.style.border = '1px solid #4CAF50';
+                    button.style.background = 'transparent';
+                    button.style.color = '#4CAF50';
+                    button.style.borderRadius = '15px';
+                    button.style.cursor = 'pointer';
+                    button.style.fontSize = '12px';
+                    
+                    button.addEventListener('click', () => {
+                        chatbotInput.value = action;
+                        sendChatbotMessage();
+                    });
+                    
+                    actionsContainer.appendChild(button);
+                });
+                
+                chatbotMessages.parentNode.insertBefore(actionsContainer, chatbotInput.parentNode);
+            }
+
+            // Add quick actions after initial load
+            setTimeout(addQuickActions, 1000);
+        });
+
     </script>
-</body>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="images/logo.png" alt="Palm Aegis Logo">
+                    <h1>Palm Aegis</h1>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item active">
+                        <a href="homepage.html" data-tooltip="Dashboard">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="farmassessment.html" data-tooltip="Detect Disease">
+                            <i class="fas fa-robot"></i>
+                            <span>Farm Assestment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="detectdisease.html" data-tooltip="Detect Disease">
+                            <i class="fas fa-seedling"></i>
+                            <span>Detect Disease</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="treehealth.html" data-tooltip="Tree Health">
+                            <i class="fas fa-tree"></i>
+                            <span>Tree Health</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="treatment.html" data-tooltip="Treatment">
+                            <i class="fas fa-shield"></i>
+                            <span>Treatment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="farmdata.html" data-tooltip="Farm Data">
+                            <i class="fas fa-database"></i>
+                            <span>Farm Data</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="forum.html" data-tooltip="Forum">
+                            <i class="fas fa-comments"></i>
+                            <span>Forum</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="setting.html" data-tooltip="Settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" id="logoutBtn" data-tooltip="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile-mini">
+                    <img src="images/user-avatar.jpg" alt="User Avatar" class="user-avatar">
+                    <div class="user-info">
+                        <span class="user-name">Loading...</span>
+                        <span class="user-role">Farmer</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+</body>
 </html>
