@@ -9,6 +9,8 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Add Axios library -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         /* Light theme color palette */
         :root {
@@ -667,6 +669,347 @@
             30% { transform: translateY(-5px); }
         }
 
+        /* Assessment Page Styles */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .image-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .image-container {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .no-image {
+            text-align: center;
+            color: #6c757d;
+        }
+
+        .no-image i {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .results-panel {
+            background: white;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .results-header {
+            background: var(--gradient);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .results-title {
+            font-weight: bold;
+        }
+
+        .detections-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            border-left: 4px solid transparent;
+        }
+
+        .detection-class {
+            font-weight: 500;
+        }
+
+        .model-badge {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+            margin-left: 5px;
+        }
+
+        .ganoderma-badge {
+            background: #28a745;
+        }
+
+        .blackspot-badge {
+            background: #dc3545;
+        }
+
+        .detection-confidence {
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .form-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .model-info {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            font-size: 0.9rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary-color);
+            background: #f8fff8;
+        }
+
+        .upload-area i {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #6c757d;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .camera-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-align: center;
+            display: block;
+            width: 100%;
+        }
+
+        .camera-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .confidence-slider {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .slider-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .confidence-slider input {
+            width: 100%;
+        }
+
+        .threshold-info {
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            border: 1px solid;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-input, .form-textarea {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        .disease-input {
+            background: #f8fff8;
+        }
+
+        .disease-input.auto-detected {
+            background: #e8f5e9;
+            border-color: var(--primary-color);
+        }
+
+        .health-status {
+            padding: 12px 15px;
+            border-radius: 5px;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .health-status.healthy {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .health-status.not-healthy {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .camera-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .camera-video {
+            max-width: 90%;
+            max-height: 80%;
+            border-radius: 10px;
+        }
+
+        .camera-controls {
+            position: absolute;
+            bottom: 50px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .capture-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .capture-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .cancel-btn:hover {
+            background: #5a6268;
+        }
+
         /* Responsive adjustments */
         @media (max-height: 800px) {
             #palmMap {
@@ -812,6 +1155,14 @@
             
             .chatbot-container {
                 width: 300px;
+            }
+            
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -1032,6 +1383,52 @@
                 chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
             }
 
+            // Generate intelligent responses for the chatbot
+            function generateIntelligentResponse(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                // Disease-related questions
+                if (lowerMessage.includes('common palm diseases') || lowerMessage.includes('palm diseases')) {
+                    return `**Common Palm Tree Diseases:**\n\n- **Ganoderma Butt Rot**: Fungal disease causing trunk decay\n- **Fusarium Wilt**: Fungal disease affecting vascular system\n- **Lethal Yellowing**: Phytoplasma disease causing yellowing\n- **Bud Rot**: Fungal infection of the palm's bud\n- **Leaf Spots**: Various fungal and bacterial leaf infections`;
+                }
+                
+                if (lowerMessage.includes('watering schedule') || lowerMessage.includes('how often to water')) {
+                    return `**Palm Tree Watering Guidelines:**\n\n- **Newly planted**: Water daily for first 2 weeks\n- **Established palms**: Water 2-3 times per week\n- **Hot weather**: Increase frequency\n- **Rainy season**: Reduce watering\n- **Always check soil moisture** before watering`;
+                }
+                
+                if (lowerMessage.includes('fertilizer') || lowerMessage.includes('best fertilizer')) {
+                    return `**Palm Tree Fertilizer Recommendations:**\n\n- Use **palm-specific fertilizer** with micronutrients\n- **NPK ratio**: 8-2-12 or similar with magnesium\n- Apply **3-4 times per year** during growing season\n- **Slow-release formulas** work best\n- Avoid high-phosphorus fertilizers`;
+                }
+                
+                if (lowerMessage.includes('pest control') || lowerMessage.includes('pests')) {
+                    return `**Common Palm Pests & Control:**\n\n- **Palm Weevils**: Systemic insecticides\n- **Scale Insects**: Horticultural oil sprays\n- **Spider Mites**: Miticide applications\n- **Mealybugs**: Insecticidal soaps\n- **Prevention**: Regular inspection and proper nutrition`;
+                }
+                
+                if (lowerMessage.includes('harvest') || lowerMessage.includes('when to harvest')) {
+                    return `**Harvest Timing for Oil Palms:**\n\n- **Fruit color**: Orange-red indicates ripeness\n- **Time from flowering**: 5-6 months\n- **Bunch weight**: Mature bunches feel heavy\n- **Fruit looseness**: Ripe fruits detach easily\n- **Regular harvesting**: Every 10-14 days`;
+                }
+                
+                if (lowerMessage.includes('ganoderma') || lowerMessage.includes('butt rot')) {
+                    return `**Ganoderma Butt Rot Information:**\n\n- **Symptoms**: Wilting, canopy decline, conks on trunk\n- **Treatment**: No cure; remove infected trees\n- **Prevention**: Avoid wounding trees, proper sanitation\n- **Spread**: Through root contact and spores\n- **Management**: Early detection and removal`;
+                }
+                
+                if (lowerMessage.includes('black spot') || lowerMessage.includes('blackspot')) {
+                    return `**Black Spot Disease Information:**\n\n- **Symptoms**: Circular black spots on leaves\n- **Causes**: Fungal infection (often *Cercospora*)\n- **Treatment**: Fungicide applications\n- **Prevention**: Good air circulation, avoid overhead watering\n- **Management**: Remove infected leaves, proper fertilization`;
+                }
+                
+                // General responses
+                if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
+                    return `Hello! I'm your Palm Aegis assistant. How can I help with your palm tree care today?`;
+                }
+                
+                if (lowerMessage.includes('thank')) {
+                    return `You're welcome! Feel free to ask if you have more questions about palm tree care.`;
+                }
+                
+                // Default response
+                return `I'm here to help with palm tree care and disease management. You can ask me about:\n\n- Common palm diseases\n- Watering schedules\n- Fertilizer recommendations\n- Pest control\n- Harvest timing\n- Specific diseases like Ganoderma or Black Spot`;
+            }
+
             // Event listeners
             chatbotSend.addEventListener('click', sendChatbotMessage);
             chatbotInput.addEventListener('keypress', (e) => {
@@ -1102,16 +1499,16 @@
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li class="nav-item active">
+                    <li class="nav-item">
                         <a href="homepage.html" data-tooltip="Dashboard">
                             <i class="fas fa-home"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item active">
                         <a href="farmassessment.html" data-tooltip="Detect Disease">
                             <i class="fas fa-robot"></i>
-                            <span>Farm Assestment</span>
+                            <span>Farm Assessment</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -1170,7 +1567,833 @@
             </div>
         </aside>
 
+        <main class="main-content">
+            <div class="top-header">
+                <div class="header-left">
+                    <h1>Plant Disease Detection - Assessment Form</h1>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search...">
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="content">
+                    <div class="image-section">
+                        <div class="image-container" id="imageContainer">
+                            <div class="no-image" id="noImage">
+                                <i>📷</i>
+                                <p>Drag and drop image here</p>
+                            </div>
+                            <canvas id="previewCanvas" style="display: none;"></canvas>
+                        </div>
+
+                        <div class="loading" id="loading">
+                            <div class="spinner"></div>
+                            <p>Processing image...</p>
+                        </div>
+
+                        <div class="results-panel">
+                            <div class="results-header">
+                                <span class="results-title">DETECTIONS</span>
+                                <span class="objects-count" id="objectsCount">0 objects</span>
+                            </div>
+                            <div class="detections-list" id="detectionsList">
+                                <div style="text-align: center; color: #6c757d; padding: 20px;">
+                                    No detections
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="model-info" id="modelInfo">
+                            <strong>Active Model:</strong> Ganoderma & Blackspot Detection<br>
+                            <strong>API Key:</strong> Roboflow Serverless
+                        </div>
+
+                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                            <i>📁</i>
+                            <p>Click to upload image</p>
+                            <p style="font-size: 12px; color: #6c757d; margin-top: 5px;">Supported: JPG, PNG, JPEG</p>
+                            <input type="file" id="fileInput" class="file-input" accept="image/*">
+                        </div>
+
+                        <button onclick="openCamera()" class="camera-btn" id="cameraBtn">
+                            📷 Take Photo
+                        </button>
+
+                        <div class="confidence-slider">
+                            <div class="slider-label">
+                                <span>Confidence Threshold:</span>
+                                <span class="slider-value" id="confidenceValue">50%</span>
+                            </div>
+                            <input type="range" id="confidenceSlider" min="1" max="100" value="50"
+                                oninput="updateConfidence(this.value)">
+                            <!-- Hidden threshold info element -->
+                            <div class="threshold-info" id="thresholdInfo" style="display: none;">
+                                Default: 50% for all diseases
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Assessment ID</label>
+                            <input type="text" class="form-input" id="assessmentId" placeholder="Enter assessment ID">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-input" id="locationInput" placeholder="Enter location or use current location">
+                            <button type="button" class="camera-btn" style="margin-top: 10px; background: #28a745;"
+                                onclick="getCurrentLocation()">Use Current Location</button>
+                            <div class="map-container" id="mapContainer" style="height: 200px; margin-top: 10px;"></div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input type="date" class="form-input" id="assessmentDate">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Assessment Time</label>
+                                <input type="time" class="form-input" id="assessmentTime">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Detected Disease</label>
+                            <input type="text" class="form-input disease-input" id="diseaseInput" placeholder="" readonly>
+                            <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                                Auto-detected based on image analysis
+                            </small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Health Status</label>
+                            <div id="healthStatus" class="health-status">Not assessed</div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Treatment</label>
+                            <textarea class="form-textarea" id="treatmentText" placeholder="Treatment recommendations will appear here"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Next Assessment</label>
+                            <input type="text" class="form-input" id="nextAssessment" readonly>
+                        </div>
+
+                        <button class="camera-btn" style="background: #007bff;" onclick="saveAssessment()">
+                            Save Assessment
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="camera-container" id="cameraContainer">
+        <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
+        <div class="camera-controls">
+            <button class="capture-btn" onclick="captureImage()">Capture Image</button>
+            <button class="cancel-btn" onclick="closeCamera()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Chatbot Widget -->
+    <div class="chatbot-widget">
+        <button class="chatbot-toggle" id="chatbotToggle">
+            <i class="fas fa-robot"></i>
+        </button>
+        <div class="chatbot-container" id="chatbotContainer">
+            <div class="chatbot-header">
+                <h3>Palm Aegis Assistant</h3>
+                <button class="chatbot-close" id="chatbotClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages">
+                <div class="message bot">
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        Hello! I'm your Palm Aegis assistant. How can I help with your palm tree care today?
+                    </div>
+                </div>
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+            <div class="chatbot-input">
+                <input type="text" id="chatbotInput" placeholder="Ask about palm tree care...">
+                <button class="chatbot-send" id="chatbotSend">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Konfigurasi untuk multiple models
+        const models = {
+            'ganoderma': {
+                name: 'Ganoderma Detection',
+                url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
+                apiKey: 'KOIYcp3E5rAFhgSploex',
+                color: '#28a745',
+                badgeClass: 'ganoderma-badge',
+                defaultThreshold: 0.7 // 70% for Ganoderma
+            },
+            'blackspot': {
+                name: 'Blackspot Disease Detection',
+                url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
+                apiKey: 'KOIYcp3E5rAFhgSploex',
+                color: '#dc3545',
+                badgeClass: 'blackspot-badge',
+                defaultThreshold: 0.5 // 50% for Blackspot
+            }
+        };
+
+        // Variables
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const noImage = document.getElementById('noImage');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const imageContainer = document.getElementById('imageContainer');
+        const detectionsList = document.getElementById('detectionsList');
+        const objectsCount = document.getElementById('objectsCount');
+        const modelInfo = document.getElementById('modelInfo');
+        const confidenceSlider = document.getElementById('confidenceSlider');
+        const confidenceValue = document.getElementById('confidenceValue');
+        const cameraContainer = document.getElementById('cameraContainer');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const thresholdInfo = document.getElementById('thresholdInfo');
+
+        // Form elements
+        const assessmentId = document.getElementById('assessmentId');
+        const locationInput = document.getElementById('locationInput');
+        const assessmentDate = document.getElementById('assessmentDate');
+        const assessmentTime = document.getElementById('assessmentTime');
+        const diseaseInput = document.getElementById('diseaseInput');
+        const healthStatus = document.getElementById('healthStatus');
+        const treatmentText = document.getElementById('treatmentText');
+        const nextAssessment = document.getElementById('nextAssessment');
+        const mapContainer = document.getElementById('mapContainer');
+
+        let originalImage = null;
+        let canvasContext = previewCanvas.getContext('2d');
+        let confidenceThreshold = 0.5;
+        let stream = null;
+        let currentDiseaseType = null; // Track current disease type for auto threshold
+        let map = null;
+        let marker = null;
+
+        // Initialize date and time
+        function initializeDateTime() {
+            const now = new Date();
+            assessmentDate.value = now.toISOString().split('T')[0];
+            assessmentTime.value = now.toTimeString().slice(0, 5);
+        }
+
+        // Initialize map
+        function initializeMap() {
+            // Initialize map with default view (world view)
+            map = L.map('mapContainer').setView([0, 0], 2);
+
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add a default marker
+            marker = L.marker([0, 0]).addTo(map)
+                .bindPopup('Default location')
+                .openPopup();
+        }
+
+        // Update map with current location
+        function updateMap(lat, lng, locationName = 'Current Location') {
+            if (map) {
+                map.setView([lat, lng], 15);
+
+                // Remove existing marker if any
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+
+                // Add new marker
+                marker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup(locationName)
+                    .openPopup();
+            }
+        }
+
+        // Get current location
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+
+                        // Update location input
+                        locationInput.value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+
+                        // Update map
+                        updateMap(lat, lng, 'Your Current Location');
+
+                        // Reverse geocoding to get address (optional)
+                        getAddressFromCoordinates(lat, lng);
+                    },
+                    error => {
+                        console.error('Error getting location:', error);
+                        alert('Unable to get current location. Please enter manually.');
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        // Get address from coordinates using Nominatim (OpenStreetMap's geocoding service)
+        function getAddressFromCoordinates(lat, lng) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        locationInput.value = data.display_name;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting address:', error);
+                });
+        }
+
+        // Update disease field based on detection results
+        function updateDiseaseField(detections) {
+            if (!detections || detections.length === 0) {
+                diseaseInput.value = "No disease detected";
+                diseaseInput.className = "form-input disease-input";
+                return;
+            }
+
+            // Get unique disease names from detections
+            const uniqueDiseases = [...new Set(detections.map(detection => detection.class))];
+
+            if (uniqueDiseases.length === 1) {
+                diseaseInput.value = uniqueDiseases[0];
+                diseaseInput.className = "form-input disease-input auto-detected";
+            } else {
+                diseaseInput.value = uniqueDiseases.join(", ");
+                diseaseInput.className = "form-input disease-input auto-detected";
+            }
+        }
+
+        // Update health status and treatment based on detection results
+        function updateHealthStatus(detections) {
+            const hasDisease = detections && detections.length > 0;
+
+            if (hasDisease) {
+                healthStatus.textContent = "Not Healthy";
+                healthStatus.className = "health-status not-healthy";
+
+                // Auto-fill treatment based on detected disease
+                let treatment = "";
+                let nextAssessmentDate = "";
+
+                // Get current date
+                const today = new Date();
+
+                // Check for specific diseases and set treatment accordingly
+                const hasGanoderma = detections.some(d => d.model === 'ganoderma');
+                const hasBlackspot = detections.some(d => d.model === 'blackspot');
+
+                if (hasGanoderma) {
+                    treatment += "Ganoderma Treatment:\n";
+                    treatment += "- Remove and destroy infected plants\n";
+                    treatment += "- Apply fungicide treatment\n";
+                    treatment += "- Improve soil drainage\n";
+                    treatment += "- Avoid wounding plants\n\n";
+
+                    // Set next assessment to tomorrow
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+                }
+
+                if (hasBlackspot) {
+                    treatment += "Blackspot Treatment:\n";
+                    treatment += "- Remove infected leaves\n";
+                    treatment += "- Apply fungicide spray\n";
+                    treatment += "- Improve air circulation\n";
+                    treatment += "- Water at the base, not on leaves\n\n";
+
+                    // Set next assessment to tomorrow
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+                }
+
+                // If no specific disease but still detected something
+                if (!hasGanoderma && !hasBlackspot) {
+                    treatment = "General Plant Disease Treatment:\n";
+                    treatment += "- Isolate affected plant\n";
+                    treatment += "- Apply broad-spectrum fungicide\n";
+                    treatment += "- Improve growing conditions\n";
+                    treatment += "- Monitor daily for changes\n";
+
+                    // Set next assessment to tomorrow
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+                }
+
+                treatmentText.value = treatment;
+                nextAssessment.value = nextAssessmentDate;
+            } else {
+                healthStatus.textContent = "Healthy";
+                healthStatus.className = "health-status healthy";
+
+                // Set treatment for healthy plants
+                treatmentText.value = "No treatment needed. Plant appears healthy.";
+
+                // Set next assessment to 6 months from now
+                const today = new Date();
+                const sixMonthsLater = new Date(today);
+                sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+                nextAssessment.value = sixMonthsLater.toISOString().split('T')[0];
+            }
+        }
+
+        // Function untuk update confidence threshold
+        function updateConfidence(value) {
+            confidenceThreshold = value / 100;
+            confidenceValue.textContent = value + '%';
+
+            // Update threshold info (function still works but element is hidden)
+            updateThresholdInfo();
+
+            // Re-process image jika ada detection sebelumnya
+            if (originalImage) {
+                processImage();
+            }
+        }
+
+        // Function untuk update threshold info display (kept but element is hidden)
+        function updateThresholdInfo() {
+            if (currentDiseaseType === 'ganoderma') {
+                thresholdInfo.textContent = 'Auto-adjusted: 70% for Ganoderma disease';
+                thresholdInfo.style.background = '#d4edda';
+                thresholdInfo.style.borderColor = '#c3e6cb';
+                thresholdInfo.style.color = '#155724';
+            } else if (currentDiseaseType === 'blackspot') {
+                thresholdInfo.textContent = 'Auto-adjusted: 50% for Blackspot disease';
+                thresholdInfo.style.background = '#d1ecf1';
+                thresholdInfo.style.borderColor = '#bee5eb';
+                thresholdInfo.style.color = '#0c5460';
+            } else {
+                thresholdInfo.textContent = 'Default: 50% for all diseases';
+                thresholdInfo.style.background = '#fff3cd';
+                thresholdInfo.style.borderColor = '#ffeaa7';
+                thresholdInfo.style.color = '#856404';
+            }
+        }
+
+        // Function untuk set threshold berdasarkan jenis penyakit
+        function setThresholdByDisease(diseaseType) {
+            currentDiseaseType = diseaseType;
+
+            if (diseaseType === 'ganoderma') {
+                confidenceThreshold = models.ganoderma.defaultThreshold;
+                confidenceSlider.value = models.ganoderma.defaultThreshold * 100;
+                confidenceValue.textContent = Math.round(models.ganoderma.defaultThreshold * 100) + '%';
+            } else if (diseaseType === 'blackspot') {
+                confidenceThreshold = models.blackspot.defaultThreshold;
+                confidenceSlider.value = models.blackspot.defaultThreshold * 100;
+                confidenceValue.textContent = Math.round(models.blackspot.defaultThreshold * 100) + '%';
+            }
+
+            updateThresholdInfo();
+        }
+
+        // Function untuk membuka kamera
+        async function openCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                cameraVideo.srcObject = stream;
+                cameraContainer.style.display = 'flex';
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Unable to access camera. Please ensure you have granted camera permissions.');
+            }
+        }
+
+        // Function untuk menutup kamera
+        function closeCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            cameraContainer.style.display = 'none';
+        }
+
+        // Function untuk mengambil gambar dari kamera
+        function captureImage() {
+            const tempCanvas = document.createElement('canvas');
+            const tempContext = tempCanvas.getContext('2d');
+
+            tempCanvas.width = cameraVideo.videoWidth;
+            tempCanvas.height = cameraVideo.videoHeight;
+            tempContext.drawImage(cameraVideo, 0, 0);
+
+            // Convert canvas to blob
+            tempCanvas.toBlob(function (blob) {
+                // Create a File object from the blob
+                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+
+                // Create a FileList-like object
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+
+                // Process the image
+                processFileInput();
+
+                // Close camera
+                closeCamera();
+            }, 'image/jpeg');
+        }
+
+        // Function untuk memproses input file
+        function processFileInput() {
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    originalImage = new Image();
+                    originalImage.onload = function () {
+                        // Setup canvas
+                        const maxWidth = 800;
+                        const scale = Math.min(maxWidth / originalImage.width, 1);
+
+                        previewCanvas.width = originalImage.width * scale;
+                        previewCanvas.height = originalImage.height * scale;
+                        previewCanvas.style.maxWidth = '100%';
+                        previewCanvas.style.height = 'auto';
+
+                        // Draw image on canvas (scaled)
+                        canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+
+                        // Show canvas, hide no-image message
+                        previewCanvas.style.display = 'block';
+                        noImage.style.display = 'none';
+
+                        // Reset disease type
+                        currentDiseaseType = null;
+                        updateThresholdInfo();
+
+                        // Automatically process the image
+                        processImage();
+                    }
+                    originalImage.src = e.target.result;
+                }
+
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Event listener untuk file input
+        fileInput.addEventListener('change', processFileInput);
+
+        async function processImage() {
+            if (!fileInput.files[0]) {
+                alert('Please select an image first!');
+                return;
+            }
+
+            // Show loading
+            loading.style.display = 'block';
+
+            // Convert image to base64
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                try {
+                    const base64Image = e.target.result.split(',')[1];
+
+                    // Process dengan kedua-dua model secara serentak
+                    const promises = Object.values(models).map(model =>
+                        axios({
+                            method: "POST",
+                            url: model.url,
+                            params: {
+                                api_key: model.apiKey
+                            },
+                            data: base64Image,
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            }
+                        })
+                    );
+
+                    const responses = await Promise.all(promises);
+
+                    // Gabungkan hasil dari kedua model
+                    const combinedResults = {
+                        predictions: []
+                    };
+
+                    responses.forEach((response, index) => {
+                        const modelKey = Object.keys(models)[index];
+                        if (response.data.predictions) {
+                            // Tambahkan model info ke setiap prediction
+                            const predictionsWithModel = response.data.predictions.map(pred => ({
+                                ...pred,
+                                model: modelKey
+                            }));
+                            combinedResults.predictions.push(...predictionsWithModel);
+                        }
+                    });
+
+                    // Auto-detect disease type and set threshold
+                    autoDetectDiseaseType(combinedResults);
+
+                    displayDetections(combinedResults);
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error processing image: ' + error.message);
+                } finally {
+                    // Hide loading
+                    loading.style.display = 'none';
+                }
+            };
+
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        // Function untuk auto-detect jenis penyakit dan set threshold
+        function autoDetectDiseaseType(data) {
+            if (!data.predictions || data.predictions.length === 0) {
+                currentDiseaseType = null;
+                return;
+            }
+
+            // Check if there are any ganoderma detections
+            const hasGanoderma = data.predictions.some(pred =>
+                pred.model === 'ganoderma' && pred.confidence >= models.ganoderma.defaultThreshold
+            );
+
+            // Check if there are any blackspot detections
+            const hasBlackspot = data.predictions.some(pred =>
+                pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
+            );
+
+            // Priority: Ganoderma > Blackspot
+            if (hasGanoderma) {
+                setThresholdByDisease('ganoderma');
+            } else if (hasBlackspot) {
+                setThresholdByDisease('blackspot');
+            } else {
+                currentDiseaseType = null;
+                updateThresholdInfo();
+            }
+        }
+
+        function displayDetections(data) {
+            // Clear previous detections
+            clearDetections();
+
+            if (!data.predictions || data.predictions.length === 0) {
+                detectionsList.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        No objects detected
+                    </div>
+                `;
+                objectsCount.textContent = '0 objects';
+
+                // Update disease field and health status for no detections
+                updateDiseaseField([]);
+                updateHealthStatus([]);
+                return;
+            }
+
+            // Filter predictions based on confidence threshold
+            const filteredPredictions = data.predictions.filter(pred => pred.confidence >= confidenceThreshold);
+
+            if (filteredPredictions.length === 0) {
+                detectionsList.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        No objects above confidence threshold (${Math.round(confidenceThreshold * 100)}%)
+                    </div>
+                `;
+                objectsCount.textContent = '0 objects';
+
+                // Update disease field and health status for no detections
+                updateDiseaseField([]);
+                updateHealthStatus([]);
+                return;
+            }
+
+            // Update objects count
+            objectsCount.textContent = filteredPredictions.length + ' objects';
+
+            // Draw detection boxes on canvas
+            drawDetectionBoxes(filteredPredictions);
+
+            // Update detections list
+            let detectionsHTML = '';
+            filteredPredictions.forEach((prediction, index) => {
+                const confidencePercent = Math.round(prediction.confidence * 100);
+                const modelConfig = models[prediction.model];
+
+                detectionsHTML += `
+                    <div class="detection-item" style="border-left-color: ${modelConfig.color}">
+                        <span class="detection-class">
+                            ${prediction.class}
+                            <span class="model-badge ${modelConfig.badgeClass}">${prediction.model}</span>
+                        </span>
+                        <span class="detection-confidence" style="background: ${modelConfig.color}">${confidencePercent}%</span>
+                    </div>
+                `;
+            });
+
+            detectionsList.innerHTML = detectionsHTML;
+
+            // Update disease field and health status based on detections
+            updateDiseaseField(filteredPredictions);
+            updateHealthStatus(filteredPredictions);
+        }
+
+        function drawDetectionBoxes(predictions) {
+            // Clear canvas and redraw original image
+            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+
+            const scaleX = previewCanvas.width / originalImage.width;
+            const scaleY = previewCanvas.height / originalImage.height;
+
+            predictions.forEach((prediction, index) => {
+                const confidencePercent = Math.round(prediction.confidence * 100);
+                const modelConfig = models[prediction.model];
+
+                // Calculate box coordinates (scaled to canvas)
+                const x = (prediction.x - prediction.width / 2) * scaleX;
+                const y = (prediction.y - prediction.height / 2) * scaleY;
+                const width = prediction.width * scaleX;
+                const height = prediction.height * scaleY;
+
+                // Draw detection box dengan warna model
+                canvasContext.strokeStyle = modelConfig.color;
+                canvasContext.lineWidth = 3;
+                canvasContext.strokeRect(x, y, width, height);
+
+                // Draw background for label
+                canvasContext.fillStyle = modelConfig.color;
+                const labelText = `${prediction.class} (${prediction.model}) ${confidencePercent}%`;
+                const textMetrics = canvasContext.measureText(labelText);
+                const textWidth = textMetrics.width + 10;
+                const textHeight = 20;
+
+                canvasContext.fillRect(x, y - textHeight, textWidth, textHeight);
+
+                // Draw label text
+                canvasContext.fillStyle = '#ffffff';
+                canvasContext.font = 'bold 12px Arial';
+                canvasContext.fillText(labelText, x + 5, y - 5);
+            });
+        }
+
+        function clearDetections() {
+            // Clear canvas and redraw original image only
+            if (originalImage) {
+                canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+            }
+        }
+
+        // Save assessment function
+        function saveAssessment() {
+            // Validate required fields
+            if (!assessmentId.value) {
+                alert('Please enter an Assessment ID');
+                return;
+            }
+            
+            if (!locationInput.value) {
+                alert('Please enter a location');
+                return;
+            }
+            
+            if (!fileInput.files[0]) {
+                alert('Please upload an image first');
+                return;
+            }
+
+            // Create assessment object
+            const assessment = {
+                id: assessmentId.value,
+                location: locationInput.value,
+                date: assessmentDate.value,
+                time: assessmentTime.value,
+                disease: diseaseInput.value,
+                healthStatus: healthStatus.textContent,
+                treatment: treatmentText.value,
+                nextAssessment: nextAssessment.value,
+                timestamp: new Date().toISOString()
+            };
+
+            // In a real application, you would save this to a database
+            console.log('Assessment saved:', assessment);
+            
+            // Show success message
+            alert('Assessment saved successfully!');
+            
+            // Optionally reset form
+            // resetForm();
+        }
+
+        // Reset form function
+        function resetForm() {
+            assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
+            locationInput.value = '';
+            assessmentDate.value = new Date().toISOString().split('T')[0];
+            assessmentTime.value = new Date().toTimeString().slice(0, 5);
+            diseaseInput.value = '';
+            diseaseInput.className = "form-input disease-input";
+            healthStatus.textContent = "Not assessed";
+            healthStatus.className = "health-status";
+            treatmentText.value = '';
+            nextAssessment.value = '';
+            
+            // Clear image and detections
+            fileInput.value = '';
+            previewCanvas.style.display = 'none';
+            noImage.style.display = 'flex';
+            detectionsList.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">No detections</div>';
+            objectsCount.textContent = '0 objects';
+            clearDetections();
+        }
+
+        // Initialize the application
+        function init() {
+            initializeDateTime();
+            initializeMap();
+
+            // Generate a random assessment ID
+            assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
+        }
+
+        // Initialize when page loads
+        window.onload = init;
+    </script>
 </body>
 </html>
