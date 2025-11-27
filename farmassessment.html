@@ -3,829 +3,1118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farm Assessment System</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+    <title>Plant Disease Detection - Assessment Form</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Add Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        /* Your existing CSS styles remain the same */
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
+            background: #f5f5f5;
+            padding: 20px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
         }
-        
-        header {
-            background-color: #2e7d32;
+
+        .header {
+            background: #2c3e50;
             color: white;
-            padding: 20px 0;
-            text-align: center;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-        }
-        
-        .assessment-form {
-            background-color: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #2e7d32;
-        }
-        
-        select, input, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
-        
-        .file-upload {
-            border: 2px dashed #2e7d32;
             padding: 20px;
             text-align: center;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s;
         }
-        
-        .file-upload:hover {
-            background-color: #f0f9f0;
-        }
-        
-        .file-upload input {
-            display: none;
-        }
-        
-        .preview-container {
-            margin-top: 15px;
-            text-align: center;
-        }
-        
-        .preview-image {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        .btn {
-            background-color: #2e7d32;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
+
+        .header h1 {
+            font-size: 1.8em;
             font-weight: 600;
-            transition: background-color 0.3s;
+        }
+
+        .content {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .image-section {
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 8px;
+            overflow: hidden;
+            min-height: 400px;
+        }
+
+        .image-container {
+            position: relative;
             display: inline-block;
-        }
-        
-        .btn:hover {
-            background-color: #1b5e20;
-        }
-        
-        .btn-block {
-            display: block;
             width: 100%;
         }
-        
-        .btn:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
+
+        #previewCanvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
         }
-        
-        .results-section {
-            background-color: white;
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
             border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: none;
+            border: 1px solid #dee2e6;
         }
-        
-        .health-status {
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-        }
-        
-        .healthy {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-        
-        .unhealthy {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
-        }
-        
-        .not-plant {
-            background-color: #fff3e0;
-            color: #ef6c00;
-            border: 1px solid #ffcc80;
-        }
-        
-        .disease-info, .treatment-info, .reassessment-info {
-            margin-bottom: 25px;
-        }
-        
-        .section-title {
-            color: #2e7d32;
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 8px;
+
+        .form-group {
             margin-bottom: 15px;
         }
-        
-        .loading {
+
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .upload-area {
+            border: 2px dashed #6c757d;
+            border-radius: 8px;
+            padding: 30px 20px;
             text-align: center;
-            padding: 20px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #007bff;
+            background: #e7f3ff;
+        }
+
+        .file-input {
             display: none;
         }
-        
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            border-left-color: #2e7d32;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+
+        .camera-btn {
+            width: 100%;
+            padding: 12px;
+            background: #17a2b8;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
         }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+
+        .camera-btn:hover {
+            background: #138496;
         }
-        
-        .history-section {
-            background-color: white;
-            border-radius: 8px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
+        .camera-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
         }
-        
-        .history-list {
-            list-style-type: none;
-        }
-        
-        .history-item {
+
+        .results-panel {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
             padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
+            margin-top: 20px;
+        }
+
+        .results-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
         }
-        
-        .history-item:last-child {
-            border-bottom: none;
+
+        .results-title {
+            font-weight: 600;
+            color: #2c3e50;
         }
-        
-        .history-date {
-            font-weight: bold;
-            color: #2e7d32;
+
+        .objects-count {
+            background: #007bff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
         }
-        
-        .history-status {
-            display: inline-block;
+
+        .detections-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+
+        .detection-class {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .detection-confidence {
+            color: white;
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.8rem;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-image {
+            text-align: center;
+            color: #6c757d;
+            padding: 50px 20px;
+        }
+
+        .model-info {
+            background: #e8f4fc;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .confidence-slider {
+            margin: 15px 0;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .slider-value {
+            font-weight: bold;
+            display: none;
+            color: #007bff;
+        }
+
+        input[type="range"] {
+            display: none;
+            width: 100%;
+            height: 5px;
+            border-radius: 5px;
+            background: #ddd;
+            outline: none;
+        }
+
+        .camera-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        .camera-video {
+            max-width: 90%;
+            max-height: 70%;
+            border-radius: 8px;
+        }
+
+        .camera-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .capture-btn {
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .cancel-btn {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .model-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-left: 5px;
+            color: white;
+        }
+
+        .ganoderma-badge {
+            background: #28a745;
+        }
+
+        .blackspot-badge {
+            background: #dc3545;
         }
         
-        .message {
+        .threshold-info {
+            display: none; /* Hidden but still in DOM */
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 8px;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+
+        .health-status {
             padding: 10px;
-            border-radius: 4px;
+            border-radius: 5px;
             margin: 10px 0;
+            font-weight: bold;
             text-align: center;
         }
-        
-        .success {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
+
+        .healthy {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
-        
-        .error {
-            background-color: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
+
+        .not-healthy {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-            
-            .assessment-form, .results-section, .history-section {
-                padding: 20px;
-            }
-            
-            h1 {
-                font-size: 2rem;
-            }
-            
-            .history-item {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+
+        .map-container {
+            height: 200px;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        /* Leaflet map styles */
+        .leaflet-container {
+            height: 100%;
+            width: 100%;
+        }
+
+        .disease-input {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .auto-detected {
+            background-color: #e8f5e8;
+            border: 1px solid #28a745;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h1>Farm Assessment System</h1>
-            <p class="subtitle">Monitor and manage plant health with AI-powered disease detection</p>
-        </header>
-        
-        <section class="assessment-form">
-            <h2 class="section-title">New Assessment</h2>
-            
-            <div class="form-group">
-                <label for="location">Location</label>
-                <select id="location">
-                    <option value="">Select a location</option>
-                    <option value="farm-north">Senggarang</option>
-                    <option value="farm-south">Parit Raja</option>
-                    <option value="farm-east">Batu Pahat</option>
-                    <option value="farm-west">Rengit</option>
-                    <option value="other">Other (specify below)</option>
-                </select>
-                <input type="text" id="custom-location" placeholder="Enter custom location" style="margin-top: 10px; display: none;">
-            </div>
-            
-            <div class="form-group">
-                <label for="plant-type">Plant Type</label>
-                <select id="plant-type">
-                    <option value="oil-palm">Oil Palm</option>
-                    <option value="coconut">Coconut</option>
-                    <option value="rubber">Rubber</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Plant Image</label>
-                <div class="file-upload" id="file-upload-area">
-                    <p>Click to upload or drag and drop</p>
-                    <p>PNG, JPG, JPEG up to 5MB</p>
-                    <input type="file" id="plant-image" accept="image/*">
-                </div>
-                <div class="preview-container" id="preview-container">
-                    <!-- Image preview will appear here -->
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="notes">Additional Notes</label>
-                <textarea id="notes" rows="4" placeholder="Any additional observations or notes..."></textarea>
-            </div>
-            
-            <button class="btn btn-block" id="submit-assessment">Submit Assessment</button>
-        </section>
-        
-        <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>Analyzing image and generating assessment...</p>
+        <div class="header">
+            <h1>Plant Disease Detection - Assessment Form</h1>
         </div>
-        
-        <section class="results-section" id="results-section">
-            <h2 class="section-title">Assessment Results</h2>
-            
-            <div class="health-status" id="health-status">
-                <!-- Health status will appear here -->
+
+        <div class="content">
+            <div class="image-section">
+                <div class="image-container" id="imageContainer">
+                    <div class="no-image" id="noImage">
+                        <i>📷</i>
+                        <p>Drag and drop image here</p>
+                    </div>
+                    <canvas id="previewCanvas" style="display: none;"></canvas>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing image...</p>
+                </div>
+                
+                <div class="results-panel">
+                    <div class="results-header">
+                        <span class="results-title">DETECTIONS</span>
+                        <span class="objects-count" id="objectsCount">0 objects</span>
+                    </div>
+                    <div class="detections-list" id="detectionsList">
+                        <div style="text-align: center; color: #6c757d; padding: 20px;">
+                            No detections
+                        </div>
+                    </div>
+                </div>
             </div>
-            
-            <div class="disease-info" id="disease-info">
-                <h3>Disease Information</h3>
-                <p id="disease-name">Disease name will appear here</p>
-                <p id="disease-description">Description will appear here</p>
+
+            <div class="form-section">
+                <div class="model-info" id="modelInfo">
+                    <strong>Active Model:</strong> Ganoderma & Blackspot Detection<br>
+                    <strong>API Key:</strong> Roboflow Serverless
+                </div>
+
+                <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                    <i>📁</i>
+                    <p>Click to upload image</p>
+                    <p style="font-size: 12px; color: #6c757d; margin-top: 5px;">Supported: JPG, PNG, JPEG</p>
+                    <input type="file" id="fileInput" class="file-input" accept="image/*">
+                </div>
+
+                <button onclick="openCamera()" class="camera-btn" id="cameraBtn">
+                    📷 Take Photo
+                </button>
+
+                <div class="confidence-slider">
+                    <div class="slider-label">
+                        <!-- <span>Confidence Threshold:</span> -->
+                        <span class="slider-value" id="confidenceValue">50%</span>
+                    </div>
+                    <input type="range" id="confidenceSlider" min="1" max="100" value="50" oninput="updateConfidence(this.value)">
+                    <!-- Hidden threshold info element -->
+                    <div class="threshold-info" id="thresholdInfo" style="display: none;">
+                        Default: 50% for all diseases
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Assessment ID</label>
+                    <input type="text" class="form-input" id="assessmentId" placeholder="Enter assessment ID">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-input" id="locationInput" placeholder="Enter location or use current location">
+                    <button type="button" class="camera-btn" style="margin-top: 10px; background: #28a745;" onclick="getCurrentLocation()">Use Current Location</button>
+                    <div class="map-container" id="mapContainer"></div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-input" id="assessmentDate">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Assessment Time</label>
+                        <input type="time" class="form-input" id="assessmentTime">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Detected Disease</label>
+                    <input type="text" class="form-input disease-input" id="diseaseInput" placeholder="" readonly>
+                    <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Health Status</label>
+                    <div id="healthStatus" class="health-status">Not assessed</div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Treatment</label>
+                    <textarea class="form-textarea" id="treatmentText" placeholder="Treatment recommendations will appear here"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Next Assessment</label>
+                    <input type="text" class="form-input" id="nextAssessment" readonly>
+                </div>
             </div>
-            
-            <div class="treatment-info" id="treatment-info">
-                <h3>Recommended Treatment</h3>
-                <p id="treatment-details">Treatment information will appear here</p>
-            </div>
-            
-            <div class="reassessment-info" id="reassessment-info">
-                <h3>Reassessment Recommendation</h3>
-                <p id="reassessment-details">Reassessment timeline will appear here</p>
-            </div>
-            
-            <button class="btn" id="save-assessment">Save Assessment to Firebase</button>
-            <div id="save-message"></div>
-        </section>
-        
-        <section class="history-section">
-            <h2 class="section-title">Assessment History (From Firebase)</h2>
-            <div id="history-loading" class="loading">
-                <div class="spinner"></div>
-                <p>Loading assessment history...</p>
-            </div>
-            <ul class="history-list" id="history-list">
-                <!-- History items will be added here -->
-            </ul>
-        </section>
+        </div>
     </div>
 
+    <div class="camera-container" id="cameraContainer">
+        <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
+        <div class="camera-controls">
+            <button class="capture-btn" onclick="captureImage()">Capture Image</button>
+            <button class="cancel-btn" onclick="closeCamera()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Add Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-            authDomain: "palmaegis-setup.firebaseapp.com",
-            projectId: "palmaegis-setup",
-            storageBucket: "palmaegis-setup.firebasestorage.app",
-            messagingSenderId: "445887502374",
-            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        // Konfigurasi untuk multiple models
+        const models = {
+            'ganoderma': {
+                name: 'Ganoderma Detection',
+                url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
+                apiKey: 'KOIYcp3E5rAFhgSploex',
+                color: '#28a745',
+                badgeClass: 'ganoderma-badge',
+                defaultThreshold: 0.7 // 70% for Ganoderma
+            },
+            'blackspot': {
+                name: 'Blackspot Disease Detection',
+                url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
+                apiKey: 'KOIYcp3E5rAFhgSploex',
+                color: '#dc3545',
+                badgeClass: 'blackspot-badge',
+                defaultThreshold: 0.5 // 50% for Blackspot
+            }
         };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const storage = firebase.storage();
+        // Variables
+        const fileInput = document.getElementById('fileInput');
+        const loading = document.getElementById('loading');
+        const noImage = document.getElementById('noImage');
+        const previewCanvas = document.getElementById('previewCanvas');
+        const imageContainer = document.getElementById('imageContainer');
+        const detectionsList = document.getElementById('detectionsList');
+        const objectsCount = document.getElementById('objectsCount');
+        const modelInfo = document.getElementById('modelInfo');
+        const confidenceSlider = document.getElementById('confidenceSlider');
+        const confidenceValue = document.getElementById('confidenceValue');
+        const cameraContainer = document.getElementById('cameraContainer');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const thresholdInfo = document.getElementById('thresholdInfo');
+        
+        // Form elements
+        const assessmentId = document.getElementById('assessmentId');
+        const locationInput = document.getElementById('locationInput');
+        const assessmentDate = document.getElementById('assessmentDate');
+        const assessmentTime = document.getElementById('assessmentTime');
+        const diseaseInput = document.getElementById('diseaseInput');
+        const healthStatus = document.getElementById('healthStatus');
+        const treatmentText = document.getElementById('treatmentText');
+        const nextAssessment = document.getElementById('nextAssessment');
+        const mapContainer = document.getElementById('mapContainer');
 
-        // DOM elements
-        const locationSelect = document.getElementById('location');
-        const customLocationInput = document.getElementById('custom-location');
-        const fileUploadArea = document.getElementById('file-upload-area');
-        const plantImageInput = document.getElementById('plant-image');
-        const previewContainer = document.getElementById('preview-container');
-        const submitButton = document.getElementById('submit-assessment');
-        const loadingDiv = document.getElementById('loading');
-        const resultsSection = document.getElementById('results-section');
-        const healthStatusDiv = document.getElementById('health-status');
-        const diseaseInfoDiv = document.getElementById('disease-info');
-        const diseaseName = document.getElementById('disease-name');
-        const diseaseDescription = document.getElementById('disease-description');
-        const treatmentInfoDiv = document.getElementById('treatment-info');
-        const treatmentDetails = document.getElementById('treatment-details');
-        const reassessmentInfoDiv = document.getElementById('reassessment-info');
-        const reassessmentDetails = document.getElementById('reassessment-details');
-        const saveButton = document.getElementById('save-assessment');
-        const saveMessage = document.getElementById('save-message');
-        const historyList = document.getElementById('history-list');
-        const historyLoading = document.getElementById('history-loading');
+        let originalImage = null;
+        let canvasContext = previewCanvas.getContext('2d');
+        let confidenceThreshold = 0.5;
+        let stream = null;
+        let currentDiseaseType = null; // Track current disease type for auto threshold
+        let map = null;
+        let marker = null;
 
-        // Current assessment data
-        let currentAssessment = null;
+        // Initialize date and time
+        function initializeDateTime() {
+            const now = new Date();
+            assessmentDate.value = now.toISOString().split('T')[0];
+            assessmentTime.value = now.toTimeString().slice(0, 5);
+        }
 
-        // Event listeners
-        locationSelect.addEventListener('change', function() {
-            if (this.value === 'other') {
-                customLocationInput.style.display = 'block';
+        // Initialize map
+        function initializeMap() {
+            // Initialize map with default view (world view)
+            map = L.map('mapContainer').setView([0, 0], 2);
+
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add a default marker
+            marker = L.marker([0, 0]).addTo(map)
+                .bindPopup('Default location')
+                .openPopup();
+        }
+
+        // Update map with current location
+        function updateMap(lat, lng, locationName = 'Current Location') {
+            if (map) {
+                map.setView([lat, lng], 15);
+                
+                // Remove existing marker if any
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+                
+                // Add new marker
+                marker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup(locationName)
+                    .openPopup();
+            }
+        }
+
+        // Get current location
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        // Update location input
+                        locationInput.value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                        
+                        // Update map
+                        updateMap(lat, lng, 'Your Current Location');
+                        
+                        // Reverse geocoding to get address (optional)
+                        getAddressFromCoordinates(lat, lng);
+                    },
+                    error => {
+                        console.error('Error getting location:', error);
+                        alert('Unable to get current location. Please enter manually.');
+                    }
+                );
             } else {
-                customLocationInput.style.display = 'none';
+                alert('Geolocation is not supported by this browser.');
             }
-        });
+        }
 
-        fileUploadArea.addEventListener('click', function() {
-            plantImageInput.click();
-        });
+        // Get address from coordinates using Nominatim (OpenStreetMap's geocoding service)
+        function getAddressFromCoordinates(lat, lng) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+            
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        locationInput.value = data.display_name;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting address:', error);
+                });
+        }
 
-        fileUploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.style.backgroundColor = '#f0f9f0';
-        });
-
-        fileUploadArea.addEventListener('dragleave', function() {
-            this.style.backgroundColor = '';
-        });
-
-        fileUploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.style.backgroundColor = '';
-            if (e.dataTransfer.files.length) {
-                plantImageInput.files = e.dataTransfer.files;
-                displayImagePreview(e.dataTransfer.files[0]);
+        // Update disease field based on detection results
+        function updateDiseaseField(detections) {
+            if (!detections || detections.length === 0) {
+                diseaseInput.value = "No disease detected";
+                diseaseInput.className = "form-input disease-input";
+                return;
             }
-        });
 
-        plantImageInput.addEventListener('change', function() {
-            if (this.files.length) {
-                displayImagePreview(this.files[0]);
+            // Get unique disease names from detections
+            const uniqueDiseases = [...new Set(detections.map(detection => detection.class))];
+            
+            if (uniqueDiseases.length === 1) {
+                diseaseInput.value = uniqueDiseases[0];
+                diseaseInput.className = "form-input disease-input auto-detected";
+            } else {
+                diseaseInput.value = uniqueDiseases.join(", ");
+                diseaseInput.className = "form-input disease-input auto-detected";
             }
-        });
+        }
 
-        submitButton.addEventListener('click', processAssessment);
-        saveButton.addEventListener('click', saveAssessmentToFirebase);
+        // Update health status and treatment based on detection results
+        function updateHealthStatus(detections) {
+            const hasDisease = detections && detections.length > 0;
+            
+            if (hasDisease) {
+                healthStatus.textContent = "Not Healthy";
+                healthStatus.className = "health-status not-healthy";
+                
+                // Auto-fill treatment based on detected disease
+                let treatment = "";
+                let nextAssessmentDate = "";
+                
+                // Get current date
+                const today = new Date();
+                
+                // Check for specific diseases and set treatment accordingly
+                const hasGanoderma = detections.some(d => d.model === 'ganoderma');
+                const hasBlackspot = detections.some(d => d.model === 'blackspot');
+                
+                if (hasGanoderma) {
+                    treatment += "Ganoderma Treatment:\n";
+                    treatment += "- Remove and destroy infected plants\n";
+                    treatment += "- Apply fungicide treatment\n";
+                    treatment += "- Improve soil drainage\n";
+                    treatment += "- Avoid wounding plants\n\n";
+                    
+                    // Set next assessment to tomorrow
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+                }
+                
+                if (hasBlackspot) {
+                    treatment += "Blackspot Treatment:\n";
+                    treatment += "- Remove infected leaves\n";
+                    treatment += "- Apply fungicide spray\n";
+                    treatment += "- Improve air circulation\n";
+                    treatment += "- Water at the base, not on leaves\n\n";
+                    
+                    // Set next assessment to tomorrow
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+                }
+                
+                // If no specific disease but still detected something
+                if (!hasGanoderma && !hasBlackspot) {
+                    treatment = "General Plant Disease Treatment:\n";
+                    treatment += "- Isolate affected plant\n";
+                    treatment += "- Apply broad-spectrum fungicide\n";
+                    treatment += "- Improve growing conditions\n";
+                    treatment += "- Monitor daily for changes\n";
+                    
+                    // Set next assessment to tomorrow
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+                }
+                
+                treatmentText.value = treatment;
+                nextAssessment.value = nextAssessmentDate;
+            } else {
+                healthStatus.textContent = "Healthy";
+                healthStatus.className = "health-status healthy";
+                
+                // Set treatment for healthy plants
+                treatmentText.value = "No treatment needed. Plant appears healthy.";
+                
+                // Set next assessment to 6 months from now
+                const today = new Date();
+                const sixMonthsLater = new Date(today);
+                sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+                nextAssessment.value = sixMonthsLater.toISOString().split('T')[0];
+            }
+        }
 
-        // Functions
-        function displayImagePreview(file) {
-            if (file) {
+        // Function untuk update confidence threshold
+        function updateConfidence(value) {
+            confidenceThreshold = value / 100;
+            confidenceValue.textContent = value + '%';
+            
+            // Update threshold info (function still works but element is hidden)
+            updateThresholdInfo();
+            
+            // Re-process image jika ada detection sebelumnya
+            if (originalImage) {
+                processImage();
+            }
+        }
+
+        // Function untuk update threshold info display (kept but element is hidden)
+        function updateThresholdInfo() {
+            if (currentDiseaseType === 'ganoderma') {
+                thresholdInfo.textContent = 'Auto-adjusted: 70% for Ganoderma disease';
+                thresholdInfo.style.background = '#d4edda';
+                thresholdInfo.style.borderColor = '#c3e6cb';
+                thresholdInfo.style.color = '#155724';
+            } else if (currentDiseaseType === 'blackspot') {
+                thresholdInfo.textContent = 'Auto-adjusted: 50% for Blackspot disease';
+                thresholdInfo.style.background = '#d1ecf1';
+                thresholdInfo.style.borderColor = '#bee5eb';
+                thresholdInfo.style.color = '#0c5460';
+            } else {
+                thresholdInfo.textContent = 'Default: 50% for all diseases';
+                thresholdInfo.style.background = '#fff3cd';
+                thresholdInfo.style.borderColor = '#ffeaa7';
+                thresholdInfo.style.color = '#856404';
+            }
+        }
+
+        // Function untuk set threshold berdasarkan jenis penyakit
+        function setThresholdByDisease(diseaseType) {
+            currentDiseaseType = diseaseType;
+            
+            if (diseaseType === 'ganoderma') {
+                confidenceThreshold = models.ganoderma.defaultThreshold;
+                confidenceSlider.value = models.ganoderma.defaultThreshold * 100;
+                confidenceValue.textContent = Math.round(models.ganoderma.defaultThreshold * 100) + '%';
+            } else if (diseaseType === 'blackspot') {
+                confidenceThreshold = models.blackspot.defaultThreshold;
+                confidenceSlider.value = models.blackspot.defaultThreshold * 100;
+                confidenceValue.textContent = Math.round(models.blackspot.defaultThreshold * 100) + '%';
+            }
+            
+            updateThresholdInfo();
+        }
+
+        // Function untuk membuka kamera
+        async function openCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                cameraVideo.srcObject = stream;
+                cameraContainer.style.display = 'flex';
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Unable to access camera. Please ensure you have granted camera permissions.');
+            }
+        }
+
+        // Function untuk menutup kamera
+        function closeCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            cameraContainer.style.display = 'none';
+        }
+
+        // Function untuk mengambil gambar dari kamera
+        function captureImage() {
+            const tempCanvas = document.createElement('canvas');
+            const tempContext = tempCanvas.getContext('2d');
+            
+            tempCanvas.width = cameraVideo.videoWidth;
+            tempCanvas.height = cameraVideo.videoHeight;
+            tempContext.drawImage(cameraVideo, 0, 0);
+            
+            // Convert canvas to blob
+            tempCanvas.toBlob(function(blob) {
+                // Create a File object from the blob
+                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                
+                // Create a FileList-like object
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                
+                // Process the image
+                processFileInput();
+                
+                // Close camera
+                closeCamera();
+            }, 'image/jpeg');
+        }
+
+        // Function untuk memproses input file
+        function processFileInput() {
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
                 const reader = new FileReader();
+
                 reader.onload = function(e) {
-                    previewContainer.innerHTML = `<img src="${e.target.result}" class="preview-image" alt="Plant preview">`;
-                };
+                    originalImage = new Image();
+                    originalImage.onload = function() {
+                        // Setup canvas
+                        const maxWidth = 800;
+                        const scale = Math.min(maxWidth / originalImage.width, 1);
+                        
+                        previewCanvas.width = originalImage.width * scale;
+                        previewCanvas.height = originalImage.height * scale;
+                        previewCanvas.style.maxWidth = '100%';
+                        previewCanvas.style.height = 'auto';
+                        
+                        // Draw image on canvas (scaled)
+                        canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                        
+                        // Show canvas, hide no-image message
+                        previewCanvas.style.display = 'block';
+                        noImage.style.display = 'none';
+                        
+                        // Reset disease type
+                        currentDiseaseType = null;
+                        updateThresholdInfo();
+                        
+                        // Automatically process the image
+                        processImage();
+                    }
+                    originalImage.src = e.target.result;
+                }
+
                 reader.readAsDataURL(file);
             }
         }
 
-        // Detect if image contains a plant
-        function detectPlant(imageFile) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0);
-                        
-                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        const data = imageData.data;
-                        
-                        // Analyze image for plant characteristics
-                        let greenCount = 0;
-                        let brownCount = 0;
-                        let totalPixels = data.length / 4;
-                        
-                        for (let i = 0; i < data.length; i += 4) {
-                            const r = data[i];
-                            const g = data[i + 1];
-                            const b = data[i + 2];
-                            
-                            // Detect green pixels (plants typically have green)
-                            if (g > r + 20 && g > b + 20) {
-                                greenCount++;
-                            }
-                            // Detect brown pixels (stems, soil, but also plant parts)
-                            else if (r > 100 && g < 100 && b < 100 && Math.abs(r - g) > 20) {
-                                brownCount++;
-                            }
-                        }
-                        
-                        const greenPercentage = (greenCount / totalPixels) * 100;
-                        const brownPercentage = (brownCount / totalPixels) * 100;
-                        
-                        // Consider it a plant if there's significant green or plant-like colors
-                        const isPlant = greenPercentage > 15 || (greenPercentage + brownPercentage) > 25;
-                        
-                        // Additional check for plant-like textures/patterns
-                        // This is a simplified version - real detection would be more complex
-                        const plantConfidence = Math.min(100, greenPercentage * 2);
-                        
-                        resolve({
-                            isPlant: isPlant,
-                            confidence: plantConfidence,
-                            greenPercentage: greenPercentage,
-                            brownPercentage: brownPercentage
-                        });
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(imageFile);
-            });
-        }
+        // Event listener untuk file input
+        fileInput.addEventListener('change', processFileInput);
 
-        // Analyze plant health if image contains a plant
-        function analyzePlantHealth(imageFile) {
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const img = new Image();
-                    img.onload = function() {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0);
-                        
-                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        const data = imageData.data;
-                        
-                        let healthyGreenCount = 0;
-                        let unhealthyBrownCount = 0;
-                        let unhealthyYellowCount = 0;
-                        let totalPixels = data.length / 4;
-                        
-                        for (let i = 0; i < data.length; i += 4) {
-                            const r = data[i];
-                            const g = data[i + 1];
-                            const b = data[i + 2];
-                            
-                            // Healthy green (vibrant green)
-                            if (g > 100 && r < g - 30 && b < g - 30) {
-                                healthyGreenCount++;
-                            }
-                            // Unhealthy brown (disease spots)
-                            else if (r > 120 && g < 80 && b < 80) {
-                                unhealthyBrownCount++;
-                            }
-                            // Unhealthy yellow (chlorosis)
-                            else if (r > 180 && g > 160 && b < 100) {
-                                unhealthyYellowCount++;
-                            }
-                        }
-                        
-                        const healthyPercentage = (healthyGreenCount / totalPixels) * 100;
-                        const brownPercentage = (unhealthyBrownCount / totalPixels) * 100;
-                        const yellowPercentage = (unhealthyYellowCount / totalPixels) * 100;
-                        
-                        // Determine health status
-                        const isHealthy = healthyPercentage > 10 && (brownPercentage + yellowPercentage) < 8;
-                        
-                        resolve({
-                            isHealthy: isHealthy,
-                            healthyPercentage: healthyPercentage,
-                            brownPercentage: brownPercentage,
-                            yellowPercentage: yellowPercentage
-                        });
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(imageFile);
-            });
-        }
-
-        async function processAssessment() {
-            // Validate form
-            const location = locationSelect.value === 'other' ? customLocationInput.value : locationSelect.value;
-            const plantType = document.getElementById('plant-type').value;
-            
-            if (!location) {
-                alert('Please select or enter a location');
-                return;
-            }
-
-            if (!plantImageInput.files.length) {
-                alert('Please upload an image of the plant');
+        async function processImage() {
+            if (!fileInput.files[0]) {
+                alert('Please select an image first!');
                 return;
             }
 
             // Show loading
-            loadingDiv.style.display = 'block';
-            resultsSection.style.display = 'none';
-            submitButton.disabled = true;
+            loading.style.display = 'block';
 
-            try {
-                // First, detect if the image contains a plant
-                const plantDetection = await detectPlant(plantImageInput.files[0]);
-                
-                if (!plantDetection.isPlant) {
-                    // Image doesn't contain a plant
-                    loadingDiv.style.display = 'none';
-                    resultsSection.style.display = 'block';
-                    submitButton.disabled = false;
+            // Convert image to base64
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const base64Image = e.target.result.split(',')[1];
                     
-                    healthStatusDiv.textContent = "No Plant Detected";
-                    healthStatusDiv.className = "health-status not-plant";
-                    diseaseInfoDiv.style.display = "none";
-                    treatmentInfoDiv.style.display = "none";
-                    reassessmentInfoDiv.style.display = "none";
+                    // Process dengan kedua-dua model secara serentak
+                    const promises = Object.values(models).map(model => 
+                        axios({
+                            method: "POST",
+                            url: model.url,
+                            params: {
+                                api_key: model.apiKey
+                            },
+                            data: base64Image,
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded"
+                            }
+                        })
+                    );
+
+                    const responses = await Promise.all(promises);
                     
-                    // Store current assessment data
-                    currentAssessment = {
-                        location: location,
-                        plantType: plantType,
-                        date: new Date(),
-                        isPlant: false,
-                        isHealthy: null,
-                        disease: null,
-                        notes: document.getElementById('notes').value,
-                        imageFile: plantImageInput.files[0],
-                        detectionData: plantDetection
+                    // Gabungkan hasil dari kedua model
+                    const combinedResults = {
+                        predictions: []
                     };
+
+                    responses.forEach((response, index) => {
+                        const modelKey = Object.keys(models)[index];
+                        if (response.data.predictions) {
+                            // Tambahkan model info ke setiap prediction
+                            const predictionsWithModel = response.data.predictions.map(pred => ({
+                                ...pred,
+                                model: modelKey
+                            }));
+                            combinedResults.predictions.push(...predictionsWithModel);
+                        }
+                    });
+
+                    // Auto-detect disease type and set threshold
+                    autoDetectDiseaseType(combinedResults);
                     
-                    return;
+                    displayDetections(combinedResults);
+
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Error processing image: ' + error.message);
+                } finally {
+                    // Hide loading
+                    loading.style.display = 'none';
                 }
-                
-                // If plant is detected, analyze its health
-                const healthAnalysis = await analyzePlantHealth(plantImageInput.files[0]);
-                
-                // Define possible diseases (only used if plant is unhealthy)
-                const diseases = [
-                    {
-                        name: "Ganoderma Basal Stem Rot",
-                        description: "A fungal disease that affects the base of oil palm trees, causing rot and eventual collapse.",
-                        treatment: "Apply fungicide around the base of the tree. Remove and destroy severely infected trees to prevent spread.",
-                        reassessment: "Reassess in 2 weeks if symptoms persist."
-                    },
-                    {
-                        name: "Leaf Spot Disease",
-                        description: "Characterized by brown or black spots on leaves, often caused by fungal pathogens.",
-                        treatment: "Apply copper-based fungicide. Improve air circulation by pruning affected leaves.",
-                        reassessment: "Reassess in 1 month."
-                    },
-                    {
-                        name: "Bud Rot",
-                        description: "Affects the growing point of the palm, leading to rotting of the central bud.",
-                        treatment: "Remove affected tissue and apply protective fungicide. Improve drainage if necessary.",
-                        reassessment: "Reassess in 3 weeks."
-                    }
-                ];
-
-                // Select a disease only if the plant is unhealthy
-                const selectedDisease = healthAnalysis.isHealthy ? null : diseases[Math.floor(Math.random() * diseases.length)];
-
-                // Store current assessment data
-                currentAssessment = {
-                    location: location,
-                    plantType: plantType,
-                    date: new Date(),
-                    isPlant: true,
-                    isHealthy: healthAnalysis.isHealthy,
-                    disease: selectedDisease,
-                    notes: document.getElementById('notes').value,
-                    imageFile: plantImageInput.files[0],
-                    detectionData: plantDetection,
-                    healthData: healthAnalysis
-                };
-
-                // Display results
-                loadingDiv.style.display = 'none';
-                resultsSection.style.display = 'block';
-                submitButton.disabled = false;
-
-                // Show all info sections for plant images
-                diseaseInfoDiv.style.display = "block";
-                treatmentInfoDiv.style.display = "block";
-                reassessmentInfoDiv.style.display = "block";
-
-                if (healthAnalysis.isHealthy) {
-                    healthStatusDiv.textContent = "Healthy Plant - No Disease Detected";
-                    healthStatusDiv.className = "health-status healthy";
-                    diseaseName.textContent = "No disease detected";
-                    diseaseDescription.textContent = "The plant appears to be in good health with no signs of disease.";
-                    treatmentDetails.textContent = "No treatment needed. Continue regular maintenance.";
-                    reassessmentDetails.textContent = "Schedule next assessment in 6 months for routine check.";
-                } else {
-                    healthStatusDiv.textContent = "Unhealthy Plant - Disease Detected";
-                    healthStatusDiv.className = "health-status unhealthy";
-                    diseaseName.textContent = selectedDisease.name;
-                    diseaseDescription.textContent = selectedDisease.description;
-                    treatmentDetails.textContent = selectedDisease.treatment;
-                    reassessmentDetails.textContent = selectedDisease.reassessment;
-                }
-            } catch (error) {
-                console.error('Error processing assessment:', error);
-                loadingDiv.style.display = 'none';
-                submitButton.disabled = false;
-                alert('Error processing image. Please try again.');
-            }
+            };
+            
+            reader.readAsDataURL(fileInput.files[0]);
         }
 
-        async function saveAssessmentToFirebase() {
-            if (!currentAssessment) {
-                showMessage('No assessment data to save', 'error');
+        // Function untuk auto-detect jenis penyakit dan set threshold
+        function autoDetectDiseaseType(data) {
+            if (!data.predictions || data.predictions.length === 0) {
+                currentDiseaseType = null;
                 return;
             }
 
-            saveButton.disabled = true;
-            saveMessage.innerHTML = '<div class="loading"><div class="spinner"></div><p>Saving to Firebase...</p></div>';
+            // Check if there are any ganoderma detections
+            const hasGanoderma = data.predictions.some(pred => 
+                pred.model === 'ganoderma' && pred.confidence >= models.ganoderma.defaultThreshold
+            );
 
-            try {
-                // Upload image to Firebase Storage if available
-                let imageUrl = '';
-                if (currentAssessment.imageFile) {
-                    const storageRef = storage.ref();
-                    const imageRef = storageRef.child(`assessments/${Date.now()}_${currentAssessment.imageFile.name}`);
-                    const snapshot = await imageRef.put(currentAssessment.imageFile);
-                    imageUrl = await snapshot.ref.getDownloadURL();
-                }
+            // Check if there are any blackspot detections
+            const hasBlackspot = data.predictions.some(pred => 
+                pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
+            );
 
-                // Prepare data for Firestore
-                const assessmentData = {
-                    location: currentAssessment.location,
-                    plantType: currentAssessment.plantType,
-                    date: firebase.firestore.Timestamp.fromDate(currentAssessment.date),
-                    isPlant: currentAssessment.isPlant,
-                    isHealthy: currentAssessment.isHealthy,
-                    diseaseName: currentAssessment.isPlant ? (currentAssessment.isHealthy ? 'None' : currentAssessment.disease.name) : 'Not a plant',
-                    diseaseDescription: currentAssessment.isPlant ? (currentAssessment.isHealthy ? 'No disease detected' : currentAssessment.disease.description) : 'Uploaded image does not contain a plant',
-                    treatment: currentAssessment.isPlant ? (currentAssessment.isHealthy ? 'No treatment needed' : currentAssessment.disease.treatment) : 'Please upload a plant image',
-                    reassessment: currentAssessment.isPlant ? (currentAssessment.isHealthy ? 'Schedule next assessment in 6 months' : currentAssessment.disease.reassessment) : 'Upload a plant image for assessment',
-                    notes: currentAssessment.notes,
-                    imageUrl: imageUrl,
-                    plantDetectionConfidence: currentAssessment.detectionData ? currentAssessment.detectionData.confidence : null,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                // Save to Firestore
-                const docRef = await db.collection('assessments').add(assessmentData);
-                
-                showMessage(`Assessment saved successfully! Document ID: ${docRef.id}`, 'success');
-                saveButton.disabled = false;
-                
-                // Reload history to show the new assessment
-                loadAssessmentHistory();
-                
-            } catch (error) {
-                console.error('Error saving assessment: ', error);
-                showMessage(`Error saving assessment: ${error.message}`, 'error');
-                saveButton.disabled = false;
+            // Priority: Ganoderma > Blackspot
+            if (hasGanoderma) {
+                setThresholdByDisease('ganoderma');
+            } else if (hasBlackspot) {
+                setThresholdByDisease('blackspot');
+            } else {
+                currentDiseaseType = null;
+                updateThresholdInfo();
             }
         }
 
-        function showMessage(text, type) {
-            saveMessage.innerHTML = `<div class="message ${type}">${text}</div>`;
-        }
+        function displayDetections(data) {
+            // Clear previous detections
+            clearDetections();
 
-        // Load assessment history from Firebase
-        function loadAssessmentHistory() {
-            historyLoading.style.display = 'block';
-            historyList.innerHTML = '';
+            if (!data.predictions || data.predictions.length === 0) {
+                detectionsList.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        No objects detected
+                    </div>
+                `;
+                objectsCount.textContent = '0 objects';
+                
+                // Update disease field and health status for no detections
+                updateDiseaseField([]);
+                updateHealthStatus([]);
+                return;
+            }
+
+            // Filter predictions based on confidence threshold
+            const filteredPredictions = data.predictions.filter(pred => pred.confidence >= confidenceThreshold);
+
+            if (filteredPredictions.length === 0) {
+                detectionsList.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; padding: 20px;">
+                        No objects above confidence threshold (${Math.round(confidenceThreshold * 100)}%)
+                    </div>
+                `;
+                objectsCount.textContent = '0 objects';
+                
+                // Update disease field and health status for no detections
+                updateDiseaseField([]);
+                updateHealthStatus([]);
+                return;
+            }
+
+            // Update objects count
+            objectsCount.textContent = filteredPredictions.length + ' objects';
+
+            // Draw detection boxes on canvas
+            drawDetectionBoxes(filteredPredictions);
+
+            // Update detections list
+            let detectionsHTML = '';
+            filteredPredictions.forEach((prediction, index) => {
+                const confidencePercent = Math.round(prediction.confidence * 100);
+                const modelConfig = models[prediction.model];
+                
+                detectionsHTML += `
+                    <div class="detection-item" style="border-left-color: ${modelConfig.color}">
+                        <span class="detection-class">
+                            ${prediction.class}
+                            <span class="model-badge ${modelConfig.badgeClass}">${prediction.model}</span>
+                        </span>
+                        <span class="detection-confidence" style="background: ${modelConfig.color}">${confidencePercent}%</span>
+                    </div>
+                `;
+            });
+
+            detectionsList.innerHTML = detectionsHTML;
             
-            db.collection('assessments')
-                .orderBy('createdAt', 'desc')
-                .limit(10)
-                .get()
-                .then((querySnapshot) => {
-                    historyLoading.style.display = 'none';
-                    
-                    if (querySnapshot.empty) {
-                        historyList.innerHTML = '<li class="history-item">No assessments found</li>';
-                        return;
-                    }
-                    
-                    querySnapshot.forEach((doc) => {
-                        const data = doc.data();
-                        const historyItem = document.createElement('li');
-                        historyItem.className = 'history-item';
-                        
-                        // Format date
-                        const date = data.date ? data.date.toDate().toLocaleDateString() : 'Unknown date';
-                        
-                        let statusText = 'Unknown';
-                        let statusClass = '';
-                        
-                        if (data.isPlant === false) {
-                            statusText = 'Not a plant';
-                            statusClass = 'not-plant';
-                        } else if (data.isHealthy) {
-                            statusText = 'Healthy';
-                            statusClass = 'healthy';
-                        } else {
-                            statusText = data.diseaseName || 'Unhealthy';
-                            statusClass = 'unhealthy';
-                        }
-                        
-                        historyItem.innerHTML = `
-                            <div>
-                                <span class="history-date">${date}</span> - 
-                                <span>${data.location}</span> - 
-                                <span>${data.plantType}</span>
-                            </div>
-                            <span class="history-status ${statusClass}">
-                                ${statusText}
-                            </span>
-                        `;
-                        historyList.appendChild(historyItem);
-                    });
-                })
-                .catch((error) => {
-                    historyLoading.style.display = 'none';
-                    console.error('Error loading assessments: ', error);
-                    historyList.innerHTML = '<li class="history-item">Error loading assessments</li>';
-                });
+            // Update disease field and health status based on detections
+            updateDiseaseField(filteredPredictions);
+            updateHealthStatus(filteredPredictions);
         }
 
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
-            loadAssessmentHistory();
-        });
+        function drawDetectionBoxes(predictions) {
+            // Clear canvas and redraw original image
+            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+
+            const scaleX = previewCanvas.width / originalImage.width;
+            const scaleY = previewCanvas.height / originalImage.height;
+
+            predictions.forEach((prediction, index) => {
+                const confidencePercent = Math.round(prediction.confidence * 100);
+                const modelConfig = models[prediction.model];
+                
+                // Calculate box coordinates (scaled to canvas)
+                const x = (prediction.x - prediction.width / 2) * scaleX;
+                const y = (prediction.y - prediction.height / 2) * scaleY;
+                const width = prediction.width * scaleX;
+                const height = prediction.height * scaleY;
+
+                // Draw detection box dengan warna model
+                canvasContext.strokeStyle = modelConfig.color;
+                canvasContext.lineWidth = 3;
+                canvasContext.strokeRect(x, y, width, height);
+
+                // Draw background for label
+                canvasContext.fillStyle = modelConfig.color;
+                const labelText = `${prediction.class} (${prediction.model}) ${confidencePercent}%`;
+                const textMetrics = canvasContext.measureText(labelText);
+                const textWidth = textMetrics.width + 10;
+                const textHeight = 20;
+
+                canvasContext.fillRect(x, y - textHeight, textWidth, textHeight);
+
+                // Draw label text
+                canvasContext.fillStyle = '#ffffff';
+                canvasContext.font = 'bold 12px Arial';
+                canvasContext.fillText(labelText, x + 5, y - 5);
+            });
+        }
+
+        function clearDetections() {
+            // Clear canvas and redraw original image only
+            if (originalImage) {
+                canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+            }
+        }
+
+        // Initialize the application
+        function init() {
+            initializeDateTime();
+            initializeMap();
+            
+            // Generate a random assessment ID
+            assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
+        }
+
+        // Initialize when page loads
+        window.onload = init;
     </script>
 </body>
 </html>
