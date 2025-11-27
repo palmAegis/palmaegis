@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plant Disease Detection - Assessment Form</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Add Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * {
@@ -58,18 +60,13 @@
             background: #f8f9fa;
             border-radius: 8px;
             overflow: hidden;
-            /* Increase min-height for better balance */
-            min-height: 450px;
-            display: flex;
-            flex-direction: column;
+            min-height: 400px;
         }
 
         .image-container {
             position: relative;
             display: inline-block;
             width: 100%;
-            flex-grow: 1;
-            /* Allow image container to take remaining space */
         }
 
         #previewCanvas {
@@ -161,8 +158,6 @@
             border-radius: 6px;
             padding: 15px;
             margin-top: 20px;
-            /* Added for layout stability */
-            flex-shrink: 0;
         }
 
         .results-header {
@@ -265,18 +260,16 @@
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
-            /* Changed from display: block */
         }
 
         .slider-value {
             font-weight: bold;
-            /* REMOVED: display: none; */
+            display: none;
             color: #007bff;
         }
 
         input[type="range"] {
-            /* REMOVED: display: none; to show slider */
-            display: block;
+            display: none;
             width: 100%;
             height: 5px;
             border-radius: 5px;
@@ -349,8 +342,8 @@
         }
 
         .threshold-info {
-            /* Kept hidden, but styling updated for consistency */
             display: none;
+            /* Hidden but still in DOM */
             background: #fff3cd;
             border: 1px solid #ffeaa7;
             border-radius: 5px;
@@ -381,13 +374,11 @@
         }
 
         .map-container {
-            /* Ensured a height for the map */
-            height: 250px; 
+            height: 200px;
             width: 100%;
             margin-top: 10px;
             border-radius: 4px;
             overflow: hidden;
-            border: 1px solid #ced4da; /* Add border for visibility */
         }
 
         .form-row {
@@ -421,12 +412,12 @@
 
 <body>
     <div class="container">
-        <header class="header">
+        <div class="header">
             <h1>Plant Disease Detection - Assessment Form</h1>
-        </header>
+        </div>
 
-        <main class="content">
-            <section class="image-section">
+        <div class="content">
+            <div class="image-section">
                 <div class="image-container" id="imageContainer">
                     <div class="no-image" id="noImage">
                         <i>📷</i>
@@ -451,9 +442,9 @@
                         </div>
                     </div>
                 </div>
-            </section>
-            
-            <section class="form-section">
+            </div>
+
+            <div class="form-section">
                 <div class="model-info" id="modelInfo">
                     <strong>Active Model:</strong> Ganoderma & Blackspot Detection<br>
                     <strong>API Key:</strong> Roboflow Serverless
@@ -472,44 +463,45 @@
 
                 <div class="confidence-slider">
                     <div class="slider-label">
-                        <span>Confidence Threshold:</span>
-                        <span class="slider-value" id="confidenceValue">50%</span> 
+                        <!-- <span>Confidence Threshold:</span> -->
+                        <span class="slider-value" id="confidenceValue">50%</span>
                     </div>
                     <input type="range" id="confidenceSlider" min="1" max="100" value="50"
                         oninput="updateConfidence(this.value)">
+                    <!-- Hidden threshold info element -->
                     <div class="threshold-info" id="thresholdInfo" style="display: none;">
                         Default: 50% for all diseases
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="assessmentId">Assessment ID</label>
+                    <label class="form-label">Assessment ID</label>
                     <input type="text" class="form-input" id="assessmentId" placeholder="Enter assessment ID">
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="locationInput">Location</label>
-                    <input type="text" class="form-input" id="locationInput" 
-                        placeholder="Enter location or use current location"> 
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-input" id="locationInput" placeho l
+                        der="Enter location or use current location">
                     <button type="button" class="camera-btn" style="margin-top: 10px; background: #28a745;"
                         onclick="getCurrentLocation()">Use Current Location</button>
-                    <div class="map-container" id="mapContainer"></div> 
+                    <div class="map-container" id="mapContainer"></div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
-                        <label class="form-label" for="assessmentDate">Date</label>
+                        <label class="form-label">Date</label>
                         <input type="date" class="form-input" id="assessmentDate">
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="assessmentTime">Assessment Time</label>
+                        <label class="form-label">Assessment Time</label>
                         <input type="time" class="form-input" id="assessmentTime">
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="diseaseInput">Detected Disease</label>
-                    <input type="text" class="form-input disease-input" id="diseaseInput" placeholder="" readonly>
+                    <label class="form-label">Detected Disease</label>
+                    <input type="text" class="form-input disease-input" id="diseaseInput" placeholder="" readonl y>
                     <small style="color: #666; font-size: 12px; display: block; margin-top: 5px;">
                     </small>
                 </div>
@@ -520,17 +512,17 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="treatmentText">Treatment</label>
-                    <textarea class="form-textarea" id="treatmentText" 
-                        placeholder="Treatment recommendations will appear here"></textarea> 
+                    <label class="form-label">Treatment</label>
+                    <textarea class="form-textarea" id="treatmentText" placeho l
+                        der="Treatment recommendations will appear here"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label" for="nextAssessment">Next Assessment</label>
+                    <label class="form-label">Next Assessment</label>
                     <input type="text" class="form-input" id="nextAssessment" readonly>
                 </div>
-            </section>
-        </main>
+            </div>
+        </div>
     </div>
 
     <div class="camera-container" id="cameraContainer">
@@ -541,9 +533,8 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Add Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script>
         // Konfigurasi untuk multiple models
         const models = {
@@ -594,8 +585,7 @@
 
         let originalImage = null;
         let canvasContext = previewCanvas.getContext('2d');
-        // Initial confidence threshold is now based on slider value (50)
-        let confidenceThreshold = parseInt(confidenceSlider.value) / 100; 
+        let confidenceThreshold = 0.5;
         let stream = null;
         let currentDiseaseType = null; // Track current disease type for auto threshold
         let map = null;
@@ -623,15 +613,6 @@
             marker = L.marker([0, 0]).addTo(map)
                 .bindPopup('Default location')
                 .openPopup();
-
-            // Fix: In case the map is initially rendered in a hidden/small container
-            // We force a resize and re-center after the map is loaded
-            setTimeout(() => {
-                map.invalidateSize();
-                if (marker) {
-                    map.setView(marker.getLatLng(), 2);
-                }
-            }, 100);
         }
 
         // Update map with current location
@@ -756,7 +737,7 @@
                     // Set next assessment to tomorrow
                     const tomorrow = new Date(today);
                     tomorrow.setDate(tomorrow.getDate() + 1);
-                    nextAssessmentDate = nextAssessmentDate || tomorrow.toISOString().split('T')[0];
+                    nextAssessmentDate = tomorrow.toISOString().split('T')[0];
                 }
 
                 // If no specific disease but still detected something
@@ -800,11 +781,7 @@
 
             // Re-process image jika ada detection sebelumnya
             if (originalImage) {
-                // To avoid re-running API call, just redraw the boxes with the new threshold
-                // Note: If you want to rerun the API, call processImage();
-                const lastPredictions = JSON.parse(previewCanvas.dataset.predictions || '[]');
-                const combinedResults = { predictions: lastPredictions };
-                displayDetections(combinedResults);
+                processImage();
             }
         }
 
@@ -821,7 +798,7 @@
                 thresholdInfo.style.borderColor = '#bee5eb';
                 thresholdInfo.style.color = '#0c5460';
             } else {
-                thresholdInfo.textContent = `Current Threshold: ${Math.round(confidenceThreshold * 100)}%`;
+                thresholdInfo.textContent = 'Default: 50% for all diseases';
                 thresholdInfo.style.background = '#fff3cd';
                 thresholdInfo.style.borderColor = '#ffeaa7';
                 thresholdInfo.style.color = '#856404';
@@ -873,7 +850,7 @@
 
             tempCanvas.width = cameraVideo.videoWidth;
             tempCanvas.height = cameraVideo.videoHeight;
-            tempContext.drawImage(cameraVideo, 0, 0, tempCanvas.width, tempCanvas.height);
+            tempContext.drawImage(cameraVideo, 0, 0);
 
             // Convert canvas to blob
             tempCanvas.toBlob(function (blob) {
@@ -918,10 +895,8 @@
                         previewCanvas.style.display = 'block';
                         noImage.style.display = 'none';
 
-                        // Reset disease type and slider to default 50% for new image
+                        // Reset disease type
                         currentDiseaseType = null;
-                        confidenceSlider.value = 50;
-                        updateConfidence(50); 
                         updateThresholdInfo();
 
                         // Automatically process the image
@@ -936,28 +911,6 @@
 
         // Event listener untuk file input
         fileInput.addEventListener('change', processFileInput);
-
-        // Drag and drop functionality
-        imageContainer.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            imageContainer.style.border = '2px solid #007bff';
-        });
-
-        imageContainer.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            imageContainer.style.border = 'none';
-        });
-
-        imageContainer.addEventListener('drop', (e) => {
-            e.preventDefault();
-            imageContainer.style.border = 'none';
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                fileInput.files = files;
-                processFileInput();
-            }
-        });
-
 
         async function processImage() {
             if (!fileInput.files[0]) {
@@ -1008,9 +961,6 @@
                         }
                     });
 
-                    // Store predictions for redrawing on threshold change
-                    previewCanvas.dataset.predictions = JSON.stringify(combinedResults.predictions);
-                    
                     // Auto-detect disease type and set threshold
                     autoDetectDiseaseType(combinedResults);
 
@@ -1052,14 +1002,12 @@
                 setThresholdByDisease('blackspot');
             } else {
                 currentDiseaseType = null;
-                // Reset to default 50% if no disease meets its specific threshold
-                updateConfidence(50);
                 updateThresholdInfo();
             }
         }
 
         function displayDetections(data) {
-            // Clear previous drawings on the canvas
+            // Clear previous detections
             clearDetections();
 
             if (!data.predictions || data.predictions.length === 0) {
@@ -1076,7 +1024,7 @@
                 return;
             }
 
-            // Filter predictions based on current confidence threshold
+            // Filter predictions based on confidence threshold
             const filteredPredictions = data.predictions.filter(pred => pred.confidence >= confidenceThreshold);
 
             if (filteredPredictions.length === 0) {
@@ -1103,15 +1051,13 @@
             let detectionsHTML = '';
             filteredPredictions.forEach((prediction, index) => {
                 const confidencePercent = Math.round(prediction.confidence * 100);
-                const modelKey = prediction.model;
-                // Ensure modelConfig exists
-                const modelConfig = models[modelKey] || { color: '#6c757d', badgeClass: '' }; 
+                const modelConfig = models[prediction.model];
 
                 detectionsHTML += `
                     <div class="detection-item" style="border-left-color: ${modelConfig.color}">
                         <span class="detection-class">
                             ${prediction.class}
-                            <span class="model-badge ${modelConfig.badgeClass}">${modelKey}</span>
+                            <span class="model-badge ${modelConfig.badgeClass}">${prediction.model}</span>
                         </span>
                         <span class="detection-confidence" style="background: ${modelConfig.color}">${confidencePercent}%</span>
                     </div>
@@ -1134,9 +1080,7 @@
 
             predictions.forEach((prediction, index) => {
                 const confidencePercent = Math.round(prediction.confidence * 100);
-                const modelKey = prediction.model;
-                // Ensure modelConfig exists
-                const modelConfig = models[modelKey] || { color: '#6c757d', badgeClass: '' }; 
+                const modelConfig = models[prediction.model];
 
                 // Calculate box coordinates (scaled to canvas)
                 const x = (prediction.x - prediction.width / 2) * scaleX;
@@ -1151,23 +1095,17 @@
 
                 // Draw background for label
                 canvasContext.fillStyle = modelConfig.color;
-                const labelText = `${prediction.class} (${modelKey}) ${confidencePercent}%`;
-                canvasContext.font = 'bold 12px Arial';
+                const labelText = `${prediction.class} (${prediction.model}) ${confidencePercent}%`;
                 const textMetrics = canvasContext.measureText(labelText);
                 const textWidth = textMetrics.width + 10;
                 const textHeight = 20;
 
-                // Check if label needs to be drawn inside the box to avoid going off screen
-                let labelY = y - textHeight;
-                if (labelY < 0) {
-                    labelY = y + height;
-                }
-
-                canvasContext.fillRect(x, labelY, textWidth, textHeight);
+                canvasContext.fillRect(x, y - textHeight, textWidth, textHeight);
 
                 // Draw label text
                 canvasContext.fillStyle = '#ffffff';
-                canvasContext.fillText(labelText, x + 5, labelY + textHeight - 5);
+                canvasContext.font = 'bold 12px Arial';
+                canvasContext.fillText(labelText, x + 5, y - 5);
             });
         }
 
@@ -1185,10 +1123,6 @@
 
             // Generate a random assessment ID
             assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
-
-            // Set initial confidence value display
-            confidenceValue.textContent = confidenceSlider.value + '%'; 
-            updateThresholdInfo();
         }
 
         // Initialize when page loads
