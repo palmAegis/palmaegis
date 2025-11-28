@@ -13,327 +13,289 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <link rel="stylesheet" href="css/farmassessment.css" />
     
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-
+    <style>
+        /* Your existing CSS styles remain the same */
+        .health-status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+        }
         
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-            authDomain: "palmaegis-setup.firebaseapp.com",
-            projectId: "palmaegis-setup",
-            storageBucket: "palmaegis-setup.firebasestorage.app",
-            messagingSenderId: "445887502374",
-            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-        };
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Check authentication state
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                console.log('User is signed in:', user.email);
-                window.currentUser = user;
-                
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        window.userData = userData;
-                        console.log('🔍 User data from Firestore:', userData);
-                        updateUserProfile(user, userData);
-                    } else {
-                        console.log('No user data found in Firestore');
-                        updateUserProfile(user, {});
-                    }
-                } catch (error) {
-                    console.error('Error loading user data:', error);
-                    updateUserProfile(user, {});
-                }
-            } else {
-                console.log('User is not signed in');
-                window.location.href = 'signin.html';
-            }
-        });
-
-        function updateUserProfile(user, userData) {
-            console.log('🔄 Updating user profile with data:', userData);
-            
-            const userNameElement = document.querySelector('.user-name');
-            const profileNameElement = document.querySelector('.profile-details h2');
-            const profileTitleElement = document.querySelector('.profile-title');
-            const profileLocationElement = document.querySelector('.profile-location');
-            const userRoleElement = document.querySelector('.user-role');
-            
-            const displayName = userData.firstName && userData.lastName 
-                ? `${userData.firstName} ${userData.lastName}`
-                : userData.username 
-                ? userData.username
-                : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-            
-            if (userNameElement) userNameElement.textContent = displayName;
-            if (profileNameElement) profileNameElement.textContent = displayName;
-
-            if (profileTitleElement) {
-                profileTitleElement.textContent = userData.bio || 'Professional Farmer';
-            }
-            
-            if (profileLocationElement) {
-                profileLocationElement.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${userData.location || 'Location not set'}`;
-            }
-
-            if (userRoleElement) {
-                userRoleElement.textContent = userData.bio || 'Farmer';
-            }
-
-            updateProfilePicture(userData);
-            updateUserStats(userData);
+        .healthy {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
         }
-
-        function updateProfilePicture(userData) {
-            const avatarElements = document.querySelectorAll('.user-avatar, .profile-avatar img');
-            
-            let imageSource = 'images/user-avatar.jpg';
-            
-            if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
-                imageSource = userData.imageBase64.trim();
-                console.log('🎯 Using Base64 image from Firestore');
-            } else if (userData.picture && userData.picture.trim() !== '') {
-                imageSource = userData.picture.trim();
-                console.log('🎯 Using picture URL from Firestore');
-            } else if (userData.photoURL && userData.photoURL.trim() !== '') {
-                imageSource = userData.photoURL.trim();
-                console.log('🎯 Using photoURL from Firestore');
-            }
-
-            avatarElements.forEach(img => {
-                img.src = imageSource;
-                img.alt = 'User Avatar';
-                img.onerror = function() {
-                    console.warn('⚠️ Failed to load user image, reverting to default.');
-                    this.src = 'images/user-avatar.jpg';
-                };
-            });
-
-            console.log('🔄 Updated avatar images with source:', imageSource);
+        
+        .not-healthy {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
         }
-
-        function updateUserStats(userData) {
-            const quickStats = document.querySelectorAll('.quick-stats .stat-number');
-            if (quickStats.length >= 4) {
-                quickStats[0].textContent = userData.activeCrops || '24';
-                quickStats[1].textContent = userData.waterLevel || '78%';
-                quickStats[2].textContent = userData.weather || '72°F';
-                quickStats[3].textContent = userData.revenue || '$12,450';
+        
+        .disease-input.auto-detected {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+        
+        .model-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            color: white;
+            margin-left: 5px;
+        }
+        
+        .ganoderma-badge {
+            background-color: #28a745;
+        }
+        
+        .blackspot-badge {
+            background-color: #dc3545;
+        }
+        
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            border-left: 4px solid #ccc;
+        }
+        
+        .detection-class {
+            font-weight: bold;
+        }
+        
+        .detection-confidence {
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+        
+        .camera-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .camera-video {
+            max-width: 90%;
+            max-height: 70%;
+            border-radius: 8px;
+        }
+        
+        .camera-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+        
+        .capture-btn, .cancel-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .capture-btn {
+            background: #007bff;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+        }
+        
+        .upload-area:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        
+        .confidence-slider {
+            margin-bottom: 20px;
+        }
+        
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .slider-value {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .threshold-info {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        
+        .form-input, .form-textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .camera-btn {
+            width: 100%;
+            padding: 12px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-bottom: 15px;
+            transition: background 0.3s;
+        }
+        
+        .camera-btn:hover {
+            background: #5a6268;
+        }
+        
+        .image-container {
+            position: relative;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            min-height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .no-image {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .results-panel {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .results-header {
+            background: #f8f9fa;
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .results-title {
+            font-weight: bold;
+        }
+        
+        .objects-count {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .detections-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .image-section {
+            flex: 1;
+            margin-right: 20px;
+        }
+        
+        .form-section {
+            flex: 1;
+        }
+        
+        .content {
+            display: flex;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
             }
-
-            const statChanges = document.querySelectorAll('.stat-change');
-            if (statChanges.length >= 3 && userData.statChanges) {
-                statChanges[0].textContent = userData.statChanges.crops || '+12%';
-                statChanges[1].textContent = userData.statChanges.water || '-5%';
-                statChanges[3].textContent = userData.statChanges.revenue || '+8%';
+            
+            .image-section {
+                margin-right: 0;
             }
         }
-
-        // Add logout functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    signOut(auth).then(() => {
-                        window.location.href = 'signin.html';
-                    }).catch((error) => {
-                        console.error('Logout error:', error);
-                    });
-                });
-            }
-
-            // Initialize the map
-            initializeMap();
-
-            // Chatbot functionality - COMPLETELY FIXED VERSION
-            const chatbotToggle = document.getElementById('chatbotToggle');
-            const chatbotContainer = document.getElementById('chatbotContainer');
-            const chatbotClose = document.getElementById('chatbotClose');
-            const chatbotInput = document.getElementById('chatbotInput');
-            const chatbotSend = document.getElementById('chatbotSend');
-            const chatbotMessages = document.getElementById('chatbotMessages');
-            const typingIndicator = document.getElementById('typingIndicator');
-
-            // Toggle chatbot
-            chatbotToggle.addEventListener('click', () => {
-                chatbotContainer.classList.add('active');
-                chatbotInput.focus();
-            });
-
-            chatbotClose.addEventListener('click', () => {
-                chatbotContainer.classList.remove('active');
-            });
-
-            // Send message function - USING INTELLIGENT FALLBACK
-            async function sendChatbotMessage() {
-                const message = chatbotInput.value.trim();
-                if (!message) return;
-
-                // Add user message
-                addMessage(message, 'user');
-                chatbotInput.value = '';
-
-                // Show typing indicator
-                typingIndicator.style.display = 'flex';
-                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-
-                // Simulate AI thinking time
-                setTimeout(() => {
-                    typingIndicator.style.display = 'none';
-                    const botResponse = generateIntelligentResponse(message);
-                    addMessage(botResponse, 'bot');
-                }, 1500);
-            }
-
-            // Add message to chat
-            function addMessage(content, sender) {
-                const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${sender}`;
-                
-                const avatar = document.createElement('div');
-                avatar.className = 'message-avatar';
-                avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
-                
-                const messageContent = document.createElement('div');
-                messageContent.className = 'message-content';
-                
-                // Parse markdown for bot messages
-                if (sender === 'bot') {
-                    try {
-                        messageContent.innerHTML = marked.parse(content);
-                    } catch (error) {
-                        console.warn('Markdown parsing error, using plain text:', error);
-                        messageContent.textContent = content;
-                    }
-                } else {
-                    messageContent.textContent = content;
-                }
-                
-                messageDiv.appendChild(avatar);
-                messageDiv.appendChild(messageContent);
-                chatbotMessages.appendChild(messageDiv);
-                
-                // Scroll to bottom
-                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-            }
-
-            // Generate intelligent responses for the chatbot
-            function generateIntelligentResponse(message) {
-                const lowerMessage = message.toLowerCase();
-                
-                // Disease-related questions
-                if (lowerMessage.includes('common palm diseases') || lowerMessage.includes('palm diseases')) {
-                    return `**Common Palm Tree Diseases:**\n\n- **Ganoderma Butt Rot**: Fungal disease causing trunk decay\n- **Fusarium Wilt**: Fungal disease affecting vascular system\n- **Lethal Yellowing**: Phytoplasma disease causing yellowing\n- **Bud Rot**: Fungal infection of the palm's bud\n- **Leaf Spots**: Various fungal and bacterial leaf infections`;
-                }
-                
-                if (lowerMessage.includes('watering schedule') || lowerMessage.includes('how often to water')) {
-                    return `**Palm Tree Watering Guidelines:**\n\n- **Newly planted**: Water daily for first 2 weeks\n- **Established palms**: Water 2-3 times per week\n- **Hot weather**: Increase frequency\n- **Rainy season**: Reduce watering\n- **Always check soil moisture** before watering`;
-                }
-                
-                if (lowerMessage.includes('fertilizer') || lowerMessage.includes('best fertilizer')) {
-                    return `**Palm Tree Fertilizer Recommendations:**\n\n- Use **palm-specific fertilizer** with micronutrients\n- **NPK ratio**: 8-2-12 or similar with magnesium\n- Apply **3-4 times per year** during growing season\n- **Slow-release formulas** work best\n- Avoid high-phosphorus fertilizers`;
-                }
-                
-                if (lowerMessage.includes('pest control') || lowerMessage.includes('pests')) {
-                    return `**Common Palm Pests & Control:**\n\n- **Palm Weevils**: Systemic insecticides\n- **Scale Insects**: Horticultural oil sprays\n- **Spider Mites**: Miticide applications\n- **Mealybugs**: Insecticidal soaps\n- **Prevention**: Regular inspection and proper nutrition`;
-                }
-                
-                if (lowerMessage.includes('harvest') || lowerMessage.includes('when to harvest')) {
-                    return `**Harvest Timing for Oil Palms:**\n\n- **Fruit color**: Orange-red indicates ripeness\n- **Time from flowering**: 5-6 months\n- **Bunch weight**: Mature bunches feel heavy\n- **Fruit looseness**: Ripe fruits detach easily\n- **Regular harvesting**: Every 10-14 days`;
-                }
-                
-                if (lowerMessage.includes('ganoderma') || lowerMessage.includes('butt rot')) {
-                    return `**Ganoderma Butt Rot Information:**\n\n- **Symptoms**: Wilting, canopy decline, conks on trunk\n- **Treatment**: No cure; remove infected trees\n- **Prevention**: Avoid wounding trees, proper sanitation\n- **Spread**: Through root contact and spores\n- **Management**: Early detection and removal`;
-                }
-                
-                if (lowerMessage.includes('black spot') || lowerMessage.includes('blackspot')) {
-                    return `**Black Spot Disease Information:**\n\n- **Symptoms**: Circular black spots on leaves\n- **Causes**: Fungal infection (often *Cercospora*)\n- **Treatment**: Fungicide applications\n- **Prevention**: Good air circulation, avoid overhead watering\n- **Management**: Remove infected leaves, proper fertilization`;
-                }
-                
-                // General responses
-                if (lowerMessage.includes('hello') || lowerMessage.includes('hi') || lowerMessage.includes('hey')) {
-                    return `Hello! I'm your Palm Aegis assistant. How can I help with your palm tree care today?`;
-                }
-                
-                if (lowerMessage.includes('thank')) {
-                    return `You're welcome! Feel free to ask if you have more questions about palm tree care.`;
-                }
-                
-                // Default response
-                return `I'm here to help with palm tree care and disease management. You can ask me about:\n\n- Common palm diseases\n- Watering schedules\n- Fertilizer recommendations\n- Pest control\n- Harvest timing\n- Specific diseases like Ganoderma or Black Spot`;
-            }
-
-            // Event listeners
-            chatbotSend.addEventListener('click', sendChatbotMessage);
-            chatbotInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    sendChatbotMessage();
-                }
-            });
-
-            // Auto-focus input when chatbot opens
-            chatbotToggle.addEventListener('click', () => {
-                setTimeout(() => {
-                    chatbotInput.focus();
-                }, 300);
-            });
-
-            // Quick action buttons for common questions
-            function addQuickActions() {
-                const quickActions = [
-                    "Common palm diseases?",
-                    "Watering schedule?",
-                    "Best fertilizer?",
-                    "Pest control?",
-                    "When to harvest?"
-                ];
-                
-                const actionsContainer = document.createElement('div');
-                actionsContainer.className = 'quick-actions';
-                actionsContainer.style.padding = '10px';
-                actionsContainer.style.borderTop = '1px solid #eee';
-                
-                quickActions.forEach(action => {
-                    const button = document.createElement('button');
-                    button.textContent = action;
-                    button.style.margin = '2px';
-                    button.style.padding = '5px 10px';
-                    button.style.border = '1px solid #4CAF50';
-                    button.style.background = 'transparent';
-                    button.style.color = '#4CAF50';
-                    button.style.borderRadius = '15px';
-                    button.style.cursor = 'pointer';
-                    button.style.fontSize = '12px';
-                    
-                    button.addEventListener('click', () => {
-                        chatbotInput.value = action;
-                        sendChatbotMessage();
-                    });
-                    
-                    actionsContainer.appendChild(button);
-                });
-                
-                chatbotMessages.parentNode.insertBefore(actionsContainer, chatbotInput.parentNode);
-            }
-
-            // Add quick actions after initial load
-            setTimeout(addQuickActions, 1000);
-        });
-
-    </script>
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -355,13 +317,13 @@
                     <li class="nav-item active">
                         <a href="farmassessment.html" data-tooltip="Farm Assessment">
                             <i class="fas fa-seedling"></i>
-                            <span>Farm Assestment</span>
+                            <span>Farm Assessment</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="treehealthTest.html" data-tooltip="Tree Health Test">
                             <i class="fas fa-seedling"></i>
-                            <span>treehealth</span>
+                            <span>Tree Health</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -455,11 +417,6 @@
                     </div>
 
                     <div class="form-section">
-                        <!-- <div class="model-info" id="modelInfo">
-                            <strong>Active Model:</strong> Ganoderma & Blackspot Detection<br>
-                            <strong>API Key:</strong> Roboflow Serverless
-                        </div> -->
-
                         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
                             <i>📁</i>
                             <p>Click to upload image</p>
@@ -478,16 +435,12 @@
                             </div>
                             <input type="range" id="confidenceSlider" min="1" max="100" value="50"
                                 oninput="updateConfidence(this.value)">
-                            <!-- Hidden threshold info element -->
-                            <div class="threshold-info" id="thresholdInfo" style="display: none;">
-                                Default: 50% for all diseases
-                            </div>
                         </div>
 
-                        <!-- <div class="form-group">
+                        <div class="form-group">
                             <label class="form-label">Assessment ID</label>
                             <input type="text" class="form-input" id="assessmentId" placeholder="Enter assessment ID">
-                        </div> -->
+                        </div>
 
                         <div class="form-group">
                             <label class="form-label">Location</label>
@@ -550,7 +503,130 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script>
+    
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+        import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Global variables to store Firebase instances
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseCollection = collection;
+        window.firebaseServerTimestamp = serverTimestamp;
+
+        // Check authentication state
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log('User is signed in:', user.email);
+                window.currentUser = user;
+                
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        window.userData = userData;
+                        console.log('🔍 User data from Firestore:', userData);
+                        updateUserProfile(user, userData);
+                    } else {
+                        console.log('No user data found in Firestore');
+                        updateUserProfile(user, {});
+                    }
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                    updateUserProfile(user, {});
+                }
+            } else {
+                console.log('User is not signed in');
+                window.location.href = 'signin.html';
+            }
+        });
+
+        function updateUserProfile(user, userData) {
+            console.log('🔄 Updating user profile with data:', userData);
+            
+            const userNameElement = document.querySelector('.user-name');
+            const userRoleElement = document.querySelector('.user-role');
+            
+            const displayName = userData.firstName && userData.lastName 
+                ? `${userData.firstName} ${userData.lastName}`
+                : userData.username 
+                ? userData.username
+                : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+            
+            if (userNameElement) userNameElement.textContent = displayName;
+
+            if (userRoleElement) {
+                userRoleElement.textContent = userData.bio || 'Farmer';
+            }
+
+            updateProfilePicture(userData);
+        }
+
+        function updateProfilePicture(userData) {
+            const avatarElements = document.querySelectorAll('.user-avatar');
+            
+            let imageSource = 'images/user-avatar.jpg';
+            
+            if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
+                imageSource = userData.imageBase64.trim();
+                console.log('🎯 Using Base64 image from Firestore');
+            } else if (userData.picture && userData.picture.trim() !== '') {
+                imageSource = userData.picture.trim();
+                console.log('🎯 Using picture URL from Firestore');
+            } else if (userData.photoURL && userData.photoURL.trim() !== '') {
+                imageSource = userData.photoURL.trim();
+                console.log('🎯 Using photoURL from Firestore');
+            }
+
+            avatarElements.forEach(img => {
+                img.src = imageSource;
+                img.alt = 'User Avatar';
+                img.onerror = function() {
+                    console.warn('⚠️ Failed to load user image, reverting to default.');
+                    this.src = 'images/user-avatar.jpg';
+                };
+            });
+
+            console.log('🔄 Updated avatar images with source:', imageSource);
+        }
+
+        // Add logout functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    signOut(auth).then(() => {
+                        window.location.href = 'signin.html';
+                    }).catch((error) => {
+                        console.error('Logout error:', error);
+                    });
+                });
+            }
+
+            // Initialize the map
+            initializeMap();
+        });
+
         // Konfigurasi untuk multiple models
         const models = {
             'ganoderma': {
@@ -579,13 +655,11 @@
         const imageContainer = document.getElementById('imageContainer');
         const detectionsList = document.getElementById('detectionsList');
         const objectsCount = document.getElementById('objectsCount');
-        const modelInfo = document.getElementById('modelInfo');
         const confidenceSlider = document.getElementById('confidenceSlider');
         const confidenceValue = document.getElementById('confidenceValue');
         const cameraContainer = document.getElementById('cameraContainer');
         const cameraVideo = document.getElementById('cameraVideo');
         const cameraBtn = document.getElementById('cameraBtn');
-        const thresholdInfo = document.getElementById('thresholdInfo');
 
         // Form elements
         const assessmentId = document.getElementById('assessmentId');
@@ -602,9 +676,10 @@
         let canvasContext = previewCanvas.getContext('2d');
         let confidenceThreshold = 0.5;
         let stream = null;
-        let currentDiseaseType = null; // Track current disease type for auto threshold
+        let currentDiseaseType = null;
         let map = null;
         let marker = null;
+        let currentDetections = [];
 
         // Initialize date and time
         function initializeDateTime() {
@@ -615,16 +690,12 @@
 
         // Initialize map
         function initializeMap() {
-            // Initialize map with default view (world view)
             map = L.map('mapContainer').setView([0, 0], 2);
-
-            // Add OpenStreetMap tile layer
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
                 maxZoom: 19
             }).addTo(map);
 
-            // Add a default marker
             marker = L.marker([0, 0]).addTo(map)
                 .bindPopup('Default location')
                 .openPopup();
@@ -634,13 +705,9 @@
         function updateMap(lat, lng, locationName = 'Current Location') {
             if (map) {
                 map.setView([lat, lng], 15);
-
-                // Remove existing marker if any
                 if (marker) {
                     map.removeLayer(marker);
                 }
-
-                // Add new marker
                 marker = L.marker([lat, lng]).addTo(map)
                     .bindPopup(locationName)
                     .openPopup();
@@ -654,14 +721,8 @@
                     position => {
                         const lat = position.coords.latitude;
                         const lng = position.coords.longitude;
-
-                        // Update location input
                         locationInput.value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-
-                        // Update map
                         updateMap(lat, lng, 'Your Current Location');
-
-                        // Reverse geocoding to get address (optional)
                         getAddressFromCoordinates(lat, lng);
                     },
                     error => {
@@ -674,10 +735,9 @@
             }
         }
 
-        // Get address from coordinates using Nominatim (OpenStreetMap's geocoding service)
+        // Get address from coordinates
         function getAddressFromCoordinates(lat, lng) {
             const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -698,9 +758,7 @@
                 return;
             }
 
-            // Get unique disease names from detections
             const uniqueDiseases = [...new Set(detections.map(detection => detection.class))];
-
             if (uniqueDiseases.length === 1) {
                 diseaseInput.value = uniqueDiseases[0];
                 diseaseInput.className = "form-input disease-input auto-detected";
@@ -718,14 +776,10 @@
                 healthStatus.textContent = "Not Healthy";
                 healthStatus.className = "health-status not-healthy";
 
-                // Auto-fill treatment based on detected disease
                 let treatment = "";
                 let nextAssessmentDate = "";
-
-                // Get current date
                 const today = new Date();
 
-                // Check for specific diseases and set treatment accordingly
                 const hasGanoderma = detections.some(d => d.model === 'ganoderma');
                 const hasBlackspot = detections.some(d => d.model === 'blackspot');
 
@@ -735,8 +789,6 @@
                     treatment += "- Apply fungicide treatment\n";
                     treatment += "- Improve soil drainage\n";
                     treatment += "- Avoid wounding plants\n\n";
-
-                    // Set next assessment to tomorrow
                     const tomorrow = new Date(today);
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     nextAssessmentDate = tomorrow.toISOString().split('T')[0];
@@ -748,22 +800,17 @@
                     treatment += "- Apply fungicide spray\n";
                     treatment += "- Improve air circulation\n";
                     treatment += "- Water at the base, not on leaves\n\n";
-
-                    // Set next assessment to tomorrow
                     const tomorrow = new Date(today);
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     nextAssessmentDate = tomorrow.toISOString().split('T')[0];
                 }
 
-                // If no specific disease but still detected something
                 if (!hasGanoderma && !hasBlackspot) {
                     treatment = "General Plant Disease Treatment:\n";
                     treatment += "- Isolate affected plant\n";
                     treatment += "- Apply broad-spectrum fungicide\n";
                     treatment += "- Improve growing conditions\n";
                     treatment += "- Monitor daily for changes\n";
-
-                    // Set next assessment to tomorrow
                     const tomorrow = new Date(today);
                     tomorrow.setDate(tomorrow.getDate() + 1);
                     nextAssessmentDate = tomorrow.toISOString().split('T')[0];
@@ -774,11 +821,7 @@
             } else {
                 healthStatus.textContent = "Healthy";
                 healthStatus.className = "health-status healthy";
-
-                // Set treatment for healthy plants
                 treatmentText.value = "No treatment needed. Plant appears healthy.";
-
-                // Set next assessment to 6 months from now
                 const today = new Date();
                 const sixMonthsLater = new Date(today);
                 sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
@@ -790,40 +833,14 @@
         function updateConfidence(value) {
             confidenceThreshold = value / 100;
             confidenceValue.textContent = value + '%';
-
-            // Update threshold info (function still works but element is hidden)
-            updateThresholdInfo();
-
-            // Re-process image jika ada detection sebelumnya
             if (originalImage) {
                 processImage();
-            }
-        }
-
-        // Function untuk update threshold info display (kept but element is hidden)
-        function updateThresholdInfo() {
-            if (currentDiseaseType === 'ganoderma') {
-                thresholdInfo.textContent = 'Auto-adjusted: 70% for Ganoderma disease';
-                thresholdInfo.style.background = '#d4edda';
-                thresholdInfo.style.borderColor = '#c3e6cb';
-                thresholdInfo.style.color = '#155724';
-            } else if (currentDiseaseType === 'blackspot') {
-                thresholdInfo.textContent = 'Auto-adjusted: 50% for Blackspot disease';
-                thresholdInfo.style.background = '#d1ecf1';
-                thresholdInfo.style.borderColor = '#bee5eb';
-                thresholdInfo.style.color = '#0c5460';
-            } else {
-                thresholdInfo.textContent = 'Default: 50% for all diseases';
-                thresholdInfo.style.background = '#fff3cd';
-                thresholdInfo.style.borderColor = '#ffeaa7';
-                thresholdInfo.style.color = '#856404';
             }
         }
 
         // Function untuk set threshold berdasarkan jenis penyakit
         function setThresholdByDisease(diseaseType) {
             currentDiseaseType = diseaseType;
-
             if (diseaseType === 'ganoderma') {
                 confidenceThreshold = models.ganoderma.defaultThreshold;
                 confidenceSlider.value = models.ganoderma.defaultThreshold * 100;
@@ -833,26 +850,19 @@
                 confidenceSlider.value = models.blackspot.defaultThreshold * 100;
                 confidenceValue.textContent = Math.round(models.blackspot.defaultThreshold * 100) + '%';
             }
-
-            updateThresholdInfo();
         }
 
-        // Function untuk membuka kamera dengan back camera (simplified)
+        // Function untuk membuka kamera
         async function openCamera() {
             try {
                 const constraints = { 
-                    video: {
-                        facingMode: 'environment' // Force back camera
-                    } 
+                    video: { facingMode: 'environment' }
                 };
-                
                 stream = await navigator.mediaDevices.getUserMedia(constraints);
                 cameraVideo.srcObject = stream;
                 cameraContainer.style.display = 'flex';
             } catch (error) {
                 console.error('Error accessing back camera:', error);
-                
-                // Fallback to any camera
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ video: true });
                     cameraVideo.srcObject = stream;
@@ -877,25 +887,16 @@
         function captureImage() {
             const tempCanvas = document.createElement('canvas');
             const tempContext = tempCanvas.getContext('2d');
-
             tempCanvas.width = cameraVideo.videoWidth;
             tempCanvas.height = cameraVideo.videoHeight;
             tempContext.drawImage(cameraVideo, 0, 0);
 
-            // Convert canvas to blob
             tempCanvas.toBlob(function (blob) {
-                // Create a File object from the blob
                 const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-
-                // Create a FileList-like object
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 fileInput.files = dataTransfer.files;
-
-                // Process the image
                 processFileInput();
-
-                // Close camera
                 closeCamera();
             }, 'image/jpeg');
         }
@@ -909,32 +910,20 @@
                 reader.onload = function (e) {
                     originalImage = new Image();
                     originalImage.onload = function () {
-                        // Setup canvas
                         const maxWidth = 800;
                         const scale = Math.min(maxWidth / originalImage.width, 1);
-
                         previewCanvas.width = originalImage.width * scale;
                         previewCanvas.height = originalImage.height * scale;
                         previewCanvas.style.maxWidth = '100%';
                         previewCanvas.style.height = 'auto';
-
-                        // Draw image on canvas (scaled)
                         canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
-
-                        // Show canvas, hide no-image message
                         previewCanvas.style.display = 'block';
                         noImage.style.display = 'none';
-
-                        // Reset disease type
                         currentDiseaseType = null;
-                        updateThresholdInfo();
-
-                        // Automatically process the image
                         processImage();
                     }
                     originalImage.src = e.target.result;
                 }
-
                 reader.readAsDataURL(file);
             }
         }
@@ -948,41 +937,27 @@
                 return;
             }
 
-            // Show loading
             loading.style.display = 'block';
-
-            // Convert image to base64
             const reader = new FileReader();
             reader.onload = async function (e) {
                 try {
                     const base64Image = e.target.result.split(',')[1];
-
-                    // Process dengan kedua-dua model secara serentak
                     const promises = Object.values(models).map(model =>
                         axios({
                             method: "POST",
                             url: model.url,
-                            params: {
-                                api_key: model.apiKey
-                            },
+                            params: { api_key: model.apiKey },
                             data: base64Image,
-                            headers: {
-                                "Content-Type": "application/x-www-form-urlencoded"
-                            }
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" }
                         })
                     );
 
                     const responses = await Promise.all(promises);
-
-                    // Gabungkan hasil dari kedua model
-                    const combinedResults = {
-                        predictions: []
-                    };
+                    const combinedResults = { predictions: [] };
 
                     responses.forEach((response, index) => {
                         const modelKey = Object.keys(models)[index];
                         if (response.data.predictions) {
-                            // Tambahkan model info ke setiap prediction
                             const predictionsWithModel = response.data.predictions.map(pred => ({
                                 ...pred,
                                 model: modelKey
@@ -991,20 +966,16 @@
                         }
                     });
 
-                    // Auto-detect disease type and set threshold
                     autoDetectDiseaseType(combinedResults);
-
                     displayDetections(combinedResults);
 
                 } catch (error) {
                     console.error('Error:', error);
                     alert('Error processing image: ' + error.message);
                 } finally {
-                    // Hide loading
                     loading.style.display = 'none';
                 }
             };
-
             reader.readAsDataURL(fileInput.files[0]);
         }
 
@@ -1015,74 +986,51 @@
                 return;
             }
 
-            // Check if there are any ganoderma detections
             const hasGanoderma = data.predictions.some(pred =>
                 pred.model === 'ganoderma' && pred.confidence >= models.ganoderma.defaultThreshold
             );
-
-            // Check if there are any blackspot detections
             const hasBlackspot = data.predictions.some(pred =>
                 pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
             );
 
-            // Priority: Ganoderma > Blackspot
             if (hasGanoderma) {
                 setThresholdByDisease('ganoderma');
             } else if (hasBlackspot) {
                 setThresholdByDisease('blackspot');
             } else {
                 currentDiseaseType = null;
-                updateThresholdInfo();
             }
         }
 
         function displayDetections(data) {
-            // Clear previous detections
             clearDetections();
-
             if (!data.predictions || data.predictions.length === 0) {
-                detectionsList.innerHTML = `
-                    <div style="text-align: center; color: #6c757d; padding: 20px;">
-                        No objects detected
-                    </div>
-                `;
+                detectionsList.innerHTML = `<div style="text-align: center; color: #6c757d; padding: 20px;">No objects detected</div>`;
                 objectsCount.textContent = '0 objects';
-
-                // Update disease field and health status for no detections
                 updateDiseaseField([]);
                 updateHealthStatus([]);
+                currentDetections = [];
                 return;
             }
 
-            // Filter predictions based on confidence threshold
             const filteredPredictions = data.predictions.filter(pred => pred.confidence >= confidenceThreshold);
+            currentDetections = filteredPredictions;
 
             if (filteredPredictions.length === 0) {
-                detectionsList.innerHTML = `
-                    <div style="text-align: center; color: #6c757d; padding: 20px;">
-                        No objects above confidence threshold (${Math.round(confidenceThreshold * 100)}%)
-                    </div>
-                `;
+                detectionsList.innerHTML = `<div style="text-align: center; color: #6c757d; padding: 20px;">No objects above confidence threshold (${Math.round(confidenceThreshold * 100)}%)</div>`;
                 objectsCount.textContent = '0 objects';
-
-                // Update disease field and health status for no detections
                 updateDiseaseField([]);
                 updateHealthStatus([]);
                 return;
             }
 
-            // Update objects count
             objectsCount.textContent = filteredPredictions.length + ' objects';
-
-            // Draw detection boxes on canvas
             drawDetectionBoxes(filteredPredictions);
 
-            // Update detections list
             let detectionsHTML = '';
-            filteredPredictions.forEach((prediction, index) => {
+            filteredPredictions.forEach((prediction) => {
                 const confidencePercent = Math.round(prediction.confidence * 100);
                 const modelConfig = models[prediction.model];
-
                 detectionsHTML += `
                     <div class="detection-item" style="border-left-color: ${modelConfig.color}">
                         <span class="detection-class">
@@ -1095,35 +1043,27 @@
             });
 
             detectionsList.innerHTML = detectionsHTML;
-
-            // Update disease field and health status based on detections
             updateDiseaseField(filteredPredictions);
             updateHealthStatus(filteredPredictions);
         }
 
         function drawDetectionBoxes(predictions) {
-            // Clear canvas and redraw original image
             canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
-
             const scaleX = previewCanvas.width / originalImage.width;
             const scaleY = previewCanvas.height / originalImage.height;
 
-            predictions.forEach((prediction, index) => {
+            predictions.forEach((prediction) => {
                 const confidencePercent = Math.round(prediction.confidence * 100);
                 const modelConfig = models[prediction.model];
-
-                // Calculate box coordinates (scaled to canvas)
                 const x = (prediction.x - prediction.width / 2) * scaleX;
                 const y = (prediction.y - prediction.height / 2) * scaleY;
                 const width = prediction.width * scaleX;
                 const height = prediction.height * scaleY;
 
-                // Draw detection box dengan warna model
                 canvasContext.strokeStyle = modelConfig.color;
                 canvasContext.lineWidth = 3;
                 canvasContext.strokeRect(x, y, width, height);
 
-                // Draw background for label
                 canvasContext.fillStyle = modelConfig.color;
                 const labelText = `${prediction.class} (${prediction.model}) ${confidencePercent}%`;
                 const textMetrics = canvasContext.measureText(labelText);
@@ -1131,8 +1071,6 @@
                 const textHeight = 20;
 
                 canvasContext.fillRect(x, y - textHeight, textWidth, textHeight);
-
-                // Draw label text
                 canvasContext.fillStyle = '#ffffff';
                 canvasContext.font = 'bold 12px Arial';
                 canvasContext.fillText(labelText, x + 5, y - 5);
@@ -1140,14 +1078,13 @@
         }
 
         function clearDetections() {
-            // Clear canvas and redraw original image only
             if (originalImage) {
                 canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
             }
         }
 
-        // Save assessment function
-        function saveAssessment() {
+        // FIXED: Save assessment function with proper Firebase integration
+        async function saveAssessment() {
             // Validate required fields
             if (!assessmentId.value) {
                 alert('Please enter an Assessment ID');
@@ -1164,27 +1101,53 @@
                 return;
             }
 
-            // Create assessment object
-            const assessment = {
-                id: assessmentId.value,
-                location: locationInput.value,
-                date: assessmentDate.value,
-                time: assessmentTime.value,
-                disease: diseaseInput.value,
-                healthStatus: healthStatus.textContent,
-                treatment: treatmentText.value,
-                nextAssessment: nextAssessment.value,
-                timestamp: new Date().toISOString()
-            };
+            // Check if user is authenticated
+            if (!window.currentUser) {
+                alert('You must be logged in to save assessments');
+                return;
+            }
 
-            // In a real application, you would save this to a database
-            console.log('Assessment saved:', assessment);
-            
-            // Show success message
-            alert('Assessment saved successfully!');
-            
-            // Optionally reset form
-            // resetForm();
+            try {
+                // Convert image to base64 for storage
+                const base64Image = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(fileInput.files[0]);
+                });
+
+                // Create assessment object
+                const assessment = {
+                    id: assessmentId.value,
+                    location: locationInput.value,
+                    date: assessmentDate.value,
+                    time: assessmentTime.value,
+                    disease: diseaseInput.value,
+                    healthStatus: healthStatus.textContent,
+                    treatment: treatmentText.value,
+                    nextAssessment: nextAssessment.value,
+                    detections: currentDetections,
+                    image: base64Image,
+                    userId: window.currentUser.uid,
+                    userName: window.userData?.firstName && window.userData?.lastName 
+                        ? `${window.userData.firstName} ${window.userData.lastName}`
+                        : window.userData?.username || window.currentUser.email,
+                    timestamp: window.firebaseServerTimestamp()
+                };
+
+                // Save to Firebase using the global Firebase instances
+                const docRef = await window.firebaseAddDoc(window.firebaseCollection(window.firestoreDb, "assessments"), assessment);
+                console.log("Assessment saved with ID: ", docRef.id);
+                
+                // Show success message
+                alert('Assessment saved successfully!');
+                
+                // Reset form
+                resetForm();
+            } catch (error) {
+                console.error("Error saving assessment: ", error);
+                alert('Error saving assessment: ' + error.message);
+            }
         }
 
         // Reset form function
@@ -1207,19 +1170,26 @@
             detectionsList.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">No detections</div>';
             objectsCount.textContent = '0 objects';
             clearDetections();
+            currentDetections = [];
         }
 
         // Initialize the application
         function init() {
             initializeDateTime();
             initializeMap();
-
-            // Generate a random assessment ID
             assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
         }
 
         // Initialize when page loads
         window.onload = init;
+
+        // Make functions globally available
+        window.openCamera = openCamera;
+        window.closeCamera = closeCamera;
+        window.captureImage = captureImage;
+        window.getCurrentLocation = getCurrentLocation;
+        window.updateConfidence = updateConfidence;
+        window.saveAssessment = saveAssessment;
     </script>
 </body>
 </html>
