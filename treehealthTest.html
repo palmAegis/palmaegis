@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Health Report | Palm Aegis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/farmassessment.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    
+    <style>
+        /* Specific Styles for Tree Health Module */
+        .report-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            display: none; /* Hidden by default until generated */
+        }
+        
+        .report-header {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .severity-badge {
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            color: white;
+            font-size: 0.9em;
+        }
+
+        .severity-low { background-color: #28a745; }
+        .severity-medium { background-color: #ffc107; color: #333; }
+        .severity-high { background-color: #fd7e14; }
+        .severity-critical { background-color: #dc3545; }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+
+        .affected-zones-visual {
+            height: 150px;
+            background: #f8f9fa;
+            border: 1px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            color: #aaa;
+        }
+        
+        .report-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #007bff;
+            color: #007bff;
+        }
+    </style>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+        import { getFirestore, doc, getDoc, collection, addDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Check authentication state
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log('User is signed in:', user.email);
+                window.currentUser = user;
+                
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        updateUserProfile(user, userData);
+                    } else {
+                        updateUserProfile(user, {});
+                    }
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                }
+            } else {
+                window.location.href = 'signin.html';
+            }
+        });
+
+        function updateUserProfile(user, userData) {
+            const userNameElement = document.querySelector('.user-name');
+            const displayName = userData.firstName && userData.lastName 
+                ? `${userData.firstName} ${userData.lastName}`
+                : user.displayName || 'User';
+            
+            if (userNameElement) userNameElement.textContent = displayName;
+            
+            // Update Avatar
+            const avatarElements = document.querySelectorAll('.user-avatar');
+            let imageSource = 'images/user-avatar.jpg';
+            if (userData.imageBase64) imageSource = userData.imageBase64;
+            else if (userData.photoURL) imageSource = userData.photoURL;
+            
+            avatarElements.forEach(img => {
+                img.src = imageSource;
+            });
+        }
+
+        // Logout logic
+        window.handleLogout = function() {
+            signOut(auth).then(() => {
+                window.location.href = 'signin.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+            });
+        }
+    </script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="images/logo.png" alt="Palm Aegis Logo">
+                    <h1>Palm Aegis</h1>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item">
+                        <a href="homepage.html" data-tooltip="Dashboard">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="farmassessment.html" data-tooltip="Detect Disease">
+                            <i class="fas fa-robot"></i>
+                            <span>Farm Assessment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="detectdisease.html" data-tooltip="Detect Disease">
+                            <i class="fas fa-seedling"></i>
+                            <span>Detect Disease</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="treehealth.html" data-tooltip="Tree Health">
+                            <i class="fas fa-tree"></i>
+                            <span>Tree Health</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="treatment.html" data-tooltip="Treatment">
+                            <i class="fas fa-shield"></i>
+                            <span>Treatment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="farmdata.html" data-tooltip="Farm Data">
+                            <i class="fas fa-database"></i>
+                            <span>Farm Data</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="forum.html" data-tooltip="Forum">
+                            <i class="fas fa-comments"></i>
+                            <span>Forum</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="setting.html" data-tooltip="Settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" onclick="handleLogout()" id="logoutBtn" data-tooltip="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile-mini">
+                    <img src="images/user-avatar.jpg" alt="User Avatar" class="user-avatar">
+                    <div class="user-info">
+                        <span class="user-name">Loading...</span>
+                        <span class="user-role">Farmer</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="top-header">
+                <div class="header-left">
+                    <h1>Tree Health Report Module</h1>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search Tree ID or Report #...">
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="content">
+                    <div class="image-section">
+                        <div class="image-container" id="imageContainer">
+                            <div class="no-image" id="noImage">
+                                <i>📷</i>
+                                <p>Upload tree image for report</p>
+                            </div>
+                            <img id="previewImage" style="display: none; width: 100%; height: 100%; object-fit: contain;">
+                        </div>
+
+                        <div style="margin-top: 20px; background: white; padding: 10px; border-radius: 8px;">
+                            <label class="form-label">Tree Location</label>
+                            <div id="mapContainer" style="height: 200px; width: 100%; border-radius: 4px;"></div>
+                        </div>
+
+                        <div id="generatedReport" class="report-section">
+                            <div class="report-header">
+                                <h3 style="margin: 0;">Health Report Summary</h3>
+                                <span id="reportDate" style="color: #666; font-size: 0.9em;"></span>
+                            </div>
+                            <div class="report-body">
+                                <p><strong>Tree ID:</strong> <span id="repTreeId"></span></p>
+                                <p><strong>Condition:</strong> <span id="repCondition"></span></p>
+                                <div style="margin: 10px 0;">
+                                    <strong>Severity:</strong> 
+                                    <span id="repSeverity" class="severity-badge"></span>
+                                </div>
+                                <p><strong>Affected Areas:</strong> <span id="repAffected"></span></p>
+                                <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                                <p style="font-size: 0.9em; color: #555;"><strong>Recommendations:</strong></p>
+                                <p id="repTreatment" style="font-size: 0.9em;"></p>
+                            </div>
+                            <div class="report-actions">
+                                <button class="camera-btn" onclick="printReport()"><i class="fas fa-print"></i> Print</button>
+                                <button class="camera-btn btn-outline" onclick="exportPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="results-header" style="margin-bottom: 20px;">
+                            <span class="results-title">GENERATE HEALTH REPORT</span>
+                        </div>
+
+                        <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                            <i>📁</i>
+                            <p>Select Evidence Image</p>
+                            <input type="file" id="fileInput" class="file-input" accept="image/*" onchange="handleImageUpload(this)">
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Tree ID / Tag</label>
+                                <input type="text" class="form-input" id="treeId" placeholder="e.g. BLK-A-045">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date of Inspection</label>
+                                <input type="date" class="form-input" id="inspectionDate">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Health Status / Severity Level</label>
+                            <select class="form-input" id="severityLevel" onchange="updateTreatmentSuggestion()">
+                                <option value="healthy">Healthy (No Issues)</option>
+                                <option value="low">Low (Early Signs)</option>
+                                <option value="medium">Medium (Visible Damage)</option>
+                                <option value="high">High (Severe Infection)</option>
+                                <option value="critical">Critical (Tree Dying)</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Detected Disease (Manual or Auto)</label>
+                            <div style="display: flex; gap: 5px;">
+                                <input type="text" class="form-input" id="diseaseType" placeholder="Select or type disease">
+                                <button class="camera-btn" style="width: auto; padding: 0 10px; font-size: 12px; margin: 0;" onclick="simulateAutoDetect()">
+                                    <i class="fas fa-magic"></i> Auto
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Affected Areas (Check all that apply)</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item"><input type="checkbox" value="Fronds/Leaves" class="area-check"> Fronds/Leaves</label>
+                                <label class="checkbox-item"><input type="checkbox" value="Trunk/Stem" class="area-check"> Trunk/Stem</label>
+                                <label class="checkbox-item"><input type="checkbox" value="Roots" class="area-check"> Roots</label>
+                                <label class="checkbox-item"><input type="checkbox" value="Fruit Bunches" class="area-check"> Fruit Bunches</label>
+                                <label class="checkbox-item"><input type="checkbox" value="Crown/Bud" class="area-check"> Crown (Bud)</label>
+                                <label class="checkbox-item"><input type="checkbox" value="Whole Tree" class="area-check"> Whole Tree</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Treatment / Observations</label>
+                            <textarea class="form-textarea" id="notes" placeholder="Enter detailed observations and recommended treatment..."></textarea>
+                        </div>
+
+                        <button class="camera-btn" style="background: #28a745; margin-top: 15px;" onclick="generateReport()">
+                            Generate Detailed Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="chatbot-container" id="chatbotContainer">
+        <div class="chatbot-header">
+            <span><i class="fas fa-robot"></i> Palm Aegis Assistant</span>
+            <button class="chatbot-close" id="chatbotClose"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot">
+                <div class="message-avatar"><i class="fas fa-robot"></i></div>
+                <div class="message-content">Hello! I can help you interpret tree health data. What would you like to know?</div>
+            </div>
+        </div>
+        <div class="typing-indicator" id="typingIndicator">
+            <span></span><span></span><span></span>
+        </div>
+        <div class="chatbot-input-area">
+            <input type="text" id="chatbotInput" placeholder="Ask about tree health...">
+            <button id="chatbotSend"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+    
+    <button class="chatbot-toggle" id="chatbotToggle">
+        <i class="fas fa-comment-dots"></i>
+    </button>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // --- 1. Map Initialization ---
+        let map, marker;
+        
+        function initMap() {
+            map = L.map('mapContainer').setView([3.1412, 101.6865], 13); // Default KL
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            // Click to set location
+            map.on('click', function(e) {
+                if (marker) map.removeLayer(marker);
+                marker = L.marker(e.latlng).addTo(map);
+            });
+        }
+
+        // --- 2. Image Handling ---
+        function handleImageUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('previewImage');
+                    const noImage = document.getElementById('noImage');
+                    
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    noImage.style.display = 'none';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // --- 3. Form Logic & Automation ---
+        
+        // Auto-fill date
+        document.getElementById('inspectionDate').valueAsDate = new Date();
+
+        // Simulate fetching data from the detection module
+        function simulateAutoDetect() {
+            const diseaseField = document.getElementById('diseaseType');
+            const severityField = document.getElementById('severityLevel');
+            
+            // Simulating a result
+            diseaseField.value = "Ganoderma Butt Rot";
+            severityField.value = "high";
+            
+            // Auto check checkboxes
+            document.querySelectorAll('.area-check').forEach(cb => cb.checked = false);
+            document.querySelector('input[value="Trunk/Stem"]').checked = true;
+            document.querySelector('input[value="Roots"]').checked = true;
+            
+            updateTreatmentSuggestion();
+            alert("Data retrieved from latest AI analysis.");
+        }
+
+        function updateTreatmentSuggestion() {
+            const severity = document.getElementById('severityLevel').value;
+            const notes = document.getElementById('notes');
+            const disease = document.getElementById('diseaseType').value;
+            
+            let suggestion = "";
+            
+            if (severity === 'healthy') {
+                suggestion = "Tree appears healthy. Continue routine maintenance and fertilization schedule.";
+            } else if (severity === 'low') {
+                suggestion = `Monitor ${disease || 'symptoms'} closely. Isolate if necessary. Improve soil drainage.`;
+            } else if (severity === 'high' || severity === 'critical') {
+                suggestion = `URGENT: ${disease || 'Disease'} detected at high severity. Isolate tree immediately. Apply systemic fungicide. Consider removal to prevent spread to adjacent palms.`;
+            } else {
+                suggestion = "Apply treatment appropriate for the detected symptoms. Prune affected fronds.";
+            }
+            
+            if (!notes.value) notes.value = suggestion;
+        }
+
+        // --- 4. Report Generation ---
+        function generateReport() {
+            const treeId = document.getElementById('treeId').value || 'Unknown ID';
+            const severity = document.getElementById('severityLevel').value;
+            const disease = document.getElementById('diseaseType').value || 'None';
+            const notes = document.getElementById('notes').value;
+            
+            // Get Checked Areas
+            const affected = [];
+            document.querySelectorAll('.area-check:checked').forEach(cb => affected.push(cb.value));
+            const affectedStr = affected.length > 0 ? affected.join(", ") : "None specified";
+
+            // Update Report Preview DOM
+            document.getElementById('repTreeId').textContent = treeId;
+            document.getElementById('reportDate').textContent = new Date().toLocaleDateString();
+            document.getElementById('repCondition').textContent = disease;
+            
+            const severityBadge = document.getElementById('repSeverity');
+            severityBadge.textContent = severity.toUpperCase();
+            severityBadge.className = `severity-badge severity-${severity}`;
+            
+            document.getElementById('repAffected').textContent = affectedStr;
+            document.getElementById('repTreatment').textContent = notes;
+
+            // Show Result
+            document.getElementById('generatedReport').style.display = 'block';
+            
+            // Scroll to report
+            document.getElementById('generatedReport').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function exportPDF() {
+            alert("Exporting PDF... (Feature placeholder)");
+        }
+
+        // --- 5. Chatbot Logic (Copied from template) ---
+        // Simplified for this file to ensure it works without external dependencies not loaded
+        const chatbotToggle = document.getElementById('chatbotToggle');
+        const chatbotContainer = document.getElementById('chatbotContainer');
+        const chatbotClose = document.getElementById('chatbotClose');
+        const chatbotInput = document.getElementById('chatbotInput');
+        const chatbotSend = document.getElementById('chatbotSend');
+        const chatbotMessages = document.getElementById('chatbotMessages');
+
+        chatbotToggle.addEventListener('click', () => chatbotContainer.classList.add('active'));
+        chatbotClose.addEventListener('click', () => chatbotContainer.classList.remove('active'));
+        
+        chatbotSend.addEventListener('click', () => {
+            const txt = chatbotInput.value.trim();
+            if(!txt) return;
+            addMsg(txt, 'user');
+            chatbotInput.value = '';
+            setTimeout(() => addMsg("I've noted that in the tree health log. Do you need to generate a report?", 'bot'), 1000);
+        });
+
+        function addMsg(txt, sender) {
+            const div = document.createElement('div');
+            div.className = `message ${sender}`;
+            div.innerHTML = `<div class="message-content">${txt}</div>`;
+            chatbotMessages.appendChild(div);
+            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        }
+
+        // Initialize
+        window.onload = function() {
+            initMap();
+        }
+    </script>
+</body>
+</html>
