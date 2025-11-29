@@ -498,6 +498,94 @@
             color: #f44336;
             margin-bottom: 15px;
         }
+
+        /* Filter Modal Styles */
+        .filter-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .filter-modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .filter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .filter-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .close-filter {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .filter-select, .filter-input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #ddd;
+            color: #333;
+        }
+
+        .btn-outline:hover {
+            background-color: #f5f5f5;
+        }
         
         /* Print-specific styles */
         @media print {
@@ -639,6 +727,11 @@
             
             .reports-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .filter-modal-content {
+                width: 95%;
+                margin: 20px;
             }
         }
     </style>
@@ -829,6 +922,55 @@
         </main>
     </div>
 
+    <!-- Filter Modal -->
+    <div class="filter-modal" id="filterModal">
+        <div class="filter-modal-content">
+            <div class="filter-header">
+                <h2 class="filter-title">Filter Reports</h2>
+                <button class="close-filter" id="closeFilterBtn">&times;</button>
+            </div>
+            <div class="filter-options">
+                <div class="filter-group">
+                    <label class="filter-label">Health Status</label>
+                    <select class="filter-select" id="statusFilter">
+                        <option value="all">All Statuses</option>
+                        <option value="healthy">Healthy</option>
+                        <option value="warning">Needs Review</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Severity Level</label>
+                    <select class="filter-select" id="severityFilter">
+                        <option value="all">All Severity Levels</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" class="filter-input" id="dateFrom" style="flex: 1;">
+                        <input type="date" class="filter-input" id="dateTo" style="flex: 1;">
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Location</label>
+                    <input type="text" class="filter-input" id="locationFilter" placeholder="Filter by location...">
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="btn btn-outline" id="clearFiltersBtn">Clear Filters</button>
+                <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Hidden printable report section -->
     <div id="printable-report" style="display: none;"></div>
 
@@ -851,6 +993,15 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+
+    // Global variables for filtering
+    let currentFilters = {
+        status: 'all',
+        severity: 'all',
+        dateFrom: '',
+        dateTo: '',
+        location: ''
+    };
 
     // Check authentication state
     onAuthStateChanged(auth, async (user) => {
@@ -994,11 +1145,17 @@
             
             reportsGrid.innerHTML = '';
             
+            const allAssessments = [];
             querySnapshot.forEach((doc) => {
                 const assessment = doc.data ? doc.data() : doc;
-                console.log("Processing assessment:", assessment.id || 'Unknown ID');
-                createReportCard(assessment, doc.id);
+                allAssessments.push({assessment, docId: doc.id});
             });
+            
+            // Store all assessments for filtering
+            window.allAssessments = allAssessments;
+            
+            // Apply any existing filters
+            applyFilters();
             
         } catch (error) {
             console.error("Error loading assessments: ", error);
@@ -1016,16 +1173,95 @@
         }
     }
 
-    // Create a report card for each assessment
-    function createReportCard(assessment, docId) {
+    // Apply filters to reports
+    function applyFilters() {
         const reportsGrid = document.getElementById('reportsGrid');
+        reportsGrid.innerHTML = '';
         
-        // Determine status and severity with safe defaults
+        if (!window.allAssessments || window.allAssessments.length === 0) {
+            showNoData();
+            return;
+        }
+        
+        const filteredAssessments = window.allAssessments.filter(({assessment, docId}) => {
+            // Status filter
+            if (currentFilters.status !== 'all') {
+                const statusElement = getStatusInfo(assessment);
+                if (currentFilters.status === 'healthy' && statusElement.statusText !== 'Healthy') return false;
+                if (currentFilters.status === 'warning' && statusElement.statusText !== 'Needs Review') return false;
+                if (currentFilters.status === 'critical' && statusElement.statusText !== 'Critical') return false;
+            }
+            
+            // Severity filter
+            if (currentFilters.severity !== 'all') {
+                const severityElement = getSeverityInfo(assessment);
+                if (currentFilters.severity === 'low' && severityElement.severityText !== 'Low') return false;
+                if (currentFilters.severity === 'medium' && severityElement.severityText !== 'Medium') return false;
+                if (currentFilters.severity === 'high' && severityElement.severityText !== 'High') return false;
+                if (currentFilters.severity === 'critical' && severityElement.severityText !== 'Critical') return false;
+            }
+            
+            // Date filter
+            if (currentFilters.dateFrom || currentFilters.dateTo) {
+                let assessmentDate;
+                try {
+                    if (assessment.date) {
+                        assessmentDate = new Date(assessment.date);
+                    } else if (assessment.timestamp) {
+                        assessmentDate = new Date(assessment.timestamp.toDate());
+                    } else {
+                        assessmentDate = new Date();
+                    }
+                } catch (dateError) {
+                    assessmentDate = new Date();
+                }
+                
+                if (currentFilters.dateFrom) {
+                    const fromDate = new Date(currentFilters.dateFrom);
+                    if (assessmentDate < fromDate) return false;
+                }
+                
+                if (currentFilters.dateTo) {
+                    const toDate = new Date(currentFilters.dateTo);
+                    toDate.setHours(23, 59, 59, 999); // End of the day
+                    if (assessmentDate > toDate) return false;
+                }
+            }
+            
+            // Location filter
+            if (currentFilters.location && assessment.location) {
+                const location = assessment.location.toLowerCase();
+                if (!location.includes(currentFilters.location.toLowerCase())) return false;
+            }
+            
+            return true;
+        });
+        
+        if (filteredAssessments.length === 0) {
+            reportsGrid.innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-filter"></i>
+                    <h3>No Reports Match Your Filters</h3>
+                    <p>Try adjusting your filter criteria to see more results.</p>
+                    <button class="btn btn-primary" id="clearFilterResultsBtn" style="margin-top: 15px;">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('clearFilterResultsBtn').addEventListener('click', clearFilters);
+        } else {
+            filteredAssessments.forEach(({assessment, docId}) => {
+                createReportCard(assessment, docId);
+            });
+        }
+    }
+
+    // Get status information for an assessment
+    function getStatusInfo(assessment) {
         const isHealthy = assessment.healthStatus === "Healthy";
         let statusClass = "status-healthy";
         let statusText = "Healthy";
-        let severityLevel = "severity-low";
-        let severityText = "Low";
         
         if (!isHealthy || (assessment.detections && assessment.detections.length > 0)) {
             const detectionsCount = assessment.detections ? assessment.detections.length : 0;
@@ -1033,11 +1269,28 @@
             if (detectionsCount === 0) {
                 statusClass = "status-warning";
                 statusText = "Needs Review";
-                severityLevel = "severity-medium";
-                severityText = "Medium";
             } else {
                 statusClass = "status-critical";
                 statusText = "Critical";
+            }
+        }
+        
+        return { statusClass, statusText };
+    }
+
+    // Get severity information for an assessment
+    function getSeverityInfo(assessment) {
+        const isHealthy = assessment.healthStatus === "Healthy";
+        let severityLevel = "severity-low";
+        let severityText = "Low";
+        
+        if (!isHealthy || (assessment.detections && assessment.detections.length > 0)) {
+            const detectionsCount = assessment.detections ? assessment.detections.length : 0;
+            
+            if (detectionsCount === 0) {
+                severityLevel = "severity-medium";
+                severityText = "Medium";
+            } else {
                 severityLevel = "severity-high";
                 severityText = "High";
                 
@@ -1049,6 +1302,47 @@
                 }
             }
         }
+        
+        return { severityLevel, severityText };
+    }
+
+    // Clear all filters
+    function clearFilters() {
+        currentFilters = {
+            status: 'all',
+            severity: 'all',
+            dateFrom: '',
+            dateTo: '',
+            location: ''
+        };
+        
+        // Reset filter inputs
+        document.getElementById('statusFilter').value = 'all';
+        document.getElementById('severityFilter').value = 'all';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
+        document.getElementById('locationFilter').value = '';
+        
+        applyFilters();
+        closeFilterModal();
+    }
+
+    // Open filter modal
+    function openFilterModal() {
+        document.getElementById('filterModal').style.display = 'flex';
+    }
+
+    // Close filter modal
+    function closeFilterModal() {
+        document.getElementById('filterModal').style.display = 'none';
+    }
+
+    // Create a report card for each assessment
+    function createReportCard(assessment, docId) {
+        const reportsGrid = document.getElementById('reportsGrid');
+        
+        const { statusClass, statusText } = getStatusInfo(assessment);
+        const { severityLevel, severityText } = getSeverityInfo(assessment);
         
         // Format date safely
         let assessmentDate = 'Not specified';
@@ -1157,26 +1451,7 @@
         document.getElementById('detailTreatment').textContent = assessment.treatment || 'No treatment recommendations available.';
         
         // Determine severity
-        let severityLevel = "severity-low";
-        let severityText = "Low";
-        
-        if (assessment.healthStatus !== "Healthy" || (assessment.detections && assessment.detections.length > 0)) {
-            const detectionsCount = assessment.detections ? assessment.detections.length : 0;
-            
-            if (detectionsCount === 0) {
-                severityLevel = "severity-medium";
-                severityText = "Medium";
-            } else {
-                severityLevel = "severity-high";
-                severityText = "High";
-                
-                if (assessment.detections && assessment.detections.some(d => 
-                    d.class && d.class.toLowerCase().includes('ganoderma'))) {
-                    severityLevel = "severity-critical";
-                    severityText = "Critical";
-                }
-            }
-        }
+        const { severityLevel, severityText } = getSeverityInfo(assessment);
         
         document.getElementById('detailSeverity').textContent = severityText;
         document.getElementById('detailSeverityBar').className = `severity-level ${severityLevel}`;
@@ -1244,36 +1519,20 @@
         }
         
         // Determine severity
-        let severityLevel = "severity-low";
-        let severityText = "Low";
+        const { severityText } = getSeverityInfo(assessment);
         let severityWidth = "25%";
-        
-        if (assessment.healthStatus !== "Healthy" || (assessment.detections && assessment.detections.length > 0)) {
-            const detectionsCount = assessment.detections ? assessment.detections.length : 0;
-            
-            if (detectionsCount === 0) {
-                severityLevel = "severity-medium";
-                severityText = "Medium";
-                severityWidth = "50%";
-            } else {
-                severityLevel = "severity-high";
-                severityText = "High";
-                severityWidth = "75%";
-                
-                if (assessment.detections && assessment.detections.some(d => 
-                    d.class && d.class.toLowerCase().includes('ganoderma'))) {
-                    severityLevel = "severity-critical";
-                    severityText = "Critical";
-                    severityWidth = "100%";
-                }
-            }
-        }
-        
-        // Get severity color
         let severityColor = "#2e7d32"; // Green for low
-        if (severityLevel === "severity-medium") severityColor = "#ff9800";
-        if (severityLevel === "severity-high") severityColor = "#f44336";
-        if (severityLevel === "severity-critical") severityColor = "#b71c1c";
+        
+        if (severityText === "Medium") {
+            severityWidth = "50%";
+            severityColor = "#ff9800";
+        } else if (severityText === "High") {
+            severityWidth = "75%";
+            severityColor = "#f44336";
+        } else if (severityText === "Critical") {
+            severityWidth = "100%";
+            severityColor = "#b71c1c";
+        }
         
         // Create printable content
         const printableReport = document.getElementById('printable-report');
@@ -1375,6 +1634,22 @@
         window.print();
     }
 
+    // Event Listeners
+    document.getElementById('filterBtn').addEventListener('click', openFilterModal);
+    document.getElementById('closeFilterBtn').addEventListener('click', closeFilterModal);
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+    
+    document.getElementById('applyFiltersBtn').addEventListener('click', () => {
+        currentFilters.status = document.getElementById('statusFilter').value;
+        currentFilters.severity = document.getElementById('severityFilter').value;
+        currentFilters.dateFrom = document.getElementById('dateFrom').value;
+        currentFilters.dateTo = document.getElementById('dateTo').value;
+        currentFilters.location = document.getElementById('locationFilter').value;
+        
+        applyFilters();
+        closeFilterModal();
+    });
+
     // Close details view
     document.getElementById('closeDetailsBtn').addEventListener('click', () => {
         const detailsPanel = document.getElementById('reportDetails');
@@ -1423,6 +1698,13 @@
         }).catch((error) => {
             console.error('Logout error:', error);
         });
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('filterModal').addEventListener('click', (e) => {
+        if (e.target.id === 'filterModal') {
+            closeFilterModal();
+        }
     });
 </script>
 </body>
