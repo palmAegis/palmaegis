@@ -25,19 +25,19 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        body {
-            background: linear-gradient(135deg, #eafbea, #c8f0c8);
-            color: var(--text-color);
-            display: block;
-            height: 100vh;
-            overflow: hidden;
+        html, body {
+            height: 100%;
+            margin: 0;
         }
-
+        body {
+            overflow: hidden; /* prevent page-level scrolling */
+        }
         /* Dashboard Container */
         .dashboard-container {
             display: flex;
+            min-height: 100vh;
             height: 100vh;
-            overflow: hidden;
+            overflow: hidden; /* don't let container create another scroll */
         }
 
         /* Sidebar Styles */
@@ -187,7 +187,11 @@
 
         /* Main Content */
         .main-content {
-            flex: 1;
+            flex: 1 1 auto;
+            overflow: auto; /* only this area scrolls */
+            -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
+            padding-bottom: 40px; /* ensure footer area not clipped */
             margin-left: 260px;
             padding: 1.5rem;
             overflow-y: auto;
