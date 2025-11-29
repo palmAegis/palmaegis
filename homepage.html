@@ -319,10 +319,12 @@
             overflow-y: auto;
             transition: margin-left var(--transition-speed);
             background-color: var(--bg-color);
+            width: calc(100% - 260px);
         }
 
         .main-content.expanded {
             margin-left: 80px;
+            width: calc(100% - 80px);
         }
 
         /* Header */
@@ -1114,15 +1116,22 @@
             const mainContent = document.querySelector('.main-content');
 
             sidebarToggle.addEventListener('click', () => {
+                const isCollapsing = !sidebar.classList.contains('collapsed');
+                
                 sidebar.classList.toggle('collapsed');
                 mainContent.classList.toggle('expanded');
+                
+                // Force reflow to ensure smooth transition
+                void sidebar.offsetWidth;
                 
                 // Update toggle icon
                 const icon = sidebarToggle.querySelector('i');
                 if (sidebar.classList.contains('collapsed')) {
                     icon.className = 'fas fa-chevron-right';
+                    console.log('Sidebar collapsed');
                 } else {
                     icon.className = 'fas fa-chevron-left';
+                    console.log('Sidebar expanded');
                 }
             });
         });
