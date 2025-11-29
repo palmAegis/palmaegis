@@ -240,6 +240,41 @@
 .user-name { font-weight: 600; font-size: 0.95rem; color: var(--text-color); }
 .user-role { font-size: 0.8rem; color: var(--text-lighter); }
 
+/* Ensure sidebar mini profile shows name and role in one row */
+.sidebar-footer .user-profile-mini {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-footer .user-profile-mini .user-info {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-width: 0; /* allow text-overflow on flex children */
+}
+
+.sidebar-footer .user-profile-mini .user-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 160px; /* adjust as needed */
+    font-weight: 600;
+}
+
+.sidebar-footer .user-profile-mini .user-role {
+    color: #9aa0a6;
+    font-size: 0.85rem;
+    white-space: nowrap;
+}
+
+/* prevent avatar from shrinking */
+.sidebar-footer .user-profile-mini .user-avatar {
+    flex-shrink: 0;
+}
+
 /* Interaction helpers */
 .sidebar .logout-btn { display:flex; align-items:center; gap:.5rem; cursor:pointer; }
 
