@@ -57,6 +57,7 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
+            background-color: white; /* Fallback if image fails to load */
         }
         
         .logo h1 {
@@ -113,6 +114,7 @@
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
+            background-color: rgba(255,255,255,0.2); /* Fallback if image fails to load */
         }
         
         .user-info {
@@ -741,7 +743,7 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">
-                    <img src="images/logo.png" alt="Palm Aegis Logo">
+                    <img src="images/logo.png" alt="Palm Aegis Logo" onerror="this.style.display='none'">
                     <h1>Palm Aegis</h1>
                 </div>
             </div>
@@ -800,7 +802,7 @@
             
             <div class="sidebar-footer">
                 <div class="user-profile-mini">
-                    <img src="images/user-avatar.jpg" alt="User Avatar" class="user-avatar">
+                    <img src="images/user-avatar.jpg" alt="User Avatar" class="user-avatar" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM0Q0FGNTAiLz4KPHBhdGggZD0iTTIwIDIyQzIyLjIwOTEgMjIgMjQgMjAuMjA5MSAyNCAxOEMyNCAxNS43OTA5IDIyLjIwOTEgMTQgMjAgMTRDMTcuNzkwOSAxNCAxNiAxNS43OTA5IDE2IDE4QzE2IDIwLjIwOTEgMTcuNzkwOSAyMiAyMCAyMloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yMCAyNEMxNi4xMzM4IDI0IDEzIDI2LjEzMzggMTMgMzBMMjcgMzBDMjcgMjYuMTMzOCAyMy44NjYyIDI0IDIwIDI0WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+'">
                     <div class="user-info">
                         <span class="user-name">Loading...</span>
                         <span class="user-role">Farmer</span>
