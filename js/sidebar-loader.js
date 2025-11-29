@@ -23,7 +23,7 @@
             sidebarToggle.tabIndex = 0;
         }
 
-        // Toggle behavior (re-query main on each click so loader can be placed before main)
+        // Toggle behavior: re-query main at click-time so loader can sit before main
         if (sidebarToggle && sidebar) {
             const icon = sidebarToggle.querySelector('i');
 
@@ -34,7 +34,7 @@
 
             updateIcon();
 
-            sidebarToggle.addEventListener('click', () => {
+            sidebarToggle.addEventListener('click', function () {
                 sidebar.classList.toggle('collapsed');
 
                 // re-query the main content at click-time (handles loader before main)
@@ -45,7 +45,7 @@
             });
 
             // keyboard support
-            sidebarToggle.addEventListener('keydown', (e) => {
+            sidebarToggle.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     sidebarToggle.click();
@@ -55,7 +55,7 @@
 
         // Simple logout dispatch (page scripts handle actual signOut)
         if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
+            logoutBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 window.dispatchEvent(new CustomEvent('sidebar:logoutRequested'));
             });
@@ -65,8 +65,8 @@
         try {
             const path = window.location.pathname.split('/').pop() || 'homepage.html';
             const links = sidebar.querySelectorAll('.sidebar-nav a');
-            links.forEach(a => {
-                const href = a.getAttribute('href')?.split('/').pop();
+            links.forEach(function (a) {
+                const href = (a.getAttribute('href') || '').split('/').pop();
                 if (href === path) {
                     a.closest('li')?.classList.add('active');
                 } else {
@@ -75,7 +75,7 @@
             });
         } catch (e) { /* ignore */ }
 
-        // notify pages
+        // dispatch ready event for pages to attach behavior
         window.dispatchEvent(new CustomEvent('sidebar:loaded'));
     } catch (err) {
         console.error('Sidebar loader error:', err);
