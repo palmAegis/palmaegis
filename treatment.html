@@ -7,47 +7,47 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/farmdata.css">
     <link rel="stylesheet" href="css/treatment.css">
-    <link rel="stylesheet" href="css/sidebar.css"> 
-    <style>
-
-    </style>
+    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 <body>
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
         <script src="js/sidebar-loader.js"></script>
 
-    <main class="container">
-        <div class="layout">
+        <main class="main-content">
+            <div class="container">
+                <div class="layout">
 
-            <div class="content">
-                <section class="search-section">
-                    <h2>Find Treatment for Plant Diseases</h2>
-                    <div class="search-container">
-                        <input type="text" id="searchInput" placeholder="Search by disease name or symptom...">
-                        <button id="searchBtn">Search</button>
+                    <div class="content">
+                        <section class="search-section">
+                            <h2>Find Treatment for Plant Diseases</h2>
+                            <div class="search-container">
+                                <input type="text" id="searchInput" placeholder="Search by disease name or symptom...">
+                                <button id="searchBtn">Search</button>
+                            </div>
+                            <h3>Filter by Plant Part</h3>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="Leaves">Leaves</button>
+                            <button class="filter-btn" data-filter="Fruits">Fruits</button>
+                            <button class="filter-btn" data-filter="Stems">Stems</button>
+                            <button class="filter-btn" data-filter="Roots">Roots</button>
+                        </div>
+                        </section>
+
+                        <section class="treatment-list">
+                            <h2>Available Treatments</h2>
+                            <div id="loadingMessage" class="loading">Loading treatments...</div>
+                            <div id="errorMessage" class="error-message" style="display: none;"></div>
+                            <div id="treatmentContainer" class="treatment-container">
+                                <!-- Treatments will be loaded here dynamically from Firebase -->
+                            </div>
+                        </section>
                     </div>
-                    <h3>Filter by Plant Part</h3>
-                <div class="filter-buttons">
-                    <button class="filter-btn active" data-filter="all">All</button>
-                    <button class="filter-btn" data-filter="Leaves">Leaves</button>
-                    <button class="filter-btn" data-filter="Fruits">Fruits</button>
-                    <button class="filter-btn" data-filter="Stems">Stems</button>
-                    <button class="filter-btn" data-filter="Roots">Roots</button>
                 </div>
-                </section>
-
-                <section class="treatment-list">
-                    <h2>Available Treatments</h2>
-                    <div id="loadingMessage" class="loading">Loading treatments...</div>
-                    <div id="errorMessage" class="error-message" style="display: none;"></div>
-                    <div id="treatmentContainer" class="treatment-container">
-                        <!-- Treatments will be loaded here dynamically from Firebase -->
-                    </div>
-                </section>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
 
     <!-- Treatment Details Modal -->
     <div id="treatmentModal" class="modal">
