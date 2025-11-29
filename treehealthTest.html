@@ -740,76 +740,8 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <img src="images/logo.png" alt="Palm Aegis Logo" onerror="this.style.display='none'">
-                    <h1>Palm Aegis</h1>
-                </div>
-            </div>
-            <nav class="sidebar-nav">
-                <ul>
-                    <li class="nav-item">
-                        <a href="homepage.html">
-                            <i class="fas fa-home"></i>
-                            <span>Dashboard</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="farmassessment.html">
-                            <i class="fas fa-seedling"></i>
-                            <span>Farm Assessment</span>
-                        </a>
-                    </li>
-                    <li class="nav-item active">
-                        <a href="treehealth.html">
-                            <i class="fas fa-tree"></i>
-                            <span>Tree Health</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="treatment.html">
-                            <i class="fas fa-shield"></i>
-                            <span>Treatment</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="farmdata.html">
-                            <i class="fas fa-database"></i>
-                            <span>Farm Data</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="forum.html">
-                            <i class="fas fa-comments"></i>
-                            <span>Forum</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="setting.html">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-            
-            <div class="sidebar-footer">
-                <div class="user-profile-mini">
-                    <img src="images/user-avatar.jpg" alt="User Avatar" class="user-avatar" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM0Q0FGNTAiLz4KPHBhdGggZD0iTTIwIDIyQzIyLjIwOTEgMjIgMjQgMjAuMjA5MSAyNCAxOEMyNCAxNS43OTA5IDIyLjIwOTEgMTQgMjAgMTRDMTcuNzkwOSAxNCAxNiAxNS43OTA5IDE2IDE4QzE2IDIwLjIwOTEgMTcuNzkwOSAyMiAyMCAyMloiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0yMCAyNEMxNi4xMzM4IDI0IDEzIDI2LjEzMzggMTMgMzBMMjcgMzBDMjcgMjYuMTMzOCAyMy44NjYyIDI0IDIwIDI0WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+'">
-                    <div class="user-info">
-                        <span class="user-name">Loading...</span>
-                        <span class="user-role">Farmer</span>
-                    </div>
-                </div>
-            </div>
-        </aside>
+        <div id="sidebarPlaceholder"></div>
+        <script src="js/sidebar-loader.js"></script>
 
         <main class="main-content">
             <div class="top-header">

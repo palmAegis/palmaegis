@@ -12,23 +12,35 @@
         window.__sidebarLoaded = true;
 
         const sidebar = document.querySelector('.sidebar');
-        const mainContent = document.querySelector('.main-content');
         const sidebarToggle = sidebar?.querySelector('#sidebarToggle') || sidebar?.querySelector('.sidebar-toggle');
         const logoutBtn = sidebar?.querySelector('#logoutBtn');
 
-        // Toggle behavior
+        // Ensure toggle is clickable (in case CSS interferes)
+        if (sidebarToggle) {
+            sidebarToggle.style.pointerEvents = 'auto';
+            sidebarToggle.style.zIndex = '1200';
+            sidebarToggle.setAttribute('role', 'button');
+            sidebarToggle.tabIndex = 0;
+        }
+
+        // Toggle behavior (re-query main on each click so loader can be placed before main)
         if (sidebarToggle && sidebar) {
             const icon = sidebarToggle.querySelector('i');
+
             const updateIcon = () => {
-                if (icon) icon.className = sidebar.classList.contains('collapsed') ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                if (!icon) return;
+                icon.className = sidebar.classList.contains('collapsed') ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
             };
 
-            // initialize icon state
             updateIcon();
 
             sidebarToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('collapsed');
+
+                // re-query the main content at click-time (handles loader before main)
+                const mainContent = document.querySelector('.main-content') || document.querySelector('main');
                 if (mainContent) mainContent.classList.toggle('expanded');
+
                 updateIcon();
             });
 
@@ -41,7 +53,7 @@
             });
         }
 
-        // Simple logout dispatch (page scripts can handle actual signOut)
+        // Simple logout dispatch (page scripts handle actual signOut)
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -49,7 +61,7 @@
             });
         }
 
-        // Activate nav item based on current pathname (optional)
+        // Activate nav item based on current pathname
         try {
             const path = window.location.pathname.split('/').pop() || 'homepage.html';
             const links = sidebar.querySelectorAll('.sidebar-nav a');
@@ -63,7 +75,7 @@
             });
         } catch (e) { /* ignore */ }
 
-        // Let pages know sidebar is ready
+        // notify pages
         window.dispatchEvent(new CustomEvent('sidebar:loaded'));
     } catch (err) {
         console.error('Sidebar loader error:', err);
