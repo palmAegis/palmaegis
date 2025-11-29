@@ -631,6 +631,9 @@
         let marker = null;
         let currentDetections = [];
 
+        // NEW: keep the currently selected/captured File (so we can clear fileInput.value and still save)
+        let currentFile = null;
+        
         // Initialize date and time
         function initializeDateTime() {
             const now = new Date();
@@ -843,91 +846,92 @@
 
             tempCanvas.toBlob(function (blob) {
                 const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-                processFileInput();
+                // store captured file in memory and process it directly
+                currentFile = file;
+                // set fileInput.value to empty so user can re-upload same file later if needed
+                if (fileInput) fileInput.value = '';
+                // process using currentFile
+                processFileObject(currentFile);
                 closeCamera();
             }, 'image/jpeg');
         }
 
-        // Function untuk memproses input file
-        function processFileInput() {
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
-
-                reader.onload = function (e) {
-                    originalImage = new Image();
-                    originalImage.onload = function () {
-                        const maxWidth = 800;
-                        const scale = Math.min(maxWidth / originalImage.width, 1);
-                        previewCanvas.width = originalImage.width * scale;
-                        previewCanvas.height = originalImage.height * scale;
-                        previewCanvas.style.maxWidth = '100%';
-                        previewCanvas.style.height = 'auto';
-                        canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
-                        previewCanvas.style.display = 'block';
-                        noImage.style.display = 'none';
-                        currentDiseaseType = null;
-                        processImage();
-                    }
-                    originalImage.src = e.target.result;
-                }
-                reader.readAsDataURL(file);
-            }
+        // Process a File object (used by file input and camera)
+        function processFileObject(file) {
+            if (!file) return;
+            currentFile = file; // keep reference for saving later
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                originalImage = new Image();
+                originalImage.onload = function () {
+                    const maxWidth = 800;
+                    const scale = Math.min(maxWidth / originalImage.width, 1);
+                    previewCanvas.width = originalImage.width * scale;
+                    previewCanvas.height = originalImage.height * scale;
+                    previewCanvas.style.maxWidth = '100%';
+                    previewCanvas.style.height = 'auto';
+                    canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                    previewCanvas.style.display = 'block';
+                    noImage.style.display = 'none';
+                    currentDiseaseType = null;
+                    processImage();
+                };
+                originalImage.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            // clear the actual file input so selecting the same file again fires change
+            if (fileInput) fileInput.value = '';
         }
-
-        // Event listener untuk file input
-        fileInput.addEventListener('change', processFileInput);
-
+        
         async function processImage() {
-            if (!fileInput.files[0]) {
-                alert('Please select an image first!');
+            // require currentFile to exist
+            if (!currentFile) {
+                alert('Please select or capture an image first!');
                 return;
             }
-
+            
             loading.style.display = 'block';
+            // use a FileReader to get base64 for sending to models
             const reader = new FileReader();
             reader.onload = async function (e) {
                 try {
                     const base64Image = e.target.result.split(',')[1];
-                    const promises = Object.values(models).map(model =>
-                        axios({
-                            method: "POST",
-                            url: model.url,
-                            params: { api_key: model.apiKey },
-                            data: base64Image,
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" }
-                        })
-                    );
+                     const promises = Object.values(models).map(model =>
+                         axios({
+                             method: "POST",
+                             url: model.url,
+                             params: { api_key: model.apiKey },
+                             data: base64Image,
+                             headers: { "Content-Type": "application/x-www-form-urlencoded" }
+                         })
+                     );
 
-                    const responses = await Promise.all(promises);
-                    const combinedResults = { predictions: [] };
+                     const responses = await Promise.all(promises);
+                     const combinedResults = { predictions: [] };
 
-                    responses.forEach((response, index) => {
-                        const modelKey = Object.keys(models)[index];
-                        if (response.data.predictions) {
-                            const predictionsWithModel = response.data.predictions.map(pred => ({
-                                ...pred,
-                                model: modelKey
-                            }));
-                            combinedResults.predictions.push(...predictionsWithModel);
-                        }
-                    });
+                     responses.forEach((response, index) => {
+                         const modelKey = Object.keys(models)[index];
+                         if (response.data.predictions) {
+                             const predictionsWithModel = response.data.predictions.map(pred => ({
+                                 ...pred,
+                                 model: modelKey
+                             }));
+                             combinedResults.predictions.push(...predictionsWithModel);
+                         }
+                     });
 
-                    autoDetectDiseaseType(combinedResults);
-                    displayDetections(combinedResults);
+                     autoDetectDiseaseType(combinedResults);
+                     displayDetections(combinedResults);
 
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error processing image: ' + error.message);
-                } finally {
-                    loading.style.display = 'none';
-                }
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-        }
+                 } catch (error) {
+                     console.error('Error:', error);
+                     alert('Error processing image: ' + error.message);
+                 } finally {
+                     loading.style.display = 'none';
+                 }
+             };
+            reader.readAsDataURL(currentFile);
+         }
 
         // Function untuk auto-detect jenis penyakit dan set threshold
         function autoDetectDiseaseType(data) {
@@ -1046,7 +1050,8 @@
                 return;
             }
             
-            if (!fileInput.files[0]) {
+            // require currentFile (from file input or camera)
+            if (!currentFile && !(fileInput && fileInput.files && fileInput.files[0])) {
                 alert('Please upload an image first');
                 return;
             }
@@ -1059,11 +1064,12 @@
 
             try {
                 // Convert image to base64 for storage
+                const fileToSave = currentFile || (fileInput.files && fileInput.files[0]);
                 const base64Image = await new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = e => resolve(e.target.result);
-                    reader.onerror = error => reject(error);
-                    reader.readAsDataURL(fileInput.files[0]);
+                    const reader2 = new FileReader();
+                    reader2.onload = ev => resolve(ev.target.result);
+                    reader2.onerror = err => reject(err);
+                    reader2.readAsDataURL(fileToSave);
                 });
 
                 // Create assessment object
@@ -1114,7 +1120,8 @@
             nextAssessment.value = '';
             
             // Clear image and detections
-            fileInput.value = '';
+            if (fileInput) fileInput.value = '';
+            currentFile = null;
             previewCanvas.style.display = 'none';
             noImage.style.display = 'flex';
             detectionsList.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">No detections</div>';
