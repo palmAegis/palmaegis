@@ -1369,7 +1369,7 @@
         // Get detected diseases
         let detectedDiseases = 'None';
         if (assessment.detections && assessment.detections.length > 0) {
-            detectedDiseases = assessment.detections.map(d => d.class || 'Unknown').join(', ');
+            detectedDiseases = assessment.detections[0].class || 'Unknown';
         }
         
         const reportCard = document.createElement('div');
