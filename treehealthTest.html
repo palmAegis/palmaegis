@@ -941,20 +941,27 @@
                 </div>
                 
                 <div class="filter-group">
-                    <label class="filter-label">Severity Level</label>
-                    <select class="filter-select" id="severityFilter">
-                        <option value="all">All Severity Levels</option>
-                        <option value="low">Genoderma</option>
-                        <option value="medium">Black spot</option>
-                        <!-- <option value="high">High</option>
-                        <option value="critical">Critical</option> -->
+                    <label class="filter-label">Disease Type</label>
+                    <select class="filter-select" id="diseaseFilter">
+                        <option value="all">All Diseases</option>
+                        <option value="genoderma">Genoderma</option>
+                        <option value="black_spot">Black Spot</option>
+                        <option value="none">No Disease Detected</option>
                     </select>
                 </div>
-                <div class="filter-actions">
+                
+                <div class="filter-group">
+                    <label class="filter-label">Date Range</label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" class="filter-input" id="dateFrom" style="flex: 1;">
+                        <input type="date" class="filter-input" id="dateTo" style="flex: 1;">
+                    </div>
+                </div>
+            </div>
+            <div class="filter-actions">
                 <button class="btn btn-outline" id="clearFiltersBtn">Clear Filters</button>
                 <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
             </div>
-            
         </div>
     </div>
 
@@ -984,10 +991,9 @@
     // Global variables for filtering
     let currentFilters = {
         status: 'all',
-        severity: 'all',
+        disease: 'all',
         dateFrom: '',
-        dateTo: '',
-        location: ''
+        dateTo: ''
     };
 
     // Check authentication state
@@ -1179,13 +1185,16 @@
                 if (currentFilters.status === 'critical' && statusElement.statusText !== 'Critical') return false;
             }
             
-            // Severity filter
-            if (currentFilters.severity !== 'all') {
-                const severityElement = getSeverityInfo(assessment);
-                if (currentFilters.severity === 'low' && severityElement.severityText !== 'Low') return false;
-                if (currentFilters.severity === 'medium' && severityElement.severityText !== 'Medium') return false;
-                if (currentFilters.severity === 'high' && severityElement.severityText !== 'High') return false;
-                if (currentFilters.severity === 'critical' && severityElement.severityText !== 'Critical') return false;
+            // Disease filter
+            if (currentFilters.disease !== 'all') {
+                if (currentFilters.disease === 'none') {
+                    // Filter for no diseases detected
+                    if (assessment.detections && assessment.detections.length > 0) return false;
+                } else {
+                    // Filter for specific diseases
+                    const hasDisease = hasMatchingDisease(assessment, currentFilters.disease);
+                    if (!hasDisease) return false;
+                }
             }
             
             // Date filter
@@ -1215,12 +1224,6 @@
                 }
             }
             
-            // Location filter
-            if (currentFilters.location && assessment.location) {
-                const location = assessment.location.toLowerCase();
-                if (!location.includes(currentFilters.location.toLowerCase())) return false;
-            }
-            
             return true;
         });
         
@@ -1242,6 +1245,28 @@
                 createReportCard(assessment, docId);
             });
         }
+    }
+
+    // Check if assessment has matching disease
+    function hasMatchingDisease(assessment, diseaseFilter) {
+        if (!assessment.detections || assessment.detections.length === 0) {
+            return false;
+        }
+        
+        return assessment.detections.some(detection => {
+            const diseaseName = (detection.class || '').toLowerCase();
+            
+            switch(diseaseFilter) {
+                case 'genoderma':
+                    return diseaseName.includes('genoderma') || diseaseName.includes('ganoderma') || 
+                           diseaseName.includes('basal') || diseaseName.includes('stem');
+                case 'black_spot':
+                    return diseaseName.includes('black') || diseaseName.includes('spot') || 
+                           diseaseName.includes('leaf') || diseaseName.includes('blight');
+                default:
+                    return false;
+            }
+        });
     }
 
     // Get status information for an assessment
@@ -1297,18 +1322,16 @@
     function clearFilters() {
         currentFilters = {
             status: 'all',
-            severity: 'all',
+            disease: 'all',
             dateFrom: '',
-            dateTo: '',
-            location: ''
+            dateTo: ''
         };
         
         // Reset filter inputs
         document.getElementById('statusFilter').value = 'all';
-        document.getElementById('severityFilter').value = 'all';
+        document.getElementById('diseaseFilter').value = 'all';
         document.getElementById('dateFrom').value = '';
         document.getElementById('dateTo').value = '';
-        document.getElementById('locationFilter').value = '';
         
         applyFilters();
         closeFilterModal();
@@ -1343,6 +1366,12 @@
             console.log("Date parsing error:", dateError);
         }
         
+        // Get detected diseases
+        let detectedDiseases = 'None';
+        if (assessment.detections && assessment.detections.length > 0) {
+            detectedDiseases = assessment.detections.map(d => d.class || 'Unknown').join(', ');
+        }
+        
         const reportCard = document.createElement('div');
         reportCard.className = 'report-card';
         reportCard.setAttribute('data-id', docId);
@@ -1364,7 +1393,7 @@
                     </div>
                     <div class="info-item">
                         <span class="info-label">Disease Detected:</span>
-                        <span class="info-value">${assessment.disease || 'None'}</span>
+                        <span class="info-value">${detectedDiseases}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Severity:</span>
@@ -1628,10 +1657,9 @@
     
     document.getElementById('applyFiltersBtn').addEventListener('click', () => {
         currentFilters.status = document.getElementById('statusFilter').value;
-        currentFilters.severity = document.getElementById('severityFilter').value;
+        currentFilters.disease = document.getElementById('diseaseFilter').value;
         currentFilters.dateFrom = document.getElementById('dateFrom').value;
         currentFilters.dateTo = document.getElementById('dateTo').value;
-        currentFilters.location = document.getElementById('locationFilter').value;
         
         applyFilters();
         closeFilterModal();
@@ -1667,9 +1695,11 @@
             const title = card.querySelector('.report-title').textContent.toLowerCase();
             const infoValues = card.querySelectorAll('.info-value');
             const location = infoValues[1] ? infoValues[1].textContent.toLowerCase() : '';
+            const diseases = infoValues[2] ? infoValues[2].textContent.toLowerCase() : '';
             const status = card.querySelector('.report-status').textContent.toLowerCase();
             
-            if (title.includes(searchTerm) || location.includes(searchTerm) || status.includes(searchTerm)) {
+            if (title.includes(searchTerm) || location.includes(searchTerm) || 
+                diseases.includes(searchTerm) || status.includes(searchTerm)) {
                 card.style.display = 'block';
             } else {
                 card.style.display = 'none';
