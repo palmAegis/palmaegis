@@ -249,23 +249,27 @@
 
 .sidebar-footer .user-profile-mini .user-info {
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
+    flex-direction: column; /* allow name above role when long */
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;          /* IMPORTANT: allow flex children to shrink/grow */
+    flex: 1 1 auto;
 }
 
 .sidebar-footer .user-profile-mini .user-name {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: inline-block;
+    white-space: normal;   /* allow wrapping instead of truncating */
+    overflow: visible;
+    text-overflow: unset;
+    display: block;
     font-weight: 600;
 }
 
+/* keep role smaller and on same block */
 .sidebar-footer .user-profile-mini .user-role {
-    color: #9aa0a6;
     font-size: 0.85rem;
+    color: #9aa0a6;
     white-space: nowrap;
+    margin-left: 4px;
 }
 
 /* prevent avatar from shrinking */
