@@ -499,6 +499,129 @@
             margin-bottom: 15px;
         }
         
+        /* Print-specific styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            #printable-report, #printable-report * {
+                visibility: visible;
+            }
+            
+            #printable-report {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 20px;
+            }
+            
+            .no-print {
+                display: none !important;
+            }
+            
+            .print-header {
+                text-align: center;
+                margin-bottom: 20px;
+                border-bottom: 2px solid #2e7d32;
+                padding-bottom: 15px;
+            }
+            
+            .print-logo {
+                font-size: 24px;
+                font-weight: bold;
+                color: #2e7d32;
+                margin-bottom: 10px;
+            }
+            
+            .print-title {
+                font-size: 20px;
+                margin-bottom: 5px;
+            }
+            
+            .print-date {
+                font-size: 14px;
+                color: #666;
+            }
+            
+            .print-section {
+                margin-bottom: 20px;
+                page-break-inside: avoid;
+            }
+            
+            .print-section-title {
+                font-size: 16px;
+                font-weight: bold;
+                color: #2e7d32;
+                margin-bottom: 10px;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 5px;
+            }
+            
+            .print-info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            
+            .print-info-item {
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 8px;
+            }
+            
+            .print-label {
+                font-weight: bold;
+                color: #555;
+            }
+            
+            .severity-bar {
+                height: 10px;
+                background-color: #e0e0e0;
+                border-radius: 5px;
+                margin: 5px 0;
+                overflow: hidden;
+            }
+            
+            .severity-fill {
+                height: 100%;
+            }
+            
+            .disease-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 10px 0;
+            }
+            
+            .disease-table th, .disease-table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            
+            .disease-table th {
+                background-color: #f2f2f2;
+                font-weight: bold;
+            }
+            
+            .treatment-box {
+                background-color: #f9f9f9;
+                padding: 15px;
+                border-radius: 5px;
+                border-left: 4px solid #2e7d32;
+            }
+            
+            .footer-note {
+                margin-top: 30px;
+                padding-top: 15px;
+                border-top: 1px solid #ddd;
+                font-size: 12px;
+                color: #666;
+                text-align: center;
+            }
+        }
+        
         @media (max-width: 768px) {
             .dashboard-container {
                 flex-direction: column;
@@ -625,9 +748,14 @@
                 <div class="report-details" id="reportDetails" style="display: none;">
                     <div class="details-header">
                         <h2 class="details-title" id="detailsTitle">Tree Health Report</h2>
-                        <button class="btn btn-secondary" id="closeDetailsBtn">
-                            <i class="fas fa-times"></i> Close
-                        </button>
+                        <div>
+                            <button class="btn btn-secondary" id="printDetailsBtn">
+                                <i class="fas fa-print"></i> Print Report
+                            </button>
+                            <button class="btn btn-secondary" id="closeDetailsBtn">
+                                <i class="fas fa-times"></i> Close
+                            </button>
+                        </div>
                     </div>
                     <div class="details-content">
                         <div class="details-column">
@@ -698,6 +826,9 @@
             </div>
         </main>
     </div>
+
+    <!-- Hidden printable report section -->
+    <div id="printable-report" style="display: none;"></div>
 
     <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
@@ -967,7 +1098,7 @@
                     <button class="action-btn view-details" title="View Details">
                         <i class="fas fa-eye"></i>
                     </button>
-                    <button class="action-btn" title="Print Report">
+                    <button class="action-btn print-report" title="Print Report">
                         <i class="fas fa-print"></i>
                     </button>
                     <button class="action-btn" title="Share Report">
@@ -984,6 +1115,12 @@
         viewBtn.addEventListener('click', () => {
             showReportDetails(assessment, docId);
         });
+        
+        // Add event listener for print report
+        const printBtn = reportCard.querySelector('.print-report');
+        printBtn.addEventListener('click', () => {
+            printReport(assessment, docId);
+        });
     }
 
     // Show detailed report view
@@ -994,6 +1131,10 @@
         // Hide reports grid and show details
         reportsGrid.style.display = 'none';
         detailsPanel.style.display = 'block';
+        
+        // Store current assessment for printing
+        window.currentAssessment = assessment;
+        window.currentAssessmentId = docId;
         
         // Populate details with safe defaults
         document.getElementById('detailsTitle').textContent = `Tree Health Report - ${assessment.id || 'Unknown'}`;
@@ -1089,6 +1230,152 @@
         }
     }
 
+    // Print report function
+    function printReport(assessment, docId) {
+        // Format date safely
+        let assessmentDate = 'Not specified';
+        try {
+            if (assessment.date) {
+                assessmentDate = new Date(assessment.date).toLocaleDateString();
+            } else if (assessment.timestamp) {
+                assessmentDate = new Date(assessment.timestamp.toDate()).toLocaleDateString();
+            }
+        } catch (dateError) {
+            console.log("Date parsing error:", dateError);
+        }
+        
+        // Determine severity
+        let severityLevel = "severity-low";
+        let severityText = "Low";
+        let severityWidth = "25%";
+        
+        if (assessment.healthStatus !== "Healthy" || (assessment.detections && assessment.detections.length > 0)) {
+            const detectionsCount = assessment.detections ? assessment.detections.length : 0;
+            
+            if (detectionsCount === 0) {
+                severityLevel = "severity-medium";
+                severityText = "Medium";
+                severityWidth = "50%";
+            } else {
+                severityLevel = "severity-high";
+                severityText = "High";
+                severityWidth = "75%";
+                
+                if (assessment.detections && assessment.detections.some(d => 
+                    d.class && d.class.toLowerCase().includes('ganoderma'))) {
+                    severityLevel = "severity-critical";
+                    severityText = "Critical";
+                    severityWidth = "100%";
+                }
+            }
+        }
+        
+        // Get severity color
+        let severityColor = "#2e7d32"; // Green for low
+        if (severityLevel === "severity-medium") severityColor = "#ff9800";
+        if (severityLevel === "severity-high") severityColor = "#f44336";
+        if (severityLevel === "severity-critical") severityColor = "#b71c1c";
+        
+        // Create printable content
+        const printableReport = document.getElementById('printable-report');
+        printableReport.innerHTML = `
+            <div class="print-header">
+                <div class="print-logo">Palm Aegis</div>
+                <div class="print-title">Tree Health Assessment Report</div>
+                <div class="print-date">Generated on ${new Date().toLocaleDateString()}</div>
+            </div>
+            
+            <div class="print-section">
+                <div class="print-section-title">Assessment Information</div>
+                <div class="print-info-grid">
+                    <div class="print-info-item">
+                        <span class="print-label">Assessment ID:</span>
+                        <span>${assessment.id || 'Not specified'}</span>
+                    </div>
+                    <div class="print-info-item">
+                        <span class="print-label">Date:</span>
+                        <span>${assessmentDate}</span>
+                    </div>
+                    <div class="print-info-item">
+                        <span class="print-label">Location:</span>
+                        <span>${assessment.location || 'Not specified'}</span>
+                    </div>
+                    <div class="print-info-item">
+                        <span class="print-label">Health Status:</span>
+                        <span>${assessment.healthStatus || 'Not assessed'}</span>
+                    </div>
+                    <div class="print-info-item">
+                        <span class="print-label">Overall Severity:</span>
+                        <span>${severityText}</span>
+                    </div>
+                    <div class="print-info-item">
+                        <span class="print-label">Next Assessment:</span>
+                        <span>${assessment.nextAssessment || 'Not scheduled'}</span>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <div class="print-label">Severity Level:</div>
+                    <div class="severity-bar">
+                        <div class="severity-fill" style="width: ${severityWidth}; background-color: ${severityColor};"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="print-section">
+                <div class="print-section-title">Disease Detection</div>
+                ${assessment.detections && assessment.detections.length > 0 ? `
+                    <table class="disease-table">
+                        <thead>
+                            <tr>
+                                <th>Disease Name</th>
+                                <th>Confidence Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${assessment.detections.map(detection => {
+                                const confidencePercent = Math.round((detection.confidence || 0) * 100);
+                                return `
+                                    <tr>
+                                        <td>${detection.class || 'Unknown'}</td>
+                                        <td>${confidencePercent}%</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                ` : '<p>No diseases detected</p>'}
+            </div>
+            
+            <div class="print-section">
+                <div class="print-section-title">Treatment Plan</div>
+                <div class="treatment-box">
+                    <div><strong>Recommended Actions:</strong></div>
+                    <div>${assessment.treatment || 'No treatment recommendations available.'}</div>
+                </div>
+            </div>
+            
+            <div class="print-section">
+                <div class="print-section-title">Affected Areas</div>
+                <div>
+                    ${assessment.detections && assessment.detections.length > 0 ? 
+                        [...new Set(assessment.detections.map(d => d.class).filter(Boolean))].map(area => 
+                            `<span style="display: inline-block; background: #e3f2fd; padding: 5px 10px; margin: 0 5px 5px 0; border-radius: 15px; font-size: 0.8rem;">${area}</span>`
+                        ).join('') 
+                        : 'No affected areas identified'
+                    }
+                </div>
+            </div>
+            
+            <div class="footer-note">
+                This report was generated by Palm Aegis Tree Health Monitoring System.<br>
+                For questions or support, please contact your system administrator.
+            </div>
+        `;
+        
+        // Trigger print
+        window.print();
+    }
+
     // Close details view
     document.getElementById('closeDetailsBtn').addEventListener('click', () => {
         const detailsPanel = document.getElementById('reportDetails');
@@ -1096,6 +1383,13 @@
         
         detailsPanel.style.display = 'none';
         reportsGrid.style.display = 'grid';
+    });
+
+    // Print details button
+    document.getElementById('printDetailsBtn').addEventListener('click', () => {
+        if (window.currentAssessment) {
+            printReport(window.currentAssessment, window.currentAssessmentId);
+        }
     });
 
     // New assessment button
