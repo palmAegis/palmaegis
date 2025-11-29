@@ -395,34 +395,6 @@ footer p {
     margin: 0;
 }
 
-/* Sidebar sizing normalization to match other pages */
-.sidebar,
-.sidebar .sidebar-nav,
-.sidebar .sidebar-nav a,
-.sidebar .sidebar-nav .icon {
-    box-sizing: border-box;
-}
-
-.sidebar .sidebar-nav a {
-    padding: 10px 14px;       /* same compact padding used elsewhere */
-    font-size: 0.95rem;       /* normalize label size */
-    line-height: 1.2;
-}
-
-.sidebar .sidebar-nav .icon {
-    width: 36px;
-    font-size: 18px;
-}
-
-/* footer/user mini */
-.sidebar .sidebar-footer .user-avatar {
-    width: 44px;
-    height: 44px;
-}
-
-/* ensure collapsed state matches */
-.sidebar.collapsed .sidebar-nav a { padding-left: 10px; padding-right: 10px; }
-
 /* Responsive Design */
 @media (max-width: 1024px) {
     .main-content {
