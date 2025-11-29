@@ -6,6 +6,7 @@
     <title>Tree Health Reports | Palm Aegis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/sidebar.css">
     <style>
         :root {
             --primary-color: #2e7d32;
@@ -34,19 +35,6 @@
             min-height: 100vh;
         }
         
-        .sidebar {
-            width: 250px;
-            background: linear-gradient(180deg, var(--primary-color), #1b5e20);
-            color: white;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        
         .logo {
             display: flex;
             align-items: center;
@@ -63,15 +51,6 @@
         .logo h1 {
             font-size: 1.5rem;
             font-weight: 600;
-        }
-        
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 0;
-        }
-        
-        .sidebar-nav ul {
-            list-style: none;
         }
         
         .nav-item {
@@ -96,11 +75,6 @@
             margin-right: 10px;
             width: 20px;
             text-align: center;
-        }
-        
-        .sidebar-footer {
-            padding: 15px;
-            border-top: 1px solid rgba(255,255,255,0.1);
         }
         
         .user-profile-mini {
@@ -717,10 +691,6 @@
         @media (max-width: 768px) {
             .dashboard-container {
                 flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
             }
             
             .details-content {
