@@ -535,12 +535,27 @@
         }
 
         // Add logout functionality
-        document.addEventListener('DOMContentLoaded', function() {
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const logoutBtn = document.getElementById('logoutBtn');
+        //     if (logoutBtn) {
+        //         logoutBtn.addEventListener('click', function(e) {
+        //             e.preventDefault();
+        //             
+        //             signOut(auth).then(() => {
+        //                 window.location.href = 'signin.html';
+        //             }).catch((error) => {
+        //                 console.error('Logout error:', error);
+        //             });
+        //         });
+        //     }
+        // });
+
+        // Run sidebar-dependent setup after the sidebar is inserted
+        function setupAfterSidebar() {
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', function(e) {
                     e.preventDefault();
-                    
                     signOut(auth).then(() => {
                         window.location.href = 'signin.html';
                     }).catch((error) => {
@@ -549,9 +564,16 @@
                 });
             }
 
-            // Initialize the map
+            // Initialize the map (sidebar is present now)
             initializeMap();
-        });
+        }
+
+        // If sidebar already loaded, run once immediately; otherwise wait for event
+        if (window.__sidebarLoaded) {
+            setupAfterSidebar();
+        } else {
+            window.addEventListener('sidebar:loaded', setupAfterSidebar, { once: true });
+        }
 
         // Konfigurasi untuk multiple models
         const models = {
