@@ -6,7 +6,6 @@
     <title>Tree Health Reports | Palm Aegis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/homepage.css">
-    <link rel="stylesheet" href="css/sidebar.css">
     <style>
         :root {
             --primary-color: #2e7d32;
@@ -35,6 +34,19 @@
             min-height: 100vh;
         }
         
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, var(--primary-color), #1b5e20);
+            color: white;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
         .logo {
             display: flex;
             align-items: center;
@@ -51,6 +63,15 @@
         .logo h1 {
             font-size: 1.5rem;
             font-weight: 600;
+        }
+        
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 0;
+        }
+        
+        .sidebar-nav ul {
+            list-style: none;
         }
         
         .nav-item {
@@ -75,6 +96,11 @@
             margin-right: 10px;
             width: 20px;
             text-align: center;
+        }
+        
+        .sidebar-footer {
+            padding: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
         }
         
         .user-profile-mini {
@@ -691,6 +717,10 @@
         @media (max-width: 768px) {
             .dashboard-container {
                 flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
             }
             
             .details-content {
@@ -1554,100 +1584,79 @@
         window.print();
     }
 
-    // Event Listeners (safe guards)
-    const maybeAddListener = (id, event, handler, options) => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener(event, handler, options || false);
-    };
-
-    maybeAddListener('filterBtn', 'click', openFilterModal);
-    maybeAddListener('closeFilterBtn', 'click', closeFilterModal);
-    maybeAddListener('clearFiltersBtn', 'click', clearFilters);
-
-    maybeAddListener('applyFiltersBtn', 'click', () => {
-        currentFilters.status = (document.getElementById('statusFilter') || {}).value || 'all';
-        currentFilters.disease = (document.getElementById('diseaseFilter') || {}).value || 'all';
-        currentFilters.dateFrom = (document.getElementById('dateFrom') || {}).value || '';
-        currentFilters.dateTo = (document.getElementById('dateTo') || {}).value || '';
+    // Event Listeners
+    document.getElementById('filterBtn').addEventListener('click', openFilterModal);
+    document.getElementById('closeFilterBtn').addEventListener('click', closeFilterModal);
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+    
+    document.getElementById('applyFiltersBtn').addEventListener('click', () => {
+        currentFilters.status = document.getElementById('statusFilter').value;
+        currentFilters.disease = document.getElementById('diseaseFilter').value;
+        currentFilters.dateFrom = document.getElementById('dateFrom').value;
+        currentFilters.dateTo = document.getElementById('dateTo').value;
+        
         applyFilters();
         closeFilterModal();
     });
 
-    maybeAddListener('closeDetailsBtn', 'click', () => {
+    // Close details view
+    document.getElementById('closeDetailsBtn').addEventListener('click', () => {
         const detailsPanel = document.getElementById('reportDetails');
         const reportsGrid = document.getElementById('reportsGrid');
-        if (detailsPanel) detailsPanel.style.display = 'none';
-        if (reportsGrid) reportsGrid.style.display = 'grid';
+        
+        detailsPanel.style.display = 'none';
+        reportsGrid.style.display = 'grid';
     });
 
-    maybeAddListener('printDetailsBtn', 'click', () => {
+    // Print details button
+    document.getElementById('printDetailsBtn').addEventListener('click', () => {
         if (window.currentAssessment) {
             printReport(window.currentAssessment, window.currentAssessmentId);
         }
     });
 
-    maybeAddListener('newReportBtn', 'click', () => {
+    // New assessment button
+    document.getElementById('newReportBtn').addEventListener('click', () => {
         window.location.href = 'farmassessment.html';
     });
 
-    // Search input (guard)
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const reportCards = document.querySelectorAll('.report-card');
-
-            reportCards.forEach(card => {
-                const title = (card.querySelector('.report-title')?.textContent || '').toLowerCase();
-                const infoValues = card.querySelectorAll('.info-value');
-                const location = infoValues[1] ? infoValues[1].textContent.toLowerCase() : '';
-                const diseases = infoValues[2] ? infoValues[2].textContent.toLowerCase() : '';
-                const status = (card.querySelector('.report-status')?.textContent || '').toLowerCase();
-
-                if (title.includes(searchTerm) || location.includes(searchTerm) ||
-                    diseases.includes(searchTerm) || status.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-    }
-
-    // Attach logout handler after sidebar is loaded (sidebar inserted asynchronously)
-    function attachLogoutHandler() {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (!logoutBtn) return;
-        // Remove any previous listeners to avoid duplicates
-        logoutBtn.replaceWith(logoutBtn.cloneNode(true));
-        const newBtn = document.getElementById('logoutBtn');
-        if (!newBtn) return;
-        newBtn.addEventListener('click', function (e) {
-            e.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = 'signin.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
-            });
-        });
-    }
-
-    if (window.__sidebarLoaded) {
-        attachLogoutHandler();
-    } else {
-        window.addEventListener('sidebar:loaded', attachLogoutHandler, { once: true });
-    }
-
-    // Close modal when clicking outside (guard)
-    const filterModal = document.getElementById('filterModal');
-    if (filterModal) {
-        filterModal.addEventListener('click', (e) => {
-            if (e.target.id === 'filterModal') {
-                closeFilterModal();
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const reportCards = document.querySelectorAll('.report-card');
+        
+        reportCards.forEach(card => {
+            const title = card.querySelector('.report-title').textContent.toLowerCase();
+            const infoValues = card.querySelectorAll('.info-value');
+            const location = infoValues[1] ? infoValues[1].textContent.toLowerCase() : '';
+            const diseases = infoValues[2] ? infoValues[2].textContent.toLowerCase() : '';
+            const status = card.querySelector('.report-status').textContent.toLowerCase();
+            
+            if (title.includes(searchTerm) || location.includes(searchTerm) || 
+                diseases.includes(searchTerm) || status.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
             }
         });
-    }
-    </script>
+    });
+
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', function(e) {
+        e.preventDefault();
+        signOut(auth).then(() => {
+            window.location.href = 'signin.html';
+        }).catch((error) => {
+            console.error('Logout error:', error);
+        });
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('filterModal').addEventListener('click', (e) => {
+        if (e.target.id === 'filterModal') {
+            closeFilterModal();
+        }
+    });
+</script>
 </body>
 </html>
