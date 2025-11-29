@@ -7,8 +7,6 @@
     <title>Palm Aegis Community</title>
     <link rel="stylesheet" href="css/homepage.css">
     <link rel="stylesheet" href="css/forum.css">
-    <link rel="stylesheet" href="css/sidebar.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Include Firebase SDK -->
@@ -19,8 +17,83 @@
 
 <body>
     <div class="dashboard-container">
-        <div id="sidebarPlaceholder"></div>
-        <script src="js/sidebar-loader.js"></script>
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <img src="images/logo.png" alt="Palm Aegis Logo">
+                    <h1>Palm Aegis</h1>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="nav-item">
+                        <a href="homepage.html" data-tooltip="Dashboard">
+                            <i class="fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="farmassessment.html" data-tooltip="Detect Disease">
+                            <i class="fas fa-robot"></i>
+                            <span>Farm Assestment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="detectdisease.html" data-tooltip="Detect Disease">
+                            <i class="fas fa-seedling"></i>
+                            <span>Detect Disease</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="treehealth.html" data-tooltip="Tree Health">
+                            <i class="fas fa-tree"></i>
+                            <span>Tree Health</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="treatment.html" data-tooltip="Treatment">
+                            <i class="fas fa-shield"></i>
+                            <span>Treatment</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="farmdata.html" data-tooltip="Farm Data">
+                            <i class="fas fa-database"></i>
+                            <span>Farm Data</span>
+                        </a>
+                    </li>
+                    <li class="nav-item active">
+                        <a href="forum.html" data-tooltip="Forum">
+                            <i class="fas fa-comments"></i>
+                            <span>Forum</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="setting.html" data-tooltip="Settings">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" id="logoutBtn" data-tooltip="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile-mini">
+                    <img src="images/user-avatar.jpg" alt="User Avatar" class="user-avatar">
+                    <div class="user-info">
+                        <span class="user-name">Loading...</span>
+                        <span class="user-role">Farmer</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
 
         <main class="main-content">
             <div class="forum-container">
@@ -342,6 +415,7 @@
                 </div>
 
                 <script src="js/firebase-config.js"></script>
+                <script src="js/sidebar.js"></script>
                 <script src="js/forum.js"></script>
 </body>
 
