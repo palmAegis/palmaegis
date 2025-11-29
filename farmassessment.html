@@ -842,20 +842,96 @@
 
             tempCanvas.toBlob(function (blob) {
                 const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-                processFileInput();
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    const fileInputEl = $('fileInput');
+                    if (fileInputEl) {
+                        fileInputEl.files = dt.files; // supported in modern browsers
+                        // dispatch change so handler runs
+                        fileInputEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        console.warn('fileInput not found when assigning captured image');
+                    }
+                } catch (err) {
+                    console.warn('Could not assign file to input programmatically, calling process directly', err);
+                    // fallback: call processFileInput with the blob data
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        originalImage = new Image();
+                        originalImage.onload = function () {
+                            const maxWidth = 800;
+                            const scale = Math.min(maxWidth / originalImage.width, 1);
+                            previewCanvas.width = originalImage.width * scale;
+                            previewCanvas.height = originalImage.height * scale;
+                            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                            previewCanvas.style.display = 'block';
+                            noImage.style.display = 'none';
+                            currentDiseaseType = null;
+                            processImage();
+                        };
+                        originalImage.src = e.target.result;
+                    };
+                    reader.readAsDataURL(blob);
+                }
                 closeCamera();
             }, 'image/jpeg');
         }
 
-        // Function untuk memproses input file
-        function processFileInput() {
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const reader = new FileReader();
+        // helper to query elements when needed (avoids null if script runs early)
+        const $ = id => document.getElementById(id);
 
+        // get elements lazily
+        const loading = $('loading');
+        const noImage = $('noImage');
+        const previewCanvas = $('previewCanvas');
+        const imageContainer = $('imageContainer');
+        const detectionsList = $('detectionsList');
+        const objectsCount = $('objectsCount');
+        const confidenceSlider = $('confidenceSlider');
+        const confidenceValue = $('confidenceValue');
+        const cameraContainer = $('cameraContainer');
+        const cameraVideo = $('cameraVideo');
+        const cameraBtn = $('cameraBtn');
+
+        // Form elements (query now, guard if not present)
+        const assessmentId = $('assessmentId');
+        const locationInput = $('locationInput');
+        const assessmentDate = $('assessmentDate');
+        const assessmentTime = $('assessmentTime');
+        const diseaseInput = $('diseaseInput');
+        const healthStatus = $('healthStatus');
+        const treatmentText = $('treatmentText');
+        const nextAssessment = $('nextAssessment');
+        const mapContainer = $('mapContainer');
+
+        // Attach file input handler once the element is available
+        function ensureFileInputHandler() {
+            const fileInputEl = $('fileInput');
+            if (!fileInputEl) {
+                console.warn('fileInput not found yet — retrying after load');
+                return;
+            }
+            // avoid multiple attachments
+            if (!fileInputEl.__handlerAttached) {
+                fileInputEl.addEventListener('change', processFileInput);
+                fileInputEl.__handlerAttached = true;
+            }
+        }
+
+        // Try immediately, and again when the DOM/window/sidebar is ready
+        ensureFileInputHandler();
+        window.addEventListener('load', ensureFileInputHandler);
+        window.addEventListener('sidebar:loaded', ensureFileInputHandler);
+
+        // Debug: show that processFileInput was called
+        function processFileInput() {
+            console.log('processFileInput called', $('fileInput')?.files?.length);
+            const fileInputEl = $('fileInput');
+            if (fileInputEl && fileInputEl.files && fileInputEl.files[0]) {
+                const file = fileInputEl.files[0];
+                // existing reader logic...
+                const reader = new FileReader();
                 reader.onload = function (e) {
                     originalImage = new Image();
                     originalImage.onload = function () {
@@ -874,162 +950,301 @@
                     originalImage.src = e.target.result;
                 }
                 reader.readAsDataURL(file);
-            }
-        }
-
-        // Event listener untuk file input
-        fileInput.addEventListener('change', processFileInput);
-
-        async function processImage() {
-            if (!fileInput.files[0]) {
-                alert('Please select an image first!');
-                return;
-            }
-
-            loading.style.display = 'block';
-            const reader = new FileReader();
-            reader.onload = async function (e) {
-                try {
-                    const base64Image = e.target.result.split(',')[1];
-                    const promises = Object.values(models).map(model =>
-                        axios({
-                            method: "POST",
-                            url: model.url,
-                            params: { api_key: model.apiKey },
-                            data: base64Image,
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" }
-                        })
-                    );
-
-                    const responses = await Promise.all(promises);
-                    const combinedResults = { predictions: [] };
-
-                    responses.forEach((response, index) => {
-                        const modelKey = Object.keys(models)[index];
-                        if (response.data.predictions) {
-                            const predictionsWithModel = response.data.predictions.map(pred => ({
-                                ...pred,
-                                model: modelKey
-                            }));
-                            combinedResults.predictions.push(...predictionsWithModel);
-                        }
-                    });
-
-                    autoDetectDiseaseType(combinedResults);
-                    displayDetections(combinedResults);
-
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('Error processing image: ' + error.message);
-                } finally {
-                    loading.style.display = 'none';
-                }
-            };
-            reader.readAsDataURL(fileInput.files[0]);
-        }
-
-        // Function untuk auto-detect jenis penyakit dan set threshold
-        function autoDetectDiseaseType(data) {
-            if (!data.predictions || data.predictions.length === 0) {
-                currentDiseaseType = null;
-                return;
-            }
-
-            const hasGanoderma = data.predictions.some(pred =>
-                pred.model === 'ganoderma' && pred.confidence >= models.ganoderma.defaultThreshold
-            );
-            const hasBlackspot = data.predictions.some(pred =>
-                pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
-            );
-
-            if (hasGanoderma) {
-                setThresholdByDisease('ganoderma');
-            } else if (hasBlackspot) {
-                setThresholdByDisease('blackspot');
             } else {
-                currentDiseaseType = null;
+                console.warn('No file selected or fileInput missing');
             }
         }
 
-        function displayDetections(data) {
-            clearDetections();
-            if (!data.predictions || data.predictions.length === 0) {
-                detectionsList.innerHTML = `<div style="text-align: center; color: #6c757d; padding: 20px;">No objects detected</div>`;
-                objectsCount.textContent = '0 objects';
-                updateDiseaseField([]);
-                updateHealthStatus([]);
-                currentDetections = [];
+        // Improved captureImage: set input files via DataTransfer and dispatch change
+        function captureImage() {
+            const tempCanvas = document.createElement('canvas');
+            const tempContext = tempCanvas.getContext('2d');
+            tempCanvas.width = cameraVideo.videoWidth;
+            tempCanvas.height = cameraVideo.videoHeight;
+            tempContext.drawImage(cameraVideo, 0, 0);
+
+            tempCanvas.toBlob(function (blob) {
+                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    const fileInputEl = $('fileInput');
+                    if (fileInputEl) {
+                        fileInputEl.files = dt.files; // supported in modern browsers
+                        // dispatch change so handler runs
+                        fileInputEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        console.warn('fileInput not found when assigning captured image');
+                    }
+                } catch (err) {
+                    console.warn('Could not assign file to input programmatically, calling process directly', err);
+                    // fallback: call processFileInput with the blob data
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        originalImage = new Image();
+                        originalImage.onload = function () {
+                            const maxWidth = 800;
+                            const scale = Math.min(maxWidth / originalImage.width, 1);
+                            previewCanvas.width = originalImage.width * scale;
+                            previewCanvas.height = originalImage.height * scale;
+                            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                            previewCanvas.style.display = 'block';
+                            noImage.style.display = 'none';
+                            currentDiseaseType = null;
+                            processImage();
+                        };
+                        originalImage.src = e.target.result;
+                    };
+                    reader.readAsDataURL(blob);
+                }
+                closeCamera();
+            }, 'image/jpeg');
+        }
+
+        // helper to query elements when needed (avoids null if script runs early)
+        const $ = id => document.getElementById(id);
+
+        // get elements lazily
+        const loading = $('loading');
+        const noImage = $('noImage');
+        const previewCanvas = $('previewCanvas');
+        const imageContainer = $('imageContainer');
+        const detectionsList = $('detectionsList');
+        const objectsCount = $('objectsCount');
+        const confidenceSlider = $('confidenceSlider');
+        const confidenceValue = $('confidenceValue');
+        const cameraContainer = $('cameraContainer');
+        const cameraVideo = $('cameraVideo');
+        const cameraBtn = $('cameraBtn');
+
+        // Form elements (query now, guard if not present)
+        const assessmentId = $('assessmentId');
+        const locationInput = $('locationInput');
+        const assessmentDate = $('assessmentDate');
+        const assessmentTime = $('assessmentTime');
+        const diseaseInput = $('diseaseInput');
+        const healthStatus = $('healthStatus');
+        const treatmentText = $('treatmentText');
+        const nextAssessment = $('nextAssessment');
+        const mapContainer = $('mapContainer');
+
+        // Attach file input handler once the element is available
+        function ensureFileInputHandler() {
+            const fileInputEl = $('fileInput');
+            if (!fileInputEl) {
+                console.warn('fileInput not found yet — retrying after load');
                 return;
             }
+            // avoid multiple attachments
+            if (!fileInputEl.__handlerAttached) {
+                fileInputEl.addEventListener('change', processFileInput);
+                fileInputEl.__handlerAttached = true;
+            }
+        }
 
-            const filteredPredictions = data.predictions.filter(pred => pred.confidence >= confidenceThreshold);
-            currentDetections = filteredPredictions;
+        // Try immediately, and again when the DOM/window/sidebar is ready
+        ensureFileInputHandler();
+        window.addEventListener('load', ensureFileInputHandler);
+        window.addEventListener('sidebar:loaded', ensureFileInputHandler);
 
-            if (filteredPredictions.length === 0) {
-                detectionsList.innerHTML = `<div style="text-align: center; color: #6c757d; padding: 20px;">No objects above confidence threshold (${Math.round(confidenceThreshold * 100)}%)</div>`;
-                objectsCount.textContent = '0 objects';
-                updateDiseaseField([]);
-                updateHealthStatus([]);
+        // Debug: show that processFileInput was called
+        function processFileInput() {
+            console.log('processFileInput called', $('fileInput')?.files?.length);
+            const fileInputEl = $('fileInput');
+            if (fileInputEl && fileInputEl.files && fileInputEl.files[0]) {
+                const file = fileInputEl.files[0];
+                // existing reader logic...
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    originalImage = new Image();
+                    originalImage.onload = function () {
+                        const maxWidth = 800;
+                        const scale = Math.min(maxWidth / originalImage.width, 1);
+                        previewCanvas.width = originalImage.width * scale;
+                        previewCanvas.height = originalImage.height * scale;
+                        previewCanvas.style.maxWidth = '100%';
+                        previewCanvas.style.height = 'auto';
+                        canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                        previewCanvas.style.display = 'block';
+                        noImage.style.display = 'none';
+                        currentDiseaseType = null;
+                        processImage();
+                    }
+                    originalImage.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            } else {
+                console.warn('No file selected or fileInput missing');
+            }
+        }
+
+        // Improved captureImage: set input files via DataTransfer and dispatch change
+        function captureImage() {
+            const tempCanvas = document.createElement('canvas');
+            const tempContext = tempCanvas.getContext('2d');
+            tempCanvas.width = cameraVideo.videoWidth;
+            tempCanvas.height = cameraVideo.videoHeight;
+            tempContext.drawImage(cameraVideo, 0, 0);
+
+            tempCanvas.toBlob(function (blob) {
+                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    const fileInputEl = $('fileInput');
+                    if (fileInputEl) {
+                        fileInputEl.files = dt.files; // supported in modern browsers
+                        // dispatch change so handler runs
+                        fileInputEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        console.warn('fileInput not found when assigning captured image');
+                    }
+                } catch (err) {
+                    console.warn('Could not assign file to input programmatically, calling process directly', err);
+                    // fallback: call processFileInput with the blob data
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        originalImage = new Image();
+                        originalImage.onload = function () {
+                            const maxWidth = 800;
+                            const scale = Math.min(maxWidth / originalImage.width, 1);
+                            previewCanvas.width = originalImage.width * scale;
+                            previewCanvas.height = originalImage.height * scale;
+                            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                            previewCanvas.style.display = 'block';
+                            noImage.style.display = 'none';
+                            currentDiseaseType = null;
+                            processImage();
+                        };
+                        originalImage.src = e.target.result;
+                    };
+                    reader.readAsDataURL(blob);
+                }
+                closeCamera();
+            }, 'image/jpeg');
+        }
+
+        // helper to query elements when needed (avoids null if script runs early)
+        const $ = id => document.getElementById(id);
+
+        // get elements lazily
+        const loading = $('loading');
+        const noImage = $('noImage');
+        const previewCanvas = $('previewCanvas');
+        const imageContainer = $('imageContainer');
+        const detectionsList = $('detectionsList');
+        const objectsCount = $('objectsCount');
+        const confidenceSlider = $('confidenceSlider');
+        const confidenceValue = $('confidenceValue');
+        const cameraContainer = $('cameraContainer');
+        const cameraVideo = $('cameraVideo');
+        const cameraBtn = $('cameraBtn');
+
+        // Form elements (query now, guard if not present)
+        const assessmentId = $('assessmentId');
+        const locationInput = $('locationInput');
+        const assessmentDate = $('assessmentDate');
+        const assessmentTime = $('assessmentTime');
+        const diseaseInput = $('diseaseInput');
+        const healthStatus = $('healthStatus');
+        const treatmentText = $('treatmentText');
+        const nextAssessment = $('nextAssessment');
+        const mapContainer = $('mapContainer');
+
+        // Attach file input handler once the element is available
+        function ensureFileInputHandler() {
+            const fileInputEl = $('fileInput');
+            if (!fileInputEl) {
+                console.warn('fileInput not found yet — retrying after load');
                 return;
             }
-
-            objectsCount.textContent = filteredPredictions.length + ' objects';
-            drawDetectionBoxes(filteredPredictions);
-
-            let detectionsHTML = '';
-            filteredPredictions.forEach((prediction) => {
-                const confidencePercent = Math.round(prediction.confidence * 100);
-                const modelConfig = models[prediction.model];
-                detectionsHTML += `
-                    <div class="detection-item" style="border-left-color: ${modelConfig.color}">
-                        <span class="detection-class">
-                            ${prediction.class}
-                            <span class="model-badge ${modelConfig.badgeClass}">${prediction.model}</span>
-                        </span>
-                        <span class="detection-confidence" style="background: ${modelConfig.color}">${confidencePercent}%</span>
-                    </div>
-                `;
-            });
-
-            detectionsList.innerHTML = detectionsHTML;
-            updateDiseaseField(filteredPredictions);
-            updateHealthStatus(filteredPredictions);
-        }
-
-        function drawDetectionBoxes(predictions) {
-            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
-            const scaleX = previewCanvas.width / originalImage.width;
-            const scaleY = previewCanvas.height / originalImage.height;
-
-            predictions.forEach((prediction) => {
-                const confidencePercent = Math.round(prediction.confidence * 100);
-                const modelConfig = models[prediction.model];
-                const x = (prediction.x - prediction.width / 2) * scaleX;
-                const y = (prediction.y - prediction.height / 2) * scaleY;
-                const width = prediction.width * scaleX;
-                const height = prediction.height * scaleY;
-
-                canvasContext.strokeStyle = modelConfig.color;
-                canvasContext.lineWidth = 3;
-                canvasContext.strokeRect(x, y, width, height);
-
-                canvasContext.fillStyle = modelConfig.color;
-                const labelText = `${prediction.class} (${prediction.model}) ${confidencePercent}%`;
-                const textMetrics = canvasContext.measureText(labelText);
-                const textWidth = textMetrics.width + 10;
-                const textHeight = 20;
-
-                canvasContext.fillRect(x, y - textHeight, textWidth, textHeight);
-                canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = 'bold 12px Arial';
-                canvasContext.fillText(labelText, x + 5, y - 5);
-            });
-        }
-
-        function clearDetections() {
-            if (originalImage) {
-                canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+            // avoid multiple attachments
+            if (!fileInputEl.__handlerAttached) {
+                fileInputEl.addEventListener('change', processFileInput);
+                fileInputEl.__handlerAttached = true;
             }
+        }
+
+        // Try immediately, and again when the DOM/window/sidebar is ready
+        ensureFileInputHandler();
+        window.addEventListener('load', ensureFileInputHandler);
+        window.addEventListener('sidebar:loaded', ensureFileInputHandler);
+
+        // Debug: show that processFileInput was called
+        function processFileInput() {
+            console.log('processFileInput called', $('fileInput')?.files?.length);
+            const fileInputEl = $('fileInput');
+            if (fileInputEl && fileInputEl.files && fileInputEl.files[0]) {
+                const file = fileInputEl.files[0];
+                // existing reader logic...
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    originalImage = new Image();
+                    originalImage.onload = function () {
+                        const maxWidth = 800;
+                        const scale = Math.min(maxWidth / originalImage.width, 1);
+                        previewCanvas.width = originalImage.width * scale;
+                        previewCanvas.height = originalImage.height * scale;
+                        previewCanvas.style.maxWidth = '100%';
+                        previewCanvas.style.height = 'auto';
+                        canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                        previewCanvas.style.display = 'block';
+                        noImage.style.display = 'none';
+                        currentDiseaseType = null;
+                        processImage();
+                    }
+                    originalImage.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            } else {
+                console.warn('No file selected or fileInput missing');
+            }
+        }
+
+        // Improved captureImage: set input files via DataTransfer and dispatch change
+        function captureImage() {
+            const tempCanvas = document.createElement('canvas');
+            const tempContext = tempCanvas.getContext('2d');
+            tempCanvas.width = cameraVideo.videoWidth;
+            tempCanvas.height = cameraVideo.videoHeight;
+            tempContext.drawImage(cameraVideo, 0, 0);
+
+            tempCanvas.toBlob(function (blob) {
+                const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+                try {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    const fileInputEl = $('fileInput');
+                    if (fileInputEl) {
+                        fileInputEl.files = dt.files; // supported in modern browsers
+                        // dispatch change so handler runs
+                        fileInputEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        console.warn('fileInput not found when assigning captured image');
+                    }
+                } catch (err) {
+                    console.warn('Could not assign file to input programmatically, calling process directly', err);
+                    // fallback: call processFileInput with the blob data
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        originalImage = new Image();
+                        originalImage.onload = function () {
+                            const maxWidth = 800;
+                            const scale = Math.min(maxWidth / originalImage.width, 1);
+                            previewCanvas.width = originalImage.width * scale;
+                            previewCanvas.height = originalImage.height * scale;
+                            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                            previewCanvas.style.display = 'block';
+                            noImage.style.display = 'none';
+                            currentDiseaseType = null;
+                            processImage();
+                        };
+                        originalImage.src = e.target.result;
+                    };
+                    reader.readAsDataURL(blob);
+                }
+                closeCamera();
+            }, 'image/jpeg');
         }
 
         // FIXED: Save assessment function with proper Firebase integration
