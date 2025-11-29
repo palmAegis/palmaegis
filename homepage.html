@@ -70,6 +70,92 @@
             border-right: 1px solid var(--border-color);
         }
 
+        .sidebar.collapsed {
+            width: 80px;
+            overflow: visible;
+        }
+
+        /* Hide text elements when collapsed */
+        .sidebar.collapsed .logo h1,
+        .sidebar.collapsed .sidebar-nav a span,
+        .sidebar.collapsed .user-info,
+        .sidebar.collapsed .logout-btn span {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            height: 0;
+            margin: 0;
+        }
+
+        /* Center align when collapsed */
+        .sidebar.collapsed .logo {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logo img {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .sidebar-nav a {
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .sidebar.collapsed .sidebar-nav a i {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .user-profile-mini {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .user-avatar {
+            margin-right: 0;
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .sidebar.collapsed .logout-btn {
+            padding: 0.7rem;
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logout-btn i {
+            margin-right: 0;
+        }
+
+        /* Tooltips for collapsed state */
+        .sidebar.collapsed .sidebar-nav li {
+            position: relative;
+        }
+
+        .sidebar.collapsed .sidebar-nav a::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--sidebar-bg);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1001;
+            box-shadow: var(--shadow);
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed .sidebar-nav a:hover::after {
+            opacity: 1;
+            visibility: visible;
+            left: 110%;
+        }
+
         .sidebar-header {
             padding: 1.5rem 1.5rem;
             display: flex;
@@ -77,6 +163,30 @@
             justify-content: flex-start;
             border-bottom: 1px solid var(--border-color);
             min-height: 80px;
+            position: relative;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(46, 125, 50, 0.1);
         }
 
         .logo {
@@ -206,6 +316,10 @@
             overflow-y: auto;
             transition: margin-left var(--transition-speed);
             background-color: var(--bg-color);
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
         }
 
         /* Header */
@@ -678,103 +792,6 @@
             }
         }
 
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: 80px;
-                overflow: visible;
-            }
-
-            .sidebar:hover {
-                width: 260px;
-                box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            }
-
-            /* Hide text elements when collapsed */
-            .sidebar:not(:hover) .logo h1,
-            .sidebar:not(:hover) .sidebar-nav a span,
-            .sidebar:not(:hover) .user-info,
-            .sidebar:not(:hover) .logout-btn span {
-                opacity: 0;
-                visibility: hidden;
-                width: 0;
-                height: 0;
-                margin: 0;
-            }
-
-            /* Center align when collapsed */
-            .sidebar:not(:hover) .logo {
-                justify-content: center;
-            }
-
-            .sidebar:not(:hover) .logo img {
-                margin-right: 0;
-            }
-
-            .sidebar:not(:hover) .sidebar-nav a {
-                justify-content: center;
-                padding: 1rem;
-            }
-
-            .sidebar:not(:hover) .sidebar-nav a i {
-                margin-right: 0;
-            }
-
-            .sidebar:not(:hover) .user-profile-mini {
-                justify-content: center;
-            }
-
-            .sidebar:not(:hover) .user-avatar {
-                margin-right: 0;
-                width: 40px;
-                height: 40px;
-                font-size: 1rem;
-            }
-
-            .sidebar:not(:hover) .logout-btn {
-                padding: 0.7rem;
-                justify-content: center;
-            }
-
-            .sidebar:not(:hover) .logout-btn i {
-                margin-right: 0;
-            }
-
-            /* Tooltips for collapsed state */
-            .sidebar:not(:hover) .sidebar-nav li {
-                position: relative;
-            }
-
-            .sidebar:not(:hover) .sidebar-nav a::after {
-                content: attr(data-tooltip);
-                position: absolute;
-                left: 100%;
-                top: 50%;
-                transform: translateY(-50%);
-                background: var(--sidebar-bg);
-                color: var(--text-color);
-                padding: 0.5rem 1rem;
-                border-radius: 6px;
-                white-space: nowrap;
-                opacity: 0;
-                visibility: hidden;
-                transition: all 0.3s;
-                z-index: 1001;
-                box-shadow: var(--shadow);
-                font-size: 0.9rem;
-                border: 1px solid var(--border-color);
-            }
-
-            .sidebar:not(:hover) .sidebar-nav a:hover::after {
-                opacity: 1;
-                visibility: visible;
-                left: 110%;
-            }
-
-            .main-content {
-                margin-left: 80px;
-            }
-        }
-
         @media (max-width: 768px) {
             .quick-stats {
                 grid-template-columns: 1fr;
@@ -1000,6 +1017,85 @@
                 }, 1500);
             }
 
+            // Intelligent response generator for Palm Aegis
+            function generateIntelligentResponse(message) {
+                const lowerMessage = message.toLowerCase();
+                
+                // Greetings and basic questions
+                if (/(hello|hi|hey|greetings|good morning|good afternoon)/.test(lowerMessage)) {
+                    return `Hello! I'm your Palm Aegis Assistant 🌴\n\nI can help you with:\n• Palm tree diseases & treatments\n• Watering & irrigation schedules\n• Fertilization & soil management\n• Pest control & prevention\n• Harvesting & crop management\n• Weather impact on palms\n\nWhat would you like to know today?`;
+                }
+                
+                if (/(what can you do|help|support|features)/.test(lowerMessage)) {
+                    return `**🌴 Palm Aegis Assistant - Capabilities**\n\n🔍 **Disease Detection**\n- Identify common palm diseases\n- Provide treatment recommendations\n- Prevention strategies\n\n💧 **Water Management**\n- Optimal watering schedules\n- Irrigation system advice\n- Drought management\n\n🌱 **Nutrition & Soil**\n- Fertilization schedules\n- Soil pH management\n- Nutrient deficiency identification\n\n🐛 **Pest Control**\n- Pest identification\n- Organic & chemical treatments\n- Prevention methods\n\n📊 **Growth Monitoring**\n- Growth stage tracking\n- Harvest timing\n- Yield optimization\n\n🌤️ **Weather Impact**\n- Weather-related care\n- Storm preparation\n- Seasonal adjustments\n\n💡 **General Farming Advice**\n- Best practices\n- Equipment recommendations\n- Sustainable farming`;
+                }
+                
+                // Disease-related questions
+                if (/(disease|sick|yellow|brown|wilting|rot|fungus|infected|problem)/.test(lowerMessage)) {
+                    if (/(yellow|yellowing)/.test(lowerMessage)) {
+                        return `**🟡 Yellowing Fronds - Possible Causes:**\n\n**1. Lethal Yellowing**\n• Symptoms: Yellowing starts with lower fronds, moves upward\n• Fronds drop within days\n• Death in 3-6 months\n• **Treatment**: Antibiotic injections (oxytetracycline)\n\n**2. Nutrient Deficiency**\n• Magnesium: Yellow bands along leaf edges\n• Manganese: Frizzletop - distorted new growth\n• Potassium: Orange spots, leaflet necrosis\n• **Treatment**: Palm-specific fertilizer\n\n**3. Overwatering**\n• Root rot symptoms\n• Soil stays wet too long\n• **Treatment**: Improve drainage, reduce watering\n\n**🔍 Action Steps:**\n1. Check soil moisture\n2. Examine root system\n3. Apply palm fertilizer\n4. Consult expert if severe`;
+                    }
+                    
+                    if (/(brown|browning)/.test(lowerMessage)) {
+                        return `**🟤 Browning Fronds - Possible Causes:**\n\n**1. Underwatering**\n• Brown tips and margins\n• Soil is dry\n• **Treatment**: Increase watering frequency\n\n**2. Salt Burn**\n• Tip burn from fertilizer or water salts\n• **Treatment**: Flush soil with fresh water\n\n**3. Fungal Diseases**\n• Ganoderma butt rot: Conks on trunk\n• Fusarium wilt: One-sided wilting\n• **Treatment**: Fungicide applications\n\n**💡 Prevention:**\n• Regular deep watering\n• Proper fertilization\n• Good air circulation`;
+                    }
+                    
+                    if (/(rot|mushroom|fungus)/.test(lowerMessage)) {
+                        return `**🍄 Rot & Fungal Issues:**\n\n**1. Ganoderma Butt Rot**\n• Symptoms: Mushrooms/conks on trunk\n• Inner trunk decay\n• **Treatment**: No cure, remove infected trees\n• **Prevention**: Avoid wounding trunks\n\n**2. Bud Rot**\n• Symptoms: Young leaves wilt and die\n• Foul odor from crown\n• **Treatment**: Remove infected tissue, apply fungicide\n\n**3. Root Rot**\n• Caused by overwatering\n• Poor drainage\n• **Treatment**: Improve drainage, reduce watering\n\n**🚨 Immediate Actions:**\n• Isolate infected plants\n• Improve air circulation\n• Apply appropriate fungicide`;
+                    }
+                    
+                    return `**🌴 Common Palm Tree Diseases:**\n\n**🦠 Bacterial & Fungal:**\n• **Lethal Yellowing** - Yellowing fronds, rapid decline\n• **Ganoderma Butt Rot** - Conks on trunk, internal decay\n• **Fusarium Wilt** - One-sided wilting, vascular discoloration\n• **Bud Rot** - Young leaf death, crown collapse\n\n**🌱 Nutrient Deficiencies:**\n• **Magnesium** - Yellow bands on older leaves\n• **Manganese** - Frizzletop, distorted growth\n• **Potassium** - Orange spotting, leaflet necrosis\n\n**🔍 For specific diagnosis:**\n1. Describe the symptoms in detail\n2. Share photos if possible\n3. Note when symptoms started\n4. Mention recent weather conditions`;
+                }
+                
+                // Watering and irrigation
+                if (/(water|watering|irrigation|hydrate|dry|moist|drought)/.test(lowerMessage)) {
+                    return `**💧 Palm Tree Watering Guide:**\n\n**🌱 Young Palms (0-3 years):**\n• Water 2-3 times per week\n• Keep root ball moist but not soggy\n• 10-15 gallons per watering\n\n**🌴 Mature Palms (3+ years):**\n• Deep water 1-2 times weekly\n• Water until soil is moist 2 feet deep\n• 20-30 gallons per watering\n\n**🌦️ Seasonal Adjustments:**\n• **Summer**: Increase frequency\n• **Winter**: Reduce frequency\n• **Rainy season**: Natural rainfall may suffice\n\n**⚠️ Signs of Issues:**\n• **Overwatering**: Yellow fronds, root rot\n• **Underwatering**: Brown tips, wilting\n• **Poor Drainage**: Waterlogged soil, fungus\n\n**💡 Best Practices:**\n• Water in early morning\n• Use drip irrigation for efficiency\n• Mulch to retain moisture\n• Check soil moisture before watering`;
+                }
+                
+                // Fertilization and nutrients
+                if (/(fertiliz|nutrient|food|feed|npk|magnesium|manganese|potassium)/.test(lowerMessage)) {
+                    return `**🌱 Palm Tree Fertilization Guide:**\n\n**📊 Recommended Formula:**\n• **NPK Ratio**: 8-2-12 or similar\n• **Plus Micronutrients**: Magnesium, Manganese, Iron\n• **Specialty**: Palm-specific fertilizers available\n\n**📅 Application Schedule:**\n• **Spring** (March-April): Primary application\n• **Summer** (June-July): Supplemental feeding\n• **Fall** (September): Light application\n• **Winter**: Generally avoid fertilizing\n\n**🎯 Application Method:**\n1. Spread evenly under canopy drip line\n2. Keep 2 feet from trunk\n3. Water thoroughly after application\n4. Use 1-5 lbs per tree depending on size\n\n**🔍 Deficiency Signs:**\n• **Magnesium**: Yellow bands on older leaves\n• **Manganese**: Frizzletop, distorted new growth\n• **Potassium**: Orange spots, leaflet tip burn\n• **Iron**: Yellow new leaves with green veins\n\n**💡 Organic Options:**\n• Compost\n• Worm castings\n• Fish emulsion\n• Palm-specific organic blends`;
+                }
+                
+                // Pest control
+                if (/(pest|bug|insect|mite|scale|weevil|beetle|caterpillar)/.test(lowerMessage)) {
+                    return `**🐛 Common Palm Pests & Solutions:**\n\n**🔴 Major Pests:**\n\n**1. Palm Weevils**\n• **Damage**: Bore into trunks, kill trees\n• **Signs**: Sawdust-like frass, wilting\n• **Treatment**: Pheromone traps, insecticides\n• **Prevention**: Avoid trunk wounds\n\n**2. Scale Insects**\n• **Damage**: Suck sap, cause yellowing\n• **Signs**: Small bumps on fronds/stems\n• **Treatment**: Horticultural oil, systemic insecticides\n\n**3. Spider Mites**\n• **Damage**: Yellow stippling on leaves\n• **Signs**: Fine webbing, tiny moving dots\n• **Treatment**: Miticides, water sprays\n\n**4. Caterpillars**\n• **Damage**: Chew on fronds\n• **Signs**: Leaf damage, visible caterpillars\n• **Treatment**: BT (Bacillus thuringiensis)\n\n**🌿 Organic Control Methods:**\n• Neem oil sprays\n• Beneficial insects (ladybugs, lacewings)\n• Diatomaceous earth\n• Manual removal\n\n**⚠️ Immediate Actions:**\n• Isolate heavily infected plants\n• Remove severely damaged fronds\n• Apply appropriate treatment promptly`;
+                }
+                
+                // Planting and growth
+                if (/(plant|grow|transplant|seedling|sprout|germinate)/.test(lowerMessage)) {
+                    return `**🌱 Palm Tree Planting Guide:**\n\n**📍 Site Selection:**\n• Well-draining soil\n• Full sun (6-8 hours daily)\n• Space 15-20 feet from structures/other trees\n• Consider mature size\n\n**🕒 Best Planting Time:**\n• **Spring**: Ideal for most regions\n• **Early Summer**: Good alternative\n• Avoid extreme heat or freezing temps\n\n**📝 Planting Steps:**\n1. Dig hole 2-3x wider than root ball\n2. Same depth as nursery container\n3. Amend soil with compost if poor drainage\n4. Place tree, backfill, water thoroughly\n5. Stake if needed in windy areas\n\n**🌴 After Planting Care:**\n• Water deeply 2-3 times weekly first month\n• Apply mulch (keep away from trunk)\n• Wait 4-6 weeks before fertilizing\n• Monitor for stress signs\n\n**⏱️ Growth Timeline:**\n• **Oil Palms**: First harvest in 3-4 years\n• **Coconut Palms**: First nuts in 6-10 years\n• **Date Palms**: First fruit in 4-8 years\n• **Ornamental Palms**: Varies by species";
+                }
+                
+                // Harvesting and yield
+                if (/(harvest|yield|fruit|produce|production|ripe|mature)/.test(lowerMessage)) {
+                    return '📊 Palm Harvesting Guide:**\n\n**🎯 Harvest Indicators:**\n\n**Oil Palms:**\n• **Time**: 3-4 years after planting\n• **Signs**: Fruit bunches turn orange-red\n• **Yield**: 10-35 tons/hectare/year\n• **Frequency**: Every 10-14 days\n\n**Coconut Palms:**\n• **Time**: 6-10 years after planting\n• **Signs**: Nuts fall naturally or sound hollow\n• **Yield**: 50-200 nuts/tree/year\n• **Frequency**: Monthly harvesting\n\n**Date Palms:**\n• **Time**: 4-8 years after planting\n• **Signs**: Fruits soft, color changes\n• **Yield**: 100-200 lbs/tree/year\n• **Frequency**: Once annually\n\n**🔧 Harvesting Methods:**\n• Use specialized poles with cutters\n• Safety equipment essential\n• Harvest in cool morning hours\n• Proper handling to avoid damage\n\n**📈 Maximizing Yield:**\n• Regular fertilization\n• Proper irrigation\n• Pest/disease control\n• Timely harvesting`;
+                }
+
+                // Weather and climate
+                if (/(weather|climate|temperature|cold|frost|freeze|heat|sun|shade)/.test(lowerMessage)) {
+                    return '🌤️ Weather Impact on Palms:**\n\n**❄️ Cold Protection:**\n• **Below 50°F**: Growth slows\n• **Below 32°F**: Frost damage possible\n• **Below 20°F**: Severe damage likely\n\n**🛡️ Cold Protection Methods:**\n• Wrap trunks with frost cloth\n• Cover sensitive crowns\n• Use Christmas lights for warmth\n• Water before freeze (releases heat)\n\n**☀️ Heat Management:**\n• **Above 95°F**: Watch for heat stress\n• Provide afternoon shade for young palms\n• Increase watering during heat waves\n• Mulch to keep roots cool\n\n**💨 Wind Protection:**\n• Stake young trees\n• Plant windbreaks\n• Avoid over-pruning (fronds act as sails)\n\n**🌧️ Rainy Season Care:**\n• Ensure good drainage\n• Watch for fungal diseases\n• Adjust fertilization\n• Monitor for nutrient leaching';
+                }
+
+                // Soil and pH
+                if (/(soil|dirt|ground|ph|acid|alkaline|clay|sand|drainage)/.test(lowerMessage)) {
+                    return '🌱 Soil Requirements for Palms:**\n\n**📊 Ideal Soil Conditions:**\n• **pH Range**: 6.0-7.0 (slightly acidic to neutral)\n• **Texture**: Well-draining loam\n• **Organic Matter**: 3-5% ideal\n\n**🔍 Soil Testing:**\n• Test pH every 1-2 years\n• Check nutrient levels\n• Assess drainage capacity\n\n**🛠️ Soil Improvement:**\n\n**Clay Soil:**\n• Add compost/sand for drainage\n• Create raised beds\n• Install French drains if needed\n\n**Sandy Soil:**\n• Add organic matter\n• Use moisture-retaining mulch\n• More frequent watering\n\n**💧 Drainage Check:**\n• Dig 2-foot hole, fill with water\n• Should drain within 4 hours\n• If slower, improve drainage\n\n**🌿 Soil Amendments:**\n• Compost for organic matter\n• Gypsum for clay soils\n• Sulfur to lower pH\n• Lime to raise pH';
+                }
+
+                // Pruning and maintenance
+                if (/(prune|trim|cut|remove|frond|leaf|maintenance|clean)/.test(lowerMessage)) {
+                    return `**✂️ Palm Tree Pruning Guide:**\n\n**📅 When to Prune:**\n• **Best Time**: Late spring/early summer\n• **Frequency**: 1-2 times per year\n• **Avoid**: Hurricane season, extreme weather\n\n**🌿 What to Remove:**\n• Dead or dying fronds (brown)\n• Fruit stalks (if desired)\n• Loose bark or boots\n• **Keep**: Green fronds, yellowing fronds\n\n**⚠️ What NOT to Remove:**\n• Green fronds (they produce food)\n• More than needed (hurts tree)\n• "Hurricane cut" (over-pruning)\n\n**🔧 Proper Technique:**\n• Use clean, sharp tools\n• Cut close to trunk\n• Avoid damaging trunk\n• Don't remove crownshaft\n\n**🎯 Benefits of Proper Pruning:**\n• Reduces fire risk\n• Prevents pest habitat\n• Improves appearance\n• Reduces falling frond risk\n\n**🚫 Common Mistakes:**\n• Over-pruning (pencil-pointing)\n• Removing green fronds\n• Damaging trunk\n• Pruning during stress periods`;
+                }
+
+                // General farming advice
+                if (/(farm|agriculture|crop|field|plantation|business|profit)/.test(lowerMessage)) {
+                    return `**🏭 Palm Farming Business Guide:**\n\n**📈 Planning Your Plantation:**\n\n**🌴 Species Selection:**\n• **Oil Palm**: Highest yield, tropical climate\n• **Coconut Palm**: Versatile, coastal areas\n• **Date Palm**: Arid regions, high-value fruit\n• **Choose** based on climate and market\n\n**💰 Economic Considerations:**\n• **Initial Investment**: $2,000-$5,000 per acre\n• **Time to Profit**: 3-6 years depending on species\n• **Annual Revenue**: Varies by species and scale\n• **Labor Requirements**: Moderate to high\n\n**📊 Best Practices:**\n\n**1. Diversification**\n• Mix palm species\n• Intercrop with shorter plants\n• Consider value-added products\n\n**2. Sustainability**\n• Practice integrated pest management\n• Use water-efficient irrigation\n• Maintain soil health\n• Consider organic certification\n\n**3. Market Strategy**\n• Identify buyers early\n• Consider direct-to-consumer\n• Explore export opportunities\n• Develop brand identity\n\n**🔍 Success Factors:**\n• Proper site selection\n• Quality planting material\n• Consistent maintenance\n• Market awareness\n• Financial planning`;
+                }
+
+                // Default response for other questions
+                return `I understand you're asking about palm tree farming. I'm here to help you with all aspects of palm tree care and cultivation.\n\n**🔍 To help you better, could you specify:**\n\n• Are you dealing with a specific **disease or pest problem**?\n• Do you need advice on **watering or fertilization**?\n• Are you planning to **plant new palms**?\n• Do you have questions about **harvesting or yield**?\n• Are you concerned about **weather impacts**?\n\nOr you can ask me about:\n• Common palm diseases and treatments\n• Optimal watering schedules\n• Fertilization recommendations\n• Pest identification and control\n• Harvest timing and techniques\n• Soil and climate requirements\n\nWhat specific area would you like help with today? 🌴`;
+            }
+
             // Add message to chat
             function addMessage(content, sender) {
                 const messageDiv = document.createElement('div');
@@ -1087,6 +1183,24 @@
 
             // Add quick actions after initial load
             setTimeout(addQuickActions, 1000);
+
+            // Sidebar toggle functionality
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                
+                // Update toggle icon
+                const icon = sidebarToggle.querySelector('i');
+                if (sidebar.classList.contains('collapsed')) {
+                    icon.className = 'fas fa-chevron-right';
+                } else {
+                    icon.className = 'fas fa-chevron-left';
+                }
+            });
         });
 
         // Initialize the map
@@ -1195,6 +1309,9 @@
                     <img src="images/logo.png" alt="Palm Aegis Logo">
                     <h1>Palm Aegis</h1>
                 </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
             </div>
             <nav class="sidebar-nav">
                 <ul>
