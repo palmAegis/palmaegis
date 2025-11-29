@@ -866,15 +866,38 @@
     function updateUserProfile(user, userData) {
         const userNameElement = document.querySelector('.user-name');
         const userRoleElement = document.querySelector('.user-role');
-        
+
         const displayName = userData.firstName && userData.lastName 
             ? `${userData.firstName} ${userData.lastName}`
             : userData.username 
             ? userData.username
             : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-        
+
         if (userNameElement) userNameElement.textContent = displayName;
         if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
+
+        // set avatar(s) safely (use base64/photoURL/picture or fall back to default)
+        const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
+        const avatars = document.querySelectorAll('.user-avatar');
+        avatars.forEach(img => {
+            if (img) {
+                img.src = avatarSrc;
+                img.onerror = () => { img.src = 'images/default-avatar.png'; };
+            }
+        });
+
+        // store for later in case sidebar is loaded after profile
+        window.userData = userData;
+    }
+
+    // If sidebar is loaded after user data, re-apply avatar when sidebar is inserted
+    if (window.__sidebarLoaded) {
+        // sidebar might already be present
+        if (window.userData) updateUserProfile(window.currentUser, window.userData);
+    } else {
+        window.addEventListener('sidebar:loaded', () => {
+            if (window.currentUser) updateUserProfile(window.currentUser, window.userData || {});
+        }, { once: true });
     }
 
     // Show error message
