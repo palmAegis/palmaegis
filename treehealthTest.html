@@ -454,12 +454,49 @@
             text-align: center;
             padding: 40px;
             color: #777;
+            grid-column: 1 / -1;
         }
         
         .no-data i {
             font-size: 3rem;
             margin-bottom: 15px;
             color: #ddd;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            grid-column: 1 / -1;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background-color: #ffebee;
+            border: 1px solid #f44336;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            grid-column: 1 / -1;
+        }
+        
+        .error-message i {
+            font-size: 2rem;
+            color: #f44336;
+            margin-bottom: 15px;
         }
         
         @media (max-width: 768px) {
@@ -579,11 +616,9 @@
                 </div>
 
                 <div class="reports-grid" id="reportsGrid">
-                    <!-- Reports will be dynamically loaded here -->
-                    <div class="no-data">
-                        <i class="fas fa-tree"></i>
-                        <h3>No Health Reports Available</h3>
-                        <p>Complete a farm assessment to generate your first tree health report.</p>
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading health reports...</p>
                     </div>
                 </div>
 
@@ -701,10 +736,11 @@
                     }
                     
                     // Load assessment data
-                    loadAssessmentData(user.uid);
+                    await loadAssessmentData(user.uid);
                 } catch (error) {
                     console.error('Error loading user data:', error);
                     updateUserProfile(user, {});
+                    showError("Failed to load user data. Please try again.");
                 }
             } else {
                 console.log('User is not signed in');
@@ -726,23 +762,67 @@
             if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
         }
 
+        // Show error message
+        function showError(message) {
+            const reportsGrid = document.getElementById('reportsGrid');
+            reportsGrid.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error Loading Reports</h3>
+                    <p>${message}</p>
+                    <button class="btn btn-primary" id="retryBtn" style="margin-top: 15px;">
+                        <i class="fas fa-redo"></i> Try Again
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('retryBtn').addEventListener('click', () => {
+                if (window.currentUser) {
+                    loadAssessmentData(window.currentUser.uid);
+                }
+            });
+        }
+
+        // Show no data message
+        function showNoData() {
+            const reportsGrid = document.getElementById('reportsGrid');
+            reportsGrid.innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-tree"></i>
+                    <h3>No Health Reports Available</h3>
+                    <p>Complete a farm assessment to generate your first tree health report.</p>
+                    <button class="btn btn-primary" id="createAssessmentBtn" style="margin-top: 15px;">
+                        <i class="fas fa-plus"></i> Create Assessment
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('createAssessmentBtn').addEventListener('click', () => {
+                window.location.href = 'farmassessment.html';
+            });
+        }
+
         // Load assessment data from Firebase
         async function loadAssessmentData(userId) {
             try {
+                const reportsGrid = document.getElementById('reportsGrid');
+                reportsGrid.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading health reports...</p>
+                    </div>
+                `;
+
+                console.log("Loading assessments for user:", userId);
+                
                 const assessmentsRef = collection(db, "assessments");
                 const q = query(assessmentsRef, where("userId", "==", userId), orderBy("timestamp", "desc"));
                 const querySnapshot = await getDocs(q);
                 
-                const reportsGrid = document.getElementById('reportsGrid');
+                console.log("Found assessments:", querySnapshot.size);
                 
                 if (querySnapshot.empty) {
-                    reportsGrid.innerHTML = `
-                        <div class="no-data">
-                            <i class="fas fa-tree"></i>
-                            <h3>No Health Reports Available</h3>
-                            <p>Complete a farm assessment to generate your first tree health report.</p>
-                        </div>
-                    `;
+                    showNoData();
                     return;
                 }
                 
@@ -750,17 +830,20 @@
                 
                 querySnapshot.forEach((doc) => {
                     const assessment = doc.data();
+                    console.log("Processing assessment:", assessment.id);
                     createReportCard(assessment, doc.id);
                 });
             } catch (error) {
                 console.error("Error loading assessments: ", error);
-                document.getElementById('reportsGrid').innerHTML = `
-                    <div class="no-data">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <h3>Error Loading Reports</h3>
-                        <p>There was a problem loading your assessment data.</p>
-                    </div>
-                `;
+                
+                // Check if it's a permissions error
+                if (error.code === 'permission-denied') {
+                    showError("You don't have permission to access assessment data. Please contact support.");
+                } else if (error.code === 'unavailable') {
+                    showError("Network error. Please check your internet connection and try again.");
+                } else {
+                    showError("There was a problem loading your assessment data. Please try again later.");
+                }
             }
         }
 
@@ -790,7 +873,7 @@
                     severityText = "High";
                     
                     // Check for specific high-risk diseases
-                    if (assessment.detections.some(d => d.class.toLowerCase().includes('ganoderma'))) {
+                    if (assessment.detections && assessment.detections.some(d => d.class && d.class.toLowerCase().includes('ganoderma'))) {
                         severityLevel = "severity-critical";
                         severityText = "Critical";
                     }
@@ -889,7 +972,7 @@
                     severityLevel = "severity-high";
                     severityText = "High";
                     
-                    if (assessment.detections.some(d => d.class.toLowerCase().includes('ganoderma'))) {
+                    if (assessment.detections && assessment.detections.some(d => d.class && d.class.toLowerCase().includes('ganoderma'))) {
                         severityLevel = "severity-critical";
                         severityText = "Critical";
                     }
@@ -905,7 +988,7 @@
             
             if (assessment.detections && assessment.detections.length > 0) {
                 assessment.detections.forEach(detection => {
-                    const confidencePercent = Math.round(detection.confidence * 100);
+                    const confidencePercent = Math.round((detection.confidence || 0) * 100);
                     let confidenceColor = '#4caf50'; // Green for low confidence
                     
                     if (confidencePercent > 70) {
@@ -917,7 +1000,7 @@
                     const diseaseItem = document.createElement('li');
                     diseaseItem.className = 'disease-item';
                     diseaseItem.innerHTML = `
-                        <span class="disease-name">${detection.class}</span>
+                        <span class="disease-name">${detection.class || 'Unknown'}</span>
                         <span class="disease-confidence" style="background-color: ${confidenceColor}">${confidencePercent}%</span>
                     `;
                     diseasesList.appendChild(diseaseItem);
@@ -931,7 +1014,7 @@
             affectedAreas.innerHTML = '';
             
             if (assessment.detections && assessment.detections.length > 0) {
-                const areas = [...new Set(assessment.detections.map(d => d.class))];
+                const areas = [...new Set(assessment.detections.map(d => d.class).filter(Boolean))];
                 areas.forEach(area => {
                     const areaTag = document.createElement('div');
                     areaTag.className = 'area-tag';
@@ -964,7 +1047,7 @@
             
             reportCards.forEach(card => {
                 const title = card.querySelector('.report-title').textContent.toLowerCase();
-                const location = card.querySelector('.info-value').textContent.toLowerCase();
+                const location = card.querySelectorAll('.info-value')[1].textContent.toLowerCase();
                 const status = card.querySelector('.report-status').textContent.toLowerCase();
                 
                 if (title.includes(searchTerm) || location.includes(searchTerm) || status.includes(searchTerm)) {
