@@ -252,7 +252,6 @@
     flex-direction: row;
     align-items: center;
     gap: 8px;
-    min-width: 0; /* allow text-overflow on flex children */
 }
 
 .sidebar-footer .user-profile-mini .user-name {
@@ -260,7 +259,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: inline-block;
-    max-width: 160px; /* adjust as needed */
     font-weight: 600;
 }
 
