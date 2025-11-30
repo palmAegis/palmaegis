@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farm Data Management | Palm Aegis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/farmdatatest.css">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    
+    <!-- Add Axios library -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div id="sidebarPlaceholder"></div>
+        <script src="js/sidebar-loader.js"></script>
+
+        <main class="main-content">
+            <div class="top-header">
+                <div class="header-left">
+                    <h1>Farm Data Management</h1>
+                    <p>Track soil quality, weather, irrigation, and crop history</p>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search farm records...">
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="farm-data-form">
+                    <!-- Farm Identification -->
+                    <div class="form-section">
+                        <h3>📋 Farm Identification</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Farm ID *</label>
+                                <input type="text" class="form-input" id="farmId" placeholder="FARM-001" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Farm Name *</label>
+                                <input type="text" class="form-input" id="farmName" placeholder="My Oil Palm Farm" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Location *</label>
+                            <div class="location-input-group">
+                                <input type="text" class="form-input" id="locationInput" placeholder="Enter farm location" required>
+                                <button type="button" class="location-btn" onclick="getCurrentLocation()">
+                                    <i class="fas fa-location-arrow"></i> Current Location
+                                </button>
+                            </div>
+                            <div class="map-container" id="mapContainer" style="height: 200px; margin-top: 10px;"></div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Plot Size (hectares) *</label>
+                                <input type="number" class="form-input" id="plotSize" min="0.1" step="0.1" placeholder="5.0" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Date Recorded *</label>
+                                <input type="date" class="form-input" id="recordDate" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Soil Quality Section -->
+                    <div class="form-section">
+                        <h3>🌱 Soil Quality</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Soil Knowledge Level</label>
+                            <select class="form-input" id="soilKnowledge" onchange="toggleSoilInputs()">
+                                <option value="unknown">I don't know soil details</option>
+                                <option value="basic">I know basic soil type</option>
+                                <option value="detailed">I have detailed soil test results</option>
+                            </select>
+                        </div>
+
+                        <!-- Basic Soil Info -->
+                        <div id="basicSoilInfo" class="soil-info-section">
+                            <div class="form-group">
+                                <label class="form-label">Soil Type</label>
+                                <div class="soil-visual-guide">
+                                    <div class="soil-option" onclick="selectSoilType('clay')">
+                                        <div class="soil-sample clay-sample"></div>
+                                        <span>Clay</span>
+                                        <small>Sticky, hard when dry</small>
+                                    </div>
+                                    <div class="soil-option" onclick="selectSoilType('sandy')">
+                                        <div class="soil-sample sandy-sample"></div>
+                                        <span>Sandy</span>
+                                        <small>Gritty, drains fast</small>
+                                    </div>
+                                    <div class="soil-option" onclick="selectSoilType('loamy')">
+                                        <div class="soil-sample loamy-sample"></div>
+                                        <span>Loamy</span>
+                                        <small>Dark, crumbly, ideal</small>
+                                    </div>
+                                    <div class="soil-option" onclick="selectSoilType('silt')">
+                                        <div class="soil-sample silt-sample"></div>
+                                        <span>Silt</span>
+                                        <small>Soft, holds water</small>
+                                    </div>
+                                </div>
+                                <input type="hidden" id="soilType" class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Quick Soil Assessment</label>
+                                <div class="quality-question">
+                                    <p>How does water behave when you irrigate?</p>
+                                    <select class="form-input" id="waterBehavior" onchange="estimateSoilQuality()">
+                                        <option value="">Select behavior</option>
+                                        <option value="pools">Pools on surface</option>
+                                        <option value="slow_absorb">Absorbs slowly</option>
+                                        <option value="good_absorb">Absorbs well</option>
+                                        <option value="fast_drain">Drains too quickly</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="quality-question">
+                                    <p>Soil color and texture?</p>
+                                    <select class="form-input" id="soilTexture" onchange="estimateSoilQuality()">
+                                        <option value="">Select description</option>
+                                        <option value="dark_soft">Dark and soft</option>
+                                        <option value="light_gritty">Light and gritty</option>
+                                        <option value="reddish">Reddish color</option>
+                                        <option value="sticky">Sticky when wet</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detailed Soil Info -->
+                        <div id="detailedSoilInfo" class="soil-info-section" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">pH Level</label>
+                                    <input type="number" class="form-input" id="soilPh" min="0" max="14" step="0.1" placeholder="6.5">
+                                    <div class="ph-scale">
+                                        <span class="ph-acidic">Acidic</span>
+                                        <span class="ph-neutral">Neutral</span>
+                                        <span class="ph-alkaline">Alkaline</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Organic Matter (%)</label>
+                                    <input type="number" class="form-input" id="organicMatter" min="0" max="100" step="0.1" placeholder="3.5">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Nutrient Levels (ppm)</label>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <input type="number" class="form-input" id="nitrogenLevel" placeholder="N - Nitrogen">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="number" class="form-input" id="phosphorusLevel" placeholder="P - Phosphorus">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="number" class="form-input" id="potassiumLevel" placeholder="K - Potassium">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Soil Moisture (%)</label>
+                                <input type="number" class="form-input" id="soilMoisture" min="0" max="100" placeholder="25">
+                            </div>
+                        </div>
+
+                        <!-- Estimated Quality Display -->
+                        <div id="estimatedQuality" class="estimated-quality" style="display: none;">
+                            <div class="quality-result">
+                                <strong>Estimated Soil Quality: <span id="qualityResult"></span></strong>
+                                <p id="qualityDescription"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Crop Information -->
+                    <div class="form-section">
+                        <h3>🌿 Crop Information</h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Current Crop *</label>
+                                <select class="form-input" id="currentCrop" onchange="suggestSoilNeeds()" required>
+                                    <option value="">Select crop</option>
+                                    <option value="oil_palm">Oil Palm</option>
+                                    <option value="rubber">Rubber</option>
+                                    <option value="rice">Rice</option>
+                                    <option value="corn">Corn</option>
+                                    <option value="vegetables">Vegetables</option>
+                                    <option value="fruits">Fruits</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Crop Variety</label>
+                                <input type="text" class="form-input" id="cropVariety" placeholder="e.g., Tenera Palm">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Planting Date</label>
+                                <input type="date" class="form-input" id="plantingDate">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Growth Stage</label>
+                                <select class="form-input" id="growthStage">
+                                    <option value="">Select stage</option>
+                                    <option value="seedling">Seedling</option>
+                                    <option value="vegetative">Vegetative</option>
+                                    <option value="flowering">Flowering</option>
+                                    <option value="fruiting">Fruiting</option>
+                                    <option value="mature">Mature</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Previous Crop</label>
+                            <input type="text" class="form-input" id="previousCrop" placeholder="What was grown before?">
+                        </div>
+
+                        <!-- Crop Suggestions -->
+                        <div id="cropSoilSuggestions" class="crop-suggestions" style="display: none;">
+                            <h4>🌱 Recommended for <span id="cropName"></span>:</h4>
+                            <div class="suggestion-content">
+                                <p><strong>Ideal pH:</strong> <span id="idealPh"></span></p>
+                                <p><strong>Soil Type:</strong> <span id="idealSoilType"></span></p>
+                                <p><strong>Notes:</strong> <span id="cropNotes"></span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weather & Irrigation -->
+                    <div class="form-section">
+                        <h3>⛅ Weather & Irrigation</h3>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Current Weather</label>
+                            <div class="weather-widget">
+                                <button type="button" onclick="getWeatherData()" class="weather-btn">
+                                    <i class="fas fa-cloud-sun"></i> Get Current Weather
+                                </button>
+                                <div id="weatherInfo" class="weather-info">
+                                    <!-- Weather data will appear here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Last Rainfall (mm)</label>
+                                <input type="number" class="form-input" id="lastRainfall" min="0" placeholder="25">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Temperature (°C)</label>
+                                <input type="number" class="form-input" id="temperature" placeholder="28">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Irrigation Schedule</label>
+                            <select class="form-input" id="irrigationFrequency">
+                                <option value="">Select frequency</option>
+                                <option value="daily">Daily</option>
+                                <option value="every_2_days">Every 2 Days</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="biweekly">Bi-weekly</option>
+                                <option value="as_needed">As Needed</option>
+                            </select>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Last Irrigation</label>
+                                <input type="date" class="form-input" id="lastIrrigation">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Next Irrigation Due</label>
+                                <input type="date" class="form-input" id="nextIrrigation" readonly>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Notes -->
+                    <div class="form-section">
+                        <h3>📝 Additional Notes</h3>
+                        <div class="form-group">
+                            <label class="form-label">Observations & Issues</label>
+                            <textarea class="form-textarea" id="observations" placeholder="Any observations, issues, or additional notes about the farm..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Upload Farm Photos</label>
+                            <div class="upload-area" onclick="document.getElementById('farmPhotosInput').click()">
+                                <i class="fas fa-images"></i>
+                                <p>Click to upload farm photos</p>
+                                <p style="font-size: 12px; color: #6c757d;">Supported: JPG, PNG, JPEG</p>
+                                <input type="file" id="farmPhotosInput" class="file-input" accept="image/*" multiple style="display: none;">
+                            </div>
+                            <div id="uploadedPhotos" class="uploaded-photos"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="resetForm()">
+                            <i class="fas fa-redo"></i> Reset Form
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="saveFarmData()">
+                            <i class="fas fa-save"></i> Save Farm Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+        import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Global variables
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseCollection = collection;
+        window.firebaseServerTimestamp = serverTimestamp;
+
+        let map = null;
+        let marker = null;
+        let uploadedPhotos = [];
+
+        // Check authentication state
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log('User is signed in:', user.email);
+                window.currentUser = user;
+                
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        window.userData = userData;
+                        console.log('User data from Firestore:', userData);
+                    }
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                }
+                
+                initializeApp();
+            } else {
+                console.log('User is not signed in');
+                window.location.href = 'signin.html';
+            }
+        });
+
+        function initializeApp() {
+            initializeDateTime();
+            initializeMap();
+            generateFarmId();
+            setupEventListeners();
+        }
+
+        function initializeDateTime() {
+            const now = new Date();
+            document.getElementById('recordDate').value = now.toISOString().split('T')[0];
+            document.getElementById('plantingDate').value = now.toISOString().split('T')[0];
+            document.getElementById('lastIrrigation').value = now.toISOString().split('T')[0];
+            
+            // Set next irrigation to 2 days from now
+            const nextIrrigation = new Date(now);
+            nextIrrigation.setDate(nextIrrigation.getDate() + 2);
+            document.getElementById('nextIrrigation').value = nextIrrigation.toISOString().split('T')[0];
+        }
+
+        function generateFarmId() {
+            const randomNum = Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('farmId').value = `FARM-${randomNum}`;
+        }
+
+        function initializeMap() {
+            map = L.map('mapContainer').setView([0, 0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            marker = L.marker([0, 0]).addTo(map)
+                .bindPopup('Farm location')
+                .openPopup();
+        }
+
+        function setupEventListeners() {
+            // File upload listener
+            document.getElementById('farmPhotosInput').addEventListener('change', handleFileUpload);
+            
+            // Irrigation frequency change listener
+            document.getElementById('irrigationFrequency').addEventListener('change', updateIrrigationSchedule);
+        }
+
+        function toggleSoilInputs() {
+            const knowledgeLevel = document.getElementById('soilKnowledge').value;
+            const basicInfo = document.getElementById('basicSoilInfo');
+            const detailedInfo = document.getElementById('detailedSoilInfo');
+            const estimatedQuality = document.getElementById('estimatedQuality');
+
+            basicInfo.style.display = 'none';
+            detailedInfo.style.display = 'none';
+            estimatedQuality.style.display = 'none';
+
+            if (knowledgeLevel === 'basic') {
+                basicInfo.style.display = 'block';
+            } else if (knowledgeLevel === 'detailed') {
+                detailedInfo.style.display = 'block';
+            } else {
+                // Unknown - estimate from location
+                estimateSoilFromLocation();
+            }
+        }
+
+        function selectSoilType(type) {
+            document.getElementById('soilType').value = type;
+            
+            // Remove active class from all options
+            document.querySelectorAll('.soil-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            // Add active class to selected option
+            event.currentTarget.classList.add('active');
+        }
+
+        function estimateSoilQuality() {
+            const waterBehavior = document.getElementById('waterBehavior').value;
+            const soilTexture = document.getElementById('soilTexture').value;
+            
+            if (!waterBehavior || !soilTexture) return;
+            
+            let quality = 'Good';
+            let description = '';
+            let estimatedPh = 6.5;
+            let estimatedType = 'loamy';
+
+            // Simple decision matrix
+            if (waterBehavior === 'good_absorb' && soilTexture === 'dark_soft') {
+                quality = 'Excellent';
+                description = 'Ideal loamy soil with good organic matter';
+                estimatedPh = 6.5;
+                estimatedType = 'loamy';
+            } else if (waterBehavior === 'pools' && soilTexture === 'sticky') {
+                quality = 'Poor';
+                description = 'Heavy clay soil - needs organic matter and drainage improvement';
+                estimatedPh = 5.8;
+                estimatedType = 'clay';
+            } else if (waterBehavior === 'fast_drain' && soilTexture === 'light_gritty') {
+                quality = 'Fair';
+                description = 'Sandy soil - needs water retention improvements and organic matter';
+                estimatedPh = 7.0;
+                estimatedType = 'sandy';
+            } else if (waterBehavior === 'slow_absorb' && soilTexture === 'reddish') {
+                quality = 'Good';
+                description = 'Laterite soil - moderate fertility, may need amendments';
+                estimatedPh = 6.0;
+                estimatedType = 'silt';
+            } else {
+                quality = 'Good';
+                description = 'Moderate soil conditions suitable for most crops';
+                estimatedPh = 6.5;
+                estimatedType = 'loamy';
+            }
+
+            // Update display
+            document.getElementById('qualityResult').textContent = quality;
+            document.getElementById('qualityDescription').textContent = description;
+            document.getElementById('estimatedQuality').style.display = 'block';
+
+            // Update form fields
+            document.getElementById('soilType').value = estimatedType;
+            if (document.getElementById('soilPh')) {
+                document.getElementById('soilPh').value = estimatedPh;
+            }
+        }
+
+        function estimateSoilFromLocation() {
+            const location = document.getElementById('locationInput').value.toLowerCase();
+            let estimatedType = 'loamy';
+            let estimatedPh = 6.5;
+
+            if (location.includes('coastal') || location.includes('beach') || location.includes('sand')) {
+                estimatedType = 'sandy';
+                estimatedPh = 7.0;
+            } else if (location.includes('clay') || location.includes('river') || location.includes('valley')) {
+                estimatedType = 'clay';
+                estimatedPh = 6.0;
+            } else if (location.includes('hill') || location.includes('mountain') || location.includes('red')) {
+                estimatedType = 'silt';
+                estimatedPh = 5.8;
+            }
+
+            document.getElementById('soilType').value = estimatedType;
+            if (document.getElementById('soilPh')) {
+                document.getElementById('soilPh').value = estimatedPh;
+            }
+
+            showNotification('Soil parameters estimated based on location', 'info');
+        }
+
+        function suggestSoilNeeds() {
+            const crop = document.getElementById('currentCrop').value;
+            const suggestionsDiv = document.getElementById('cropSoilSuggestions');
+            
+            if (!crop) {
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            const cropData = {
+                'oil_palm': {
+                    name: 'Oil Palm',
+                    ph: '5.0-5.5',
+                    soilType: 'Well-drained loamy soil',
+                    notes: 'Prefers acidic soil with good organic matter. Avoid waterlogged conditions.'
+                },
+                'rubber': {
+                    name: 'Rubber',
+                    ph: '4.5-6.0',
+                    soilType: 'Deep, well-drained soil',
+                    notes: 'Thrives in acidic soils with good drainage. Sensitive to waterlogging.'
+                },
+                'rice': {
+                    name: 'Rice',
+                    ph: '5.5-6.5',
+                    soilType: 'Clay loam that holds water',
+                    notes: 'Needs soil that can retain water well. Prefers slightly acidic conditions.'
+                },
+                'corn': {
+                    name: 'Corn',
+                    ph: '6.0-6.8',
+                    soilType: 'Well-drained loamy soil',
+                    notes: 'Requires good fertility and drainage. Responsive to nitrogen fertilizer.'
+                },
+                'vegetables': {
+                    name: 'Vegetables',
+                    ph: '6.0-7.0',
+                    soilType: 'Rich, well-drained loam',
+                    notes: 'Needs high organic matter and good drainage for most vegetables.'
+                },
+                'fruits': {
+                    name: 'Fruits',
+                    ph: '5.5-6.5',
+                    soilType: 'Well-drained loamy soil',
+                    notes: 'Most fruit trees prefer slightly acidic, well-drained soils.'
+                }
+            };
+
+            if (cropData[crop]) {
+                const data = cropData[crop];
+                document.getElementById('cropName').textContent = data.name;
+                document.getElementById('idealPh').textContent = data.ph;
+                document.getElementById('idealSoilType').textContent = data.soilType;
+                document.getElementById('cropNotes').textContent = data.notes;
+                suggestionsDiv.style.display = 'block';
+            } else {
+                suggestionsDiv.style.display = 'none';
+            }
+        }
+
+        async function getWeatherData() {
+            const location = document.getElementById('locationInput').value;
+            if (!location) {
+                alert('Please enter a location first');
+                return;
+            }
+
+            const weatherBtn = event.target;
+            const originalText = weatherBtn.innerHTML;
+            weatherBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Weather...';
+            weatherBtn.disabled = true;
+
+            try {
+                // Using OpenWeatherMap API (you'll need to sign up for a free API key)
+                const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${location}&units=metric&appid=YOUR_API_KEY`);
+                const weatherData = response.data;
+                
+                const weatherInfo = `
+                    <div class="weather-display">
+                        <div class="weather-main">
+                            <img src="https://openweathermap.org/img/wn/${weatherData.weather[0].icon}.png" alt="${weatherData.weather[0].description}">
+                            <div>
+                                <strong>${Math.round(weatherData.main.temp)}°C</strong>
+                                <p>${weatherData.weather[0].description}</p>
+                            </div>
+                        </div>
+                        <div class="weather-details">
+                            <p>Humidity: ${weatherData.main.humidity}%</p>
+                            <p>Wind: ${weatherData.wind.speed} m/s</p>
+                            <p>Pressure: ${weatherData.main.pressure} hPa</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('weatherInfo').innerHTML = weatherInfo;
+                document.getElementById('temperature').value = Math.round(weatherData.main.temp);
+                
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+                // Fallback to manual input
+                document.getElementById('weatherInfo').innerHTML = `
+                    <div class="weather-fallback">
+                        <p>Weather service unavailable. Please enter temperature manually.</p>
+                    </div>
+                `;
+            } finally {
+                weatherBtn.innerHTML = originalText;
+                weatherBtn.disabled = false;
+            }
+        }
+
+        function updateIrrigationSchedule() {
+            const frequency = document.getElementById('irrigationFrequency').value;
+            const lastIrrigation = document.getElementById('lastIrrigation').value;
+            
+            if (!lastIrrigation || !frequency) return;
+            
+            const lastDate = new Date(lastIrrigation);
+            const nextDate = new Date(lastDate);
+            
+            switch (frequency) {
+                case 'daily':
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    break;
+                case 'every_2_days':
+                    nextDate.setDate(nextDate.getDate() + 2);
+                    break;
+                case 'weekly':
+                    nextDate.setDate(nextDate.getDate() + 7);
+                    break;
+                case 'biweekly':
+                    nextDate.setDate(nextDate.getDate() + 14);
+                    break;
+                default:
+                    return;
+            }
+            
+            document.getElementById('nextIrrigation').value = nextDate.toISOString().split('T')[0];
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        document.getElementById('locationInput').value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                        updateMap(lat, lng, 'Farm Location');
+                        getAddressFromCoordinates(lat, lng);
+                    },
+                    error => {
+                        console.error('Error getting location:', error);
+                        alert('Unable to get current location. Please enter manually.');
+                    }
+                );
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        function updateMap(lat, lng, locationName = 'Farm Location') {
+            if (map) {
+                map.setView([lat, lng], 15);
+                if (marker) {
+                    map.removeLayer(marker);
+                }
+                marker = L.marker([lat, lng]).addTo(map)
+                    .bindPopup(locationName)
+                    .openPopup();
+            }
+        }
+
+        function getAddressFromCoordinates(lat, lng) {
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.display_name) {
+                        document.getElementById('locationInput').value = data.display_name;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error getting address:', error);
+                });
+        }
+
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            const uploadedPhotosDiv = document.getElementById('uploadedPhotos');
+            
+            for (let file of files) {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        uploadedPhotos.push(e.target.result);
+                        updateUploadedPhotosDisplay();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        }
+
+        function updateUploadedPhotosDisplay() {
+            const uploadedPhotosDiv = document.getElementById('uploadedPhotos');
+            uploadedPhotosDiv.innerHTML = '';
+            
+            uploadedPhotos.forEach((photo, index) => {
+                const photoElement = document.createElement('div');
+                photoElement.className = 'uploaded-photo';
+                photoElement.innerHTML = `
+                    <img src="${photo}" alt="Uploaded farm photo">
+                    <button type="button" onclick="removePhoto(${index})" class="remove-photo-btn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                uploadedPhotosDiv.appendChild(photoElement);
+            });
+        }
+
+        function removePhoto(index) {
+            uploadedPhotos.splice(index, 1);
+            updateUploadedPhotosDisplay();
+        }
+
+        async function saveFarmData() {
+            // Validate required fields
+            if (!validateForm()) {
+                return;
+            }
+
+            // Check if user is authenticated
+            if (!window.currentUser) {
+                alert('You must be logged in to save farm data');
+                return;
+            }
+
+            try {
+                // Create farm data object
+                const farmData = {
+                    // Farm Identification
+                    farmId: document.getElementById('farmId').value,
+                    farmName: document.getElementById('farmName').value,
+                    location: document.getElementById('locationInput').value,
+                    plotSize: parseFloat(document.getElementById('plotSize').value),
+                    recordDate: document.getElementById('recordDate').value,
+                    
+                    // Soil Quality
+                    soilKnowledge: document.getElementById('soilKnowledge').value,
+                    soilType: document.getElementById('soilType').value,
+                    soilPh: document.getElementById('soilPh') ? parseFloat(document.getElementById('soilPh').value) : null,
+                    organicMatter: document.getElementById('organicMatter') ? parseFloat(document.getElementById('organicMatter').value) : null,
+                    nitrogenLevel: document.getElementById('nitrogenLevel') ? parseFloat(document.getElementById('nitrogenLevel').value) : null,
+                    phosphorusLevel: document.getElementById('phosphorusLevel') ? parseFloat(document.getElementById('phosphorusLevel').value) : null,
+                    potassiumLevel: document.getElementById('potassiumLevel') ? parseFloat(document.getElementById('potassiumLevel').value) : null,
+                    soilMoisture: document.getElementById('soilMoisture') ? parseFloat(document.getElementById('soilMoisture').value) : null,
+                    
+                    // Crop Information
+                    currentCrop: document.getElementById('currentCrop').value,
+                    cropVariety: document.getElementById('cropVariety').value,
+                    plantingDate: document.getElementById('plantingDate').value,
+                    growthStage: document.getElementById('growthStage').value,
+                    previousCrop: document.getElementById('previousCrop').value,
+                    
+                    // Weather & Irrigation
+                    lastRainfall: document.getElementById('lastRainfall') ? parseFloat(document.getElementById('lastRainfall').value) : null,
+                    temperature: document.getElementById('temperature') ? parseFloat(document.getElementById('temperature').value) : null,
+                    irrigationFrequency: document.getElementById('irrigationFrequency').value,
+                    lastIrrigation: document.getElementById('lastIrrigation').value,
+                    nextIrrigation: document.getElementById('nextIrrigation').value,
+                    
+                    // Additional Data
+                    observations: document.getElementById('observations').value,
+                    photos: uploadedPhotos,
+                    
+                    // Metadata
+                    userId: window.currentUser.uid,
+                    userName: window.userData?.firstName && window.userData?.lastName 
+                        ? `${window.userData.firstName} ${window.userData.lastName}`
+                        : window.userData?.username || window.currentUser.email,
+                    timestamp: window.firebaseServerTimestamp()
+                };
+
+                // Save to Firebase
+                const docRef = await window.firebaseAddDoc(window.firebaseCollection(window.firestoreDb, "farmData"), farmData);
+                console.log("Farm data saved with ID: ", docRef.id);
+                
+                // Show success message
+                showNotification('Farm data saved successfully!', 'success');
+                
+                // Reset form
+                resetForm();
+                
+            } catch (error) {
+                console.error("Error saving farm data: ", error);
+                showNotification('Error saving farm data: ' + error.message, 'error');
+            }
+        }
+
+        function validateForm() {
+            const requiredFields = [
+                'farmId', 'farmName', 'locationInput', 'plotSize', 'recordDate', 'currentCrop'
+            ];
+            
+            for (let fieldId of requiredFields) {
+                const field = document.getElementById(fieldId);
+                if (!field.value.trim()) {
+                    showNotification(`Please fill in the ${field.previousElementSibling.textContent}`, 'error');
+                    field.focus();
+                    return false;
+                }
+            }
+            
+            if (parseFloat(document.getElementById('plotSize').value) <= 0) {
+                showNotification('Plot size must be greater than 0', 'error');
+                document.getElementById('plotSize').focus();
+                return false;
+            }
+            
+            return true;
+        }
+
+        function resetForm() {
+            document.querySelectorAll('.form-input, .form-textarea').forEach(input => {
+                if (input.id !== 'farmId') {
+                    input.value = '';
+                }
+            });
+            
+            document.querySelectorAll('.soil-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            document.getElementById('soilKnowledge').value = 'unknown';
+            document.getElementById('estimatedQuality').style.display = 'none';
+            document.getElementById('cropSoilSuggestions').style.display = 'none';
+            document.getElementById('weatherInfo').innerHTML = '';
+            
+            uploadedPhotos = [];
+            document.getElementById('uploadedPhotos').innerHTML = '';
+            
+            initializeDateTime();
+            generateFarmId();
+            toggleSoilInputs();
+        }
+
+        function showNotification(message, type = 'info') {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            
+            // Add styles if not already added
+            if (!document.querySelector('#notification-styles')) {
+                const styles = document.createElement('style');
+                styles.id = 'notification-styles';
+                styles.textContent = `
+                    .notification {
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        padding: 15px 20px;
+                        border-radius: 4px;
+                        color: white;
+                        z-index: 1000;
+                        max-width: 300px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                    }
+                    .notification-info { background: #17a2b8; }
+                    .notification-success { background: #28a745; }
+                    .notification-error { background: #dc3545; }
+                    .notification button {
+                        background: none;
+                        border: none;
+                        color: white;
+                        font-size: 18px;
+                        cursor: pointer;
+                        margin-left: 10px;
+                    }
+                `;
+                document.head.appendChild(styles);
+            }
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 5000);
+        }
+
+        // Make functions globally available
+        window.toggleSoilInputs = toggleSoilInputs;
+        window.selectSoilType = selectSoilType;
+        window.estimateSoilQuality = estimateSoilQuality;
+        window.suggestSoilNeeds = suggestSoilNeeds;
+        window.getWeatherData = getWeatherData;
+        window.getCurrentLocation = getCurrentLocation;
+        window.updateIrrigationSchedule = updateIrrigationSchedule;
+        window.removePhoto = removePhoto;
+        window.saveFarmData = saveFarmData;
+        window.resetForm = resetForm;
+        window.showNotification = showNotification;
+    </script>
+</body>
+</html>
