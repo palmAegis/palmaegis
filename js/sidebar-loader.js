@@ -3,7 +3,6 @@
     if (!placeholder) {
         placeholder = document.createElement('div');
         placeholder.id = 'sidebarPlaceholder';
-        // insert before first child so sidebar occupies left
         document.body.insertBefore(placeholder, document.body.firstChild);
     }
 
@@ -12,18 +11,48 @@
         if (!res.ok) throw new Error('Failed to load sidebar: ' + res.status);
         const htmlText = await res.text();
 
-        // parse fetched HTML so scripts run and stray text won't render
+        // parse fetched HTML
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
 
-        // remove dev/live-reload scripts that sometimes output raw text
+        // remove dev/live-reload scripts (explicit script elements)
         const badScriptPattern = /livereload|webpack|sockjs|browser-sync|__webpack__|reload/gi;
         doc.querySelectorAll('script').forEach(s => {
             const combined = (s.src || '') + ' ' + (s.textContent || '');
             if (badScriptPattern.test(combined)) s.remove();
         });
 
-        // recreate nodes + scripts so inline scripts execute
+        // SANITIZE: strip injected comments/scripts that may appear inside attributes or text nodes
+        // 1) Clean attributes on all elements (remove inline script/comment fragments)
+        doc.querySelectorAll('*').forEach(el => {
+            Array.from(el.attributes).forEach(attr => {
+                // If attribute value contains script/comment markers, strip them out
+                if (/(<script|<\/script|<!--|Code injected by live-server)/i.test(attr.value)) {
+                    let v = attr.value;
+                    // remove HTML comments and any <script>...</script> blocks
+                    v = v.replace(/<!--[\s\S]*?-->/g, '');
+                    v = v.replace(/<script[\s\S]*?<\/script>/gi, '');
+                    // remove stray marker text
+                    v = v.replace(/Code injected by live-server/gi, '');
+                    // trim leftover accidental broken fragments
+                    v = v.replace(/document\.getElementsByTagName\([^\)]*\)/gi, '');
+                    attr.value = v;
+                }
+            });
+        });
+
+        // 2) Remove text nodes that contain raw <script> or injected markers
+        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null, false);
+        const toRemove = [];
+        while (walker.nextNode()) {
+            const txt = walker.currentNode.nodeValue || '';
+            if (/(<script|<\/script|Code injected by live-server|document\.getElementsByTagName\([^\)]*\))/i.test(txt)) {
+                toRemove.push(walker.currentNode);
+            }
+        }
+        toRemove.forEach(n => n.parentNode && n.parentNode.removeChild(n));
+
+        // recreate nodes and scripts so inline scripts execute (but dev scripts already removed)
         const frag = document.createDocumentFragment();
         Array.from(doc.body.childNodes).forEach(node => {
             if (node.nodeName.toLowerCase() === 'script') {
@@ -38,6 +67,7 @@
             }
         });
 
+        // inject sanitized content
         placeholder.innerHTML = '';
         placeholder.appendChild(frag);
 
@@ -85,13 +115,10 @@
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (ev) => {
                 ev.preventDefault();
-                // if firebase auth wrapper is exposed as window.firebaseAuth or similar
                 const auth = window.firebaseAuth || (window.firebase && window.firebase.auth && window.firebase.auth());
                 if (auth && typeof auth.signOut === 'function') {
-                    // sign out then redirect
                     auth.signOut().catch(()=>{}).finally(() => { window.location.href = 'signin.html'; });
                 } else {
-                    // fallback redirect
                     window.location.href = logoutBtn.getAttribute('href') || 'signin.html';
                 }
             });
