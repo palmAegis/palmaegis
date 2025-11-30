@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farm Data Management | Palm Aegis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/homepage.css">
-    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/sidebar.css" />
     <style>
         :root {
             --primary-color: #2e7d32;
@@ -53,27 +52,6 @@
         .header-left h1 {
             font-size: 1.8rem;
             color: var(--primary-color);
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            background-color: #f5f5f5;
-            border-radius: 20px;
-            padding: 8px 15px;
-            width: 300px;
-        }
-
-        .search-box i {
-            color: #777;
-            margin-right: 10px;
-        }
-
-        .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 100%;
         }
 
         .container {
@@ -129,14 +107,162 @@
             background-color: #d6d6d6;
         }
 
-        .data-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+        .form-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            padding: 30px;
             margin-bottom: 30px;
         }
 
-        .data-card {
+        .form-section {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .form-hint {
+            font-size: 0.85rem;
+            color: #777;
+            margin-top: 5px;
+        }
+
+        .required::after {
+            content: " *";
+            color: var(--danger-color);
+        }
+
+        .map-placeholder {
+            background-color: #f9f9f9;
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #777;
+            margin-top: 10px;
+        }
+
+        .map-placeholder i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #ccc;
+        }
+
+        .tree-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .tree-type-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tree-type-card:hover {
+            border-color: var(--primary-color);
+            background-color: #f0f9f0;
+        }
+
+        .tree-type-card.selected {
+            border-color: var(--primary-color);
+            background-color: #e8f5e9;
+        }
+
+        .tree-icon {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .tree-count-input {
+            width: 80px;
+            text-align: center;
+            margin-top: 10px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .farms-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .farm-card {
             background-color: white;
             border-radius: 10px;
             overflow: hidden;
@@ -144,50 +270,32 @@
             transition: transform 0.3s;
         }
 
-        .data-card:hover {
+        .farm-card:hover {
             transform: translateY(-5px);
         }
 
-        .data-header {
+        .farm-header {
             padding: 15px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            background-color: var(--primary-color);
+            color: white;
         }
 
-        .data-title {
+        .farm-name {
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
+            margin-bottom: 5px;
         }
 
-        .data-status {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
+        .farm-location {
+            font-size: 0.9rem;
+            opacity: 0.9;
         }
 
-        .status-optimal {
-            background-color: #e8f5e9;
-            color: var(--primary-color);
-        }
-
-        .status-warning {
-            background-color: #fff3e0;
-            color: var(--warning-color);
-        }
-
-        .status-critical {
-            background-color: #ffebee;
-            color: var(--danger-color);
-        }
-
-        .data-body {
+        .farm-body {
             padding: 15px;
         }
 
-        .data-info {
+        .farm-info {
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -207,14 +315,14 @@
             font-weight: 600;
         }
 
-        .data-footer {
+        .farm-footer {
             padding: 15px;
             border-top: 1px solid #eee;
             display: flex;
             justify-content: space-between;
         }
 
-        .data-actions {
+        .farm-actions {
             display: flex;
             gap: 10px;
         }
@@ -230,98 +338,6 @@
 
         .action-btn:hover {
             color: var(--primary-color);
-        }
-
-        .data-details {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            padding: 25px;
-            margin-top: 30px;
-        }
-
-        .details-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .details-title {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-        }
-
-        .details-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-
-        .details-section {
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: var(--primary-color);
-            padding-bottom: 8px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .data-list {
-            list-style: none;
-        }
-
-        .data-item {
-            padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .data-name {
-            font-weight: 600;
-        }
-
-        .data-confidence {
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: white;
-        }
-
-        .recommendation-plan {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-
-        .recommendation-title {
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-        }
-
-        .affected-areas {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .area-tag {
-            padding: 5px 10px;
-            background-color: #e3f2fd;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            color: var(--info-color);
         }
 
         .no-data {
@@ -358,241 +374,36 @@
             100% { transform: rotate(360deg); }
         }
 
-        .error-message {
-            background-color: #ffebee;
-            border: 1px solid #f44336;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            grid-column: 1 / -1;
-        }
-
-        .error-message i {
-            font-size: 2rem;
-            color: #f44336;
-            margin-bottom: 15px;
-        }
-
-        /* Analytics Section */
-        .analytics-section {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-            padding: 25px;
-            margin-top: 30px;
-        }
-
-        .analytics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .analytics-card {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .analytics-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin: 10px 0;
-        }
-
-        .analytics-label {
-            color: #777;
-            font-size: 0.9rem;
-        }
-
-        /* Form Styles */
-        .form-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .form-modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .form-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .form-title {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-        }
-
-        .close-form {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #777;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .form-input, .form-select, .form-textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .form-textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #ddd;
-            color: #333;
-        }
-
-        .btn-outline:hover {
-            background-color: #f5f5f5;
-        }
-
-        /* Filter Modal Styles */
-        .filter-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .filter-modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-        }
-
-        .filter-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .filter-title {
-            font-size: 1.5rem;
-            color: var(--primary-color);
-        }
-
-        .close-filter {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #777;
-        }
-
-        .filter-options {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .filter-label {
-            font-weight: 600;
-            color: #555;
-        }
-
-        .filter-select, .filter-input {
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-        }
-
-        .filter-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
         @media (max-width: 768px) {
             .dashboard-container {
                 flex-direction: column;
             }
 
-            .main-content { width: 100%; }
-            .details-content {
+            .form-grid {
                 grid-template-columns: 1fr;
             }
 
-            .data-grid {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .tree-type-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .farms-list {
                 grid-template-columns: 1fr;
             }
 
-            .filter-modal-content, .form-modal-content {
-                width: 95%;
-                margin: 20px;
+            .page-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .page-actions .btn {
+                width: 100%;
+                justify-content: center;
             }
         }
     </style>
@@ -607,1057 +418,487 @@
                 <div class="header-left">
                     <h1>Farm Data Management</h1>
                 </div>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search farm data..." id="searchInput">
-                </div>
             </div>
 
             <div class="container">
                 <div class="page-header">
-                    <h2 class="page-title">Farm Data & Analytics</h2>
+                    <h2 class="page-title">Farm Information</h2>
                     <div class="page-actions">
-                        <button class="btn btn-secondary" id="filterBtn">
-                            <i class="fas fa-filter"></i> Filter
+                        <button class="btn btn-secondary" id="viewFarmsBtn">
+                            <i class="fas fa-list"></i> View Farms
                         </button>
-                        <button class="btn btn-primary" id="addDataBtn">
-                            <i class="fas fa-plus"></i> Add Data
+                        <button class="btn btn-primary" id="addFarmBtn">
+                            <i class="fas fa-plus"></i> Add New Farm
                         </button>
                     </div>
                 </div>
 
-                <div class="analytics-section">
-                    <h2 class="section-title">Farm Analytics Overview</h2>
-                    <div class="analytics-grid" id="analyticsGrid">
-                        <div class="analytics-card">
-                            <i class="fas fa-seedling" style="font-size: 2rem; color: var(--primary-color);"></i>
-                            <div class="analytics-value" id="totalCrops">0</div>
-                            <div class="analytics-label">Total Crops Tracked</div>
+                <!-- Farm Form -->
+                <div class="form-container" id="farmForm">
+                    <div class="form-section">
+                        <h3 class="section-title">Basic Farm Information</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label required" for="farmName">Farm Name</label>
+                                <input type="text" class="form-input" id="farmName" placeholder="Enter farm name">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label required" for="farmLocation">Location</label>
+                                <input type="text" class="form-input" id="farmLocation" placeholder="Enter farm location">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="farmSize">Farm Size (hectares)</label>
+                                <input type="number" class="form-input" id="farmSize" placeholder="Enter size in hectares" min="0" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="ownershipType">Ownership Type</label>
+                                <select class="form-select" id="ownershipType">
+                                    <option value="">Select ownership type</option>
+                                    <option value="owned">Owned</option>
+                                    <option value="leased">Leased</option>
+                                    <option value="cooperative">Cooperative</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="analytics-card">
-                            <i class="fas fa-tint" style="font-size: 2rem; color: var(--info-color);"></i>
-                            <div class="analytics-value" id="avgSoilQuality">0%</div>
-                            <div class="analytics-label">Average Soil Quality</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Location Details</h3>
+                        <div class="form-group">
+                            <label class="form-label" for="gpsCoordinates">GPS Coordinates</label>
+                            <input type="text" class="form-input" id="gpsCoordinates" placeholder="Latitude, Longitude">
+                            <div class="form-hint">Example: 3.1390, 101.6869</div>
                         </div>
-                        <div class="analytics-card">
-                            <i class="fas fa-cloud-sun" style="font-size: 2rem; color: var(--warning-color);"></i>
-                            <div class="analytics-value" id="optimalConditions">0</div>
-                            <div class="analytics-label">Optimal Conditions</div>
+                        <div class="form-group">
+                            <label class="form-label">Farm Map</label>
+                            <div class="map-placeholder">
+                                <i class="fas fa-map"></i>
+                                <p>Farm map visualization</p>
+                                <button class="btn btn-secondary" style="margin-top: 10px;">
+                                    <i class="fas fa-upload"></i> Upload Map
+                                </button>
+                            </div>
                         </div>
-                        <div class="analytics-card">
-                            <i class="fas fa-chart-line" style="font-size: 2rem; color: var(--secondary-color);"></i>
-                            <div class="analytics-value" id="yieldIncrease">0%</div>
-                            <div class="analytics-label">Projected Yield Increase</div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Tree Information</h3>
+                        <div class="form-group">
+                            <label class="form-label required">Primary Tree Type</label>
+                            <div class="tree-type-grid">
+                                <div class="tree-type-card" data-type="oil_palm">
+                                    <div class="tree-icon">
+                                        <i class="fas fa-tree"></i>
+                                    </div>
+                                    <div>Oil Palm</div>
+                                    <input type="number" class="tree-count-input" placeholder="Count" min="0">
+                                </div>
+                                <div class="tree-type-card" data-type="coconut">
+                                    <div class="tree-icon">
+                                        <i class="fas fa-tree"></i>
+                                    </div>
+                                    <div>Coconut Palm</div>
+                                    <input type="number" class="tree-count-input" placeholder="Count" min="0">
+                                </div>
+                                <div class="tree-type-card" data-type="date_palm">
+                                    <div class="tree-icon">
+                                        <i class="fas fa-tree"></i>
+                                    </div>
+                                    <div>Date Palm</div>
+                                    <input type="number" class="tree-count-input" placeholder="Count" min="0">
+                                </div>
+                                <div class="tree-type-card" data-type="other">
+                                    <div class="tree-icon">
+                                        <i class="fas fa-tree"></i>
+                                    </div>
+                                    <div>Other</div>
+                                    <input type="number" class="tree-count-input" placeholder="Count" min="0">
+                                </div>
+                            </div>
                         </div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="plantingDate">Average Planting Date</label>
+                                <input type="date" class="form-input" id="plantingDate">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="treeAge">Average Tree Age (years)</label>
+                                <input type="number" class="form-input" id="treeAge" placeholder="Enter average age" min="0" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Soil & Environmental Conditions</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="soilType">Soil Type</label>
+                                <select class="form-select" id="soilType">
+                                    <option value="">Select soil type</option>
+                                    <option value="clay">Clay</option>
+                                    <option value="sandy">Sandy</option>
+                                    <option value="loamy">Loamy</option>
+                                    <option value="clay_loam">Clay Loam</option>
+                                    <option value="sandy_loam">Sandy Loam</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="soilPh">Soil pH Level</label>
+                                <input type="number" class="form-input" id="soilPh" placeholder="Enter pH value" min="0" max="14" step="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="rainfall">Average Rainfall (mm/year)</label>
+                                <input type="number" class="form-input" id="rainfall" placeholder="Enter rainfall" min="0">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="temperature">Average Temperature (°C)</label>
+                                <input type="number" class="form-input" id="temperature" placeholder="Enter temperature" min="-10" max="50" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Management Practices</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label" for="irrigationType">Irrigation Type</label>
+                                <select class="form-select" id="irrigationType">
+                                    <option value="">Select irrigation type</option>
+                                    <option value="rainfed">Rainfed</option>
+                                    <option value="drip">Drip Irrigation</option>
+                                    <option value="sprinkler">Sprinkler System</option>
+                                    <option value="flood">Flood Irrigation</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="fertilizerType">Fertilizer Type</label>
+                                <select class="form-select" id="fertilizerType">
+                                    <option value="">Select fertilizer type</option>
+                                    <option value="organic">Organic</option>
+                                    <option value="chemical">Chemical</option>
+                                    <option value="mixed">Mixed</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="pestControl">Pest Control Method</label>
+                                <select class="form-select" id="pestControl">
+                                    <option value="">Select pest control</option>
+                                    <option value="chemical">Chemical</option>
+                                    <option value="biological">Biological</option>
+                                    <option value="integrated">Integrated Pest Management</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="lastTreatment">Last Treatment Date</label>
+                                <input type="date" class="form-input" id="lastTreatment">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <h3 class="section-title">Additional Notes</h3>
+                        <div class="form-group">
+                            <label class="form-label" for="farmNotes">Notes & Observations</label>
+                            <textarea class="form-textarea" id="farmNotes" placeholder="Enter any additional notes about the farm, observations, or specific concerns..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-secondary" id="cancelBtn">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                        <button class="btn btn-primary" id="saveFarmBtn">
+                            <i class="fas fa-save"></i> Save Farm Data
+                        </button>
                     </div>
                 </div>
 
-                <div class="data-grid" id="dataGrid">
+                <!-- Farms List View -->
+                <div class="farms-list" id="farmsList" style="display: none;">
                     <div class="loading">
                         <div class="spinner"></div>
                         <p>Loading farm data...</p>
-                    </div>
-                </div>
-
-                <div class="data-details" id="dataDetails" style="display: none;">
-                    <div class="details-header">
-                        <h2 class="details-title" id="detailsTitle">Farm Data Details</h2>
-                        <div>
-                            <button class="btn btn-secondary" id="editDataBtn">
-                                <i class="fas fa-edit"></i> Edit Data
-                            </button>
-                            <button class="btn btn-secondary" id="closeDetailsBtn">
-                                <i class="fas fa-times"></i> Close
-                            </button>
-                        </div>
-                    </div>
-                    <div class="details-content">
-                        <div class="details-column">
-                            <div class="details-section">
-                                <h3 class="section-title">Basic Information</h3>
-                                <div class="data-info">
-                                    <div class="info-item">
-                                        <span class="info-label">Data ID:</span>
-                                        <span class="info-value" id="detailId">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Date Recorded:</span>
-                                        <span class="info-value" id="detailDate">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Location:</span>
-                                        <span class="info-value" id="detailLocation">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Crop Type:</span>
-                                        <span class="info-value" id="detailCropType">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="details-section">
-                                <h3 class="section-title">Soil Quality</h3>
-                                <div class="data-info">
-                                    <div class="info-item">
-                                        <span class="info-label">pH Level:</span>
-                                        <span class="info-value" id="detailPH">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Nutrient Level:</span>
-                                        <span class="info-value" id="detailNutrients">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Moisture:</span>
-                                        <span class="info-value" id="detailMoisture">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="details-column">
-                            <div class="details-section">
-                                <h3 class="section-title">Weather Conditions</h3>
-                                <div class="data-info">
-                                    <div class="info-item">
-                                        <span class="info-label">Temperature:</span>
-                                        <span class="info-value" id="detailTemperature">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Humidity:</span>
-                                        <span class="info-value" id="detailHumidity">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Rainfall:</span>
-                                        <span class="info-value" id="detailRainfall">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="details-section">
-                                <h3 class="section-title">Irrigation & Schedule</h3>
-                                <div class="data-info">
-                                    <div class="info-item">
-                                        <span class="info-label">Last Irrigation:</span>
-                                        <span class="info-value" id="detailLastIrrigation">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Next Irrigation:</span>
-                                        <span class="info-value" id="detailNextIrrigation">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Schedule Type:</span>
-                                        <span class="info-value" id="detailScheduleType">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="details-section">
-                                <h3 class="section-title">Recommendations</h3>
-                                <div class="recommendation-plan">
-                                    <div class="recommendation-title">Optimization Suggestions:</div>
-                                    <div id="detailRecommendations">-</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Add Data Modal -->
-    <div class="form-modal" id="addDataModal">
-        <div class="form-modal-content">
-            <div class="form-header">
-                <h2 class="form-title">Add Farm Data</h2>
-                <button class="close-form" id="closeAddDataBtn">&times;</button>
-            </div>
-            <form id="farmDataForm">
-                <div class="form-group">
-                    <label class="form-label" for="cropType">Crop Type</label>
-                    <select class="form-select" id="cropType" required>
-                        <option value="">Select Crop Type</option>
-                        <option value="palm">Palm Tree</option>
-                        <option value="rice">Rice</option>
-                        <option value="corn">Corn</option>
-                        <option value="vegetables">Vegetables</option>
-                        <option value="fruits">Fruits</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="location">Location</label>
-                    <input type="text" class="form-input" id="location" placeholder="Enter location" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="soilPH">Soil pH Level</label>
-                    <input type="number" class="form-input" id="soilPH" min="0" max="14" step="0.1" placeholder="Enter pH level" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="nutrientLevel">Nutrient Level</label>
-                    <select class="form-select" id="nutrientLevel" required>
-                        <option value="">Select Nutrient Level</option>
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="soilMoisture">Soil Moisture (%)</label>
-                    <input type="number" class="form-input" id="soilMoisture" min="0" max="100" placeholder="Enter moisture percentage" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="temperature">Temperature (°C)</label>
-                    <input type="number" class="form-input" id="temperature" placeholder="Enter temperature" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="humidity">Humidity (%)</label>
-                    <input type="number" class="form-input" id="humidity" min="0" max="100" placeholder="Enter humidity percentage" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="rainfall">Rainfall (mm)</label>
-                    <input type="number" class="form-input" id="rainfall" min="0" placeholder="Enter rainfall amount" required>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="irrigationSchedule">Irrigation Schedule</label>
-                    <select class="form-select" id="irrigationSchedule" required>
-                        <option value="">Select Schedule</option>
-                        <option value="daily">Daily</option>
-                        <option value="every_other_day">Every Other Day</option>
-                        <option value="twice_weekly">Twice Weekly</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="as_needed">As Needed</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="cropHistory">Crop History Notes</label>
-                    <textarea class="form-textarea" id="cropHistory" placeholder="Enter crop history and observations"></textarea>
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" class="btn btn-outline" id="cancelAddDataBtn">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Data</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <script>
+        // DOM Elements
+        const farmForm = document.getElementById('farmForm');
+        const farmsList = document.getElementById('farmsList');
+        const viewFarmsBtn = document.getElementById('viewFarmsBtn');
+        const addFarmBtn = document.getElementById('addFarmBtn');
+        const saveFarmBtn = document.getElementById('saveFarmBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
 
-    <!-- Filter Modal -->
-    <div class="filter-modal" id="filterModal">
-        <div class="filter-modal-content">
-            <div class="filter-header">
-                <h2 class="filter-title">Filter Farm Data</h2>
-                <button class="close-filter" id="closeFilterBtn">&times;</button>
-            </div>
-            <div class="filter-options">
-                <div class="filter-group">
-                    <label class="filter-label">Crop Type</label>
-                    <select class="filter-select" id="cropTypeFilter">
-                        <option value="all">All Crops</option>
-                        <option value="palm">Palm Tree</option>
-                        <option value="rice">Rice</option>
-                        <option value="corn">Corn</option>
-                        <option value="vegetables">Vegetables</option>
-                        <option value="fruits">Fruits</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label class="filter-label">Soil Quality</label>
-                    <select class="filter-select" id="soilQualityFilter">
-                        <option value="all">All Qualities</option>
-                        <option value="optimal">Optimal</option>
-                        <option value="needs_attention">Needs Attention</option>
-                        <option value="poor">Poor</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label class="filter-label">Date Range</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="date" class="filter-input" id="dateFrom" style="flex: 1;">
-                        <input type="date" class="filter-input" id="dateTo" style="flex: 1;">
-                    </div>
-                </div>
-            </div>
-            <div class="filter-actions">
-                <button class="btn btn-outline" id="clearFiltersBtn">Clear Filters</button>
-                <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-        authDomain: "palmaegis-setup.firebaseapp.com",
-        projectId: "palmaegis-setup",
-        storageBucket: "palmaegis-setup.firebasestorage.app",
-        messagingSenderId: "445887502374",
-        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Global variables for filtering
-    let currentFilters = {
-        cropType: 'all',
-        soilQuality: 'all',
-        dateFrom: '',
-        dateTo: ''
-    };
-
-    // Check authentication state
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            console.log('User is signed in:', user.email);
-            window.currentUser = user;
-            
-            try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    window.userData = userData;
-                    updateUserProfile(user, userData);
-                } else {
-                    updateUserProfile(user, {});
-                }
-                
-                // Load farm data
-                await loadFarmData(user.uid);
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                updateUserProfile(user, {});
-                showError("Failed to load user data. Please try again.");
-            }
-        } else {
-            console.log('User is not signed in');
-            window.location.href = 'signin.html';
-        }
-    });
-
-    function updateUserProfile(user, userData) {
-        const userNameElement = document.querySelector('.user-name');
-        const userRoleElement = document.querySelector('.user-role');
-
-        const displayName = userData.firstName && userData.lastName 
-            ? `${userData.firstName} ${userData.lastName}`
-            : userData.username 
-            ? userData.username
-            : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-
-        if (userNameElement) userNameElement.textContent = displayName;
-        if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
-
-        // set avatar(s) safely (use base64/photoURL/picture or fall back to default)
-        const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
-        const avatars = document.querySelectorAll('.user-avatar');
-        avatars.forEach(img => {
-            if (img) {
-                img.src = avatarSrc;
-                img.onerror = () => { img.src = 'images/default-avatar.png'; };
-            }
-        });
-
-        // store for later in case sidebar is loaded after profile
-        window.userData = userData;
-    }
-
-    // If sidebar is loaded after user data, re-apply avatar when sidebar is inserted
-    if (window.__sidebarLoaded) {
-        // sidebar might already be present
-        if (window.userData) updateUserProfile(window.currentUser, window.userData);
-    } else {
-        window.addEventListener('sidebar:loaded', () => {
-            if (window.currentUser) updateUserProfile(window.currentUser, window.userData || {});
-        }, { once: true });
-    }
-
-    // Show error message
-    function showError(message) {
-        const dataGrid = document.getElementById('dataGrid');
-        dataGrid.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Error Loading Farm Data</h3>
-                <p>${message}</p>
-                <button class="btn btn-primary" id="retryBtn" style="margin-top: 15px;">
-                    <i class="fas fa-redo"></i> Try Again
-                </button>
-            </div>
-        `;
-        
-        document.getElementById('retryBtn').addEventListener('click', () => {
-            if (window.currentUser) {
-                loadFarmData(window.currentUser.uid);
-            }
-        });
-    }
-
-    // Show no data message
-    function showNoData() {
-        const dataGrid = document.getElementById('dataGrid');
-        dataGrid.innerHTML = `
-            <div class="no-data">
-                <i class="fas fa-tractor"></i>
-                <h3>No Farm Data Available</h3>
-                <p>Add your first farm data entry to get started with tracking and analytics.</p>
-                <button class="btn btn-primary" id="createDataBtn" style="margin-top: 15px;">
-                    <i class="fas fa-plus"></i> Add Farm Data
-                </button>
-            </div>
-        `;
-        
-        document.getElementById('createDataBtn').addEventListener('click', openAddDataModal);
-    }
-
-    // Load farm data from Firebase
-    async function loadFarmData(userId) {
-        try {
-            const dataGrid = document.getElementById('dataGrid');
-            dataGrid.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading farm data...</p>
-                </div>
-            `;
-
-            console.log("Loading farm data for user:", userId);
-            
-            const farmDataRef = collection(db, "farmData");
-            
-            // Try different query approaches
-            let querySnapshot;
-            try {
-                // First try: Query with user filter and ordering
-                const q = query(farmDataRef, where("userId", "==", userId), orderBy("timestamp", "desc"));
-                querySnapshot = await getDocs(q);
-            } catch (queryError) {
-                console.log("First query failed, trying without ordering:", queryError);
-                
-                // Second try: Query without ordering (in case timestamp field doesn't exist)
-                try {
-                    const q = query(farmDataRef, where("userId", "==", userId));
-                    querySnapshot = await getDocs(q);
-                } catch (secondError) {
-                    console.log("Second query failed, trying to get all farm data:", secondError);
-                    
-                    // Third try: Get all farm data and filter client-side
-                    querySnapshot = await getDocs(farmDataRef);
-                    // Filter by userId manually
-                    const filteredDocs = [];
-                    querySnapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data.userId === userId) {
-                            filteredDocs.push({...doc, data: () => data});
-                        }
-                    });
-                    // Create a mock querySnapshot
-                    querySnapshot = {
-                        empty: filteredDocs.length === 0,
-                        forEach: (callback) => filteredDocs.forEach(callback),
-                        size: filteredDocs.length
-                    };
-                }
-            }
-            
-            console.log("Found farm data entries:", querySnapshot.size);
-            
-            if (querySnapshot.empty) {
-                showNoData();
-                updateAnalytics([]);
-                return;
-            }
-            
-            dataGrid.innerHTML = '';
-            
-            const allFarmData = [];
-            querySnapshot.forEach((doc) => {
-                const farmData = doc.data ? doc.data() : doc;
-                allFarmData.push({farmData, docId: doc.id});
+        // Tree type selection
+        const treeTypeCards = document.querySelectorAll('.tree-type-card');
+        treeTypeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                // Remove selected class from all cards
+                treeTypeCards.forEach(c => c.classList.remove('selected'));
+                // Add selected class to clicked card
+                card.classList.add('selected');
             });
-            
-            // Store all farm data for filtering
-            window.allFarmData = allFarmData;
-            
-            // Update analytics
-            updateAnalytics(allFarmData);
-            
-            // Apply any existing filters
-            applyFilters();
-            
-        } catch (error) {
-            console.error("Error loading farm data: ", error);
-            
-            // More specific error messages
-            if (error.code === 'permission-denied') {
-                showError("Database permission denied. Please contact support.");
-            } else if (error.code === 'unavailable') {
-                showError("Network error. Please check your internet connection.");
-            } else if (error.message && error.message.includes('index')) {
-                showError("Database indexing issue. Please try creating farm data first.");
-            } else {
-                showError("Unable to load farm data. Please try adding farm data first.");
-            }
-        }
-    }
+        });
 
-    // Update analytics with farm data
-    function updateAnalytics(farmData) {
-        if (!farmData || farmData.length === 0) {
-            document.getElementById('totalCrops').textContent = '0';
-            document.getElementById('avgSoilQuality').textContent = '0%';
-            document.getElementById('optimalConditions').textContent = '0';
-            document.getElementById('yieldIncrease').textContent = '0%';
-            return;
-        }
-        
-        // Calculate analytics
-        const totalCrops = farmData.length;
-        
-        // Calculate average soil quality (simplified)
-        let totalQuality = 0;
-        let optimalCount = 0;
-        
-        farmData.forEach(({farmData}) => {
-            // Simplified soil quality calculation based on pH and nutrients
-            let qualityScore = 0;
-            
-            // pH scoring (optimal range 6.0-7.0)
-            if (farmData.soilPH >= 6.0 && farmData.soilPH <= 7.0) {
-                qualityScore += 50;
-            } else if (farmData.soilPH >= 5.5 && farmData.soilPH <= 7.5) {
-                qualityScore += 30;
-            } else {
-                qualityScore += 10;
-            }
-            
-            // Nutrient level scoring
-            if (farmData.nutrientLevel === 'high') {
-                qualityScore += 40;
-            } else if (farmData.nutrientLevel === 'medium') {
-                qualityScore += 25;
-            } else {
-                qualityScore += 10;
-            }
-            
-            // Moisture scoring (optimal 40-60%)
-            if (farmData.soilMoisture >= 40 && farmData.soilMoisture <= 60) {
-                qualityScore += 10;
-            } else if (farmData.soilMoisture >= 30 && farmData.soilMoisture <= 70) {
-                qualityScore += 5;
-            }
-            
-            totalQuality += qualityScore;
-            
-            // Count optimal conditions (quality > 80)
-            if (qualityScore > 80) {
-                optimalCount++;
+        // Toggle between form and list views
+        viewFarmsBtn.addEventListener('click', () => {
+            farmForm.style.display = 'none';
+            farmsList.style.display = 'grid';
+            loadFarmsList();
+        });
+
+        addFarmBtn.addEventListener('click', () => {
+            farmForm.style.display = 'block';
+            farmsList.style.display = 'none';
+            resetForm();
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            farmForm.style.display = 'none';
+            farmsList.style.display = 'grid';
+            loadFarmsList();
+        });
+
+        // Save farm data
+        saveFarmBtn.addEventListener('click', () => {
+            if (validateForm()) {
+                saveFarmData();
             }
         });
-        
-        const avgSoilQuality = Math.round(totalQuality / farmData.length);
-        const projectedYieldIncrease = Math.min(25, Math.round(avgSoilQuality / 4));
-        
-        // Update analytics display
-        document.getElementById('totalCrops').textContent = totalCrops;
-        document.getElementById('avgSoilQuality').textContent = `${avgSoilQuality}%`;
-        document.getElementById('optimalConditions').textContent = optimalCount;
-        document.getElementById('yieldIncrease').textContent = `${projectedYieldIncrease}%`;
-    }
 
-    // Apply filters to farm data
-    function applyFilters() {
-        const dataGrid = document.getElementById('dataGrid');
-        dataGrid.innerHTML = '';
-        
-        if (!window.allFarmData || window.allFarmData.length === 0) {
-            showNoData();
-            return;
-        }
-        
-        const filteredData = window.allFarmData.filter(({farmData, docId}) => {
-            // Crop type filter
-            if (currentFilters.cropType !== 'all' && farmData.cropType !== currentFilters.cropType) {
+        // Form validation
+        function validateForm() {
+            const farmName = document.getElementById('farmName').value;
+            const farmLocation = document.getElementById('farmLocation').value;
+            const selectedTreeType = document.querySelector('.tree-type-card.selected');
+
+            if (!farmName.trim()) {
+                alert('Please enter a farm name');
                 return false;
             }
-            
-            // Soil quality filter
-            if (currentFilters.soilQuality !== 'all') {
-                const qualityStatus = getQualityStatus(farmData);
-                if (currentFilters.soilQuality !== qualityStatus) {
-                    return false;
-                }
+
+            if (!farmLocation.trim()) {
+                alert('Please enter a farm location');
+                return false;
             }
-            
-            // Date filter
-            if (currentFilters.dateFrom || currentFilters.dateTo) {
-                let dataDate;
-                try {
-                    if (farmData.date) {
-                        dataDate = new Date(farmData.date);
-                    } else if (farmData.timestamp) {
-                        dataDate = new Date(farmData.timestamp.toDate());
-                    } else {
-                        dataDate = new Date();
-                    }
-                } catch (dateError) {
-                    dataDate = new Date();
-                }
-                
-                if (currentFilters.dateFrom) {
-                    const fromDate = new Date(currentFilters.dateFrom);
-                    if (dataDate < fromDate) return false;
-                }
-                
-                if (currentFilters.dateTo) {
-                    const toDate = new Date(currentFilters.dateTo);
-                    toDate.setHours(23, 59, 59, 999); // End of the day
-                    if (dataDate > toDate) return false;
-                }
+
+            if (!selectedTreeType) {
+                alert('Please select a primary tree type');
+                return false;
             }
-            
+
             return true;
-        });
-        
-        if (filteredData.length === 0) {
-            dataGrid.innerHTML = `
-                <div class="no-data">
-                    <i class="fas fa-filter"></i>
-                    <h3>No Farm Data Matches Your Filters</h3>
-                    <p>Try adjusting your filter criteria to see more results.</p>
-                    <button class="btn btn-primary" id="clearFilterResultsBtn" style="margin-top: 15px;">
-                        <i class="fas fa-times"></i> Clear Filters
-                    </button>
-                </div>
-            `;
-            
-            document.getElementById('clearFilterResultsBtn').addEventListener('click', clearFilters);
-        } else {
-            filteredData.forEach(({farmData, docId}) => {
-                createDataCard(farmData, docId);
-            });
         }
-    }
 
-    // Get quality status for farm data
-    function getQualityStatus(farmData) {
-        // Simplified quality calculation
-        let qualityScore = 0;
-        
-        // pH scoring (optimal range 6.0-7.0)
-        if (farmData.soilPH >= 6.0 && farmData.soilPH <= 7.0) {
-            qualityScore += 50;
-        } else if (farmData.soilPH >= 5.5 && farmData.soilPH <= 7.5) {
-            qualityScore += 30;
-        } else {
-            qualityScore += 10;
+        // Reset form
+        function resetForm() {
+            document.getElementById('farmForm').reset();
+            treeTypeCards.forEach(card => card.classList.remove('selected'));
         }
-        
-        // Nutrient level scoring
-        if (farmData.nutrientLevel === 'high') {
-            qualityScore += 40;
-        } else if (farmData.nutrientLevel === 'medium') {
-            qualityScore += 25;
-        } else {
-            qualityScore += 10;
-        }
-        
-        // Moisture scoring (optimal 40-60%)
-        if (farmData.soilMoisture >= 40 && farmData.soilMoisture <= 60) {
-            qualityScore += 10;
-        } else if (farmData.soilMoisture >= 30 && farmData.soilMoisture <= 70) {
-            qualityScore += 5;
-        }
-        
-        if (qualityScore > 80) return 'optimal';
-        if (qualityScore > 50) return 'needs_attention';
-        return 'poor';
-    }
 
-    // Get status information for farm data
-    function getStatusInfo(farmData) {
-        const qualityStatus = getQualityStatus(farmData);
-        
-        let statusClass = "status-optimal";
-        let statusText = "Optimal";
-        
-        if (qualityStatus === 'needs_attention') {
-            statusClass = "status-warning";
-            statusText = "Needs Attention";
-        } else if (qualityStatus === 'poor') {
-            statusClass = "status-critical";
-            statusText = "Poor";
-        }
-        
-        return { statusClass, statusText };
-    }
-
-    // Clear all filters
-    function clearFilters() {
-        currentFilters = {
-            cropType: 'all',
-            soilQuality: 'all',
-            dateFrom: '',
-            dateTo: ''
-        };
-        
-        // Reset filter inputs
-        document.getElementById('cropTypeFilter').value = 'all';
-        document.getElementById('soilQualityFilter').value = 'all';
-        document.getElementById('dateFrom').value = '';
-        document.getElementById('dateTo').value = '';
-        
-        applyFilters();
-        closeFilterModal();
-    }
-
-    // Open filter modal
-    function openFilterModal() {
-        document.getElementById('filterModal').style.display = 'flex';
-    }
-
-    // Close filter modal
-    function closeFilterModal() {
-        document.getElementById('filterModal').style.display = 'none';
-    }
-
-    // Open add data modal
-    function openAddDataModal() {
-        document.getElementById('addDataModal').style.display = 'flex';
-    }
-
-    // Close add data modal
-    function closeAddDataModal() {
-        document.getElementById('addDataModal').style.display = 'none';
-        document.getElementById('farmDataForm').reset();
-    }
-
-    // Create a data card for each farm data entry
-    function createDataCard(farmData, docId) {
-        const dataGrid = document.getElementById('dataGrid');
-        
-        const { statusClass, statusText } = getStatusInfo(farmData);
-        
-        // Format date safely
-        let dataDate = 'Not specified';
-        try {
-            if (farmData.date) {
-                dataDate = new Date(farmData.date).toLocaleDateString();
-            } else if (farmData.timestamp) {
-                dataDate = new Date(farmData.timestamp.toDate()).toLocaleDateString();
-            }
-        } catch (dateError) {
-            console.log("Date parsing error:", dateError);
-        }
-        
-        const dataCard = document.createElement('div');
-        dataCard.className = 'data-card';
-        dataCard.setAttribute('data-id', docId);
-        
-        dataCard.innerHTML = `
-            <div class="data-header">
-                <div class="data-title">${farmData.cropType ? farmData.cropType.charAt(0).toUpperCase() + farmData.cropType.slice(1) : 'Unknown'} Crop</div>
-                <div class="data-status ${statusClass}">${statusText}</div>
-            </div>
-            <div class="data-body">
-                <div class="data-info">
-                    <div class="info-item">
-                        <span class="info-label">Date:</span>
-                        <span class="info-value">${dataDate}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Location:</span>
-                        <span class="info-value">${farmData.location || 'Not specified'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Soil pH:</span>
-                        <span class="info-value">${farmData.soilPH || 'Not measured'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Nutrients:</span>
-                        <span class="info-value">${farmData.nutrientLevel ? farmData.nutrientLevel.charAt(0).toUpperCase() + farmData.nutrientLevel.slice(1) : 'Unknown'}</span>
-                    </div>
-                </div>
-            </div>
-            <div class="data-footer">
-                <div class="data-date">${dataDate}</div>
-                <div class="data-actions">
-                    <button class="action-btn view-details" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="action-btn edit-data" title="Edit Data">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        dataGrid.appendChild(dataCard);
-        
-        // Add event listener for view details
-        const viewBtn = dataCard.querySelector('.view-details');
-        viewBtn.addEventListener('click', () => {
-            showDataDetails(farmData, docId);
-        });
-        
-        // Add event listener for edit data
-        const editBtn = dataCard.querySelector('.edit-data');
-        editBtn.addEventListener('click', () => {
-            editData(farmData, docId);
-        });
-    }
-
-    // Show detailed data view
-    function showDataDetails(farmData, docId) {
-        const detailsPanel = document.getElementById('dataDetails');
-        const dataGrid = document.getElementById('dataGrid');
-        
-        // Hide data grid and show details
-        dataGrid.style.display = 'none';
-        detailsPanel.style.display = 'block';
-        
-        // Store current farm data for editing
-        window.currentFarmData = farmData;
-        window.currentFarmDataId = docId;
-        
-        // Populate details with safe defaults
-        document.getElementById('detailsTitle').textContent = `${farmData.cropType ? farmData.cropType.charAt(0).toUpperCase() + farmData.cropType.slice(1) : 'Unknown'} Crop Data`;
-        document.getElementById('detailId').textContent = docId || 'Not specified';
-        
-        let dataDate = 'Not specified';
-        try {
-            if (farmData.date) {
-                dataDate = new Date(farmData.date).toLocaleDateString();
-            } else if (farmData.timestamp) {
-                dataDate = new Date(farmData.timestamp.toDate()).toLocaleDateString();
-            }
-        } catch (dateError) {
-            console.log("Date parsing error:", dateError);
-        }
-        
-        document.getElementById('detailDate').textContent = dataDate;
-        document.getElementById('detailLocation').textContent = farmData.location || 'Not specified';
-        document.getElementById('detailCropType').textContent = farmData.cropType ? farmData.cropType.charAt(0).toUpperCase() + farmData.cropType.slice(1) : 'Not specified';
-        document.getElementById('detailPH').textContent = farmData.soilPH || 'Not measured';
-        document.getElementById('detailNutrients').textContent = farmData.nutrientLevel ? farmData.nutrientLevel.charAt(0).toUpperCase() + farmData.nutrientLevel.slice(1) : 'Unknown';
-        document.getElementById('detailMoisture').textContent = farmData.soilMoisture ? `${farmData.soilMoisture}%` : 'Not measured';
-        document.getElementById('detailTemperature').textContent = farmData.temperature ? `${farmData.temperature}°C` : 'Not recorded';
-        document.getElementById('detailHumidity').textContent = farmData.humidity ? `${farmData.humidity}%` : 'Not recorded';
-        document.getElementById('detailRainfall').textContent = farmData.rainfall ? `${farmData.rainfall}mm` : 'Not recorded';
-        document.getElementById('detailLastIrrigation').textContent = farmData.lastIrrigation || 'Not recorded';
-        document.getElementById('detailNextIrrigation').textContent = farmData.nextIrrigation || 'Not scheduled';
-        document.getElementById('detailScheduleType').textContent = farmData.irrigationSchedule ? farmData.irrigationSchedule.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Not specified';
-        
-        // Generate recommendations based on data
-        const recommendations = generateRecommendations(farmData);
-        document.getElementById('detailRecommendations').textContent = recommendations;
-    }
-
-    // Generate recommendations based on farm data
-    function generateRecommendations(farmData) {
-        let recommendations = [];
-        
-        // pH recommendations
-        if (farmData.soilPH < 6.0) {
-            recommendations.push("Consider adding lime to increase soil pH.");
-        } else if (farmData.soilPH > 7.0) {
-            recommendations.push("Consider adding sulfur to decrease soil pH.");
-        }
-        
-        // Nutrient recommendations
-        if (farmData.nutrientLevel === 'low') {
-            recommendations.push("Apply fertilizer to improve nutrient levels.");
-        } else if (farmData.nutrientLevel === 'high') {
-            recommendations.push("Reduce fertilizer application to avoid nutrient burn.");
-        }
-        
-        // Moisture recommendations
-        if (farmData.soilMoisture < 30) {
-            recommendations.push("Increase irrigation frequency to improve soil moisture.");
-        } else if (farmData.soilMoisture > 70) {
-            recommendations.push("Reduce irrigation to prevent waterlogging.");
-        }
-        
-        // Temperature recommendations
-        if (farmData.temperature > 35) {
-            recommendations.push("Consider shade options during peak heat hours.");
-        } else if (farmData.temperature < 10) {
-            recommendations.push("Consider protective covers during cold periods.");
-        }
-        
-        if (recommendations.length === 0) {
-            return "Current conditions appear optimal. Continue current practices.";
-        }
-        
-        return recommendations.join(" ");
-    }
-
-    // Edit data function
-    function editData(farmData, docId) {
-        // For now, just show the details and enable editing
-        showDataDetails(farmData, docId);
-        
-        // In a real implementation, you would:
-        // 1. Populate the form with existing data
-        // 2. Change the form to update mode
-        // 3. Handle the update in Firebase
-        alert("Edit functionality would be implemented here. For now, please add new data entries.");
-    }
-
-    // Save farm data to Firebase
-    async function saveFarmData(formData) {
-        try {
-            const userId = window.currentUser.uid;
-            
+        // Save farm data (placeholder function)
+        function saveFarmData() {
             const farmData = {
-                userId: userId,
-                cropType: formData.cropType,
-                location: formData.location,
-                soilPH: parseFloat(formData.soilPH),
-                nutrientLevel: formData.nutrientLevel,
-                soilMoisture: parseInt(formData.soilMoisture),
-                temperature: parseInt(formData.temperature),
-                humidity: parseInt(formData.humidity),
-                rainfall: parseInt(formData.rainfall),
-                irrigationSchedule: formData.irrigationSchedule,
-                cropHistory: formData.cropHistory,
-                timestamp: new Date()
+                name: document.getElementById('farmName').value,
+                location: document.getElementById('farmLocation').value,
+                size: document.getElementById('farmSize').value,
+                ownershipType: document.getElementById('ownershipType').value,
+                gpsCoordinates: document.getElementById('gpsCoordinates').value,
+                treeType: document.querySelector('.tree-type-card.selected')?.dataset.type,
+                treeCount: document.querySelector('.tree-type-card.selected input')?.value,
+                plantingDate: document.getElementById('plantingDate').value,
+                treeAge: document.getElementById('treeAge').value,
+                soilType: document.getElementById('soilType').value,
+                soilPh: document.getElementById('soilPh').value,
+                rainfall: document.getElementById('rainfall').value,
+                temperature: document.getElementById('temperature').value,
+                irrigationType: document.getElementById('irrigationType').value,
+                fertilizerType: document.getElementById('fertilizerType').value,
+                pestControl: document.getElementById('pestControl').value,
+                lastTreatment: document.getElementById('lastTreatment').value,
+                notes: document.getElementById('farmNotes').value,
+                createdAt: new Date().toISOString()
             };
-            
-            // Add document to farmData collection
-            const docRef = await addDoc(collection(db, "farmData"), farmData);
-            console.log("Farm data saved with ID: ", docRef.id);
-            
-            // Reload farm data
-            await loadFarmData(userId);
-            
-            // Close modal
-            closeAddDataModal();
+
+            // In a real application, you would save this to Firebase or your backend
+            console.log('Farm data to save:', farmData);
             
             // Show success message
-            alert("Farm data saved successfully!");
+            alert('Farm data saved successfully!');
             
-        } catch (error) {
-            console.error("Error saving farm data: ", error);
-            alert("Error saving farm data. Please try again.");
+            // Switch to list view
+            farmForm.style.display = 'none';
+            farmsList.style.display = 'grid';
+            loadFarmsList();
         }
-    }
 
-    // Event Listeners
-    document.getElementById('filterBtn').addEventListener('click', openFilterModal);
-    document.getElementById('closeFilterBtn').addEventListener('click', closeFilterModal);
-    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
-    
-    document.getElementById('applyFiltersBtn').addEventListener('click', () => {
-        currentFilters.cropType = document.getElementById('cropTypeFilter').value;
-        currentFilters.soilQuality = document.getElementById('soilQualityFilter').value;
-        currentFilters.dateFrom = document.getElementById('dateFrom').value;
-        currentFilters.dateTo = document.getElementById('dateTo').value;
-        
-        applyFilters();
-        closeFilterModal();
-    });
-
-    // Add data modal events
-    document.getElementById('addDataBtn').addEventListener('click', openAddDataModal);
-    document.getElementById('closeAddDataBtn').addEventListener('click', closeAddDataModal);
-    document.getElementById('cancelAddDataBtn').addEventListener('click', closeAddDataModal);
-    
-    // Form submission
-    document.getElementById('farmDataForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const formData = {
-            cropType: document.getElementById('cropType').value,
-            location: document.getElementById('location').value,
-            soilPH: document.getElementById('soilPH').value,
-            nutrientLevel: document.getElementById('nutrientLevel').value,
-            soilMoisture: document.getElementById('soilMoisture').value,
-            temperature: document.getElementById('temperature').value,
-            humidity: document.getElementById('humidity').value,
-            rainfall: document.getElementById('rainfall').value,
-            irrigationSchedule: document.getElementById('irrigationSchedule').value,
-            cropHistory: document.getElementById('cropHistory').value
-        };
-        
-        saveFarmData(formData);
-    });
-
-    // Close details view
-    document.getElementById('closeDetailsBtn').addEventListener('click', () => {
-        const detailsPanel = document.getElementById('dataDetails');
-        const dataGrid = document.getElementById('dataGrid');
-        
-        detailsPanel.style.display = 'none';
-        dataGrid.style.display = 'grid';
-    });
-
-    // Edit data button
-    document.getElementById('editDataBtn').addEventListener('click', () => {
-        if (window.currentFarmData) {
-            editData(window.currentFarmData, window.currentFarmDataId);
-        }
-    });
-
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const dataCards = document.querySelectorAll('.data-card');
-        
-        dataCards.forEach(card => {
-            const title = card.querySelector('.data-title').textContent.toLowerCase();
-            const infoValues = card.querySelectorAll('.info-value');
-            const location = infoValues[1] ? infoValues[1].textContent.toLowerCase() : '';
-            const status = card.querySelector('.data-status').textContent.toLowerCase();
+        // Load farms list (placeholder function)
+        function loadFarmsList() {
+            // In a real application, you would load this from Firebase or your backend
+            const farmsListElement = document.getElementById('farmsList');
             
-            if (title.includes(searchTerm) || location.includes(searchTerm) || status.includes(searchTerm)) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
+            // Simulate loading delay
+            setTimeout(() => {
+                // Sample data - replace with actual data from your database
+                const sampleFarms = [
+                    {
+                        id: 1,
+                        name: "Main Oil Palm Plantation",
+                        location: "Selangor, Malaysia",
+                        size: 50,
+                        treeType: "oil_palm",
+                        treeCount: 12000,
+                        plantingDate: "2018-03-15",
+                        lastAssessment: "2024-01-15"
+                    },
+                    {
+                        id: 2,
+                        name: "Coconut Grove",
+                        location: "Johor, Malaysia",
+                        size: 12,
+                        treeType: "coconut",
+                        treeCount: 800,
+                        plantingDate: "2020-07-22",
+                        lastAssessment: "2024-02-10"
+                    }
+                ];
+
+                if (sampleFarms.length === 0) {
+                    farmsListElement.innerHTML = `
+                        <div class="no-data">
+                            <i class="fas fa-tractor"></i>
+                            <h3>No Farms Added Yet</h3>
+                            <p>Add your first farm to start monitoring tree health.</p>
+                            <button class="btn btn-primary" id="addFirstFarmBtn" style="margin-top: 15px;">
+                                <i class="fas fa-plus"></i> Add First Farm
+                            </button>
+                        </div>
+                    `;
+                    
+                    document.getElementById('addFirstFarmBtn').addEventListener('click', () => {
+                        farmForm.style.display = 'block';
+                        farmsList.style.display = 'none';
+                        resetForm();
+                    });
+                } else {
+                    farmsListElement.innerHTML = sampleFarms.map(farm => `
+                        <div class="farm-card">
+                            <div class="farm-header">
+                                <div class="farm-name">${farm.name}</div>
+                                <div class="farm-location">${farm.location}</div>
+                            </div>
+                            <div class="farm-body">
+                                <div class="farm-info">
+                                    <div class="info-item">
+                                        <span class="info-label">Size:</span>
+                                        <span class="info-value">${farm.size} hectares</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Tree Type:</span>
+                                        <span class="info-value">${getTreeTypeName(farm.treeType)}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Tree Count:</span>
+                                        <span class="info-value">${farm.treeCount.toLocaleString()}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Planted:</span>
+                                        <span class="info-value">${new Date(farm.plantingDate).toLocaleDateString()}</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <span class="info-label">Last Assessment:</span>
+                                        <span class="info-value">${farm.lastAssessment ? new Date(farm.lastAssessment).toLocaleDateString() : 'Never'}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="farm-footer">
+                                <div class="farm-date">Added: ${new Date().toLocaleDateString()}</div>
+                                <div class="farm-actions">
+                                    <button class="action-btn edit-farm" title="Edit Farm" data-id="${farm.id}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="action-btn assess-farm" title="Start Assessment" data-id="${farm.id}">
+                                        <i class="fas fa-clipboard-check"></i>
+                                    </button>
+                                    <button class="action-btn delete-farm" title="Delete Farm" data-id="${farm.id}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+
+                    // Add event listeners for action buttons
+                    document.querySelectorAll('.edit-farm').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const farmId = e.currentTarget.dataset.id;
+                            editFarm(farmId);
+                        });
+                    });
+
+                    document.querySelectorAll('.assess-farm').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const farmId = e.currentTarget.dataset.id;
+                            startAssessment(farmId);
+                        });
+                    });
+
+                    document.querySelectorAll('.delete-farm').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const farmId = e.currentTarget.dataset.id;
+                            deleteFarm(farmId);
+                        });
+                    });
+                }
+            }, 1000);
+        }
+
+        // Helper function to get tree type name
+        function getTreeTypeName(type) {
+            const types = {
+                'oil_palm': 'Oil Palm',
+                'coconut': 'Coconut Palm',
+                'date_palm': 'Date Palm',
+                'other': 'Other'
+            };
+            return types[type] || 'Unknown';
+        }
+
+        // Placeholder functions for farm actions
+        function editFarm(farmId) {
+            alert(`Edit farm with ID: ${farmId}`);
+            // In a real application, you would load the farm data into the form
+        }
+
+        function startAssessment(farmId) {
+            // Redirect to assessment page with farm ID
+            window.location.href = `farmassessment.html?farmId=${farmId}`;
+        }
+
+        function deleteFarm(farmId) {
+            if (confirm('Are you sure you want to delete this farm? This action cannot be undone.')) {
+                alert(`Delete farm with ID: ${farmId}`);
+                // In a real application, you would delete from Firebase/backend
+                loadFarmsList(); // Refresh the list
             }
-        });
-    });
-
-    // Logout functionality
-    document.getElementById('logoutBtn').addEventListener('click', function(e) {
-        e.preventDefault();
-        signOut(auth).then(() => {
-            window.location.href = 'signin.html';
-        }).catch((error) => {
-            console.error('Logout error:', error);
-        });
-    });
-
-    // Close modals when clicking outside
-    document.getElementById('filterModal').addEventListener('click', (e) => {
-        if (e.target.id === 'filterModal') {
-            closeFilterModal();
         }
-    });
-    
-    document.getElementById('addDataModal').addEventListener('click', (e) => {
-        if (e.target.id === 'addDataModal') {
-            closeAddDataModal();
-        }
-    });
-</script>
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start with the form hidden and show the farms list
+            farmForm.style.display = 'none';
+            farmsList.style.display = 'grid';
+            loadFarmsList();
+        });
+    </script>
 </body>
 </html>
