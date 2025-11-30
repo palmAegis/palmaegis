@@ -67,21 +67,52 @@
             }
         });
 
-        // inject sanitized content
+        // inject parsed content
         placeholder.innerHTML = '';
         placeholder.appendChild(frag);
 
         window.__sidebarLoaded = true;
 
-        // safe helper to apply user profile info
-        const applyProfile = () => {
+        // --- set active nav item based on current location and add click feedback ---
+        (function updateSidebarActive() {
+            function setActiveByPath() {
+                try {
+                    const current = (window.location.pathname || '').split('/').pop() || 'homepage.html';
+                    document.querySelectorAll('.sidebar-nav a').forEach(a => {
+                        const href = (a.getAttribute('href') || '').split('/').pop();
+                        const li = a.closest('li');
+                        if (!li) return;
+                        if (href === current) li.classList.add('active'); else li.classList.remove('active');
+                    });
+                } catch (e) { /* ignore */ }
+            }
+
+            // immediate highlight
+            setActiveByPath();
+
+            // update on clicks for instant feedback (page will normally reload, but this helps single-page or anchor navigation)
+            document.querySelectorAll('.sidebar-nav a').forEach(a => {
+                a.addEventListener('click', (ev) => {
+                    // allow normal navigation, but update class for immediate visual feedback
+                    document.querySelectorAll('.sidebar-nav li').forEach(li => li.classList.remove('active'));
+                    const li = a.closest('li');
+                    if (li) li.classList.add('active');
+                });
+            });
+
+            // also expose a function other pages can call after dynamic navigation
+            window.setSidebarActive = setActiveByPath;
+        })();
+
+        // apply profile if available
+        (function applyProfile(){
             try {
                 const img = document.getElementById('sidebarUserAvatar');
                 const nameEl = document.querySelector('.user-name');
                 const roleEl = document.querySelector('.user-role');
                 const src = window.userData?.imageBase64 || window.userData?.picture || window.currentUser?.photoURL || null;
-                if (img) {
-                    if (src) img.src = src;
+                if (img && src) {
+                    img.src = src;
                     img.onerror = () => { img.onerror = null; img.src = img.getAttribute('data-default') || img.src; };
                 }
                 if (nameEl) {
@@ -92,9 +123,7 @@
                 }
                 if (roleEl) roleEl.textContent = window.userData?.bio || 'Farmer';
             } catch (e) { /* ignore */ }
-        };
-
-        applyProfile();
+        })();
 
         // wire toggle safely
         const sidebar = document.querySelector('.sidebar');

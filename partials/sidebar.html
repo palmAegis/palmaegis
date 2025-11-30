@@ -1,4 +1,3 @@
-
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="logo">
@@ -11,7 +10,7 @@
     </div>
     <nav class="sidebar-nav">
         <ul>
-            <li class="nav-item active">
+            <li class="nav-item"><!-- removed static 'active' class; JS will set it -->
                 <a href="homepage.html" data-tooltip="Dashboard">
                     <i class="fas fa-home"></i>
                     <span>Dashboard</span>
@@ -29,12 +28,6 @@
                     <span>Tree Health</span>
                 </a>
             </li>
-            <!-- <li class="nav-item">
-                <a href="treehealth.html" data-tooltip="Tree Health">
-                    <i class="fas fa-tree"></i>
-                    <span>Tree Health</span>
-                </a>
-            </li> -->
             <li class="nav-item">
                 <a href="treatment.html" data-tooltip="Treatment">
                     <i class="fas fa-shield"></i>
@@ -60,7 +53,6 @@
                 </a>
             </li>
             <li class="nav-item">
-                <!-- keep href=signin.html as fallback, JS will sign out then redirect -->
                 <a href="signin.html" id="logoutBtn" data-tooltip="Logout">
                     <i class="fas fa-sign-out-alt"></i><span>Logout</span>
                 </a>
