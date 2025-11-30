@@ -337,7 +337,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
         import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-
+        
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
@@ -361,9 +361,30 @@
         window.firebaseCollection = collection;
         window.firebaseServerTimestamp = serverTimestamp;
 
-        let map = null;
-        let marker = null;
-        let uploadedPhotos = [];
+        // make a global helper so other scripts (sidebar-loader etc.) can call it
+        window.applyUserProfileToSidebar = function(userData, user) {
+            try {
+                const img = document.getElementById('sidebarUserAvatar');
+                const nameEl = document.querySelector('.user-name');
+                const roleEl = document.querySelector('.user-role');
+                const src = (userData && (userData.imageBase64 || userData.picture)) || (user && user.photoURL) || null;
+                if (img) {
+                    if (src) img.src = src;
+                    img.onerror = () => { img.onerror = null; img.src = img.getAttribute('data-default') || img.src; };
+                }
+                if (nameEl) {
+                    const displayName = (userData && (userData.firstName && userData.lastName
+                        ? `${userData.firstName} ${userData.lastName}`
+                        : userData.username || userData.displayName))
+                        || (user && (user.displayName || (user.email||'').split('@')[0])) || 'User';
+                    nameEl.textContent = displayName;
+                }
+                if (roleEl) roleEl.textContent = (userData && userData.bio) || 'Farmer';
+            } catch (e) { console.error('applyUserProfileToSidebar', e); }
+        };
+
+        // re-apply profile when sidebar is injected
+        window.addEventListener('sidebar:loaded', () => window.applyUserProfileToSidebar(window.userData, window.currentUser));
 
         // Check authentication state
         onAuthStateChanged(auth, async (user) => {
@@ -381,6 +402,9 @@
                 } catch (error) {
                     console.error('Error loading user data:', error);
                 }
+                
+                // update sidebar now that we have user data
+                window.applyUserProfileToSidebar(window.userData, window.currentUser);
                 
                 // renamed to avoid collision with imported initializeApp
                 appInitialize();
