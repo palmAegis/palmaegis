@@ -382,14 +382,16 @@
                     console.error('Error loading user data:', error);
                 }
                 
-                initializeApp();
+                // renamed to avoid collision with imported initializeApp
+                appInitialize();
             } else {
                 console.log('User is not signed in');
                 window.location.href = 'signin.html';
             }
         });
-
-        function initializeApp() {
+        
+        // renamed from initializeApp to appInitialize()
+        function appInitialize() {
             initializeDateTime();
             initializeMap();
             generateFarmId();
