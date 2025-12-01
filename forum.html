@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -39,8 +38,6 @@
             display: flex;
             min-height: 100vh;
         }
-
-        /* Removed inline sidebar rules — use css/sidebar.css for sidebar styling */
 
         .main-content {
             flex: 1;
@@ -267,11 +264,12 @@
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: #e0e0e0;
+            background-color: #2e7d32;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .author-avatar img {
@@ -280,9 +278,18 @@
             object-fit: cover;
         }
 
+        .avatar-initial {
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
+
         .author-info h4 {
             font-size: 1rem;
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .author-info .post-time {
@@ -428,6 +435,85 @@
             font-weight: 600;
         }
 
+        /* Comment styles */
+        .comment {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .comment-author {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #2e7d32;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .comment-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .comment-avatar .avatar-initial {
+            font-size: 1rem;
+            color: white;
+            font-weight: 600;
+        }
+
+        .comment-info {
+            flex: 1;
+        }
+
+        .comment-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .comment-author-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .comment-time {
+            color: #666;
+            font-size: 0.85rem;
+        }
+
+        .comment-content {
+            color: #444;
+            line-height: 1.5;
+        }
+
+        .expert-badge {
+            background-color: #ff9800;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .expert-badge i {
+            font-size: 0.7rem;
+        }
+
         /* Modal Styles */
         .modal {
             display: none;
@@ -529,7 +615,6 @@
             0% {
                 transform: rotate(0deg);
             }
-
             100% {
                 transform: rotate(360deg);
             }
@@ -845,6 +930,30 @@
             }
         }
 
+        // Get user's profile data (name + avatar)
+        async function getUserProfile(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    const fullName = userData.firstName && userData.lastName
+                        ? `${userData.firstName} ${userData.lastName}`
+                        : userData.username || 'User';
+                    const profileImage = userData.imageBase64 || userData.profileImage || userData.avatar || null;
+                    
+                    return {
+                        fullName: fullName,
+                        profileImage: profileImage,
+                        isExpert: userData.isExpert || false
+                    };
+                }
+                return null;
+            } catch (error) {
+                console.error('Error getting user profile:', error);
+                return null;
+            }
+        }
+
         // Load posts from Firebase
         async function loadPosts() {
             try {
@@ -992,6 +1101,12 @@
             const isUpvoted = post.upvotes && post.upvotes.includes(currentUser.uid);
             const isDownvoted = post.downvotes && post.downvotes.includes(currentUser.uid);
 
+            // Create avatar HTML
+            const avatarHtml = post.authorAvatar ? 
+                `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
+                      onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</text></svg>'; this.onerror=null;">` :
+                `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+
             const postCard = document.createElement('div');
             postCard.className = 'post-card';
             postCard.setAttribute('data-id', post.id);
@@ -1000,10 +1115,12 @@
             <div class="post-header">
                 <div class="post-author">
                     <div class="author-avatar">
-                        <i class="fas fa-user"></i>
+                        ${avatarHtml}
                     </div>
                     <div class="author-info">
-                        <h4>${post.authorName || 'Anonymous'}</h4>
+                        <h4>${post.authorName || 'Anonymous'} 
+                            ${post.isExpert ? '<span class="expert-tag">Expert</span>' : ''}
+                        </h4>
                         <div class="post-time">${postDate}</div>
                     </div>
                 </div>
@@ -1187,8 +1304,8 @@
                     return;
                 }
 
-                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-                const userData = userDoc.exists() ? userDoc.data() : {};
+                const userProfile = await getUserProfile(currentUser.uid);
+                const userData = userProfile || {};
 
                 const postData = {
                     title: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
@@ -1196,9 +1313,9 @@
                     category: category,
                     tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
                     authorId: currentUser.uid,
-                    authorName: userData.firstName && userData.lastName
-                        ? `${userData.firstName} ${userData.lastName}`
-                        : userData.username || currentUser.email.split('@')[0],
+                    authorName: userProfile?.fullName || currentUser.email.split('@')[0],
+                    authorAvatar: userProfile?.profileImage || null,
+                    isExpert: userProfile?.isExpert || false,
                     createdAt: serverTimestamp(),
                     likes: [],
                     likesCount: 0,
@@ -1318,8 +1435,7 @@
             }
 
             try {
-                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-                const userData = userDoc.exists() ? userDoc.data() : {};
+                const userProfile = await getUserProfile(currentUser.uid);
 
                 const postRef = doc(db, "forum_posts", postId);
                 const post = posts.find(p => p.id === postId);
@@ -1327,11 +1443,10 @@
                 const replyData = {
                     content: replyContent,
                     authorId: currentUser.uid,
-                    authorName: userData.firstName && userData.lastName
-                        ? `${userData.firstName} ${userData.lastName}`
-                        : userData.username || currentUser.email.split('@')[0],
+                    authorName: userProfile?.fullName || currentUser.email.split('@')[0],
+                    authorAvatar: userProfile?.profileImage || null,
                     createdAt: serverTimestamp(),
-                    isExpert: userData.isExpert || false
+                    isExpert: userProfile?.isExpert || false
                 };
 
                 // Add reply to post
@@ -1373,13 +1488,19 @@
                     replies.forEach(reply => {
                         const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
+                        // Create reply avatar HTML
+                        const replyAvatarHtml = reply.authorAvatar ? 
+                            `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
+                                  onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</text></svg>'; this.onerror=null;">` :
+                            `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
+
                         const replyCard = document.createElement('div');
                         replyCard.className = 'reply-card';
                         replyCard.innerHTML = `
                         <div class="reply-header">
                             <div class="reply-author">
-                                <div class="author-avatar" style="width: 25px; height: 25px;">
-                                    <i class="fas fa-user" style="font-size: 0.8rem;"></i>
+                                <div class="author-avatar" style="width: 30px; height: 30px;">
+                                    ${replyAvatarHtml}
                                 </div>
                                 <div>
                                     <strong>${reply.authorName || 'Anonymous'}</strong>
@@ -1410,16 +1531,24 @@
                     const post = postDoc.data();
                     const postDate = post.createdAt ? new Date(post.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
+                    // Create avatar HTML for modal
+                    const modalAvatarHtml = post.authorAvatar ? 
+                        `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
+                              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</text></svg>'; this.onerror=null;">` :
+                        `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+
                     const modalContent = document.getElementById('postDetailContent');
                     modalContent.innerHTML = `
                     <div class="post-detail">
                         <div class="post-header">
                             <div class="post-author">
                                 <div class="author-avatar">
-                                    <i class="fas fa-user"></i>
+                                    ${modalAvatarHtml}
                                 </div>
                                 <div class="author-info">
-                                    <h3>${post.authorName || 'Anonymous'}</h3>
+                                    <h3>${post.authorName || 'Anonymous'} 
+                                        ${post.isExpert ? '<span class="expert-tag">Expert</span>' : ''}
+                                    </h3>
                                     <div class="post-time">${postDate}</div>
                                 </div>
                             </div>
@@ -1497,13 +1626,19 @@
                     replies.forEach(reply => {
                         const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
+                        // Create reply avatar HTML for detail view
+                        const detailReplyAvatarHtml = reply.authorAvatar ? 
+                            `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
+                                  onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</text></svg>'; this.onerror=null;">` :
+                            `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
+
                         const replyCard = document.createElement('div');
                         replyCard.className = 'reply-card';
                         replyCard.innerHTML = `
                         <div class="reply-header">
                             <div class="reply-author">
-                                <div class="author-avatar" style="width: 25px; height: 25px;">
-                                    <i class="fas fa-user" style="font-size: 0.8rem;"></i>
+                                <div class="author-avatar" style="width: 30px; height: 30px;">
+                                    ${detailReplyAvatarHtml}
                                 </div>
                                 <div>
                                     <strong>${reply.authorName || 'Anonymous'}</strong>
@@ -1535,8 +1670,7 @@
             }
 
             try {
-                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-                const userData = userDoc.exists() ? userDoc.data() : {};
+                const userProfile = await getUserProfile(currentUser.uid);
 
                 const postRef = doc(db, "forum_posts", postId);
                 const post = posts.find(p => p.id === postId) || {};
@@ -1544,11 +1678,10 @@
                 const replyData = {
                     content: replyContent,
                     authorId: currentUser.uid,
-                    authorName: userData.firstName && userData.lastName
-                        ? `${userData.firstName} ${userData.lastName}`
-                        : userData.username || currentUser.email.split('@')[0],
+                    authorName: userProfile?.fullName || currentUser.email.split('@')[0],
+                    authorAvatar: userProfile?.profileImage || null,
                     createdAt: serverTimestamp(),
-                    isExpert: userData.isExpert || false
+                    isExpert: userProfile?.isExpert || false
                 };
 
                 // Add reply to post
@@ -1777,59 +1910,4 @@
         });
     </script>
 </body>
-
-</html>
-// Logout functionality
-document.getElementById('logoutBtn').addEventListener('click', function(e) {
-e.preventDefault();
-signOut(auth).then(() => {
-window.location.href = 'signin.html';
-}).catch((error) => {
-console.error('Logout error:', error);
-});
-});
-
-// Close modals when clicking outside
-document.querySelectorAll('.modal').forEach(modal => {
-modal.addEventListener('click', (e) => {
-if (e.target === modal) {
-modal.style.display = 'none';
-}
-});
-});
-});
-</script>
-</body>
-
-</html>
-if (title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm)) {
-card.style.display = 'block';
-} else {
-card.style.display = 'none';
-}
-});
-});
-
-// Logout functionality
-document.getElementById('logoutBtn').addEventListener('click', function(e) {
-e.preventDefault();
-signOut(auth).then(() => {
-window.location.href = 'signin.html';
-}).catch((error) => {
-console.error('Logout error:', error);
-});
-});
-
-// Close modals when clicking outside
-document.querySelectorAll('.modal').forEach(modal => {
-modal.addEventListener('click', (e) => {
-if (e.target === modal) {
-modal.style.display = 'none';
-}
-});
-});
-});
-</script>
-</body>
-
 </html>

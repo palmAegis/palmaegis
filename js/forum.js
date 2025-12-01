@@ -141,19 +141,25 @@ async function getUserFirstName(userId) {
     }
 }
 
-// Get user's full name (firstName + lastName) from Firestore
-async function getUserFullName(userId) {
+// Get user's full profile data (name + avatar) from Firestore
+async function getUserProfile(userId) {
     try {
         const userDoc = await db.collection('users').doc(userId).get();
         if (userDoc.exists) {
             const userData = userDoc.data();
-            if (userData.firstName) {
-                return userData.firstName + (userData.lastName ? ' ' + userData.lastName : '');
-            }
+            const fullName = userData.firstName ? 
+                userData.firstName + (userData.lastName ? ' ' + userData.lastName : '') : null;
+            const profileImage = userData.imageBase64 || userData.profileImage || userData.avatar || null;
+            
+            return {
+                fullName: fullName,
+                profileImage: profileImage,
+                isExpert: userData.isExpert || false
+            };
         }
         return null;
     } catch (error) {
-        console.error('Error getting user full name:', error);
+        console.error('Error getting user profile:', error);
         return null;
     }
 }
@@ -188,10 +194,14 @@ async function handlePostSubmit() {
         submitPost.disabled = true;
         submitPost.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
         
-        // Get user's first name from Firestore
-        let authorName = await getUserFullName(user.uid);
+        // Get user's profile from Firestore
+        const userProfile = await getUserProfile(user.uid);
         
-        // If no firstName in Firestore, fallback to displayName or email
+        let authorName = userProfile?.fullName;
+        let authorAvatar = userProfile?.profileImage;
+        const isExpert = userProfile?.isExpert || false;
+        
+        // If no fullName in Firestore, fallback to displayName or email
         if (!authorName) {
             if (user.displayName) {
                 authorName = user.displayName;
@@ -207,7 +217,9 @@ async function handlePostSubmit() {
             category: category,
             authorId: user.uid,
             authorName: authorName,
+            authorAvatar: authorAvatar,
             authorEmail: user.email || '',
+            isExpert: isExpert,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             likes: [],
             comments: [],
@@ -216,7 +228,7 @@ async function handlePostSubmit() {
             views: 0
         };
         
-        console.log('Creating post with author name:', authorName);
+        console.log('Creating post with author:', authorName, 'avatar:', authorAvatar ? 'Yes' : 'No');
         
         // Add to Firestore
         const docRef = await db.collection('posts').add(postData);
@@ -495,6 +507,12 @@ function createPostElement(post) {
     // Get category info
     const categoryInfo = getCategoryInfo(post.category);
     
+    // Create avatar HTML - use profile image if available, otherwise use initials
+    const avatarHtml = post.authorAvatar ? 
+        `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
+              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</text></svg>'; this.onerror=null;">` :
+        `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+    
     const postElement = document.createElement('div');
     postElement.className = 'post';
     postElement.dataset.postId = post.id;
@@ -503,10 +521,13 @@ function createPostElement(post) {
         <div class="post-header">
             <div class="post-author">
                 <div class="author-avatar">
-                    ${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}
+                    ${avatarHtml}
                 </div>
                 <div class="author-info">
-                    <div class="author-name">${post.authorName || 'Unknown User'}</div>
+                    <div class="author-name">
+                        ${post.authorName || 'Unknown User'}
+                        ${post.isExpert ? '<span class="expert-badge"><i class="fas fa-star"></i> Expert</span>' : ''}
+                    </div>
                     <div class="post-meta">
                         <span>${postDate}</span>
                         <span class="post-category ${categoryInfo.class}">
@@ -676,14 +697,28 @@ async function loadComments(postId) {
             const commentDate = comment.createdAt ? 
                 new Date(comment.createdAt).toLocaleString() : 'Recently';
             
+            // Create comment avatar HTML
+            const commentAvatarHtml = comment.authorAvatar ? 
+                `<img src="${comment.authorAvatar}" alt="${comment.authorName || 'User'}" 
+                      onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${comment.authorName ? comment.authorName.charAt(0).toUpperCase() : 'U'}</text></svg>'; this.onerror=null;">` :
+                `<div class="avatar-initial">${comment.authorName ? comment.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+            
             const commentElement = document.createElement('div');
             commentElement.className = 'comment';
             commentElement.innerHTML = `
-                <div class="comment-meta">
-                    <span class="comment-author">${comment.authorName || 'Unknown User'}</span>
-                    <span class="comment-time">${commentDate}</span>
+                <div class="comment-author">
+                    <div class="comment-avatar">
+                        ${commentAvatarHtml}
+                    </div>
+                    <div class="comment-info">
+                        <div class="comment-meta">
+                            <span class="comment-author-name">${comment.authorName || 'Unknown User'}</span>
+                            ${comment.isExpert ? '<span class="expert-badge"><i class="fas fa-star"></i> Expert</span>' : ''}
+                            <span class="comment-time">${commentDate}</span>
+                        </div>
+                        <div class="comment-content">${comment.content || ''}</div>
+                    </div>
                 </div>
-                <div class="comment-content">${comment.content || ''}</div>
             `;
             commentsList.appendChild(commentElement);
         });
@@ -723,10 +758,14 @@ async function handleCommentSubmit(e) {
     try {
         const postRef = db.collection('posts').doc(postId);
         
-        // Get user's first name from Firestore for comments too
-        let authorName = await getUserFullName(user.uid);
+        // Get user's profile from Firestore
+        const userProfile = await getUserProfile(user.uid);
         
-        // If no firstName in Firestore, fallback to displayName or email
+        let authorName = userProfile?.fullName;
+        let authorAvatar = userProfile?.profileImage;
+        const isExpert = userProfile?.isExpert || false;
+        
+        // If no fullName in Firestore, fallback to displayName or email
         if (!authorName) {
             if (user.displayName) {
                 authorName = user.displayName;
@@ -739,6 +778,8 @@ async function handleCommentSubmit(e) {
             content,
             authorId: user.uid,
             authorName: authorName,
+            authorAvatar: authorAvatar,
+            isExpert: isExpert,
             createdAt: Date.now()
         };
         
@@ -765,7 +806,7 @@ async function handleCommentSubmit(e) {
     }
 }
 
-// Add CSS for category header
+// Add CSS for styling
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideInRight {
@@ -850,6 +891,102 @@ style.textContent = `
         font-size: 0.8em;
         margin-left: auto;
     }
+    
+    /* Avatar styles */
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #2e7d32;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    
+    .author-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .avatar-initial {
+        color: white;
+        font-weight: 600;
+        font-size: 1.2rem;
+    }
+    
+    .comment-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background-color: #2e7d32;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    
+    .comment-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .comment-avatar .avatar-initial {
+        font-size: 1rem;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .comment-author {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .comment-info {
+        flex: 1;
+    }
+    
+    .comment-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    
+    .comment-author-name {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .comment-time {
+        color: #666;
+        font-size: 0.85rem;
+    }
+    
+    .comment-content {
+        color: #444;
+        line-height: 1.5;
+    }
+    
+    .expert-badge {
+        background-color: #ff9800;
+        color: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .expert-badge i {
+        font-size: 0.7rem;
+    }
 `;
 document.head.appendChild(style);
 
@@ -862,7 +999,6 @@ window.forumApp = {
     loadPosts,
     handlePostSubmit,
     showNotification,
-    getUserFirstName,
-    getUserFullName,
+    getUserProfile,
     auth
 };
