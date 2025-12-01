@@ -85,7 +85,8 @@ body {
     display: inline-block;
 }
 
-.back-btn:hover, .back-btn:focus {
+.back-btn:hover,
+.back-btn:focus {
     background: var(--primary-dark);
     color: #fff;
     box-shadow: 0 4px 16px rgba(37, 211, 102, 0.15);
@@ -215,7 +216,8 @@ body {
     margin-bottom: 20px;
     box-shadow: var(--shadow-light);
     border: 1px solid var(--border-color);
-    grid-column: 1 / -1; /* Span all columns */
+    grid-column: 1 / -1;
+    /* Span all columns */
 }
 
 .post-input-container {
@@ -364,8 +366,13 @@ body {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Post Styles for 3-Column Grid */
@@ -558,7 +565,8 @@ body {
     font-size: 12px;
 }
 
-.like-count, .comment-count {
+.like-count,
+.comment-count {
     font-weight: 600;
     font-size: 11px;
 }
@@ -778,109 +786,70 @@ body {
     background: transparent;
 }
 
-#searchInput::placeholder {
-    color: var(--text-tertiary);
+.header-content,
+.category-tabs {
+    max-width: 100%;
 }
 
-.search-results {
-    max-height: 60vh;
-    overflow-y: auto;
-    padding: 16px;
+.create-post-section {
+    padding: 12px;
 }
 
-/* Responsive Design for 3-Column Grid */
-@media (max-width: 1200px) {
-    .posts-feed {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 16px;
-    }
-    
-    .forum-main {
-        max-width: 1000px;
-        padding: 16px;
-    }
-    
-    .header-content,
-    .category-tabs {
-        max-width: 1000px;
-    }
+.post {
+    padding: 14px;
 }
 
-@media (max-width: 768px) {
-    .posts-feed {
-        grid-template-columns: 1fr;
-        gap: 12px;
-    }
-    
-    .forum-main {
-        max-width: 100%;
-        padding: 12px;
-    }
-    
-    .header-content,
-    .category-tabs {
-        max-width: 100%;
-    }
-    
-    .create-post-section {
-        padding: 12px;
-    }
-    
-    .post {
-        padding: 14px;
-    }
-    
-    .category-tabs {
-        padding: 8px 12px;
-    }
-    
-    .tab {
-        padding: 6px 12px;
-        font-size: 13px;
-    }
-    
-    .fab {
-        bottom: 20px;
-        right: 20px;
-        width: 52px;
-        height: 52px;
-        font-size: 22px;
-    }
+.category-tabs {
+    padding: 8px 12px;
+}
+
+.tab {
+    padding: 6px 12px;
+    font-size: 13px;
+}
+
+.fab {
+    bottom: 20px;
+    right: 20px;
+    width: 52px;
+    height: 52px;
+    font-size: 22px;
+}
 }
 
 @media (max-width: 480px) {
     .header-content {
         padding: 8px 12px;
     }
-    
+
     .community-details h1 {
         font-size: 14px;
     }
-    
+
     .member-count {
         font-size: 11px;
     }
-    
+
     .post-actions {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
     }
-    
+
     .post-buttons {
         justify-content: flex-end;
     }
-    
+
     .post {
         padding: 12px;
     }
-    
+
     .post-footer {
         flex-direction: column;
         align-items: stretch;
         gap: 8px;
     }
-    
+
     .post-actions-bar {
         justify-content: space-around;
     }
@@ -908,6 +877,7 @@ body {
         opacity: 0;
         transform: translateY(20px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -940,8 +910,9 @@ body {
 }
 
 /* Grid item styling */
-.posts-feed > * {
-    min-width: 0; /* Prevent grid items from overflowing */
+.posts-feed>* {
+    min-width: 0;
+    /* Prevent grid items from overflowing */
 }
 
 /* Ensure consistent card heights */

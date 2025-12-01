@@ -153,6 +153,54 @@
             });
         }
 
+        // Mobile Menu Setup
+        (function setupMobileMenu() {
+            // 1. Create Overlay
+            let overlay = document.querySelector('.sidebar-overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.className = 'sidebar-overlay';
+                document.body.appendChild(overlay);
+            }
+
+            // 2. Create Hamburger Button
+            // Try to find the header-left to inject the button
+            const headerLeft = document.querySelector('.header-left');
+            if (headerLeft && !document.querySelector('.mobile-menu-btn')) {
+                const btn = document.createElement('button');
+                btn.className = 'mobile-menu-btn';
+                btn.innerHTML = '<i class="fas fa-bars"></i>';
+                headerLeft.insertBefore(btn, headerLeft.firstChild);
+
+                // 3. Event Listeners
+                const sidebar = document.querySelector('.sidebar');
+
+                if (sidebar) {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        sidebar.classList.toggle('active');
+                        overlay.classList.toggle('active');
+                    });
+
+                    overlay.addEventListener('click', () => {
+                        sidebar.classList.remove('active');
+                        overlay.classList.remove('active');
+                    });
+
+                    // Close sidebar when clicking a link on mobile
+                    const navLinks = sidebar.querySelectorAll('a');
+                    navLinks.forEach(link => {
+                        link.addEventListener('click', () => {
+                            if (window.innerWidth <= 768) {
+                                sidebar.classList.remove('active');
+                                overlay.classList.remove('active');
+                            }
+                        });
+                    });
+                }
+            }
+        })();
+
         // notify other scripts
         window.dispatchEvent(new CustomEvent('sidebar:loaded'));
     } catch (err) {
