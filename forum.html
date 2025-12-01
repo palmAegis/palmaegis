@@ -731,7 +731,7 @@
     <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
     // Firebase configuration
     const firebaseConfig = {
@@ -809,70 +809,88 @@
             `;
 
             const postsRef = collection(db, "forum_posts");
-            let q;
-            
-            if (currentFilters.category !== 'all') {
-                q = query(postsRef, where("category", "==", currentFilters.category));
-            } else {
-                q = query(postsRef);
+            const constraints = [];
+
+            // category filter
+            if (currentFilters.category && currentFilters.category !== 'all') {
+                constraints.push(where("category", "==", currentFilters.category));
             }
-            
-            // Apply sorting
-            let sortField;
-            switch(currentFilters.sort) {
-                case 'newest':
-                    q = query(q, orderBy("createdAt", "desc"));
-                    break;
-                case 'oldest':
-                    q = query(q, orderBy("createdAt", "asc"));
-                    break;
-                case 'mostLiked':
-                    q = query(q, orderBy("likesCount", "desc"));
-                    break;
-                case 'mostReplies':
-                    q = query(q, orderBy("repliesCount", "desc"));
-                    break;
-            }
-            
-            // Apply time filter
-            if (currentFilters.time !== 'all') {
+
+            // time filter -> convert JS Date to Firestore Timestamp
+            if (currentFilters.time && currentFilters.time !== 'all') {
                 const now = new Date();
-                let startDate;
-                
-                switch(currentFilters.time) {
+                let startDate = null;
+                switch (currentFilters.time) {
                     case 'today':
-                        startDate = new Date(now.setHours(0, 0, 0, 0));
+                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
                         break;
                     case 'week':
-                        startDate = new Date(now.setDate(now.getDate() - 7));
+                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
                         break;
                     case 'month':
-                        startDate = new Date(now.setMonth(now.getMonth() - 1));
+                        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
                         break;
                 }
-                
-                if (startDate) {
-                    q = query(q, where("createdAt", ">=", startDate));
-                }
+                if (startDate) constraints.push(where("createdAt", ">=", Timestamp.fromDate(startDate)));
             }
-            
+
+            // sorting
+            switch (currentFilters.sort) {
+                case 'newest':
+                    constraints.push(orderBy("createdAt", "desc"));
+                    break;
+                case 'oldest':
+                    constraints.push(orderBy("createdAt", "asc"));
+                    break;
+                case 'mostLiked':
+                    constraints.push(orderBy("likesCount", "desc"));
+                    break;
+                case 'mostReplies':
+                    constraints.push(orderBy("repliesCount", "desc"));
+                    break;
+                default:
+                    constraints.push(orderBy("createdAt", "desc"));
+            }
+
+            // build query with all constraints
+            let q;
+            try {
+                q = query(postsRef, ...constraints);
+            } catch (err) {
+                // defensive fallback if query construction fails
+                console.error('Query construction failed:', err);
+                showError('Failed to build query. See console for details.', err);
+                return;
+            }
+
+            // execute
             const querySnapshot = await getDocs(q);
-            
+
             if (querySnapshot.empty) {
+                posts = [];
                 showNoPosts();
                 return;
             }
-            
+
             posts = [];
-            querySnapshot.forEach((doc) => {
-                posts.push({ id: doc.id, ...doc.data() });
+            querySnapshot.forEach((d) => {
+                const data = d.data() || {};
+                // normalize createdAt safely
+                let createdAtDate = null;
+                if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+                    createdAtDate = data.createdAt.toDate();
+                } else if (data.createdAt instanceof Date) {
+                    createdAtDate = data.createdAt;
+                }
+                posts.push({ id: d.id, createdAtDate, ...data });
             });
-            
+
             displayPosts();
-            
         } catch (error) {
-            console.error("Error loading posts: ", error);
-            showError("Unable to load discussions. Please try again.");
+            console.error("Error loading posts:", error);
+            // Firestore sometimes returns an "requires index" error — surface it to the user with retry
+            const message = (error && error.message) ? error.message : 'Unable to load discussions. Please try again.';
+            showError(message, error);
         }
     }
 
