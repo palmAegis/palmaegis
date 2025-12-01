@@ -105,7 +105,7 @@
         })();
 
         // apply profile if available
-        (function applyProfile(){
+        (function applyProfile() {
             try {
                 const img = document.getElementById('sidebarUserAvatar');
                 const nameEl = document.querySelector('.user-name');
@@ -118,7 +118,7 @@
                 if (nameEl) {
                     const display = window.userData?.firstName && window.userData?.lastName
                         ? `${window.userData.firstName} ${window.userData.lastName}`
-                        : window.userData?.username || window.currentUser?.displayName || (window.currentUser?.email||'').split('@')[0] || 'User';
+                        : window.userData?.username || window.currentUser?.displayName || (window.currentUser?.email || '').split('@')[0] || 'User';
                     nameEl.textContent = display;
                 }
                 if (roleEl) roleEl.textContent = window.userData?.bio || 'Farmer';
@@ -132,11 +132,11 @@
             toggle.addEventListener('click', () => {
                 sidebar.classList.toggle('collapsed');
                 const main = document.querySelector('.main-content') || document.querySelector('main');
-                if (main) main.classList.toggle('sidebar-collapsed');
+                if (main) main.classList.toggle('expanded');
                 const icon = toggle.querySelector('i');
                 if (icon) icon.className = sidebar.classList.contains('collapsed') ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
             });
-            toggle.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle.click(); }});
+            toggle.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle.click(); } });
         }
 
         // wire logout -> try firebase signOut if available, otherwise fallback to href
@@ -146,7 +146,7 @@
                 ev.preventDefault();
                 const auth = window.firebaseAuth || (window.firebase && window.firebase.auth && window.firebase.auth());
                 if (auth && typeof auth.signOut === 'function') {
-                    auth.signOut().catch(()=>{}).finally(() => { window.location.href = 'signin.html'; });
+                    auth.signOut().catch(() => { }).finally(() => { window.location.href = 'signin.html'; });
                 } else {
                     window.location.href = logoutBtn.getAttribute('href') || 'signin.html';
                 }

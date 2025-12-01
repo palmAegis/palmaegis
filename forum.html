@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Community Forum | Palm Aegis</title>
+    <title>Forum | Palm Aegis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/homepage.css">
     <link rel="stylesheet" href="css/sidebar.css">
@@ -795,12 +795,14 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
+                window.currentUser = user; // Make available globally for sidebar
                 console.log('User signed in:', user.email);
 
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
+                        window.userData = userData; // Make available globally for sidebar
                         updateUserProfile(user, userData);
                     }
 
@@ -819,6 +821,7 @@
         function updateUserProfile(user, userData) {
             const userNameElement = document.querySelector('.user-name');
             const userRoleElement = document.querySelector('.user-role');
+            const userAvatarElement = document.getElementById('sidebarUserAvatar');
 
             const displayName = userData.firstName && userData.lastName
                 ? `${userData.firstName} ${userData.lastName}`
@@ -828,6 +831,18 @@
 
             if (userNameElement) userNameElement.textContent = displayName;
             if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
+
+            // Update profile image
+            if (userAvatarElement) {
+                const profileImageUrl = userData.imageBase64 || userData.picture || user.photoURL;
+                if (profileImageUrl) {
+                    userAvatarElement.src = profileImageUrl;
+                    userAvatarElement.onerror = () => {
+                        userAvatarElement.onerror = null;
+                        userAvatarElement.src = 'images/user-avatar.jpg';
+                    };
+                }
+            }
         }
 
         // Load posts from Firebase
