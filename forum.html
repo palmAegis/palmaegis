@@ -731,7 +731,7 @@
     <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
     // Firebase configuration
     const firebaseConfig = {
@@ -808,15 +808,34 @@
                 </div>
             `;
 
+            // SIMPLE server query (single orderBy only) to avoid composite index requirements
             const postsRef = collection(db, "forum_posts");
-            const constraints = [];
+            // fetch the most recent 200 posts (adjust number if you need)
+            const q = query(postsRef, orderBy("createdAt", "desc"), limit(200));
+            const querySnapshot = await getDocs(q);
 
-            // category filter
+            // turn snapshot into plain array with normalized dates
+            const allPosts = [];
+            querySnapshot.forEach((d) => {
+                const data = d.data() || {};
+                let createdAtDate = null;
+                if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+                    createdAtDate = data.createdAt.toDate();
+                } else if (data.createdAt instanceof Date) {
+                    createdAtDate = data.createdAt;
+                }
+                allPosts.push({ id: d.id, createdAtDate, ...data });
+            });
+
+            // CLIENT-SIDE: apply category and time filters and sorting to avoid composite index
+            let filtered = allPosts;
+
+            // category
             if (currentFilters.category && currentFilters.category !== 'all') {
-                constraints.push(where("category", "==", currentFilters.category));
+                filtered = filtered.filter(p => (p.category || '').toLowerCase() === String(currentFilters.category).toLowerCase());
             }
 
-            // time filter -> convert JS Date to Firestore Timestamp
+            // time range
             if (currentFilters.time && currentFilters.time !== 'all') {
                 const now = new Date();
                 let startDate = null;
@@ -831,64 +850,51 @@
                         startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
                         break;
                 }
-                if (startDate) constraints.push(where("createdAt", ">=", Timestamp.fromDate(startDate)));
+                if (startDate) {
+                    filtered = filtered.filter(p => p.createdAtDate && p.createdAtDate >= startDate);
+                }
             }
 
-            // sorting
+            // search text (if search input present)
+            const searchEl = document.getElementById('searchInput');
+            const searchTerm = searchEl && searchEl.value ? searchEl.value.trim().toLowerCase() : '';
+            if (searchTerm) {
+                filtered = filtered.filter(p => {
+                    const title = (p.title || '').toLowerCase();
+                    const content = (p.content || '').toLowerCase();
+                    const author = (p.authorName || '').toLowerCase();
+                    return title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm);
+                });
+            }
+
+            // client-side sorting
             switch (currentFilters.sort) {
                 case 'newest':
-                    constraints.push(orderBy("createdAt", "desc"));
+                    filtered.sort((a, b) => (b.createdAtDate || 0) - (a.createdAtDate || 0));
                     break;
                 case 'oldest':
-                    constraints.push(orderBy("createdAt", "asc"));
+                    filtered.sort((a, b) => (a.createdAtDate || 0) - (b.createdAtDate || 0));
                     break;
                 case 'mostLiked':
-                    constraints.push(orderBy("likesCount", "desc"));
+                    filtered.sort((a, b) => ((b.likesCount || 0) - (a.likesCount || 0)));
                     break;
                 case 'mostReplies':
-                    constraints.push(orderBy("repliesCount", "desc"));
+                    filtered.sort((a, b) => ((b.repliesCount || 0) - (a.repliesCount || 0)));
                     break;
                 default:
-                    constraints.push(orderBy("createdAt", "desc"));
+                    // already ordered by createdAt desc from server, but ensure fallback
+                    filtered.sort((a, b) => (b.createdAtDate || 0) - (a.createdAtDate || 0));
             }
 
-            // build query with all constraints
-            let q;
-            try {
-                q = query(postsRef, ...constraints);
-            } catch (err) {
-                // defensive fallback if query construction fails
-                console.error('Query construction failed:', err);
-                showError('Failed to build query. See console for details.', err);
-                return;
-            }
-
-            // execute
-            const querySnapshot = await getDocs(q);
-
-            if (querySnapshot.empty) {
-                posts = [];
+            // set global posts and render
+            posts = filtered;
+            if (posts.length === 0) {
                 showNoPosts();
                 return;
             }
-
-            posts = [];
-            querySnapshot.forEach((d) => {
-                const data = d.data() || {};
-                // normalize createdAt safely
-                let createdAtDate = null;
-                if (data.createdAt && typeof data.createdAt.toDate === 'function') {
-                    createdAtDate = data.createdAt.toDate();
-                } else if (data.createdAt instanceof Date) {
-                    createdAtDate = data.createdAt;
-                }
-                posts.push({ id: d.id, createdAtDate, ...data });
-            });
-
             displayPosts();
         } catch (error) {
             console.error("Error loading posts:", error);
-            // Firestore sometimes returns an "requires index" error — surface it to the user with retry
             const message = (error && error.message) ? error.message : 'Unable to load discussions. Please try again.';
             showError(message, error);
         }
