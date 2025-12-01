@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile</title>
+    <title>Setting | Palm Aegis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -11,21 +11,17 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/setting.css">
+    <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
+    <link rel="shortcut icon" href="images/logo1.png">
+    <meta name="theme-color" content="#2e7d32">
 </head>
 <body>
-    <!-- Back to Homepage Button -->
-    <button id="back-home-btn" class="back-home-btn">
-        <i class="fas fa-arrow-left"></i> Back to Homepage
-    </button>
-
-    <script>
-    // ✅ Back to homepage button redirect
-    const backHomeBtn = document.getElementById('back-home-btn');
-    if (backHomeBtn) {
-        backHomeBtn.addEventListener('click', () => {
-            window.location.href = 'homepage.html';
-        });
-    }
+    <div class="dashboard-container">
+        <div id="sidebarPlaceholder"></div>
+        <script src="js/sidebar-loader.js"></script>
+        
     </script>
     <div class="profile-container">
         <!-- Sidebar with profile summary -->
