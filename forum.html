@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/homepage.css">
     <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
+    <link rel="shortcut icon" href="images/logo1.png">
+    <meta name="theme-color" content="#2e7d32">
+
     <style>
         :root {
             --primary-color: #2e7d32;
@@ -49,7 +54,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header-left h1 {
@@ -175,10 +180,25 @@
             font-weight: 600;
         }
 
-        .tag-disease { background-color: #ffebee; color: #d32f2f; }
-        .tag-treatment { background-color: #e8f5e9; color: var(--primary-color); }
-        .tag-general { background-color: #e3f2fd; color: #1976d2; }
-        .tag-farming { background-color: #fff3e0; color: #f57c00; }
+        .tag-disease {
+            background-color: #ffebee;
+            color: #d32f2f;
+        }
+
+        .tag-treatment {
+            background-color: #e8f5e9;
+            color: var(--primary-color);
+        }
+
+        .tag-general {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .tag-farming {
+            background-color: #fff3e0;
+            color: #f57c00;
+        }
 
         /* Create Post Section */
         .create-post {
@@ -186,7 +206,7 @@
             border-radius: 10px;
             padding: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .post-input {
@@ -222,7 +242,7 @@
             background-color: white;
             border-radius: 10px;
             padding: 25px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s;
         }
 
@@ -416,7 +436,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background-color: rgba(0, 0, 0, 0.5);
             z-index: 1000;
             justify-content: center;
             align-items: center;
@@ -428,7 +448,7 @@
             border-radius: 10px;
             width: 90%;
             max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
 
         .modal-header {
@@ -468,7 +488,9 @@
             color: #555;
         }
 
-        .form-input, .form-textarea, .form-select {
+        .form-input,
+        .form-textarea,
+        .form-select {
             width: 100%;
             padding: 10px;
             border: 1px solid #ddd;
@@ -504,8 +526,13 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         .no-data {
@@ -526,8 +553,10 @@
                 flex-direction: column;
             }
 
-            .main-content { width: 100%; }
-            
+            .main-content {
+                width: 100%;
+            }
+
             .post-actions {
                 flex-direction: column;
                 gap: 15px;
@@ -548,6 +577,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
@@ -603,7 +633,8 @@
 
                 <!-- Create Post Section -->
                 <div class="create-post" id="createPostSection" style="display: none;">
-                    <textarea class="post-input" id="postContentInput" placeholder="What would you like to discuss?"></textarea>
+                    <textarea class="post-input" id="postContentInput"
+                        placeholder="What would you like to discuss?"></textarea>
                     <div class="post-actions">
                         <div class="post-tags">
                             <select id="postCategorySelect" class="category-tab">
@@ -612,7 +643,8 @@
                                 <option value="farming">General Farming</option>
                                 <option value="question">Ask Question</option>
                             </select>
-                            <input type="text" id="postTagsInput" placeholder="Add tags (comma separated)" style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <input type="text" id="postTagsInput" placeholder="Add tags (comma separated)"
+                                style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
                         <div>
                             <button class="btn btn-secondary" id="cancelPostBtn">Cancel</button>
@@ -673,7 +705,8 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Tags</label>
-                        <input type="text" id="editPostTags" class="form-input" placeholder="e.g., ganoderma, fertilizer, pests">
+                        <input type="text" id="editPostTags" class="form-input"
+                            placeholder="e.g., ganoderma, fertilizer, pests">
                     </div>
                 </form>
             </div>
@@ -729,226 +762,226 @@
     </div>
 
     <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-        authDomain: "palmaegis-setup.firebaseapp.com",
-        projectId: "palmaegis-setup",
-        storageBucket: "palmaegis-setup.firebasestorage.app",
-        messagingSenderId: "445887502374",
-        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-    };
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    // Global variables
-    let currentUser = null;
-    let currentFilters = {
-        category: 'all',
-        sort: 'newest',
-        time: 'all'
-    };
-    let posts = [];
-    let currentPostId = null;
+        // Global variables
+        let currentUser = null;
+        let currentFilters = {
+            category: 'all',
+            sort: 'newest',
+            time: 'all'
+        };
+        let posts = [];
+        let currentPostId = null;
 
-    // Check authentication state
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            currentUser = user;
-            console.log('User signed in:', user.email);
-            
-            try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    updateUserProfile(user, userData);
+        // Check authentication state
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                console.log('User signed in:', user.email);
+
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        updateUserProfile(user, userData);
+                    }
+
+                    // Load posts data
+                    await loadPosts();
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                    showError("Failed to load forum data. Please try again.");
                 }
-                
-                // Load posts data
-                await loadPosts();
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                showError("Failed to load forum data. Please try again.");
+            } else {
+                console.log('User not signed in');
+                window.location.href = 'signin.html';
             }
-        } else {
-            console.log('User not signed in');
-            window.location.href = 'signin.html';
+        });
+
+        function updateUserProfile(user, userData) {
+            const userNameElement = document.querySelector('.user-name');
+            const userRoleElement = document.querySelector('.user-role');
+
+            const displayName = userData.firstName && userData.lastName
+                ? `${userData.firstName} ${userData.lastName}`
+                : userData.username
+                    ? userData.username
+                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+
+            if (userNameElement) userNameElement.textContent = displayName;
+            if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
         }
-    });
 
-    function updateUserProfile(user, userData) {
-        const userNameElement = document.querySelector('.user-name');
-        const userRoleElement = document.querySelector('.user-role');
-
-        const displayName = userData.firstName && userData.lastName 
-            ? `${userData.firstName} ${userData.lastName}`
-            : userData.username 
-            ? userData.username
-            : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-
-        if (userNameElement) userNameElement.textContent = displayName;
-        if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
-    }
-
-    // Load posts from Firebase
-    async function loadPosts() {
-        try {
-            const postsGrid = document.getElementById('postsGrid');
-            postsGrid.innerHTML = `
+        // Load posts from Firebase
+        async function loadPosts() {
+            try {
+                const postsGrid = document.getElementById('postsGrid');
+                postsGrid.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
                     <p>Loading discussions...</p>
                 </div>
             `;
 
-            // SIMPLE server query (single orderBy only) to avoid composite index requirements
-            const postsRef = collection(db, "forum_posts");
-            // fetch the most recent 200 posts (adjust number if you need)
-            const q = query(postsRef, orderBy("createdAt", "desc"), limit(200));
-            const querySnapshot = await getDocs(q);
+                // SIMPLE server query (single orderBy only) to avoid composite index requirements
+                const postsRef = collection(db, "forum_posts");
+                // fetch the most recent 200 posts (adjust number if you need)
+                const q = query(postsRef, orderBy("createdAt", "desc"), limit(200));
+                const querySnapshot = await getDocs(q);
 
-            // turn snapshot into plain array with normalized dates
-            const allPosts = [];
-            querySnapshot.forEach((d) => {
-                const data = d.data() || {};
-                let createdAtDate = null;
-                if (data.createdAt && typeof data.createdAt.toDate === 'function') {
-                    createdAtDate = data.createdAt.toDate();
-                } else if (data.createdAt instanceof Date) {
-                    createdAtDate = data.createdAt;
-                }
-                allPosts.push({ id: d.id, createdAtDate, ...data });
-            });
-
-            // CLIENT-SIDE: apply category and time filters and sorting to avoid composite index
-            let filtered = allPosts;
-
-            // category
-            if (currentFilters.category && currentFilters.category !== 'all') {
-                filtered = filtered.filter(p => (p.category || '').toLowerCase() === String(currentFilters.category).toLowerCase());
-            }
-
-            // time range
-            if (currentFilters.time && currentFilters.time !== 'all') {
-                const now = new Date();
-                let startDate = null;
-                switch (currentFilters.time) {
-                    case 'today':
-                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-                        break;
-                    case 'week':
-                        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-                        break;
-                    case 'month':
-                        startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-                        break;
-                }
-                if (startDate) {
-                    filtered = filtered.filter(p => p.createdAtDate && p.createdAtDate >= startDate);
-                }
-            }
-
-            // search text (if search input present)
-            const searchEl = document.getElementById('searchInput');
-            const searchTerm = searchEl && searchEl.value ? searchEl.value.trim().toLowerCase() : '';
-            if (searchTerm) {
-                filtered = filtered.filter(p => {
-                    const title = (p.title || '').toLowerCase();
-                    const content = (p.content || '').toLowerCase();
-                    const author = (p.authorName || '').toLowerCase();
-                    return title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm);
+                // turn snapshot into plain array with normalized dates
+                const allPosts = [];
+                querySnapshot.forEach((d) => {
+                    const data = d.data() || {};
+                    let createdAtDate = null;
+                    if (data.createdAt && typeof data.createdAt.toDate === 'function') {
+                        createdAtDate = data.createdAt.toDate();
+                    } else if (data.createdAt instanceof Date) {
+                        createdAtDate = data.createdAt;
+                    }
+                    allPosts.push({ id: d.id, createdAtDate, ...data });
                 });
-            }
 
-            // client-side sorting
-            switch (currentFilters.sort) {
-                case 'newest':
-                    filtered.sort((a, b) => (b.createdAtDate || 0) - (a.createdAtDate || 0));
-                    break;
-                case 'oldest':
-                    filtered.sort((a, b) => (a.createdAtDate || 0) - (b.createdAtDate || 0));
-                    break;
-                case 'mostLiked':
-                    filtered.sort((a, b) => ((b.likesCount || 0) - (a.likesCount || 0)));
-                    break;
-                case 'mostReplies':
-                    filtered.sort((a, b) => ((b.repliesCount || 0) - (a.repliesCount || 0)));
-                    break;
-                default:
-                    // already ordered by createdAt desc from server, but ensure fallback
-                    filtered.sort((a, b) => (b.createdAtDate || 0) - (a.createdAtDate || 0));
-            }
+                // CLIENT-SIDE: apply category and time filters and sorting to avoid composite index
+                let filtered = allPosts;
 
-            // set global posts and render
-            posts = filtered;
+                // category
+                if (currentFilters.category && currentFilters.category !== 'all') {
+                    filtered = filtered.filter(p => (p.category || '').toLowerCase() === String(currentFilters.category).toLowerCase());
+                }
+
+                // time range
+                if (currentFilters.time && currentFilters.time !== 'all') {
+                    const now = new Date();
+                    let startDate = null;
+                    switch (currentFilters.time) {
+                        case 'today':
+                            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+                            break;
+                        case 'week':
+                            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+                            break;
+                        case 'month':
+                            startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+                            break;
+                    }
+                    if (startDate) {
+                        filtered = filtered.filter(p => p.createdAtDate && p.createdAtDate >= startDate);
+                    }
+                }
+
+                // search text (if search input present)
+                const searchEl = document.getElementById('searchInput');
+                const searchTerm = searchEl && searchEl.value ? searchEl.value.trim().toLowerCase() : '';
+                if (searchTerm) {
+                    filtered = filtered.filter(p => {
+                        const title = (p.title || '').toLowerCase();
+                        const content = (p.content || '').toLowerCase();
+                        const author = (p.authorName || '').toLowerCase();
+                        return title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm);
+                    });
+                }
+
+                // client-side sorting
+                switch (currentFilters.sort) {
+                    case 'newest':
+                        filtered.sort((a, b) => (b.createdAtDate || 0) - (a.createdAtDate || 0));
+                        break;
+                    case 'oldest':
+                        filtered.sort((a, b) => (a.createdAtDate || 0) - (b.createdAtDate || 0));
+                        break;
+                    case 'mostLiked':
+                        filtered.sort((a, b) => ((b.likesCount || 0) - (a.likesCount || 0)));
+                        break;
+                    case 'mostReplies':
+                        filtered.sort((a, b) => ((b.repliesCount || 0) - (a.repliesCount || 0)));
+                        break;
+                    default:
+                        // already ordered by createdAt desc from server, but ensure fallback
+                        filtered.sort((a, b) => (b.createdAtDate || 0) - (a.createdAtDate || 0));
+                }
+
+                // set global posts and render
+                posts = filtered;
+                if (posts.length === 0) {
+                    showNoPosts();
+                    return;
+                }
+                displayPosts();
+            } catch (error) {
+                console.error("Error loading posts:", error);
+                const message = (error && error.message) ? error.message : 'Unable to load discussions. Please try again.';
+                showError(message, error);
+            }
+        }
+
+        // Display posts in grid
+        function displayPosts() {
+            const postsGrid = document.getElementById('postsGrid');
+            postsGrid.innerHTML = '';
+
             if (posts.length === 0) {
                 showNoPosts();
                 return;
             }
-            displayPosts();
-        } catch (error) {
-            console.error("Error loading posts:", error);
-            const message = (error && error.message) ? error.message : 'Unable to load discussions. Please try again.';
-            showError(message, error);
-        }
-    }
 
-    // Display posts in grid
-    function displayPosts() {
-        const postsGrid = document.getElementById('postsGrid');
-        postsGrid.innerHTML = '';
-        
-        if (posts.length === 0) {
-            showNoPosts();
-            return;
+            posts.forEach(post => {
+                createPostCard(post);
+            });
         }
-        
-        posts.forEach(post => {
-            createPostCard(post);
-        });
-    }
 
-    // Create a post card
-    function createPostCard(post) {
-        const postsGrid = document.getElementById('postsGrid');
-        
-        const postDate = post.createdAt ? new Date(post.createdAt.toDate()).toLocaleDateString() : 'Recent';
-        const tags = post.tags || [];
-        const likesCount = post.likes ? post.likes.length : 0;
-        const repliesCount = post.replies ? post.replies.length : 0;
-        
-        let categoryTag = '';
-        switch(post.category) {
-            case 'disease':
-                categoryTag = '<span class="category-tag tag-disease">Disease</span>';
-                break;
-            case 'treatment':
-                categoryTag = '<span class="category-tag tag-treatment">Treatment</span>';
-                break;
-            case 'farming':
-                categoryTag = '<span class="category-tag tag-farming">Farming</span>';
-                break;
-            case 'question':
-                categoryTag = '<span class="category-tag tag-general">Question</span>';
-                break;
-        }
-        
-        const isLiked = post.likes && post.likes.includes(currentUser.uid);
-        const isUpvoted = post.upvotes && post.upvotes.includes(currentUser.uid);
-        const isDownvoted = post.downvotes && post.downvotes.includes(currentUser.uid);
-        
-        const postCard = document.createElement('div');
-        postCard.className = 'post-card';
-        postCard.setAttribute('data-id', post.id);
-        
-        postCard.innerHTML = `
+        // Create a post card
+        function createPostCard(post) {
+            const postsGrid = document.getElementById('postsGrid');
+
+            const postDate = post.createdAt ? new Date(post.createdAt.toDate()).toLocaleDateString() : 'Recent';
+            const tags = post.tags || [];
+            const likesCount = post.likes ? post.likes.length : 0;
+            const repliesCount = post.replies ? post.replies.length : 0;
+
+            let categoryTag = '';
+            switch (post.category) {
+                case 'disease':
+                    categoryTag = '<span class="category-tag tag-disease">Disease</span>';
+                    break;
+                case 'treatment':
+                    categoryTag = '<span class="category-tag tag-treatment">Treatment</span>';
+                    break;
+                case 'farming':
+                    categoryTag = '<span class="category-tag tag-farming">Farming</span>';
+                    break;
+                case 'question':
+                    categoryTag = '<span class="category-tag tag-general">Question</span>';
+                    break;
+            }
+
+            const isLiked = post.likes && post.likes.includes(currentUser.uid);
+            const isUpvoted = post.upvotes && post.upvotes.includes(currentUser.uid);
+            const isDownvoted = post.downvotes && post.downvotes.includes(currentUser.uid);
+
+            const postCard = document.createElement('div');
+            postCard.className = 'post-card';
+            postCard.setAttribute('data-id', post.id);
+
+            postCard.innerHTML = `
             <div class="post-header">
                 <div class="post-author">
                     <div class="author-avatar">
@@ -1020,222 +1053,222 @@
                 </button>
             </div>
         `;
-        
-        postsGrid.appendChild(postCard);
-        
-        // Add event listeners for buttons
-        attachPostEventListeners(postCard, post.id);
-    }
 
-    // Attach event listeners to post card buttons
-    function attachPostEventListeners(postCard, postId) {
-        const likeBtn = postCard.querySelector('.like-btn');
-        const upvoteBtn = postCard.querySelector('.upvote-btn');
-        const downvoteBtn = postCard.querySelector('.downvote-btn');
-        const replyBtn = postCard.querySelector('.reply-btn');
-        const editBtn = postCard.querySelector('.edit-btn');
-        const deleteBtn = postCard.querySelector('.delete-btn');
-        const viewBtn = postCard.querySelector('.view-btn');
-        
-        if (likeBtn) {
-            likeBtn.addEventListener('click', () => toggleLike(postId));
-        }
-        
-        if (upvoteBtn) {
-            upvoteBtn.addEventListener('click', () => toggleVote(postId, 'upvote'));
-        }
-        
-        if (downvoteBtn) {
-            downvoteBtn.addEventListener('click', () => toggleVote(postId, 'downvote'));
-        }
-        
-        if (replyBtn) {
-            replyBtn.addEventListener('click', () => showReplySection(postId));
-        }
-        
-        if (editBtn) {
-            editBtn.addEventListener('click', () => openEditPostModal(postId));
-        }
-        
-        if (deleteBtn) {
-            deleteBtn.addEventListener('click', () => deletePost(postId));
-        }
-        
-        if (viewBtn) {
-            viewBtn.addEventListener('click', () => viewPostDetails(postId));
-        }
-    }
+            postsGrid.appendChild(postCard);
 
-    // Toggle like on a post
-    async function toggleLike(postId) {
-        try {
-            const postRef = doc(db, "forum_posts", postId);
-            const post = posts.find(p => p.id === postId);
-            
-            if (post.likes && post.likes.includes(currentUser.uid)) {
-                // Unlike
-                await updateDoc(postRef, {
-                    likes: arrayRemove(currentUser.uid),
-                    likesCount: (post.likesCount || 0) - 1
-                });
-            } else {
-                // Like
-                await updateDoc(postRef, {
-                    likes: arrayUnion(currentUser.uid),
-                    likesCount: (post.likesCount || 0) + 1
-                });
+            // Add event listeners for buttons
+            attachPostEventListeners(postCard, post.id);
+        }
+
+        // Attach event listeners to post card buttons
+        function attachPostEventListeners(postCard, postId) {
+            const likeBtn = postCard.querySelector('.like-btn');
+            const upvoteBtn = postCard.querySelector('.upvote-btn');
+            const downvoteBtn = postCard.querySelector('.downvote-btn');
+            const replyBtn = postCard.querySelector('.reply-btn');
+            const editBtn = postCard.querySelector('.edit-btn');
+            const deleteBtn = postCard.querySelector('.delete-btn');
+            const viewBtn = postCard.querySelector('.view-btn');
+
+            if (likeBtn) {
+                likeBtn.addEventListener('click', () => toggleLike(postId));
             }
-            
-            // Reload posts
-            await loadPosts();
-            
-        } catch (error) {
-            console.error("Error toggling like:", error);
-            alert("Failed to update like. Please try again.");
-        }
-    }
 
-    // Toggle vote (upvote/downvote)
-    async function toggleVote(postId, voteType) {
-        try {
-            const postRef = doc(db, "forum_posts", postId);
-            const post = posts.find(p => p.id === postId);
-            
-            const oppositeVoteType = voteType === 'upvote' ? 'downvote' : 'upvote';
-            const oppositeArray = oppositeVoteType + 's';
-            
-            if (post[voteType + 's'] && post[voteType + 's'].includes(currentUser.uid)) {
-                // Remove vote
-                await updateDoc(postRef, {
-                    [voteType + 's']: arrayRemove(currentUser.uid)
-                });
-            } else {
-                // Add vote and remove opposite vote if exists
-                const updates = {
-                    [voteType + 's']: arrayUnion(currentUser.uid)
-                };
-                
-                if (post[oppositeArray] && post[oppositeArray].includes(currentUser.uid)) {
-                    updates[oppositeArray] = arrayRemove(currentUser.uid);
+            if (upvoteBtn) {
+                upvoteBtn.addEventListener('click', () => toggleVote(postId, 'upvote'));
+            }
+
+            if (downvoteBtn) {
+                downvoteBtn.addEventListener('click', () => toggleVote(postId, 'downvote'));
+            }
+
+            if (replyBtn) {
+                replyBtn.addEventListener('click', () => showReplySection(postId));
+            }
+
+            if (editBtn) {
+                editBtn.addEventListener('click', () => openEditPostModal(postId));
+            }
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', () => deletePost(postId));
+            }
+
+            if (viewBtn) {
+                viewBtn.addEventListener('click', () => viewPostDetails(postId));
+            }
+        }
+
+        // Toggle like on a post
+        async function toggleLike(postId) {
+            try {
+                const postRef = doc(db, "forum_posts", postId);
+                const post = posts.find(p => p.id === postId);
+
+                if (post.likes && post.likes.includes(currentUser.uid)) {
+                    // Unlike
+                    await updateDoc(postRef, {
+                        likes: arrayRemove(currentUser.uid),
+                        likesCount: (post.likesCount || 0) - 1
+                    });
+                } else {
+                    // Like
+                    await updateDoc(postRef, {
+                        likes: arrayUnion(currentUser.uid),
+                        likesCount: (post.likesCount || 0) + 1
+                    });
                 }
-                
-                await updateDoc(postRef, updates);
-            }
-            
-            // Reload posts
-            await loadPosts();
-            
-        } catch (error) {
-            console.error("Error toggling vote:", error);
-            alert("Failed to update vote. Please try again.");
-        }
-    }
 
-    // Create a new post
-    async function createPost(content, category, tags) {
-        try {
-            if (!content.trim()) {
-                alert("Please enter some content for your discussion.");
+                // Reload posts
+                await loadPosts();
+
+            } catch (error) {
+                console.error("Error toggling like:", error);
+                alert("Failed to update like. Please try again.");
+            }
+        }
+
+        // Toggle vote (upvote/downvote)
+        async function toggleVote(postId, voteType) {
+            try {
+                const postRef = doc(db, "forum_posts", postId);
+                const post = posts.find(p => p.id === postId);
+
+                const oppositeVoteType = voteType === 'upvote' ? 'downvote' : 'upvote';
+                const oppositeArray = oppositeVoteType + 's';
+
+                if (post[voteType + 's'] && post[voteType + 's'].includes(currentUser.uid)) {
+                    // Remove vote
+                    await updateDoc(postRef, {
+                        [voteType + 's']: arrayRemove(currentUser.uid)
+                    });
+                } else {
+                    // Add vote and remove opposite vote if exists
+                    const updates = {
+                        [voteType + 's']: arrayUnion(currentUser.uid)
+                    };
+
+                    if (post[oppositeArray] && post[oppositeArray].includes(currentUser.uid)) {
+                        updates[oppositeArray] = arrayRemove(currentUser.uid);
+                    }
+
+                    await updateDoc(postRef, updates);
+                }
+
+                // Reload posts
+                await loadPosts();
+
+            } catch (error) {
+                console.error("Error toggling vote:", error);
+                alert("Failed to update vote. Please try again.");
+            }
+        }
+
+        // Create a new post
+        async function createPost(content, category, tags) {
+            try {
+                if (!content.trim()) {
+                    alert("Please enter some content for your discussion.");
+                    return;
+                }
+
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+
+                const postData = {
+                    title: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+                    content: content,
+                    category: category,
+                    tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+                    authorId: currentUser.uid,
+                    authorName: userData.firstName && userData.lastName
+                        ? `${userData.firstName} ${userData.lastName}`
+                        : userData.username || currentUser.email.split('@')[0],
+                    createdAt: serverTimestamp(),
+                    likes: [],
+                    likesCount: 0,
+                    upvotes: [],
+                    downvotes: [],
+                    replies: [],
+                    repliesCount: 0
+                };
+
+                await addDoc(collection(db, "forum_posts"), postData);
+
+                // Clear input and hide create post section
+                document.getElementById('postContentInput').value = '';
+                document.getElementById('postTagsInput').value = '';
+                document.getElementById('createPostSection').style.display = 'none';
+
+                // Reload posts
+                await loadPosts();
+
+                alert("Discussion posted successfully!");
+
+            } catch (error) {
+                console.error("Error creating post:", error);
+                alert("Failed to create discussion. Please try again.");
+            }
+        }
+
+        // Update an existing post
+        async function updatePost(postId, title, content, category, tags) {
+            try {
+                const postRef = doc(db, "forum_posts", postId);
+
+                await updateDoc(postRef, {
+                    title: title,
+                    content: content,
+                    category: category,
+                    tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+                    updatedAt: serverTimestamp()
+                });
+
+                // Close edit modal
+                closeModal('editPostModal');
+
+                // Reload posts
+                await loadPosts();
+
+                alert("Discussion updated successfully!");
+
+            } catch (error) {
+                console.error("Error updating post:", error);
+                alert("Failed to update discussion. Please try again.");
+            }
+        }
+
+        // Delete a post
+        async function deletePost(postId) {
+            if (!confirm("Are you sure you want to delete this discussion? This action cannot be undone.")) {
                 return;
             }
-            
-            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-            const userData = userDoc.exists() ? userDoc.data() : {};
-            
-            const postData = {
-                title: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
-                content: content,
-                category: category,
-                tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-                authorId: currentUser.uid,
-                authorName: userData.firstName && userData.lastName 
-                    ? `${userData.firstName} ${userData.lastName}`
-                    : userData.username || currentUser.email.split('@')[0],
-                createdAt: serverTimestamp(),
-                likes: [],
-                likesCount: 0,
-                upvotes: [],
-                downvotes: [],
-                replies: [],
-                repliesCount: 0
-            };
-            
-            await addDoc(collection(db, "forum_posts"), postData);
-            
-            // Clear input and hide create post section
-            document.getElementById('postContentInput').value = '';
-            document.getElementById('postTagsInput').value = '';
-            document.getElementById('createPostSection').style.display = 'none';
-            
-            // Reload posts
-            await loadPosts();
-            
-            alert("Discussion posted successfully!");
-            
-        } catch (error) {
-            console.error("Error creating post:", error);
-            alert("Failed to create discussion. Please try again.");
-        }
-    }
 
-    // Update an existing post
-    async function updatePost(postId, title, content, category, tags) {
-        try {
-            const postRef = doc(db, "forum_posts", postId);
-            
-            await updateDoc(postRef, {
-                title: title,
-                content: content,
-                category: category,
-                tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
-                updatedAt: serverTimestamp()
-            });
-            
-            // Close edit modal
-            closeModal('editPostModal');
-            
-            // Reload posts
-            await loadPosts();
-            
-            alert("Discussion updated successfully!");
-            
-        } catch (error) {
-            console.error("Error updating post:", error);
-            alert("Failed to update discussion. Please try again.");
-        }
-    }
+            try {
+                await deleteDoc(doc(db, "forum_posts", postId));
 
-    // Delete a post
-    async function deletePost(postId) {
-        if (!confirm("Are you sure you want to delete this discussion? This action cannot be undone.")) {
-            return;
-        }
-        
-        try {
-            await deleteDoc(doc(db, "forum_posts", postId));
-            
-            // Reload posts
-            await loadPosts();
-            
-            alert("Discussion deleted successfully!");
-            
-        } catch (error) {
-            console.error("Error deleting post:", error);
-            alert("Failed to delete discussion. Please try again.");
-        }
-    }
+                // Reload posts
+                await loadPosts();
 
-    // Show reply section for a post
-    function showReplySection(postId) {
-        const postCard = document.querySelector(`.post-card[data-id="${postId}"]`);
-        
-        // Check if reply section already exists
-        let replySection = postCard.querySelector('.replies-section');
-        
-        if (!replySection) {
-            replySection = document.createElement('div');
-            replySection.className = 'replies-section';
-            replySection.innerHTML = `
+                alert("Discussion deleted successfully!");
+
+            } catch (error) {
+                console.error("Error deleting post:", error);
+                alert("Failed to delete discussion. Please try again.");
+            }
+        }
+
+        // Show reply section for a post
+        function showReplySection(postId) {
+            const postCard = document.querySelector(`.post-card[data-id="${postId}"]`);
+
+            // Check if reply section already exists
+            let replySection = postCard.querySelector('.replies-section');
+
+            if (!replySection) {
+                replySection = document.createElement('div');
+                replySection.className = 'replies-section';
+                replySection.innerHTML = `
                 <div class="reply-input">
                     <textarea placeholder="Write your reply..." class="reply-textarea"></textarea>
                     <button class="reply-btn submit-reply">Reply</button>
@@ -1244,90 +1277,90 @@
                     <p>Loading replies...</p>
                 </div>
             `;
-            
-            postCard.appendChild(replySection);
-            
-            // Add event listener for reply button
-            const submitBtn = replySection.querySelector('.submit-reply');
-            submitBtn.addEventListener('click', () => submitReply(postId));
-            
-            // Load replies
-            loadReplies(postId);
-        } else {
-            replySection.style.display = replySection.style.display === 'none' ? 'block' : 'none';
-        }
-    }
 
-    // Submit a reply to a post
-    async function submitReply(postId) {
-        const replySection = document.querySelector(`.post-card[data-id="${postId}"] .replies-section`);
-        const textarea = replySection.querySelector('.reply-textarea');
-        const replyContent = textarea.value.trim();
-        
-        if (!replyContent) {
-            alert("Please enter a reply.");
-            return;
-        }
-        
-        try {
-            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-            const userData = userDoc.exists() ? userDoc.data() : {};
-            
-            const postRef = doc(db, "forum_posts", postId);
-            const post = posts.find(p => p.id === postId);
-            
-            const replyData = {
-                content: replyContent,
-                authorId: currentUser.uid,
-                authorName: userData.firstName && userData.lastName 
-                    ? `${userData.firstName} ${userData.lastName}`
-                    : userData.username || currentUser.email.split('@')[0],
-                createdAt: serverTimestamp(),
-                isExpert: userData.isExpert || false
-            };
-            
-            // Add reply to post
-            await updateDoc(postRef, {
-                replies: arrayUnion(replyData),
-                repliesCount: (post.repliesCount || 0) + 1
-            });
-            
-            // Clear textarea
-            textarea.value = '';
-            
-            // Reload replies
-            loadReplies(postId);
-            
-        } catch (error) {
-            console.error("Error submitting reply:", error);
-            alert("Failed to submit reply. Please try again.");
-        }
-    }
+                postCard.appendChild(replySection);
 
-    // Load replies for a post
-    async function loadReplies(postId) {
-        try {
-            const postRef = doc(db, "forum_posts", postId);
-            const postDoc = await getDoc(postRef);
-            
-            if (postDoc.exists()) {
-                const postData = postDoc.data();
-                const replies = postData.replies || [];
-                
-                const repliesList = document.getElementById(`replies-${postId}`);
-                repliesList.innerHTML = '';
-                
-                if (replies.length === 0) {
-                    repliesList.innerHTML = '<p>No replies yet. Be the first to reply!</p>';
-                    return;
-                }
-                
-                replies.forEach(reply => {
-                    const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
-                    
-                    const replyCard = document.createElement('div');
-                    replyCard.className = 'reply-card';
-                    replyCard.innerHTML = `
+                // Add event listener for reply button
+                const submitBtn = replySection.querySelector('.submit-reply');
+                submitBtn.addEventListener('click', () => submitReply(postId));
+
+                // Load replies
+                loadReplies(postId);
+            } else {
+                replySection.style.display = replySection.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        // Submit a reply to a post
+        async function submitReply(postId) {
+            const replySection = document.querySelector(`.post-card[data-id="${postId}"] .replies-section`);
+            const textarea = replySection.querySelector('.reply-textarea');
+            const replyContent = textarea.value.trim();
+
+            if (!replyContent) {
+                alert("Please enter a reply.");
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+
+                const postRef = doc(db, "forum_posts", postId);
+                const post = posts.find(p => p.id === postId);
+
+                const replyData = {
+                    content: replyContent,
+                    authorId: currentUser.uid,
+                    authorName: userData.firstName && userData.lastName
+                        ? `${userData.firstName} ${userData.lastName}`
+                        : userData.username || currentUser.email.split('@')[0],
+                    createdAt: serverTimestamp(),
+                    isExpert: userData.isExpert || false
+                };
+
+                // Add reply to post
+                await updateDoc(postRef, {
+                    replies: arrayUnion(replyData),
+                    repliesCount: (post.repliesCount || 0) + 1
+                });
+
+                // Clear textarea
+                textarea.value = '';
+
+                // Reload replies
+                loadReplies(postId);
+
+            } catch (error) {
+                console.error("Error submitting reply:", error);
+                alert("Failed to submit reply. Please try again.");
+            }
+        }
+
+        // Load replies for a post
+        async function loadReplies(postId) {
+            try {
+                const postRef = doc(db, "forum_posts", postId);
+                const postDoc = await getDoc(postRef);
+
+                if (postDoc.exists()) {
+                    const postData = postDoc.data();
+                    const replies = postData.replies || [];
+
+                    const repliesList = document.getElementById(`replies-${postId}`);
+                    repliesList.innerHTML = '';
+
+                    if (replies.length === 0) {
+                        repliesList.innerHTML = '<p>No replies yet. Be the first to reply!</p>';
+                        return;
+                    }
+
+                    replies.forEach(reply => {
+                        const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
+
+                        const replyCard = document.createElement('div');
+                        replyCard.className = 'reply-card';
+                        replyCard.innerHTML = `
                         <div class="reply-header">
                             <div class="reply-author">
                                 <div class="author-avatar" style="width: 25px; height: 25px;">
@@ -1342,28 +1375,28 @@
                         </div>
                         <div class="reply-content">${reply.content}</div>
                     `;
-                    
-                    repliesList.appendChild(replyCard);
-                });
-            }
-            
-        } catch (error) {
-            console.error("Error loading replies:", error);
-        }
-    }
 
-    // View post details
-    async function viewPostDetails(postId) {
-        try {
-            const postRef = doc(db, "forum_posts", postId);
-            const postDoc = await getDoc(postRef);
-            
-            if (postDoc.exists()) {
-                const post = postDoc.data();
-                const postDate = post.createdAt ? new Date(post.createdAt.toDate()).toLocaleDateString() : 'Recent';
-                
-                const modalContent = document.getElementById('postDetailContent');
-                modalContent.innerHTML = `
+                        repliesList.appendChild(replyCard);
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error loading replies:", error);
+            }
+        }
+
+        // View post details
+        async function viewPostDetails(postId) {
+            try {
+                const postRef = doc(db, "forum_posts", postId);
+                const postDoc = await getDoc(postRef);
+
+                if (postDoc.exists()) {
+                    const post = postDoc.data();
+                    const postDate = post.createdAt ? new Date(post.createdAt.toDate()).toLocaleDateString() : 'Recent';
+
+                    const modalContent = document.getElementById('postDetailContent');
+                    modalContent.innerHTML = `
                     <div class="post-detail">
                         <div class="post-header">
                             <div class="post-author">
@@ -1411,47 +1444,47 @@
                         </div>
                     </div>
                 `;
-                
-                // Store current post ID globally for the reply function
-                window.currentDetailPostId = postId;
-                
-                // Load replies
-                loadDetailReplies(postId);
-                
-                // Show modal
-                openModal('postDetailModal');
-            }
-            
-        } catch (error) {
-            console.error("Error loading post details:", error);
-            alert("Failed to load post details.");
-        }
-    }
 
-    // Load replies for detail view
-    async function loadDetailReplies(postId) {
-        try {
-            const postRef = doc(db, "forum_posts", postId);
-            const postDoc = await getDoc(postRef);
-            
-            if (postDoc.exists()) {
-                const postData = postDoc.data();
-                const replies = postData.replies || [];
-                
-                const repliesList = document.getElementById(`detail-replies-list-${postId}`);
-                repliesList.innerHTML = '';
-                
-                if (replies.length === 0) {
-                    repliesList.innerHTML = '<p>No replies yet. Be the first to reply!</p>';
-                    return;
+                    // Store current post ID globally for the reply function
+                    window.currentDetailPostId = postId;
+
+                    // Load replies
+                    loadDetailReplies(postId);
+
+                    // Show modal
+                    openModal('postDetailModal');
                 }
-                
-                replies.forEach(reply => {
-                    const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
-                    
-                    const replyCard = document.createElement('div');
-                    replyCard.className = 'reply-card';
-                    replyCard.innerHTML = `
+
+            } catch (error) {
+                console.error("Error loading post details:", error);
+                alert("Failed to load post details.");
+            }
+        }
+
+        // Load replies for detail view
+        async function loadDetailReplies(postId) {
+            try {
+                const postRef = doc(db, "forum_posts", postId);
+                const postDoc = await getDoc(postRef);
+
+                if (postDoc.exists()) {
+                    const postData = postDoc.data();
+                    const replies = postData.replies || [];
+
+                    const repliesList = document.getElementById(`detail-replies-list-${postId}`);
+                    repliesList.innerHTML = '';
+
+                    if (replies.length === 0) {
+                        repliesList.innerHTML = '<p>No replies yet. Be the first to reply!</p>';
+                        return;
+                    }
+
+                    replies.forEach(reply => {
+                        const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
+
+                        const replyCard = document.createElement('div');
+                        replyCard.className = 'reply-card';
+                        replyCard.innerHTML = `
                         <div class="reply-header">
                             <div class="reply-author">
                                 <div class="author-avatar" style="width: 25px; height: 25px;">
@@ -1466,92 +1499,92 @@
                         </div>
                         <div class="reply-content">${reply.content}</div>
                     `;
-                    
-                    repliesList.appendChild(replyCard);
+
+                        repliesList.appendChild(replyCard);
+                    });
+                }
+
+            } catch (error) {
+                console.error("Error loading replies:", error);
+            }
+        }
+
+        // Submit reply from detail view
+        window.submitDetailReply = async function (postId) {
+            const textarea = document.getElementById('detail-reply-text');
+            const replyContent = textarea.value.trim();
+
+            if (!replyContent) {
+                alert("Please enter a reply.");
+                return;
+            }
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                const userData = userDoc.exists() ? userDoc.data() : {};
+
+                const postRef = doc(db, "forum_posts", postId);
+                const post = posts.find(p => p.id === postId) || {};
+
+                const replyData = {
+                    content: replyContent,
+                    authorId: currentUser.uid,
+                    authorName: userData.firstName && userData.lastName
+                        ? `${userData.firstName} ${userData.lastName}`
+                        : userData.username || currentUser.email.split('@')[0],
+                    createdAt: serverTimestamp(),
+                    isExpert: userData.isExpert || false
+                };
+
+                // Add reply to post
+                await updateDoc(postRef, {
+                    replies: arrayUnion(replyData),
+                    repliesCount: (post.repliesCount || 0) + 1
                 });
+
+                // Clear textarea
+                textarea.value = '';
+
+                // Reload replies
+                loadDetailReplies(postId);
+
+                // Also reload main posts to update counts
+                await loadPosts();
+
+            } catch (error) {
+                console.error("Error submitting reply:", error);
+                alert("Failed to submit reply. Please try again.");
             }
-            
-        } catch (error) {
-            console.error("Error loading replies:", error);
         }
-    }
 
-    // Submit reply from detail view
-    window.submitDetailReply = async function(postId) {
-        const textarea = document.getElementById('detail-reply-text');
-        const replyContent = textarea.value.trim();
-        
-        if (!replyContent) {
-            alert("Please enter a reply.");
-            return;
-        }
-        
-        try {
-            const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-            const userData = userDoc.exists() ? userDoc.data() : {};
-            
-            const postRef = doc(db, "forum_posts", postId);
-            const post = posts.find(p => p.id === postId) || {};
-            
-            const replyData = {
-                content: replyContent,
-                authorId: currentUser.uid,
-                authorName: userData.firstName && userData.lastName 
-                    ? `${userData.firstName} ${userData.lastName}`
-                    : userData.username || currentUser.email.split('@')[0],
-                createdAt: serverTimestamp(),
-                isExpert: userData.isExpert || false
-            };
-            
-            // Add reply to post
-            await updateDoc(postRef, {
-                replies: arrayUnion(replyData),
-                repliesCount: (post.repliesCount || 0) + 1
-            });
-            
-            // Clear textarea
-            textarea.value = '';
-            
-            // Reload replies
-            loadDetailReplies(postId);
-            
-            // Also reload main posts to update counts
-            await loadPosts();
-            
-        } catch (error) {
-            console.error("Error submitting reply:", error);
-            alert("Failed to submit reply. Please try again.");
-        }
-    }
+        // Open edit post modal
+        async function openEditPostModal(postId) {
+            try {
+                const postRef = doc(db, "forum_posts", postId);
+                const postDoc = await getDoc(postRef);
 
-    // Open edit post modal
-    async function openEditPostModal(postId) {
-        try {
-            const postRef = doc(db, "forum_posts", postId);
-            const postDoc = await getDoc(postRef);
-            
-            if (postDoc.exists()) {
-                const post = postDoc.data();
-                currentPostId = postId;
-                
-                document.getElementById('editPostTitle').value = post.title || '';
-                document.getElementById('editPostContent').value = post.content || '';
-                document.getElementById('editPostCategory').value = post.category || 'general';
-                document.getElementById('editPostTags').value = (post.tags || []).join(', ');
-                
-                openModal('editPostModal');
+                if (postDoc.exists()) {
+                    const post = postDoc.data();
+                    currentPostId = postId;
+
+                    document.getElementById('editPostTitle').value = post.title || '';
+                    document.getElementById('editPostContent').value = post.content || '';
+                    document.getElementById('editPostCategory').value = post.category || 'general';
+                    document.getElementById('editPostTags').value = (post.tags || []).join(', ');
+
+                    openModal('editPostModal');
+                }
+
+            } catch (error) {
+                console.error("Error loading post for editing:", error);
+                alert("Failed to load post for editing.");
             }
-            
-        } catch (error) {
-            console.error("Error loading post for editing:", error);
-            alert("Failed to load post for editing.");
         }
-    }
 
-    // Show no posts message
-    function showNoPosts() {
-        const postsGrid = document.getElementById('postsGrid');
-        postsGrid.innerHTML = `
+        // Show no posts message
+        function showNoPosts() {
+            const postsGrid = document.getElementById('postsGrid');
+            postsGrid.innerHTML = `
             <div class="no-data">
                 <i class="fas fa-comments"></i>
                 <h3>No Discussions Yet</h3>
@@ -1561,17 +1594,17 @@
                 </button>
             </div>
         `;
-        
-        document.getElementById('createFirstPostBtn').addEventListener('click', () => {
-            document.getElementById('createPostSection').style.display = 'block';
-            document.getElementById('postContentInput').focus();
-        });
-    }
 
-    // Show error message
-    function showError(message) {
-        const postsGrid = document.getElementById('postsGrid');
-        postsGrid.innerHTML = `
+            document.getElementById('createFirstPostBtn').addEventListener('click', () => {
+                document.getElementById('createPostSection').style.display = 'block';
+                document.getElementById('postContentInput').focus();
+            });
+        }
+
+        // Show error message
+        function showError(message) {
+            const postsGrid = document.getElementById('postsGrid');
+            postsGrid.innerHTML = `
             <div class="error-message" style="background-color: #ffebee; border: 1px solid #f44336; border-radius: 8px; padding: 20px; text-align: center;">
                 <i class="fas fa-exclamation-triangle" style="font-size: 2rem; color: #f44336; margin-bottom: 15px;"></i>
                 <h3>Error Loading Discussions</h3>
@@ -1581,152 +1614,207 @@
                 </button>
             </div>
         `;
-        
-        document.getElementById('retryBtn').addEventListener('click', () => {
-            loadPosts();
-        });
-    }
 
-    // Modal functions
-    function openModal(modalId) {
-        document.getElementById(modalId).style.display = 'flex';
-    }
-
-    function closeModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-    }
-
-    // Event Listeners
-    document.addEventListener('DOMContentLoaded', () => {
-        // New post button
-        document.getElementById('newPostBtn').addEventListener('click', () => {
-            const createPostSection = document.getElementById('createPostSection');
-            createPostSection.style.display = createPostSection.style.display === 'none' ? 'block' : 'none';
-            if (createPostSection.style.display === 'block') {
-                document.getElementById('postContentInput').focus();
-            }
-        });
-
-        // Cancel post button
-        document.getElementById('cancelPostBtn').addEventListener('click', () => {
-            document.getElementById('createPostSection').style.display = 'none';
-            document.getElementById('postContentInput').value = '';
-            document.getElementById('postTagsInput').value = '';
-        });
-
-        // Submit post button
-        document.getElementById('submitPostBtn').addEventListener('click', () => {
-            const content = document.getElementById('postContentInput').value;
-            const category = document.getElementById('postCategorySelect').value;
-            const tags = document.getElementById('postTagsInput').value;
-            createPost(content, category, tags);
-        });
-
-        // Category tabs
-        document.querySelectorAll('.category-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs
-                document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-                // Add active class to clicked tab
-                tab.classList.add('active');
-                
-                // Update filter and reload posts
-                currentFilters.category = tab.dataset.category;
+            document.getElementById('retryBtn').addEventListener('click', () => {
                 loadPosts();
             });
-        });
+        }
 
-        // Filter modal
-        document.getElementById('filterBtn').addEventListener('click', () => openModal('filterModal'));
-        document.getElementById('closeFilterBtn').addEventListener('click', () => closeModal('filterModal'));
-        document.getElementById('closePostModal').addEventListener('click', () => closeModal('postDetailModal'));
-        document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editPostModal'));
-        document.getElementById('cancelEditBtn').addEventListener('click', () => closeModal('editPostModal'));
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
 
-        // Apply filters
-        document.getElementById('applyFiltersBtn').addEventListener('click', () => {
-            currentFilters.category = document.getElementById('filterCategory').value;
-            currentFilters.sort = document.getElementById('filterSort').value;
-            currentFilters.time = document.getElementById('filterTime').value;
-            
-            closeModal('filterModal');
-            loadPosts();
-        });
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
 
-        // Clear filters
-        document.getElementById('clearFiltersBtn').addEventListener('click', () => {
-            document.getElementById('filterCategory').value = 'all';
-            document.getElementById('filterSort').value = 'newest';
-            document.getElementById('filterTime').value = 'all';
-            
-            currentFilters = {
-                category: 'all',
-                sort: 'newest',
-                time: 'all'
-            };
-            
-            // Reset category tabs
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // New post button
+            document.getElementById('newPostBtn').addEventListener('click', () => {
+                const createPostSection = document.getElementById('createPostSection');
+                createPostSection.style.display = createPostSection.style.display === 'none' ? 'block' : 'none';
+                if (createPostSection.style.display === 'block') {
+                    document.getElementById('postContentInput').focus();
+                }
+            });
+
+            // Cancel post button
+            document.getElementById('cancelPostBtn').addEventListener('click', () => {
+                document.getElementById('createPostSection').style.display = 'none';
+                document.getElementById('postContentInput').value = '';
+                document.getElementById('postTagsInput').value = '';
+            });
+
+            // Submit post button
+            document.getElementById('submitPostBtn').addEventListener('click', () => {
+                const content = document.getElementById('postContentInput').value;
+                const category = document.getElementById('postCategorySelect').value;
+                const tags = document.getElementById('postTagsInput').value;
+                createPost(content, category, tags);
+            });
+
+            // Category tabs
             document.querySelectorAll('.category-tab').forEach(tab => {
-                if (tab.dataset.category === 'all') {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                    // Add active class to clicked tab
                     tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
+
+                    // Update filter and reload posts
+                    currentFilters.category = tab.dataset.category;
+                    loadPosts();
+                });
+            });
+
+            // Filter modal
+            document.getElementById('filterBtn').addEventListener('click', () => openModal('filterModal'));
+            document.getElementById('closeFilterBtn').addEventListener('click', () => closeModal('filterModal'));
+            document.getElementById('closePostModal').addEventListener('click', () => closeModal('postDetailModal'));
+            document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editPostModal'));
+            document.getElementById('cancelEditBtn').addEventListener('click', () => closeModal('editPostModal'));
+
+            // Apply filters
+            document.getElementById('applyFiltersBtn').addEventListener('click', () => {
+                currentFilters.category = document.getElementById('filterCategory').value;
+                currentFilters.sort = document.getElementById('filterSort').value;
+                currentFilters.time = document.getElementById('filterTime').value;
+
+                closeModal('filterModal');
+                loadPosts();
+            });
+
+            // Clear filters
+            document.getElementById('clearFiltersBtn').addEventListener('click', () => {
+                document.getElementById('filterCategory').value = 'all';
+                document.getElementById('filterSort').value = 'newest';
+                document.getElementById('filterTime').value = 'all';
+
+                currentFilters = {
+                    category: 'all',
+                    sort: 'newest',
+                    time: 'all'
+                };
+
+                // Reset category tabs
+                document.querySelectorAll('.category-tab').forEach(tab => {
+                    if (tab.dataset.category === 'all') {
+                        tab.classList.add('active');
+                    } else {
+                        tab.classList.remove('active');
+                    }
+                });
+
+                closeModal('filterModal');
+                loadPosts();
+            });
+
+            // Save edit
+            document.getElementById('saveEditBtn').addEventListener('click', () => {
+                const title = document.getElementById('editPostTitle').value;
+                const content = document.getElementById('editPostContent').value;
+                const category = document.getElementById('editPostCategory').value;
+                const tags = document.getElementById('editPostTags').value;
+
+                if (currentPostId) {
+                    updatePost(currentPostId, title, content, category, tags);
                 }
             });
-            
-            closeModal('filterModal');
-            loadPosts();
-        });
 
-        // Save edit
-        document.getElementById('saveEditBtn').addEventListener('click', () => {
-            const title = document.getElementById('editPostTitle').value;
-            const content = document.getElementById('editPostContent').value;
-            const category = document.getElementById('editPostCategory').value;
-            const tags = document.getElementById('editPostTags').value;
-            
-            if (currentPostId) {
-                updatePost(currentPostId, title, content, category, tags);
-            }
-        });
+            // Search functionality
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const postCards = document.querySelectorAll('.post-card');
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const postCards = document.querySelectorAll('.post-card');
-            
-            postCards.forEach(card => {
-                const title = card.querySelector('.post-title').textContent.toLowerCase();
-                const content = card.querySelector('.post-content').textContent.toLowerCase();
-                const author = card.querySelector('.author-info h4').textContent.toLowerCase();
-                
-                if (title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
+                postCards.forEach(card => {
+                    const title = card.querySelector('.post-title').textContent.toLowerCase();
+                    const content = card.querySelector('.post-content').textContent.toLowerCase();
+                    const author = card.querySelector('.author-info h4').textContent.toLowerCase();
+
+                    if (title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+
+            // Logout functionality
+            document.getElementById('logoutBtn').addEventListener('click', function (e) {
+                e.preventDefault();
+                signOut(auth).then(() => {
+                    window.location.href = 'signin.html';
+                }).catch((error) => {
+                    console.error('Logout error:', error);
+                });
+            });
+
+            // Close modals when clicking outside
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
             });
         });
-
-        // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', function(e) {
-            e.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = 'signin.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
-            });
-        });
-
-        // Close modals when clicking outside
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    modal.style.display = 'none';
-                }
-            });
-        });
-    });
     </script>
 </body>
+
+</html>
+// Logout functionality
+document.getElementById('logoutBtn').addEventListener('click', function(e) {
+e.preventDefault();
+signOut(auth).then(() => {
+window.location.href = 'signin.html';
+}).catch((error) => {
+console.error('Logout error:', error);
+});
+});
+
+// Close modals when clicking outside
+document.querySelectorAll('.modal').forEach(modal => {
+modal.addEventListener('click', (e) => {
+if (e.target === modal) {
+modal.style.display = 'none';
+}
+});
+});
+});
+</script>
+</body>
+
+</html>
+if (title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm)) {
+card.style.display = 'block';
+} else {
+card.style.display = 'none';
+}
+});
+});
+
+// Logout functionality
+document.getElementById('logoutBtn').addEventListener('click', function(e) {
+e.preventDefault();
+signOut(auth).then(() => {
+window.location.href = 'signin.html';
+}).catch((error) => {
+console.error('Logout error:', error);
+});
+});
+
+// Close modals when clicking outside
+document.querySelectorAll('.modal').forEach(modal => {
+modal.addEventListener('click', (e) => {
+if (e.target === modal) {
+modal.style.display = 'none';
+}
+});
+});
+});
+</script>
+</body>
+
 </html>
