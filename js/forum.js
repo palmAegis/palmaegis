@@ -126,37 +126,38 @@ function setupEventListeners() {
     }
 }
 
-// Get user's first name from Firestore
-async function getUserFirstName(userId) {
-    try {
-        const userDoc = await db.collection('users').doc(userId).get();
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            return userData.firstName || null;
-        }
-        return null;
-    } catch (error) {
-        console.error('Error getting user first name:', error);
-        return null;
-    }
-}
-
-// Get user's full profile data (name + avatar) from Firestore
+// Get user's profile data (name + avatar) from Firestore
 async function getUserProfile(userId) {
     try {
         const userDoc = await db.collection('users').doc(userId).get();
         if (userDoc.exists) {
             const userData = userDoc.data();
-            const fullName = userData.firstName ? 
-                userData.firstName + (userData.lastName ? ' ' + userData.lastName : '') : null;
+            console.log('User data from Firestore:', userData); // Debug
+            
+            // Extract full name
+            let fullName = '';
+            if (userData.firstName) {
+                fullName = userData.firstName;
+                if (userData.lastName) {
+                    fullName += ' ' + userData.lastName;
+                }
+            } else if (userData.username) {
+                fullName = userData.username;
+            } else if (userData.displayName) {
+                fullName = userData.displayName;
+            }
+            
+            // Extract profile image - prioritize imageBase64
             const profileImage = userData.imageBase64 || userData.profileImage || userData.avatar || null;
+            console.log('Profile image found:', profileImage ? 'Yes (' + (profileImage.startsWith('data:image') ? 'Base64' : 'URL') + ')' : 'No');
             
             return {
-                fullName: fullName,
+                fullName: fullName || null,
                 profileImage: profileImage,
                 isExpert: userData.isExpert || false
             };
         }
+        console.log('No user document found for ID:', userId);
         return null;
     } catch (error) {
         console.error('Error getting user profile:', error);
@@ -196,6 +197,7 @@ async function handlePostSubmit() {
         
         // Get user's profile from Firestore
         const userProfile = await getUserProfile(user.uid);
+        console.log('User profile data for post:', userProfile); // Debug log
         
         let authorName = userProfile?.fullName;
         let authorAvatar = userProfile?.profileImage;
@@ -210,6 +212,9 @@ async function handlePostSubmit() {
             }
         }
         
+        // Debug: Check what avatar data we have
+        console.log('Author Avatar:', authorAvatar ? (authorAvatar.substring(0, 50) + '...') : 'No avatar');
+        
         // Create post data
         const postData = {
             title: title,
@@ -217,7 +222,7 @@ async function handlePostSubmit() {
             category: category,
             authorId: user.uid,
             authorName: authorName,
-            authorAvatar: authorAvatar,
+            authorAvatar: authorAvatar, // Store the imageBase64 directly
             authorEmail: user.email || '',
             isExpert: isExpert,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -228,7 +233,7 @@ async function handlePostSubmit() {
             views: 0
         };
         
-        console.log('Creating post with author:', authorName, 'avatar:', authorAvatar ? 'Yes' : 'No');
+        console.log('Creating post with author:', authorName, 'has avatar?', !!authorAvatar);
         
         // Add to Firestore
         const docRef = await db.collection('posts').add(postData);
@@ -314,13 +319,21 @@ async function loadAllPosts() {
         
         const querySnapshot = await db.collection('posts')
             .orderBy('createdAt', 'desc')
-            .limit(100) // Load more posts for better caching
+            .limit(100)
             .get();
         
         const posts = [];
         querySnapshot.forEach(doc => {
             const post = doc.data();
             const postId = doc.id;
+            
+            // Debug: Check what data we have for each post
+            console.log(`Post ${postId}:`, {
+                authorName: post.authorName,
+                hasAvatar: !!post.authorAvatar,
+                avatarType: post.authorAvatar ? (post.authorAvatar.startsWith('data:image') ? 'Base64' : 'URL') : 'None'
+            });
+            
             posts.push({ ...post, id: postId });
         });
         
@@ -508,10 +521,15 @@ function createPostElement(post) {
     const categoryInfo = getCategoryInfo(post.category);
     
     // Create avatar HTML - use profile image if available, otherwise use initials
-    const avatarHtml = post.authorAvatar ? 
-        `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
-              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</text></svg>'; this.onerror=null;">` :
-        `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+    let avatarHtml = '';
+    if (post.authorAvatar) {
+        console.log(`Creating avatar for post ${post.id}: Using image`);
+        avatarHtml = `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
+                         onerror="console.error('Failed to load image for post ${post.id}'); this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
+    } else {
+        console.log(`Creating avatar for post ${post.id}: Using initial`);
+        avatarHtml = `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+    }
     
     const postElement = document.createElement('div');
     postElement.className = 'post';
@@ -698,10 +716,13 @@ async function loadComments(postId) {
                 new Date(comment.createdAt).toLocaleString() : 'Recently';
             
             // Create comment avatar HTML
-            const commentAvatarHtml = comment.authorAvatar ? 
-                `<img src="${comment.authorAvatar}" alt="${comment.authorName || 'User'}" 
-                      onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${comment.authorName ? comment.authorName.charAt(0).toUpperCase() : 'U'}</text></svg>'; this.onerror=null;">` :
-                `<div class="avatar-initial">${comment.authorName ? comment.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+            let commentAvatarHtml = '';
+            if (comment.authorAvatar) {
+                commentAvatarHtml = `<img src="${comment.authorAvatar}" alt="${comment.authorName || 'User'}" 
+                                      onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${comment.authorName ? comment.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
+            } else {
+                commentAvatarHtml = `<div class="avatar-initial">${comment.authorName ? comment.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+            }
             
             const commentElement = document.createElement('div');
             commentElement.className = 'comment';
@@ -773,6 +794,8 @@ async function handleCommentSubmit(e) {
                 authorName = user.email ? user.email.split('@')[0] : 'Anonymous';
             }
         }
+        
+        console.log('Comment author avatar:', authorAvatar ? 'Yes' : 'No');
         
         const newComment = {
             content,
@@ -909,12 +932,18 @@ style.textContent = `
         width: 100%;
         height: 100%;
         object-fit: cover;
+        display: block;
     }
     
     .avatar-initial {
         color: white;
         font-weight: 600;
         font-size: 1.2rem;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     
     .comment-avatar {
@@ -933,6 +962,7 @@ style.textContent = `
         width: 100%;
         height: 100%;
         object-fit: cover;
+        display: block;
     }
     
     .comment-avatar .avatar-initial {

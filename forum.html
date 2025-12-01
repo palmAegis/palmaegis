@@ -276,12 +276,18 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
         .avatar-initial {
             color: white;
             font-weight: 600;
             font-size: 1.2rem;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .author-info h4 {
@@ -465,6 +471,7 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            display: block;
         }
 
         .comment-avatar .avatar-initial {
@@ -936,6 +943,13 @@
                 const userDoc = await getDoc(doc(db, "users", userId));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
+                    console.log('User profile data retrieved:', { 
+                        userId, 
+                        hasImageBase64: !!userData.imageBase64,
+                        imageBase64Length: userData.imageBase64 ? userData.imageBase64.length : 0,
+                        imageBase64Start: userData.imageBase64 ? userData.imageBase64.substring(0, 50) + '...' : 'none'
+                    });
+                    
                     const fullName = userData.firstName && userData.lastName
                         ? `${userData.firstName} ${userData.lastName}`
                         : userData.username || 'User';
@@ -947,6 +961,7 @@
                         isExpert: userData.isExpert || false
                     };
                 }
+                console.log('No user document found for ID:', userId);
                 return null;
             } catch (error) {
                 console.error('Error getting user profile:', error);
@@ -981,6 +996,14 @@
                     } else if (data.createdAt instanceof Date) {
                         createdAtDate = data.createdAt;
                     }
+                    
+                    // Debug: Check avatar data
+                    console.log(`Post ${d.id} avatar data:`, {
+                        authorName: data.authorName,
+                        hasAuthorAvatar: !!data.authorAvatar,
+                        avatarType: data.authorAvatar ? (data.authorAvatar.startsWith('data:image') ? 'Base64' : 'URL') : 'None'
+                    });
+                    
                     allPosts.push({ id: d.id, createdAtDate, ...data });
                 });
 
@@ -1102,10 +1125,15 @@
             const isDownvoted = post.downvotes && post.downvotes.includes(currentUser.uid);
 
             // Create avatar HTML
-            const avatarHtml = post.authorAvatar ? 
-                `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
-                      onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</text></svg>'; this.onerror=null;">` :
-                `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+            let avatarHtml = '';
+            if (post.authorAvatar) {
+                console.log(`Creating avatar for post ${post.id}: Using image`);
+                avatarHtml = `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
+                                 onerror="console.error('Failed to load image for post ${post.id}'); this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
+            } else {
+                console.log(`Creating avatar for post ${post.id}: Using initial`);
+                avatarHtml = `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+            }
 
             const postCard = document.createElement('div');
             postCard.className = 'post-card';
@@ -1305,7 +1333,6 @@
                 }
 
                 const userProfile = await getUserProfile(currentUser.uid);
-                const userData = userProfile || {};
 
                 const postData = {
                     title: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
@@ -1489,10 +1516,13 @@
                         const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
                         // Create reply avatar HTML
-                        const replyAvatarHtml = reply.authorAvatar ? 
-                            `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
-                                  onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</text></svg>'; this.onerror=null;">` :
-                            `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
+                        let replyAvatarHtml = '';
+                        if (reply.authorAvatar) {
+                            replyAvatarHtml = `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
+                                               onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>';" />`;
+                        } else {
+                            replyAvatarHtml = `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
+                        }
 
                         const replyCard = document.createElement('div');
                         replyCard.className = 'reply-card';
@@ -1532,10 +1562,13 @@
                     const postDate = post.createdAt ? new Date(post.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
                     // Create avatar HTML for modal
-                    const modalAvatarHtml = post.authorAvatar ? 
-                        `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
-                              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</text></svg>'; this.onerror=null;">` :
-                        `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+                    let modalAvatarHtml = '';
+                    if (post.authorAvatar) {
+                        modalAvatarHtml = `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
+                                           onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
+                    } else {
+                        modalAvatarHtml = `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+                    }
 
                     const modalContent = document.getElementById('postDetailContent');
                     modalContent.innerHTML = `
@@ -1627,10 +1660,13 @@
                         const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
                         // Create reply avatar HTML for detail view
-                        const detailReplyAvatarHtml = reply.authorAvatar ? 
-                            `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
-                                  onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23fff%22>${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</text></svg>'; this.onerror=null;">` :
-                            `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
+                        let detailReplyAvatarHtml = '';
+                        if (reply.authorAvatar) {
+                            detailReplyAvatarHtml = `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
+                                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>';" />`;
+                        } else {
+                            detailReplyAvatarHtml = `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
+                        }
 
                         const replyCard = document.createElement('div');
                         replyCard.className = 'reply-card';
