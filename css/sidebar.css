@@ -383,7 +383,7 @@
         visibility: visible;
     }
 
-    /* Hamburger Menu Button */
+    /* Hamburger Menu Button - MOVED TO LEFT */
     .mobile-menu-btn {
         display: flex;
         align-items: center;
@@ -393,9 +393,13 @@
         font-size: 1.5rem;
         color: var(--primary-color);
         cursor: pointer;
-        margin-right: 15px;
+        margin-left: 15px; /* Changed from margin-right to margin-left */
         z-index: 998;
         padding: 0.5rem;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
     }
 }
 
