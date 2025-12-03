@@ -221,12 +221,13 @@
             border-radius: 8px;
             overflow: hidden;
             margin-bottom: 15px;
-            height: 300px;
+            min-height: 200px;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #f8f9fa;
             position: relative;
+            width: 100%;
         }
 
         .no-image {
@@ -298,18 +299,18 @@
 
         .image-section {
             flex: 1;
-            min-width: 0; /* Prevents flex item from overflowing */
+            min-width: 0;
         }
 
         .form-section {
             flex: 1;
-            min-width: 0; /* Prevents flex item from overflowing */
+            min-width: 0;
         }
 
         .content {
             display: flex;
             gap: 20px;
-            height: calc(100vh - 120px); /* Adjust based on your header height */
+            height: calc(100vh - 120px);
         }
 
         .container {
@@ -327,6 +328,15 @@
             min-height: 100vh;
         }
 
+        /* Map container styling */
+        .map-container {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
+            height: 200px;
+        }
+
         /* Make the image container responsive */
         @media (max-width: 768px) {
             .content {
@@ -335,7 +345,15 @@
             }
             
             .image-container {
-                height: 250px;
+                height: auto;
+                min-height: 250px;
+                aspect-ratio: 4/3;
+            }
+            
+            #previewCanvas {
+                width: 100%;
+                height: auto;
+                max-height: none;
             }
             
             .form-row {
@@ -346,16 +364,13 @@
 
         @media (max-width: 576px) {
             .image-container {
-                height: 200px;
+                min-height: 200px;
+                aspect-ratio: 1/1;
             }
-        }
-
-        /* Map container styling */
-        .map-container {
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
+            
+            .map-container {
+                height: 150px;
+            }
         }
     </style>
 </head>
@@ -900,13 +915,16 @@
                 reader.onload = function (e) {
                     originalImage = new Image();
                     originalImage.onload = function () {
-                        const maxWidth = 800;
-                        const maxHeight = 300; // Match container height
+                        const containerWidth = imageContainer.clientWidth;
+                        const containerHeight = imageContainer.clientHeight;
+                        
+                        // Calculate scaling to fit container
                         const scale = Math.min(
-                            maxWidth / originalImage.width, 
-                            maxHeight / originalImage.height, 
+                            containerWidth / originalImage.width, 
+                            containerHeight / originalImage.height, 
                             1
                         );
+                        
                         previewCanvas.width = originalImage.width * scale;
                         previewCanvas.height = originalImage.height * scale;
                         canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
@@ -1066,6 +1084,8 @@
 
         function drawDetectionBoxes(predictions) {
             canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+            
+            // Use the actual canvas dimensions for scaling
             const scaleX = previewCanvas.width / originalImage.width;
             const scaleY = previewCanvas.height / originalImage.height;
 
