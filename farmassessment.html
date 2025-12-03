@@ -19,9 +19,7 @@
     <link rel="stylesheet" href="css/farmassessment.css" />
     
     <style>
-        /* Sidebar styles removed — use css/sidebar.css instead */
-
-        /* Page-specific styles kept here */
+        /* Page-specific styles */
         .health-status {
             padding: 8px 12px;
             border-radius: 4px;
@@ -129,16 +127,17 @@
         .upload-area {
             border: 2px dashed #dee2e6;
             border-radius: 8px;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             transition: all 0.3s;
+            background-color: #f8f9fa;
         }
 
         .upload-area:hover {
             border-color: #007bff;
-            background-color: #f8f9fa;
+            background-color: #e9ecef;
         }
 
         .confidence-slider {
@@ -164,13 +163,14 @@
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .form-input, .form-textarea {
@@ -179,33 +179,37 @@
             border: 1px solid #ced4da;
             border-radius: 4px;
             box-sizing: border-box;
+            font-size: 14px;
         }
 
         .form-textarea {
-            min-height: 100px;
+            min-height: 80px;
             resize: vertical;
         }
 
         .form-row {
             display: flex;
-            gap: 15px;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         .form-row .form-group {
             flex: 1;
+            margin-bottom: 0;
         }
 
         .camera-btn {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background: #6c757d;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-weight: bold;
-            margin-bottom: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
             transition: background 0.3s;
+            font-size: 14px;
         }
 
         .camera-btn:hover {
@@ -213,21 +217,30 @@
         }
 
         .image-container {
-            position: relative;
             border: 1px solid #dee2e6;
             border-radius: 8px;
             overflow: hidden;
-            margin-bottom: 20px;
-            min-height: 300px;
+            margin-bottom: 15px;
+            height: 300px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background-color: #f8f9fa;
+            position: relative;
         }
 
         .no-image {
             text-align: center;
             color: #6c757d;
-            padding: 40px;
+            padding: 20px;
+        }
+
+        #previewCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
         }
 
         .loading {
@@ -255,23 +268,27 @@
             border: 1px solid #dee2e6;
             border-radius: 8px;
             overflow: hidden;
+            margin-top: 15px;
         }
 
         .results-header {
             background: #f8f9fa;
-            padding: 12px 15px;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
             border-bottom: 1px solid #dee2e6;
         }
 
         .results-title {
             font-weight: bold;
+            font-size: 14px;
         }
 
         .objects-count {
             color: #6c757d;
-            font-size: 14px;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .detections-list {
@@ -281,26 +298,64 @@
 
         .image-section {
             flex: 1;
-            margin-right: 20px;
+            min-width: 0; /* Prevents flex item from overflowing */
         }
 
         .form-section {
             flex: 1;
+            min-width: 0; /* Prevents flex item from overflowing */
         }
 
         .content {
             display: flex;
             gap: 20px;
+            height: calc(100vh - 120px); /* Adjust based on your header height */
         }
 
+        .container {
+            padding: 20px;
+            height: 100%;
+        }
+
+        .main-content {
+            flex: 1;
+            overflow: auto;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Make the image container responsive */
         @media (max-width: 768px) {
             .content {
                 flex-direction: column;
+                height: auto;
             }
+            
+            .image-container {
+                height: 250px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
 
-            .image-section {
-                margin-right: 0;
+        @media (max-width: 576px) {
+            .image-container {
+                height: 200px;
             }
+        }
+
+        /* Map container styling */
+        .map-container {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -321,7 +376,7 @@
                     <div class="image-section">
                         <div class="image-container" id="imageContainer">
                             <div class="no-image" id="noImage">
-                                <i>📷</i>
+                                <i class="fas fa-camera fa-2x" style="margin-bottom: 10px; color: #6c757d;"></i>
                                 <p>Drag and drop image here</p>
                             </div>
                             <canvas id="previewCanvas" style="display: none;"></canvas>
@@ -347,14 +402,14 @@
 
                     <div class="form-section">
                         <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-                            <i>📁</i>
-                            <p>Click to upload image</p>
-                            <p style="font-size: 12px; color: #6c757d; margin-top: 5px;">Supported: JPG, PNG, JPEG</p>
-                            <input type="file" id="fileInput" class="file-input" accept="image/*">
+                            <i class="fas fa-cloud-upload-alt fa-2x" style="color: #6c757d; margin-bottom: 10px;"></i>
+                            <p style="font-weight: 600; margin-bottom: 5px;">Click to upload image</p>
+                            <p style="font-size: 12px; color: #6c757d; margin: 0;">Supported: JPG, PNG, JPEG</p>
+                            <input type="file" id="fileInput" class="file-input" accept="image/*" style="display: none;">
                         </div>
 
                         <button onclick="openCamera()" class="camera-btn" id="cameraBtn">
-                            📷 Take Photo
+                            <i class="fas fa-camera"></i> Take Photo
                         </button>
 
                         <div class="confidence-slider">
@@ -363,7 +418,7 @@
                                 <span class="slider-value" id="confidenceValue">50%</span>
                             </div>
                             <input type="range" id="confidenceSlider" min="1" max="100" value="50"
-                                oninput="updateConfidence(this.value)">
+                                oninput="updateConfidence(this.value)" style="width: 100%;">
                         </div>
 
                         <div class="form-group">
@@ -375,8 +430,10 @@
                             <label class="form-label">Location</label>
                             <input type="text" class="form-input" id="locationInput" placeholder="Enter location or use current location">
                             <button type="button" class="camera-btn" style="margin-top: 10px; background: #28a745;"
-                                onclick="getCurrentLocation()">Use Current Location</button>
-                            <div class="map-container" id="mapContainer" style="height: 200px; margin-top: 10px;"></div>
+                                onclick="getCurrentLocation()">
+                                <i class="fas fa-map-marker-alt"></i> Use Current Location
+                            </button>
+                            <div class="map-container" id="mapContainer"></div>
                         </div>
 
                         <div class="form-row">
@@ -385,7 +442,7 @@
                                 <input type="date" class="form-input" id="assessmentDate">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Assessment Time</label>
+                                <label class="form-label">Time</label>
                                 <input type="time" class="form-input" id="assessmentTime">
                             </div>
                         </div>
@@ -414,7 +471,7 @@
                         </div>
 
                         <button class="camera-btn" style="background: #007bff;" onclick="saveAssessment()">
-                            Save Assessment
+                            <i class="fas fa-save"></i> Save Assessment
                         </button>
                     </div>
                 </div>
@@ -425,8 +482,12 @@
     <div class="camera-container" id="cameraContainer">
         <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
         <div class="camera-controls">
-            <button class="capture-btn" onclick="captureImage()">Capture Image</button>
-            <button class="cancel-btn" onclick="closeCamera()">Cancel</button>
+            <button class="capture-btn" onclick="captureImage()">
+                <i class="fas fa-camera"></i> Capture Image
+            </button>
+            <button class="cancel-btn" onclick="closeCamera()">
+                <i class="fas fa-times"></i> Cancel
+            </button>
         </div>
     </div>
 
@@ -556,7 +617,7 @@
             initializeMap();
         });
 
-        // Konfigurasi untuk multiple models
+        // Configuration for multiple models
         const models = {
             'ganoderma': {
                 name: 'Ganoderma Detection',
@@ -758,7 +819,7 @@
             }
         }
 
-        // Function untuk update confidence threshold
+        // Function to update confidence threshold
         function updateConfidence(value) {
             confidenceThreshold = value / 100;
             confidenceValue.textContent = value + '%';
@@ -767,7 +828,7 @@
             }
         }
 
-        // Function untuk set threshold berdasarkan jenis penyakit
+        // Function to set threshold based on disease type
         function setThresholdByDisease(diseaseType) {
             currentDiseaseType = diseaseType;
             if (diseaseType === 'ganoderma') {
@@ -781,7 +842,7 @@
             }
         }
 
-        // Function untuk membuka kamera
+        // Function to open camera
         async function openCamera() {
             try {
                 const constraints = { 
@@ -803,7 +864,7 @@
             }
         }
 
-        // Function untuk menutup kamera
+        // Function to close camera
         function closeCamera() {
             if (stream) {
                 stream.getTracks().forEach(track => track.stop());
@@ -812,7 +873,7 @@
             cameraContainer.style.display = 'none';
         }
 
-        // Function untuk mengambil gambar dari kamera
+        // Function to capture image from camera
         function captureImage() {
             const tempCanvas = document.createElement('canvas');
             const tempContext = tempCanvas.getContext('2d');
@@ -830,7 +891,7 @@
             }, 'image/jpeg');
         }
 
-        // Function untuk memproses input file
+        // Function to process file input
         function processFileInput() {
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
@@ -840,11 +901,14 @@
                     originalImage = new Image();
                     originalImage.onload = function () {
                         const maxWidth = 800;
-                        const scale = Math.min(maxWidth / originalImage.width, 1);
+                        const maxHeight = 300; // Match container height
+                        const scale = Math.min(
+                            maxWidth / originalImage.width, 
+                            maxHeight / originalImage.height, 
+                            1
+                        );
                         previewCanvas.width = originalImage.width * scale;
                         previewCanvas.height = originalImage.height * scale;
-                        previewCanvas.style.maxWidth = '100%';
-                        previewCanvas.style.height = 'auto';
                         canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
                         previewCanvas.style.display = 'block';
                         noImage.style.display = 'none';
@@ -857,8 +921,32 @@
             }
         }
 
-        // Event listener untuk file input
+        // Event listener for file input
         fileInput.addEventListener('change', processFileInput);
+
+        // Add drag and drop functionality
+        imageContainer.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageContainer.style.borderColor = '#007bff';
+            imageContainer.style.backgroundColor = '#e9ecef';
+        });
+
+        imageContainer.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            imageContainer.style.borderColor = '#dee2e6';
+            imageContainer.style.backgroundColor = '#f8f9fa';
+        });
+
+        imageContainer.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageContainer.style.borderColor = '#dee2e6';
+            imageContainer.style.backgroundColor = '#f8f9fa';
+            
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                processFileInput();
+            }
+        });
 
         async function processImage() {
             if (!fileInput.files[0]) {
@@ -908,7 +996,7 @@
             reader.readAsDataURL(fileInput.files[0]);
         }
 
-        // Function untuk auto-detect jenis penyakit dan set threshold
+        // Function to auto-detect disease type and set threshold
         function autoDetectDiseaseType(data) {
             if (!data.predictions || data.predictions.length === 0) {
                 currentDiseaseType = null;
@@ -1012,7 +1100,7 @@
             }
         }
 
-        // FIXED: Save assessment function with proper Firebase integration
+        // Save assessment function with proper Firebase integration
         async function saveAssessment() {
             // Validate required fields
             if (!assessmentId.value) {

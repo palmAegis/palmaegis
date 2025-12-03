@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -782,12 +783,25 @@
             animation: typing-bounce 1.3s linear infinite;
         }
 
-        .typing-dot:nth-child(2) { animation-delay: 0.15s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.3s;
+        }
 
         @keyframes typing-bounce {
-            0%, 60%, 100% { transform: translateY(0); }
-            30% { transform: translateY(-5px); }
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-5px);
+            }
         }
 
         /* Responsive adjustments */
@@ -795,47 +809,63 @@
             #palmMap {
                 height: 300px;
             }
-            
+
             .main-content {
                 padding-bottom: 20px;
             }
         }
 
         @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+                z-index: 1001;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+
             .quick-stats {
                 grid-template-columns: 1fr;
             }
-            
+
             .map-header {
                 flex-direction: column;
                 gap: 10px;
                 align-items: flex-start;
             }
-            
+
             .map-controls {
                 width: 100%;
                 justify-content: space-between;
             }
-            
+
             .search-box {
                 width: 100%;
             }
-            
+
             .profile-info {
                 flex-direction: column;
                 text-align: center;
             }
-            
+
             .profile-avatar {
                 margin-right: 0;
                 margin-bottom: 1rem;
             }
-            
+
             .edit-profile-btn {
                 position: static;
                 margin-top: 1rem;
             }
-            
+
             .chatbot-container {
                 width: 300px;
             }
@@ -843,10 +873,10 @@
     </style>
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
         import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-        
+
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
@@ -867,7 +897,7 @@
             if (user) {
                 console.log('User is signed in:', user.email);
                 window.currentUser = user;
-                
+
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
@@ -891,26 +921,26 @@
 
         function updateUserProfile(user, userData) {
             console.log('🔄 Updating user profile with data:', userData);
-            
+
             const userNameElement = document.querySelector('.user-name');
             const profileNameElement = document.querySelector('.profile-details h2');
             const profileTitleElement = document.querySelector('.profile-title');
             const profileLocationElement = document.querySelector('.profile-location');
             const userRoleElement = document.querySelector('.user-role');
-            
-            const displayName = userData.firstName && userData.lastName 
+
+            const displayName = userData.firstName && userData.lastName
                 ? `${userData.firstName} ${userData.lastName}`
-                : userData.username 
-                ? userData.username
-                : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-            
+                : userData.username
+                    ? userData.username
+                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+
             if (userNameElement) userNameElement.textContent = displayName;
             if (profileNameElement) profileNameElement.textContent = displayName;
 
             if (profileTitleElement) {
                 profileTitleElement.textContent = userData.bio || 'Professional Farmer';
             }
-            
+
             if (profileLocationElement) {
                 profileLocationElement.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${userData.location || 'Location not set'}`;
             }
@@ -925,9 +955,9 @@
 
         function updateProfilePicture(userData) {
             const avatarElements = document.querySelectorAll('.user-avatar, .profile-avatar img');
-            
+
             let imageSource = 'images/user-avatar.jpg';
-            
+
             if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
                 imageSource = userData.imageBase64.trim();
                 console.log('🎯 Using Base64 image from Firestore');
@@ -942,7 +972,7 @@
             avatarElements.forEach(img => {
                 img.src = imageSource;
                 img.alt = 'User Avatar';
-                img.onerror = function() {
+                img.onerror = function () {
                     console.warn('⚠️ Failed to load user image, reverting to default.');
                     this.src = 'images/user-avatar.jpg';
                 };
@@ -969,12 +999,12 @@
         }
 
         // Add logout functionality
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const logoutBtn = document.getElementById('logoutBtn');
             if (logoutBtn) {
-                logoutBtn.addEventListener('click', function(e) {
+                logoutBtn.addEventListener('click', function (e) {
                     e.preventDefault();
-                    
+
                     signOut(auth).then(() => {
                         window.location.href = 'signin.html';
                     }).catch((error) => {
@@ -1030,14 +1060,14 @@
             function addMessage(content, sender) {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = `message ${sender}`;
-                
+
                 const avatar = document.createElement('div');
                 avatar.className = 'message-avatar';
                 avatar.innerHTML = sender === 'bot' ? '<i class="fas fa-robot"></i>' : '<i class="fas fa-user"></i>';
-                
+
                 const messageContent = document.createElement('div');
                 messageContent.className = 'message-content';
-                
+
                 // Parse markdown for bot messages
                 if (sender === 'bot') {
                     try {
@@ -1049,11 +1079,11 @@
                 } else {
                     messageContent.textContent = content;
                 }
-                
+
                 messageDiv.appendChild(avatar);
                 messageDiv.appendChild(messageContent);
                 chatbotMessages.appendChild(messageDiv);
-                
+
                 // Scroll to bottom
                 chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
             }
@@ -1082,12 +1112,12 @@
                     "Pest control?",
                     "When to harvest?"
                 ];
-                
+
                 const actionsContainer = document.createElement('div');
                 actionsContainer.className = 'quick-actions';
                 actionsContainer.style.padding = '10px';
                 actionsContainer.style.borderTop = '1px solid #eee';
-                
+
                 quickActions.forEach(action => {
                     const button = document.createElement('button');
                     button.textContent = action;
@@ -1099,15 +1129,15 @@
                     button.style.borderRadius = '15px';
                     button.style.cursor = 'pointer';
                     button.style.fontSize = '12px';
-                    
+
                     button.addEventListener('click', () => {
                         chatbotInput.value = action;
                         sendChatbotMessage();
                     });
-                    
+
                     actionsContainer.appendChild(button);
                 });
-                
+
                 chatbotMessages.parentNode.insertBefore(actionsContainer, chatbotInput.parentNode);
             }
 
@@ -1120,14 +1150,20 @@
             const mainContent = document.querySelector('.main-content');
 
             sidebarToggle.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.toggle('active');
+                    const icon = sidebarToggle.querySelector('i');
+                    icon.className = sidebar.classList.contains('active') ? 'fas fa-chevron-left' : 'fas fa-chevron-right';
+                    return;
+                }
                 const isCollapsing = !sidebar.classList.contains('collapsed');
-                
+
                 sidebar.classList.toggle('collapsed');
                 mainContent.classList.toggle('expanded');
-                
+
                 // Force reflow to ensure smooth transition
                 void sidebar.offsetWidth;
-                
+
                 // Update toggle icon
                 const icon = sidebarToggle.querySelector('i');
                 if (sidebar.classList.contains('collapsed')) {
@@ -1238,66 +1274,67 @@
         }
     </script>
 </head>
+
 <body>
     <div class="dashboard-container">
         <!-- Sidebar will be loaded from partials/sidebar.html -->
         <div id="sidebarPlaceholder"></div>
         <script src="js/sidebar-loader.js"></script>
-        
-         <main class="main-content">
-             <header class="top-header">
-                 <div class="header-left">
-                     <h1>Dashboard</h1>
-                 </div>
-                 <!-- <div class="header-right">
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <h1>Dashboard</h1>
+                </div>
+                <!-- <div class="header-right">
                      <div class="search-box">
                          <i class="fas fa-search"></i>
                          <input type="text" placeholder="Search...">
                      </div>
                  </div> -->
-             </header>
+            </header>
 
-             <section class="profile-section">
-                 <div class="profile-header">
-                     <div class="profile-cover">
-                         <img src="images/farm3.jpg" alt="Cover Image">
-                     </div>
-                     <div class="profile-info">
-                         <div class="profile-avatar">
-                             <img src="images/user-avatar.jpg" alt="User Avatar">
-                         </div>
-                         <div class="profile-details">
-                             <h2>Loading...</h2>
-                             <p class="profile-title">Professional Farmer</p>
-                             <p class="profile-location">
-                                 <i class="fas fa-map-marker-alt"></i>
-                                 Loading location...
-                             </p>
-                         </div>
-                         <button class="edit-profile-btn" onclick="window.location.href='profile.html'">
-                             <i class="fas fa-edit"></i>
-                             Edit Profile
-                         </button>
-                     </div>
-                 </div>
+            <section class="profile-section">
+                <div class="profile-header">
+                    <div class="profile-cover">
+                        <img src="images/farm3.jpg" alt="Cover Image">
+                    </div>
+                    <div class="profile-info">
+                        <div class="profile-avatar">
+                            <img src="images/user-avatar.jpg" alt="User Avatar">
+                        </div>
+                        <div class="profile-details">
+                            <h2>Loading...</h2>
+                            <p class="profile-title">Professional Farmer</p>
+                            <p class="profile-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                Loading location...
+                            </p>
+                        </div>
+                        <button class="edit-profile-btn" onclick="window.location.href='profile.html'">
+                            <i class="fas fa-edit"></i>
+                            Edit Profile
+                        </button>
+                    </div>
+                </div>
 
-                 <!-- Google Maps Section -->
-                 <div class="map-container">
-                     <div class="map-header">
-                         <h3><i class="fas fa-map-marked-alt"></i> Palm Health Map</h3>
-                         <div class="map-controls">
-                             <button class="map-btn" id="locateMeBtn">
-                                 <i class="fas fa-location-arrow"></i> Locate Me
-                             </button>
-                             <!-- <button class="map-btn" id="addReportBtn">
+                <!-- Google Maps Section -->
+                <div class="map-container">
+                    <div class="map-header">
+                        <h3><i class="fas fa-map-marked-alt"></i> Palm Health Map</h3>
+                        <div class="map-controls">
+                            <button class="map-btn" id="locateMeBtn">
+                                <i class="fas fa-location-arrow"></i> Locate Me
+                            </button>
+                            <!-- <button class="map-btn" id="addReportBtn">
                                  <i class="fas fa-plus"></i> Add Report
                              </button> -->
-                         </div>
-                     </div>
-                     <div id="palmMap"></div>
-                 </div>
-             </section>
-         </main>
+                        </div>
+                    </div>
+                    <div id="palmMap"></div>
+                </div>
+            </section>
+        </main>
     </div>
 
     <!-- Chatbot Widget -->
@@ -1318,7 +1355,9 @@
                         <i class="fas fa-robot"></i>
                     </div>
                     <div class="message-content">
-                        Hello! I'm your Palm Aegis assistant. 🌴 I can help you with palm tree diseases, watering schedules, fertilization, pest control, harvesting, and general farming advice. What would you like to know today?
+                        Hello! I'm your Palm Aegis assistant. 🌴 I can help you with palm tree diseases, watering
+                        schedules, fertilization, pest control, harvesting, and general farming advice. What would you
+                        like to know today?
                     </div>
                 </div>
             </div>
@@ -1339,4 +1378,5 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 </body>
+
 </html>

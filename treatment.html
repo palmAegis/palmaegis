@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -51,7 +52,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .header-left h1 {
@@ -87,6 +88,31 @@
         }
 
         @media (max-width: 768px) {
+
+            /* Sidebar Mobile Styles */
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+                z-index: 1001;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-toggle {
+                display: none !important;
+            }
+
+            .mobile-menu-btn {
+                display: flex !important;
+                margin-right: 10px;
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
             .dashboard-container {
                 flex-direction: column;
             }
@@ -94,13 +120,14 @@
             .main-content {
                 width: 100%;
             }
-            
+
             .search-box {
                 width: 200px;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
@@ -109,7 +136,7 @@
         <main class="main-content">
             <div class="top-header">
                 <div class="header-left">
-                    <h1>Plant Disease Treatment</h1>
+                    <h1>Treatment</h1>
                 </div>
             </div>
 
@@ -159,7 +186,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
         import { getFirestore, collection, getDocs, doc, getDoc, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
         // Firebase configuration
@@ -199,7 +226,7 @@
             if (user) {
                 console.log('User is signed in:', user.email);
                 window.currentUser = user;
-                
+
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
@@ -209,7 +236,7 @@
                     } else {
                         updateUserProfile(user, {});
                     }
-                    
+
                     // Load treatment data
                     loadTreatmentsFromFirebase();
                 } catch (error) {
@@ -227,11 +254,11 @@
             const userNameElement = document.querySelector('.user-name');
             const userRoleElement = document.querySelector('.user-role');
 
-            const displayName = userData.firstName && userData.lastName 
+            const displayName = userData.firstName && userData.lastName
                 ? `${userData.firstName} ${userData.lastName}`
-                : userData.username 
-                ? userData.username
-                : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+                : userData.username
+                    ? userData.username
+                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
 
             if (userNameElement) userNameElement.textContent = displayName;
             if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
@@ -261,33 +288,57 @@
         }
 
         // Initialize the page
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             setupEventListeners();
         });
 
         // Set up event listeners
         function setupEventListeners() {
             // Search functionality
+            // Sidebar Toggle Logic (Mobile Support)
+            const checkSidebar = setInterval(() => {
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const sidebar = document.querySelector('.sidebar');
+
+                if (sidebarToggle && sidebar) {
+                    clearInterval(checkSidebar);
+
+                    sidebarToggle.addEventListener('click', (e) => {
+                        if (window.innerWidth <= 768) {
+                            e.stopPropagation();
+                            sidebar.classList.toggle('active');
+
+                            const icon = sidebarToggle.querySelector('i');
+                            if (sidebar.classList.contains('active')) {
+                                icon.className = 'fas fa-chevron-left';
+                            } else {
+                                icon.className = 'fas fa-chevron-right';
+                            }
+                        }
+                    });
+                }
+            }, 100);
+
             searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keyup', function(event) {
+            searchInput.addEventListener('keyup', function (event) {
                 if (event.key === 'Enter') {
                     performSearch();
                 }
             });
 
             // Global search functionality
-            globalSearchInput.addEventListener('input', function(event) {
+            globalSearchInput.addEventListener('input', function (event) {
                 currentSearchTerm = event.target.value.trim().toLowerCase();
                 filterAndDisplayTreatments();
             });
 
             // Filter buttons
             filterBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     // Update active button
                     filterBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
-                    
+
                     // Update filter and display treatments
                     currentFilter = this.getAttribute('data-filter');
                     filterAndDisplayTreatments();
@@ -295,19 +346,19 @@
             });
 
             // Modal close button
-            closeModal.addEventListener('click', function() {
+            closeModal.addEventListener('click', function () {
                 treatmentModal.style.display = 'none';
             });
 
             // Close modal when clicking outside
-            window.addEventListener('click', function(event) {
+            window.addEventListener('click', function (event) {
                 if (event.target === treatmentModal) {
                     treatmentModal.style.display = 'none';
                 }
             });
 
             // Logout functionality
-            document.addEventListener('click', function(e) {
+            document.addEventListener('click', function (e) {
                 if (e.target.id === 'logoutBtn') {
                     e.preventDefault();
                     signOut(auth).then(() => {
@@ -332,18 +383,18 @@
             loadingMessage.style.display = 'block';
             treatmentContainer.style.display = 'none';
             errorMessage.style.display = 'none';
-            
+
             try {
                 const querySnapshot = await getDocs(collection(db, 'treatments'));
-                
+
                 loadingMessage.style.display = 'none';
                 treatmentContainer.style.display = 'grid';
-                
+
                 if (querySnapshot.empty) {
                     treatmentContainer.innerHTML = '<div class="no-results">No treatments available. Please check back later.</div>';
                     return;
                 }
-                
+
                 allDiseases = [];
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
@@ -358,7 +409,7 @@
                         prevention: data.prevention || ['No prevention information available.']
                     });
                 });
-                
+
                 displayTreatments(allDiseases);
             } catch (error) {
                 console.error("Error getting documents: ", error);
@@ -375,39 +426,39 @@
         // Filter and display treatments based on current filter and search term
         function filterAndDisplayTreatments() {
             let filteredDiseases = allDiseases;
-            
+
             // Apply search filter
             if (currentSearchTerm) {
-                filteredDiseases = filteredDiseases.filter(disease => 
-                    disease.name.toLowerCase().includes(currentSearchTerm) || 
+                filteredDiseases = filteredDiseases.filter(disease =>
+                    disease.name.toLowerCase().includes(currentSearchTerm) ||
                     (disease.symptoms && disease.symptoms.toLowerCase().includes(currentSearchTerm))
                 );
             }
-            
+
             // Apply plant part filter
             if (currentFilter !== 'all') {
-                filteredDiseases = filteredDiseases.filter(disease => 
+                filteredDiseases = filteredDiseases.filter(disease =>
                     disease.plantPart === currentFilter
                 );
             }
-            
+
             displayTreatments(filteredDiseases);
         }
 
         // Display treatments in the container
         function displayTreatments(diseasesToShow) {
             treatmentContainer.innerHTML = '';
-            
+
             if (diseasesToShow.length === 0) {
                 treatmentContainer.innerHTML = '<div class="no-results">No treatments found matching your criteria.</div>';
                 return;
             }
-            
+
             diseasesToShow.forEach(disease => {
                 const treatmentCard = document.createElement('div');
                 treatmentCard.className = 'treatment-card';
                 treatmentCard.setAttribute('data-id', disease.id);
-                
+
                 treatmentCard.innerHTML = `
                     <div class="treatment-image">
                         <img src="${disease.image}" alt="${disease.name}" onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
@@ -421,13 +472,13 @@
                         </div>
                     </div>
                 `;
-                
+
                 treatmentContainer.appendChild(treatmentCard);
             });
-            
+
             // Add event listeners to view details buttons
             document.querySelectorAll('.view-details').forEach(btn => {
-                btn.addEventListener('click', function() {
+                btn.addEventListener('click', function () {
                     const diseaseId = this.getAttribute('data-id');
                     showTreatmentDetails(diseaseId);
                 });
@@ -437,13 +488,13 @@
         // Show treatment details in modal
         function showTreatmentDetails(diseaseId) {
             const disease = allDiseases.find(d => d.id === diseaseId);
-            
+
             if (!disease) return;
-            
+
             // Ensure treatment and prevention are arrays
             const treatmentItems = Array.isArray(disease.treatment) ? disease.treatment : [disease.treatment];
             const preventionItems = Array.isArray(disease.prevention) ? disease.prevention : [disease.prevention];
-            
+
             modalContent.innerHTML = `
                 <div class="modal-header">
                     <div class="modal-image">
@@ -474,7 +525,7 @@
                     </div>
                 </div>
             `;
-            
+
             treatmentModal.style.display = 'block';
         }
     </script>
