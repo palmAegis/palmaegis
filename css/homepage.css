@@ -28,9 +28,6 @@ body {
   overflow: hidden;
 }
 
-
-
-
 /* ===============================
    Main Content
    =============================== */
@@ -605,7 +602,6 @@ body {
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
-}
 }
 
 .chatbot-container {
