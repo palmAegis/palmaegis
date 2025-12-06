@@ -66,12 +66,63 @@
         /* Main Content */
         .main-content {
             flex: 1;
-            padding: 100px;
+            padding: 30px;
             max-width: 1200px;
             margin: 0 auto;
             width: 100%;
+            transition: all 0.3s ease;
         }
 
+        /* Mobile Header */
+        .mobile-header {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 999;
+            box-shadow: var(--shadow);
+        }
+
+        .mobile-header h1 {
+            font-size: 18px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-toggle {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--dark);
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .mobile-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        /* Desktop Header */
         .header {
             display: flex;
             justify-content: space-between;
@@ -515,7 +566,37 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Mobile Overlay */
+        .mobile-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .mobile-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
         /* Responsive Design */
+        @media (max-width: 1200px) {
+            .settings-container {
+                grid-template-columns: 250px 1fr;
+                gap: 25px;
+            }
+            
+            .main-content {
+                padding: 25px;
+            }
+        }
+
         @media (max-width: 992px) {
             .settings-container {
                 grid-template-columns: 1fr;
@@ -523,6 +604,7 @@
             
             .settings-sidebar {
                 position: static;
+                margin-bottom: 20px;
             }
             
             .form-grid {
@@ -532,17 +614,27 @@
             .form-group.full-width {
                 grid-column: span 1;
             }
-        }
-
-        @media (max-width: 768px) {
+            
             .main-content {
                 padding: 20px;
             }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-header {
+                display: flex;
+            }
+            
+            .main-content {
+                padding-top: 80px;
+            }
             
             .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 15px;
+                display: none;
+            }
+            
+            .settings-content {
+                padding: 25px;
             }
             
             .profile-header {
@@ -557,6 +649,46 @@
             .btn {
                 width: 100%;
             }
+            
+            /* Mobile sidebar styles */
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                z-index: 999;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .main-content {
+                padding: 15px;
+                padding-top: 70px;
+            }
+            
+            .settings-content {
+                padding: 20px;
+            }
+            
+            .section-header h2 {
+                font-size: 20px;
+            }
+            
+            .profile-card {
+                padding: 20px;
+            }
+            
+            .profile-picture-container {
+                width: 100px;
+                height: 100px;
+            }
         }
     </style>
     <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
@@ -564,18 +696,34 @@
     <meta name="theme-color" content="#2e7d32">
 </head>
 <body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <button class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+        </button>
+        <h1><i class="fas fa-cogs"></i> Settings</h1>
+        <div class="mobile-actions">
+            <button class="theme-toggle" id="mobileThemeToggle">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
-        <script src="js/sidebar-loader.js"></script>
         
-        <div class="main-content">
+        <div class="main-content" id="mainContent">
+            <!-- Desktop Header -->
             <div class="header">
                 <div class="header-title">
                     <h1><i class="fas fa-cogs"></i> Settings</h1>
                     <p>Manage your account preferences and profile</p>
                 </div>
                 <div class="header-actions">
-                    <button class="theme-toggle" id="theme-toggle">
+                    <button class="theme-toggle" id="desktopThemeToggle">
                         <i class="fas fa-moon"></i> Dark Mode
                     </button>
                 </div>
@@ -823,6 +971,7 @@
         </div>
     </div>
 
+    <script src="js/sidebar-loader.js"></script>
     <script>
         // Firebase configuration
         const firebaseConfig = {
@@ -834,335 +983,405 @@
             appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
         };
 
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const storage = firebase.storage();
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Theme Toggle
-            const themeToggle = document.getElementById('theme-toggle');
-            themeToggle.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-                if (document.body.classList.contains('dark-mode')) {
-                    themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
-                } else {
-                    themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
-                }
-            });
+        // Mobile menu functionality
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileOverlay = document.getElementById('mobileOverlay');
+        const sidebar = document.querySelector('.sidebar');
+        const mainContent = document.getElementById('mainContent');
 
-            // Section Navigation
-            const navLinks = document.querySelectorAll('.settings-nav a');
-            const sections = document.querySelectorAll('.profile-section');
-            
-            navLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const sectionId = link.getAttribute('data-section');
-                    
-                    // Update active nav
-                    navLinks.forEach(l => l.classList.remove('active'));
-                    link.classList.add('active');
-                    
-                    // Show corresponding section
-                    sections.forEach(section => {
-                        section.classList.remove('active');
-                        if (section.id === `${sectionId}-section`) {
-                            section.classList.add('active');
-                        }
-                    });
-                });
-            });
+        // Toggle mobile sidebar
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+        }
 
-            // Firebase initialization and existing functionality
-            const profileForm = document.getElementById('profile-form');
-            const passwordForm = document.getElementById('password-form');
-            const fileInput = document.getElementById('file-input');
-            const uploadTrigger = document.getElementById('upload-trigger');
-            const profilePicture = document.getElementById('profile-picture');
-            const usernameInput = document.getElementById('username');
-            const firstNameInput = document.getElementById('first-name');
-            const lastNameInput = document.getElementById('last-name');
-            const bioInput = document.getElementById('bio');
-            const locationInput = document.getElementById('location');
-            const emailInput = document.getElementById('email');
-            const phoneInput = document.getElementById('phone');
-            const displayName = document.getElementById('display-name');
-            const displayUsername = document.getElementById('display-username');
-            const displayBio = document.getElementById('display-bio');
-            const successNotification = document.getElementById('success-notification');
-            const errorNotification = document.getElementById('error-notification');
-            const authNotification = document.getElementById('auth-notification');
-            const saveButton = document.getElementById('save-button');
-            const cancelButton = document.getElementById('cancel-button');
-            
-            // Password elements
-            const currentPasswordInput = document.getElementById('current-password');
-            const newPasswordInput = document.getElementById('new-password');
-            const confirmPasswordInput = document.getElementById('confirm-password');
-            const passwordSuccessNotification = document.getElementById('password-success-notification');
-            const passwordErrorNotification = document.getElementById('password-error-notification');
-            const changePasswordButton = document.getElementById('change-password-button');
-            const passwordToggleButtons = document.querySelectorAll('.password-toggle');
-            const lengthReq = document.getElementById('length-req');
-            const caseReq = document.getElementById('case-req');
-            const numberReq = document.getElementById('number-req');
-            const specialReq = document.getElementById('special-req');
-            const passwordMatch = document.getElementById('password-match');
+        menuToggle.addEventListener('click', toggleMobileMenu);
+        mobileOverlay.addEventListener('click', toggleMobileMenu);
 
-            let currentUser = null;
-            let isUploading = false;
-
-            // Authentication
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    currentUser = user;
-                    authNotification.style.display = 'none';
-                    loadProfileData();
-                } else {
-                    currentUser = null;
-                    authNotification.style.display = 'block';
-                }
-            });
-
-            // Load profile data
-            async function loadProfileData() {
-                if (!currentUser) return;
-
-                try {
-                    const doc = await db.collection('users').doc(currentUser.uid).get();
-                    if (doc.exists) {
-                        const data = doc.data();
-
-                        if (data.imageBase64) {
-                            profilePicture.src = data.imageBase64;
-                        } else if (data.picture) {
-                            profilePicture.src = data.picture;
-                        } else {
-                            profilePicture.src = 'images/user-avatar.jpg';
-                        }
-
-                        usernameInput.value = data.username || currentUser.email.split('@')[0];
-                        displayUsername.textContent = '@' + (data.username || currentUser.email.split('@')[0]);
-                        firstNameInput.value = data.firstName || '';
-                        lastNameInput.value = data.lastName || '';
-                        displayName.textContent = `${data.firstName || ''} ${data.lastName || ''}`.trim();
-                        bioInput.value = data.bio || '';
-                        displayBio.textContent = data.bio || '';
-                        locationInput.value = data.location || '';
-                        emailInput.value = currentUser.email;
-                        phoneInput.value = data.phone || '';
-                    }
-                } catch (err) {
-                    console.error('Error loading profile:', err);
-                    showNotification(errorNotification, 'Error loading profile data');
-                }
+        // Close sidebar when clicking on a nav link (mobile)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                sidebar.classList.contains('active') && 
+                (e.target.closest('.sidebar-nav a') || e.target.closest('.logout-btn'))) {
+                toggleMobileMenu();
             }
+        });
 
-            // File upload
-            uploadTrigger.addEventListener('click', () => {
-                if (!currentUser) return showNotification(authNotification, 'Please log in first.');
-                fileInput.click();
-            });
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            // Update both theme toggles
+            const desktopToggle = document.getElementById('desktopThemeToggle');
+            const mobileToggle = document.getElementById('mobileThemeToggle');
+            
+            if (isDarkMode) {
+                desktopToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+                mobileToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                desktopToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+                mobileToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+            
+            // Save theme preference
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        }
 
-            fileInput.addEventListener('change', async () => {
-                if (!currentUser || isUploading) return;
-                const file = fileInput.files[0];
-                if (!file) return;
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('desktopThemeToggle').innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+            document.getElementById('mobileThemeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
 
-                try {
-                    if (!file.type.startsWith('image/')) throw new Error('Only image files allowed.');
-                    if (file.size > 5 * 1024 * 1024) throw new Error('File too large (max 5MB).');
+        // Attach theme toggle events
+        document.getElementById('desktopThemeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('mobileThemeToggle').addEventListener('click', toggleTheme);
 
-                    isUploading = true;
-                    uploadTrigger.innerHTML = '<div class="loading"></div>';
-
-                    const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        const base64Image = e.target.result;
-                        profilePicture.src = base64Image;
-
-                        await db.collection('users').doc(currentUser.uid).set({
-                            imageBase64: base64Image,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        }, { merge: true });
-
-                        showNotification(successNotification, 'Profile picture updated!');
-                    };
-                    reader.readAsDataURL(file);
-
-                } catch (error) {
-                    console.error('Upload error:', error);
-                    showNotification(errorNotification, error.message);
-                } finally {
-                    isUploading = false;
-                    uploadTrigger.innerHTML = '<i class="fas fa-camera"></i>';
-                    fileInput.value = '';
-                }
-            });
-
-            // Profile form submission
-            profileForm.addEventListener('submit', async (e) => {
+        // Section Navigation
+        const navLinks = document.querySelectorAll('.settings-nav a');
+        const sections = document.querySelectorAll('.profile-section');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
                 e.preventDefault();
-                if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+                const sectionId = link.getAttribute('data-section');
+                
+                // Update active nav
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Show corresponding section
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === `${sectionId}-section`) {
+                        section.classList.add('active');
+                    }
+                });
 
-                if (!usernameInput.value || !firstNameInput.value || !lastNameInput.value) {
-                    return showNotification(errorNotification, 'Please fill all required fields.');
-                }
-
-                const profileData = {
-                    username: usernameInput.value,
-                    firstName: firstNameInput.value,
-                    lastName: lastNameInput.value,
-                    email: currentUser.email,
-                    bio: bioInput.value,
-                    location: locationInput.value,
-                    phone: phoneInput.value,
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                saveButton.disabled = true;
-                saveButton.innerHTML = '<div class="loading"></div> Saving...';
-
-                try {
-                    await db.collection('users').doc(currentUser.uid).set(profileData, { merge: true });
-                    showNotification(successNotification, 'Profile updated successfully!');
-                    displayName.textContent = `${firstNameInput.value} ${lastNameInput.value}`;
-                    displayUsername.textContent = '@' + usernameInput.value;
-                    displayBio.textContent = bioInput.value;
-                } catch (err) {
-                    console.error('Error saving profile:', err);
-                    showNotification(errorNotification, 'Error saving profile');
-                } finally {
-                    saveButton.disabled = false;
-                    saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-                }
+                // Scroll to top of section
+                document.querySelector('.settings-content').scrollTop = 0;
             });
+        });
 
-            // Cancel button
-            cancelButton.addEventListener('click', () => {
+        // Firebase initialization and existing functionality
+        const profileForm = document.getElementById('profile-form');
+        const passwordForm = document.getElementById('password-form');
+        const fileInput = document.getElementById('file-input');
+        const uploadTrigger = document.getElementById('upload-trigger');
+        const profilePicture = document.getElementById('profile-picture');
+        const usernameInput = document.getElementById('username');
+        const firstNameInput = document.getElementById('first-name');
+        const lastNameInput = document.getElementById('last-name');
+        const bioInput = document.getElementById('bio');
+        const locationInput = document.getElementById('location');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const displayName = document.getElementById('display-name');
+        const displayUsername = document.getElementById('display-username');
+        const displayBio = document.getElementById('display-bio');
+        const successNotification = document.getElementById('success-notification');
+        const errorNotification = document.getElementById('error-notification');
+        const authNotification = document.getElementById('auth-notification');
+        const saveButton = document.getElementById('save-button');
+        const cancelButton = document.getElementById('cancel-button');
+        
+        // Password elements
+        const currentPasswordInput = document.getElementById('current-password');
+        const newPasswordInput = document.getElementById('new-password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const passwordSuccessNotification = document.getElementById('password-success-notification');
+        const passwordErrorNotification = document.getElementById('password-error-notification');
+        const changePasswordButton = document.getElementById('change-password-button');
+        const passwordToggleButtons = document.querySelectorAll('.password-toggle');
+        const lengthReq = document.getElementById('length-req');
+        const caseReq = document.getElementById('case-req');
+        const numberReq = document.getElementById('number-req');
+        const specialReq = document.getElementById('special-req');
+        const passwordMatch = document.getElementById('password-match');
+
+        let currentUser = null;
+        let isUploading = false;
+
+        // Authentication
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                authNotification.style.display = 'none';
                 loadProfileData();
-            });
-
-            // Password form submission
-            passwordForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!currentUser) return showNotification(authNotification, 'Please log in first.');
-
-                const currentPassword = currentPasswordInput.value;
-                const newPassword = newPasswordInput.value;
-                const confirmPassword = confirmPasswordInput.value;
-
-                if (!validatePassword(newPassword)) {
-                    return showNotification(passwordErrorNotification, 'New password does not meet requirements.');
-                }
-
-                if (newPassword !== confirmPassword) {
-                    return showNotification(passwordErrorNotification, 'Passwords do not match.');
-                }
-
-                changePasswordButton.disabled = true;
-                changePasswordButton.innerHTML = '<div class="loading"></div> Updating...';
-
-                try {
-                    const credential = firebase.auth.EmailAuthProvider.credential(
-                        currentUser.email, 
-                        currentPassword
-                    );
-                    await currentUser.reauthenticateWithCredential(credential);
-                    
-                    await currentUser.updatePassword(newPassword);
-                    
-                    showNotification(passwordSuccessNotification, 'Password changed successfully!');
-                    passwordForm.reset();
-                    resetPasswordValidation();
-                } catch (err) {
-                    console.error('Error changing password:', err);
-                    let errorMessage = 'Error changing password. ';
-                    
-                    if (err.code === 'auth/wrong-password') {
-                        errorMessage = 'Current password is incorrect.';
-                    } else if (err.code === 'auth/weak-password') {
-                        errorMessage = 'New password is too weak.';
-                    }
-                    
-                    showNotification(passwordErrorNotification, errorMessage);
-                } finally {
-                    changePasswordButton.disabled = false;
-                    changePasswordButton.innerHTML = '<i class="fas fa-key"></i> Update Password';
-                }
-            });
-
-            // Password validation
-            function validatePassword(password) {
-                const hasLength = password.length >= 8;
-                const hasCase = /[a-z]/.test(password) && /[A-Z]/.test(password);
-                const hasNumber = /\d/.test(password);
-                const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-                
-                lengthReq.className = hasLength ? 'valid' : 'invalid';
-                caseReq.className = hasCase ? 'valid' : 'invalid';
-                numberReq.className = hasNumber ? 'valid' : 'invalid';
-                specialReq.className = hasSpecial ? 'valid' : 'invalid';
-                
-                return hasLength && hasCase && hasNumber && hasSpecial;
+            } else {
+                currentUser = null;
+                authNotification.style.display = 'block';
             }
+        });
 
-            // Password validation UI
-            newPasswordInput.addEventListener('input', () => {
-                validatePassword(newPasswordInput.value);
-                checkPasswordMatch();
-            });
+        // Load profile data
+        async function loadProfileData() {
+            if (!currentUser) return;
 
-            confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
 
-            function checkPasswordMatch() {
-                const password = newPasswordInput.value;
-                const confirm = confirmPasswordInput.value;
-                
-                if (confirm === '') {
-                    passwordMatch.style.display = 'none';
-                } else if (password === confirm) {
-                    passwordMatch.style.display = 'flex';
-                    passwordMatch.className = 'notification success';
-                    passwordMatch.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
-                } else {
-                    passwordMatch.style.display = 'flex';
-                    passwordMatch.className = 'notification error';
-                    passwordMatch.innerHTML = '<i class="fas fa-exclamation-circle"></i> Passwords do not match';
-                }
-            }
-
-            function resetPasswordValidation() {
-                lengthReq.className = 'invalid';
-                caseReq.className = 'invalid';
-                numberReq.className = 'invalid';
-                specialReq.className = 'invalid';
-                passwordMatch.style.display = 'none';
-            }
-
-            // Password visibility toggle
-            passwordToggleButtons.forEach(button => {
-                button.addEventListener('click', () => {
-                    const targetId = button.getAttribute('data-target');
-                    const targetInput = document.getElementById(targetId);
-                    
-                    if (targetInput.type === 'password') {
-                        targetInput.type = 'text';
-                        button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                    if (data.imageBase64) {
+                        profilePicture.src = data.imageBase64;
+                    } else if (data.picture) {
+                        profilePicture.src = data.picture;
                     } else {
-                        targetInput.type = 'password';
-                        button.innerHTML = '<i class="fas fa-eye"></i>';
+                        profilePicture.src = 'images/user-avatar.jpg';
                     }
-                });
-            });
 
-            // Notification helper
-            function showNotification(el, message) {
-                while (el.childNodes.length > 1) el.removeChild(el.lastChild);
-                el.appendChild(document.createTextNode(' ' + message));
-                el.style.display = 'flex';
-                setTimeout(() => { el.style.display = 'none'; }, 4000);
+                    usernameInput.value = data.username || currentUser.email.split('@')[0];
+                    displayUsername.textContent = '@' + (data.username || currentUser.email.split('@')[0]);
+                    firstNameInput.value = data.firstName || '';
+                    lastNameInput.value = data.lastName || '';
+                    displayName.textContent = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+                    bioInput.value = data.bio || '';
+                    displayBio.textContent = data.bio || '';
+                    locationInput.value = data.location || '';
+                    emailInput.value = currentUser.email;
+                    phoneInput.value = data.phone || '';
+                }
+            } catch (err) {
+                console.error('Error loading profile:', err);
+                showNotification(errorNotification, 'Error loading profile data');
+            }
+        }
+
+        // File upload
+        uploadTrigger.addEventListener('click', () => {
+            if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async () => {
+            if (!currentUser || isUploading) return;
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            try {
+                if (!file.type.startsWith('image/')) throw new Error('Only image files allowed.');
+                if (file.size > 5 * 1024 * 1024) throw new Error('File too large (max 5MB).');
+
+                isUploading = true;
+                uploadTrigger.innerHTML = '<div class="loading"></div>';
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Image = e.target.result;
+                    profilePicture.src = base64Image;
+
+                    await db.collection('users').doc(currentUser.uid).set({
+                        imageBase64: base64Image,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+
+                    showNotification(successNotification, 'Profile picture updated!');
+                };
+                reader.readAsDataURL(file);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showNotification(errorNotification, error.message);
+            } finally {
+                isUploading = false;
+                uploadTrigger.innerHTML = '<i class="fas fa-camera"></i>';
+                fileInput.value = '';
+            }
+        });
+
+        // Profile form submission
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+
+            if (!usernameInput.value || !firstNameInput.value || !lastNameInput.value) {
+                return showNotification(errorNotification, 'Please fill all required fields.');
+            }
+
+            const profileData = {
+                username: usernameInput.value,
+                firstName: firstNameInput.value,
+                lastName: lastNameInput.value,
+                email: currentUser.email,
+                bio: bioInput.value,
+                location: locationInput.value,
+                phone: phoneInput.value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<div class="loading"></div> Saving...';
+
+            try {
+                await db.collection('users').doc(currentUser.uid).set(profileData, { merge: true });
+                showNotification(successNotification, 'Profile updated successfully!');
+                displayName.textContent = `${firstNameInput.value} ${lastNameInput.value}`;
+                displayUsername.textContent = '@' + usernameInput.value;
+                displayBio.textContent = bioInput.value;
+            } catch (err) {
+                console.error('Error saving profile:', err);
+                showNotification(errorNotification, 'Error saving profile');
+            } finally {
+                saveButton.disabled = false;
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            }
+        });
+
+        // Cancel button
+        cancelButton.addEventListener('click', () => {
+            loadProfileData();
+        });
+
+        // Password form submission
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+
+            const currentPassword = currentPasswordInput.value;
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (!validatePassword(newPassword)) {
+                return showNotification(passwordErrorNotification, 'New password does not meet requirements.');
+            }
+
+            if (newPassword !== confirmPassword) {
+                return showNotification(passwordErrorNotification, 'Passwords do not match.');
+            }
+
+            changePasswordButton.disabled = true;
+            changePasswordButton.innerHTML = '<div class="loading"></div> Updating...';
+
+            try {
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    currentUser.email, 
+                    currentPassword
+                );
+                await currentUser.reauthenticateWithCredential(credential);
+                
+                await currentUser.updatePassword(newPassword);
+                
+                showNotification(passwordSuccessNotification, 'Password changed successfully!');
+                passwordForm.reset();
+                resetPasswordValidation();
+            } catch (err) {
+                console.error('Error changing password:', err);
+                let errorMessage = 'Error changing password. ';
+                
+                if (err.code === 'auth/wrong-password') {
+                    errorMessage = 'Current password is incorrect.';
+                } else if (err.code === 'auth/weak-password') {
+                    errorMessage = 'New password is too weak.';
+                }
+                
+                showNotification(passwordErrorNotification, errorMessage);
+            } finally {
+                changePasswordButton.disabled = false;
+                changePasswordButton.innerHTML = '<i class="fas fa-key"></i> Update Password';
+            }
+        });
+
+        // Password validation
+        function validatePassword(password) {
+            const hasLength = password.length >= 8;
+            const hasCase = /[a-z]/.test(password) && /[A-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            lengthReq.className = hasLength ? 'valid' : 'invalid';
+            caseReq.className = hasCase ? 'valid' : 'invalid';
+            numberReq.className = hasNumber ? 'valid' : 'invalid';
+            specialReq.className = hasSpecial ? 'valid' : 'invalid';
+            
+            return hasLength && hasCase && hasNumber && hasSpecial;
+        }
+
+        // Password validation UI
+        newPasswordInput.addEventListener('input', () => {
+            validatePassword(newPasswordInput.value);
+            checkPasswordMatch();
+        });
+
+        confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+
+        function checkPasswordMatch() {
+            const password = newPasswordInput.value;
+            const confirm = confirmPasswordInput.value;
+            
+            if (confirm === '') {
+                passwordMatch.style.display = 'none';
+            } else if (password === confirm) {
+                passwordMatch.style.display = 'flex';
+                passwordMatch.className = 'notification success';
+                passwordMatch.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
+            } else {
+                passwordMatch.style.display = 'flex';
+                passwordMatch.className = 'notification error';
+                passwordMatch.innerHTML = '<i class="fas fa-exclamation-circle"></i> Passwords do not match';
+            }
+        }
+
+        function resetPasswordValidation() {
+            lengthReq.className = 'invalid';
+            caseReq.className = 'invalid';
+            numberReq.className = 'invalid';
+            specialReq.className = 'invalid';
+            passwordMatch.style.display = 'none';
+        }
+
+        // Password visibility toggle
+        passwordToggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-target');
+                const targetInput = document.getElementById(targetId);
+                
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    targetInput.type = 'password';
+                    button.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            });
+        });
+
+        // Notification helper
+        function showNotification(el, message) {
+            while (el.childNodes.length > 1) el.removeChild(el.lastChild);
+            el.appendChild(document.createTextNode(' ' + message));
+            el.style.display = 'flex';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                // Close mobile menu on desktop
+                sidebar.classList.remove('active');
+                mobileOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        });
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial padding for main content based on sidebar
+            const sidebarElement = document.querySelector('.sidebar');
+            if (sidebarElement && window.innerWidth > 768) {
+                const sidebarWidth = sidebarElement.offsetWidth;
+                mainContent.style.marginLeft = `${sidebarWidth}px`;
+                mainContent.style.width = `calc(100% - ${sidebarWidth}px)`;
             }
         });
     </script>
