@@ -1,0 +1,1608 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Palm Aegis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
+    <link rel="shortcut icon" href="images/logo1.png">
+    <meta name="theme-color" content="#2e7d32">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Light theme color palette */
+        :root {
+            --primary-color: #2e7d32;
+            --primary-light: #4caf50;
+            --primary-dark: #1b5e20;
+            --secondary-color: #66bb6a;
+            --accent-color: #aed581;
+            --text-color: #333333;
+            --text-light: #666666;
+            --text-lighter: #888888;
+            --bg-color: #c8f0c8;
+            --sidebar-bg: #ffffff;
+            --card-bg: #ffffff;
+            --border-color: #e0e0e0;
+            --border-radius: 12px;
+            --transition-speed: 0.3s;
+            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
+            --gradient: linear-gradient(135deg, #2e7d32, #4caf50);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #eafbea, #c8f0c8);
+            color: var(--text-color);
+            display: block;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Dashboard Container */
+        .dashboard-container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            position: fixed;
+            height: 100%;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all var(--transition-speed);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+            overflow: visible;
+        }
+
+        /* Hide text elements when collapsed */
+        .sidebar.collapsed .logo h1,
+        .sidebar.collapsed .sidebar-nav a span,
+        .sidebar.collapsed .user-info,
+        .sidebar.collapsed .logout-btn span {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            height: 0;
+            margin: 0;
+        }
+
+        /* Center align when collapsed */
+        .sidebar.collapsed .logo {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logo img {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .sidebar-nav a {
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .sidebar.collapsed .sidebar-nav a i {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .user-profile-mini {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .user-avatar {
+            margin-right: 0;
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .sidebar.collapsed .logout-btn {
+            padding: 0.7rem;
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logout-btn i {
+            margin-right: 0;
+        }
+
+        /* Tooltips for collapsed state */
+        .sidebar.collapsed .sidebar-nav li {
+            position: relative;
+        }
+
+        .sidebar.collapsed .sidebar-nav a::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--sidebar-bg);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1001;
+            box-shadow: var(--shadow);
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed .sidebar-nav a:hover::after {
+            opacity: 1;
+            visibility: visible;
+            left: 110%;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 80px;
+            position: relative;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--gradient);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 1002;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 12px;
+            border-radius: 8px;
+            transition: all var(--transition-speed);
+        }
+
+        .logo h1 {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li {
+            margin: 0.3rem 0;
+        }
+
+        .sidebar-nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all var(--transition-speed);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .sidebar-nav a i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: margin-right var(--transition-speed);
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(46, 125, 50, 0.05);
+            color: var(--primary-color);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .sidebar-nav .nav-item.active a {
+            background: rgba(46, 125, 50, 0.1);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+            transition: all var(--transition-speed);
+        }
+
+        .user-profile-mini {
+            display: flex;
+            object-fit: cover;
+            align-items: center;
+            transition: all var(--transition-speed);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid var(--accent-color);
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all var(--transition-speed);
+        }
+
+        .user-info {
+            line-height: 1.3;
+            transition: all var(--transition-speed);
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-lighter);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            transition: margin-left var(--transition-speed);
+            background-color: var(--bg-color);
+            width: calc(100% - 260px);
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+            width: calc(100% - 80px);
+        }
+
+        /* Header */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .header-left h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            padding: 0.7rem 1.5rem 0.7rem 2.5rem;
+            border-radius: 25px;
+            border: 1px solid var(--border-color);
+            outline: none;
+            background: white;
+            color: var(--text-color);
+            width: 100%;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-lighter);
+        }
+
+        /* Profile Section */
+        .profile-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-header {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-cover img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            filter: brightness(0.9);
+        }
+
+        .profile-info {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        .profile-avatar img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: var(--shadow);
+            margin-right: 1.2rem;
+        }
+
+        .profile-details h2 {
+            font-size: 1.6rem;
+            color: var(--text-color);
+            margin-bottom: 0.3rem;
+        }
+
+        .profile-title {
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .profile-location {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .profile-location i {
+            margin-right: 5px;
+            color: var(--primary-color);
+        }
+
+        .edit-profile-btn {
+            position: absolute;
+            right: 1.5rem;
+            top: 1.5rem;
+            background: var(--gradient);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            padding: 0.6rem 1.5rem;
+            cursor: pointer;
+            transition: 0.3s;
+            font-weight: 500;
+            box-shadow: var(--shadow);
+        }
+
+        .edit-profile-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow);
+            transition: 0.3s;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            background: var(--gradient);
+        }
+
+        .stat-info {
+            text-align: right;
+        }
+
+        .stat-info h3 {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stat-change {
+            font-size: 0.85rem;
+            margin-left: 0.3rem;
+        }
+
+        .positive {
+            color: #2e7d32;
+        }
+
+        .negative {
+            color: #e53935;
+        }
+
+        /* Map Styles */
+        .map-container {
+            margin: 20px 0;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+        }
+
+        .map-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--gradient);
+            color: white;
+        }
+
+        .map-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .map-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .map-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .map-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        #palmMap {
+            height: 400px;
+            width: 100%;
+        }
+
+        /* Chatbot Styles */
+        .chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .chatbot-toggle {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient);
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: var(--shadow-hover);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
+        }
+
+        .chatbot-container {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 500px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: var(--shadow-hover);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .chatbot-container.active {
+            display: flex;
+        }
+
+        .chatbot-header {
+            background: var(--gradient);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chatbot-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chatbot-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .chatbot-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .chatbot-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message.user .message-content {
+            background: var(--gradient);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            margin: 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: white;
+        }
+
+        .message.bot .message-avatar {
+            background: var(--gradient);
+        }
+
+        .message.user .message-avatar {
+            background: #e0e0e0;
+            color: #666;
+        }
+
+        .chatbot-input {
+            padding: 15px 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chatbot-input input {
+            flex: 1;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .chatbot-input input:focus {
+            border-color: var(--primary-color);
+        }
+
+        .chatbot-send {
+            background: var(--gradient);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .chatbot-send:hover {
+            transform: scale(1.1);
+        }
+
+        .chatbot-send:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Typing indicator */
+        .typing-indicator {
+            display: none;
+            padding: 10px 15px;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #666;
+            border-radius: 50%;
+            animation: typing-bounce 1.3s linear infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.15s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        @keyframes typing-bounce {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-5px);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-height: 800px) {
+            #palmMap {
+                height: 300px;
+            }
+
+            .main-content {
+                padding-bottom: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+                z-index: 1001;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+                padding: 1rem;
+            }
+
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .map-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: flex-start;
+            }
+
+            .map-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .profile-info {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-avatar {
+                margin-right: 0;
+                margin-bottom: 1rem;
+            }
+
+            .edit-profile-btn {
+                position: static;
+                margin-top: 1rem;
+            }
+
+            .chatbot-container {
+                width: 300px;
+            }
+        }
+    </style>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Check authentication state
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                console.log('User is signed in:', user.email);
+                window.currentUser = user;
+
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        window.userData = userData;
+                        console.log('🔍 User data from Firestore:', userData);
+                        updateUserProfile(user, userData);
+                    } else {
+                        console.log('No user data found in Firestore');
+                        updateUserProfile(user, {});
+                    }
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                    updateUserProfile(user, {});
+                }
+            } else {
+                console.log('User is not signed in');
+                window.location.href = 'signin.html';
+            }
+        });
+
+        function updateUserProfile(user, userData) {
+            console.log('🔄 Updating user profile with data:', userData);
+
+            const userNameElement = document.querySelector('.user-name');
+            const profileNameElement = document.querySelector('.profile-details h2');
+            const profileTitleElement = document.querySelector('.profile-title');
+            const profileLocationElement = document.querySelector('.profile-location');
+            const userRoleElement = document.querySelector('.user-role');
+
+            const displayName = userData.firstName && userData.lastName
+                ? `${userData.firstName} ${userData.lastName}`
+                : userData.username
+                    ? userData.username
+                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+
+            if (userNameElement) userNameElement.textContent = displayName;
+            if (profileNameElement) profileNameElement.textContent = displayName;
+
+            if (profileTitleElement) {
+                profileTitleElement.textContent = userData.bio || 'Professional Farmer';
+            }
+
+            if (profileLocationElement) {
+                profileLocationElement.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${userData.location || 'Location not set'}`;
+            }
+
+            if (userRoleElement) {
+                userRoleElement.textContent = userData.bio || 'Farmer';
+            }
+
+            updateProfilePicture(userData);
+            updateUserStats(userData);
+        }
+
+        function updateProfilePicture(userData) {
+            const avatarElements = document.querySelectorAll('.user-avatar, .profile-avatar img');
+
+            let imageSource = 'images/user-avatar.jpg';
+
+            if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
+                imageSource = userData.imageBase64.trim();
+                console.log('🎯 Using Base64 image from Firestore');
+            } else if (userData.picture && userData.picture.trim() !== '') {
+                imageSource = userData.picture.trim();
+                console.log('🎯 Using picture URL from Firestore');
+            } else if (userData.photoURL && userData.photoURL.trim() !== '') {
+                imageSource = userData.photoURL.trim();
+                console.log('🎯 Using photoURL from Firestore');
+            }
+
+            avatarElements.forEach(img => {
+                img.src = imageSource;
+                img.alt = 'User Avatar';
+                img.onerror = function () {
+                    console.warn('⚠️ Failed to load user image, reverting to default.');
+                    this.src = 'images/user-avatar.jpg';
+                };
+            });
+
+            console.log('🔄 Updated avatar images with source:', imageSource);
+        }
+
+        function updateUserStats(userData) {
+            const quickStats = document.querySelectorAll('.quick-stats .stat-number');
+            if (quickStats.length >= 4) {
+                quickStats[0].textContent = userData.activeCrops || '24';
+                quickStats[1].textContent = userData.waterLevel || '78%';
+                quickStats[2].textContent = userData.weather || '72°F';
+                quickStats[3].textContent = userData.revenue || '$12,450';
+            }
+
+            const statChanges = document.querySelectorAll('.stat-change');
+            if (statChanges.length >= 3 && userData.statChanges) {
+                statChanges[0].textContent = userData.statChanges.crops || '+12%';
+                statChanges[1].textContent = userData.statChanges.water || '-5%';
+                statChanges[3].textContent = userData.statChanges.revenue || '+8%';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <div id="sidebarPlaceholder"></div>
+        <script src="js/sidebar-loader.js"></script>
+        
+        <div class="main-content">
+            <div class="header">
+                <div class="header-title">
+                    <h1><i class="fas fa-cogs"></i> Settings</h1>
+                    <p>Manage your account preferences and profile</p>
+                </div>
+                <div class="header-actions">
+                    <button class="theme-toggle" id="theme-toggle">
+                        <i class="fas fa-moon"></i> Dark Mode
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-container">
+                <!-- Settings Navigation -->
+                <div class="settings-sidebar">
+                    <ul class="settings-nav">
+                        <li><a href="#profile" class="active" data-section="profile">
+                            <i class="fas fa-user"></i> Profile Settings
+                        </a></li>
+                        <li><a href="#password" data-section="password">
+                            <i class="fas fa-lock"></i> Security
+                        </a></li>
+                        <li><a href="#notifications" data-section="notifications">
+                            <i class="fas fa-bell"></i> Notifications
+                        </a></li>
+                        <li><a href="#privacy" data-section="privacy">
+                            <i class="fas fa-shield-alt"></i> Privacy
+                        </a></li>
+                        <li><a href="#appearance" data-section="appearance">
+                            <i class="fas fa-palette"></i> Appearance
+                        </a></li>
+                    </ul>
+                </div>
+
+                <!-- Settings Content -->
+                <div class="settings-content">
+                    <!-- Profile Section -->
+                    <div class="profile-section active" id="profile-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-user-edit"></i> Profile Information</h2>
+                            <p>Update your personal information and profile picture</p>
+                        </div>
+
+                        <div class="profile-card">
+                            <div class="profile-header">
+                                <div class="profile-picture-container">
+                                    <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
+                                    <div class="upload-overlay" id="upload-trigger">
+                                        <i class="fas fa-camera"></i>
+                                    </div>
+                                    <input type="file" id="file-input" class="file-input" accept="image/*">
+                                </div>
+                                <div class="profile-info">
+                                    <h3 id="display-name">John Doe</h3>
+                                    <p id="display-username">@johndoe</p>
+                                    <span class="badge">Pro Member</span>
+                                </div>
+                            </div>
+                            <p class="profile-bio" id="display-bio">Digital designer & photography enthusiast. Love to travel and capture moments.</p>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div id="success-notification" class="notification success">
+                            <i class="fas fa-check-circle"></i> Profile updated successfully!
+                        </div>
+                        
+                        <div id="error-notification" class="notification error">
+                            <i class="fas fa-exclamation-circle"></i> Please fill in all required fields.
+                        </div>
+
+                        <div id="auth-notification" class="notification error">
+                            <i class="fas fa-exclamation-circle"></i> You must be logged in to save your profile.
+                        </div>
+
+                        <!-- Profile Form -->
+                        <form id="profile-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-at"></i>
+                                        <input type="text" id="username" name="username" placeholder="johndoe" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="email">Email Address</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" name="email" placeholder="john@example.com" disabled>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="first-name">First Name</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" id="first-name" name="first-name" placeholder="John" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="last-name">Last Name</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" id="last-name" name="last-name" placeholder="Doe" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label for="bio">Bio</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-pencil-alt"></i>
+                                        <textarea id="bio" name="bio" placeholder="Tell us about yourself..."></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="location">Location</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <input type="text" id="location" name="location" placeholder="New York, USA">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="phone">Phone Number</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-phone"></i>
+                                        <input type="tel" id="phone" name="phone" placeholder="+1 (123) 456-7890">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-primary" id="save-button">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="cancel-button">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Password Section -->
+                    <div class="profile-section" id="password-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-lock"></i> Change Password</h2>
+                            <p>Update your password to keep your account secure</p>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div id="password-success-notification" class="notification success">
+                            <i class="fas fa-check-circle"></i> Password changed successfully!
+                        </div>
+                        
+                        <div id="password-error-notification" class="notification error">
+                            <i class="fas fa-exclamation-circle"></i> Error changing password.
+                        </div>
+
+                        <form id="password-form">
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label for="current-password">Current Password</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-key"></i>
+                                        <input type="password" id="current-password" name="current-password" placeholder="Enter current password" required>
+                                        <button type="button" class="password-toggle" data-target="current-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="new-password">New Password</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="password" id="new-password" name="new-password" placeholder="Enter new password" required>
+                                        <button type="button" class="password-toggle" data-target="new-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="confirm-password">Confirm New Password</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm new password" required>
+                                        <button type="button" class="password-toggle" data-target="confirm-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="password-requirements">
+                                <p>Password Requirements:</p>
+                                <ul>
+                                    <li id="length-req" class="invalid">Minimum 8 characters</li>
+                                    <li id="case-req" class="invalid">Uppercase and lowercase letters</li>
+                                    <li id="number-req" class="invalid">At least one number</li>
+                                    <li id="special-req" class="invalid">At least one special character</li>
+                                </ul>
+                            </div>
+                            
+                            <div id="password-match" class="notification" style="display: none;">
+                                <i class="fas fa-info-circle"></i> Passwords match
+                            </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-primary" id="change-password-button">
+                                    <i class="fas fa-key"></i> Update Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Other Sections (Placeholder) -->
+                    <div class="profile-section" id="notifications-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-bell"></i> Notification Settings</h2>
+                            <p>Manage how you receive notifications</p>
+                        </div>
+                        <p style="color: var(--gray); padding: 40px; text-align: center;">
+                            Notification settings will be available soon.
+                        </p>
+                    </div>
+
+                    <div class="profile-section" id="privacy-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-shield-alt"></i> Privacy Settings</h2>
+                            <p>Control your privacy and data sharing preferences</p>
+                        </div>
+                        <p style="color: var(--gray); padding: 40px; text-align: center;">
+                            Privacy settings will be available soon.
+                        </p>
+                    </div>
+
+                    <div class="profile-section" id="appearance-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-palette"></i> Appearance</h2>
+                            <p>Customize the look and feel of your dashboard</p>
+                        </div>
+                        <p style="color: var(--gray); padding: 40px; text-align: center;">
+                            Appearance settings will be available soon.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Theme Toggle
+            const themeToggle = document.getElementById('theme-toggle');
+            themeToggle.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                if (document.body.classList.contains('dark-mode')) {
+                    themeToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+                } else {
+                    themeToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+                }
+            });
+
+            // Section Navigation
+            const navLinks = document.querySelectorAll('.settings-nav a');
+            const sections = document.querySelectorAll('.profile-section');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const sectionId = link.getAttribute('data-section');
+                    
+                    // Update active nav
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+                    
+                    // Show corresponding section
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === `${sectionId}-section`) {
+                            section.classList.add('active');
+                        }
+                    });
+                });
+            });
+
+            // Firebase initialization and existing functionality
+            const profileForm = document.getElementById('profile-form');
+            const passwordForm = document.getElementById('password-form');
+            const fileInput = document.getElementById('file-input');
+            const uploadTrigger = document.getElementById('upload-trigger');
+            const profilePicture = document.getElementById('profile-picture');
+            const usernameInput = document.getElementById('username');
+            const firstNameInput = document.getElementById('first-name');
+            const lastNameInput = document.getElementById('last-name');
+            const bioInput = document.getElementById('bio');
+            const locationInput = document.getElementById('location');
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+            const displayName = document.getElementById('display-name');
+            const displayUsername = document.getElementById('display-username');
+            const displayBio = document.getElementById('display-bio');
+            const successNotification = document.getElementById('success-notification');
+            const errorNotification = document.getElementById('error-notification');
+            const authNotification = document.getElementById('auth-notification');
+            const saveButton = document.getElementById('save-button');
+            const cancelButton = document.getElementById('cancel-button');
+            
+            // Password elements
+            const currentPasswordInput = document.getElementById('current-password');
+            const newPasswordInput = document.getElementById('new-password');
+            const confirmPasswordInput = document.getElementById('confirm-password');
+            const passwordSuccessNotification = document.getElementById('password-success-notification');
+            const passwordErrorNotification = document.getElementById('password-error-notification');
+            const changePasswordButton = document.getElementById('change-password-button');
+            const passwordToggleButtons = document.querySelectorAll('.password-toggle');
+            const lengthReq = document.getElementById('length-req');
+            const caseReq = document.getElementById('case-req');
+            const numberReq = document.getElementById('number-req');
+            const specialReq = document.getElementById('special-req');
+            const passwordMatch = document.getElementById('password-match');
+
+            let currentUser = null;
+            let isUploading = false;
+
+            // Authentication
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    authNotification.style.display = 'none';
+                    loadProfileData();
+                } else {
+                    currentUser = null;
+                    authNotification.style.display = 'block';
+                }
+            });
+
+            // Load profile data
+            async function loadProfileData() {
+                if (!currentUser) return;
+
+                try {
+                    const doc = await db.collection('users').doc(currentUser.uid).get();
+                    if (doc.exists) {
+                        const data = doc.data();
+
+                        if (data.imageBase64) {
+                            profilePicture.src = data.imageBase64;
+                        } else if (data.picture) {
+                            profilePicture.src = data.picture;
+                        } else {
+                            profilePicture.src = 'images/user-avatar.jpg';
+                        }
+
+                        usernameInput.value = data.username || currentUser.email.split('@')[0];
+                        displayUsername.textContent = '@' + (data.username || currentUser.email.split('@')[0]);
+                        firstNameInput.value = data.firstName || '';
+                        lastNameInput.value = data.lastName || '';
+                        displayName.textContent = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+                        bioInput.value = data.bio || '';
+                        displayBio.textContent = data.bio || '';
+                        locationInput.value = data.location || '';
+                        emailInput.value = currentUser.email;
+                        phoneInput.value = data.phone || '';
+                    }
+                } catch (err) {
+                    console.error('Error loading profile:', err);
+                    showNotification(errorNotification, 'Error loading profile data');
+                }
+            }
+
+            // File upload
+            uploadTrigger.addEventListener('click', () => {
+                if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', async () => {
+                if (!currentUser || isUploading) return;
+                const file = fileInput.files[0];
+                if (!file) return;
+
+                try {
+                    if (!file.type.startsWith('image/')) throw new Error('Only image files allowed.');
+                    if (file.size > 5 * 1024 * 1024) throw new Error('File too large (max 5MB).');
+
+                    isUploading = true;
+                    uploadTrigger.innerHTML = '<div class="loading"></div>';
+
+                    const reader = new FileReader();
+                    reader.onload = async (e) => {
+                        const base64Image = e.target.result;
+                        profilePicture.src = base64Image;
+
+                        await db.collection('users').doc(currentUser.uid).set({
+                            imageBase64: base64Image,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+
+                        showNotification(successNotification, 'Profile picture updated!');
+                    };
+                    reader.readAsDataURL(file);
+
+                } catch (error) {
+                    console.error('Upload error:', error);
+                    showNotification(errorNotification, error.message);
+                } finally {
+                    isUploading = false;
+                    uploadTrigger.innerHTML = '<i class="fas fa-camera"></i>';
+                    fileInput.value = '';
+                }
+            });
+
+            // Profile form submission
+            profileForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+
+                if (!usernameInput.value || !firstNameInput.value || !lastNameInput.value) {
+                    return showNotification(errorNotification, 'Please fill all required fields.');
+                }
+
+                const profileData = {
+                    username: usernameInput.value,
+                    firstName: firstNameInput.value,
+                    lastName: lastNameInput.value,
+                    email: currentUser.email,
+                    bio: bioInput.value,
+                    location: locationInput.value,
+                    phone: phoneInput.value,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<div class="loading"></div> Saving...';
+
+                try {
+                    await db.collection('users').doc(currentUser.uid).set(profileData, { merge: true });
+                    showNotification(successNotification, 'Profile updated successfully!');
+                    displayName.textContent = `${firstNameInput.value} ${lastNameInput.value}`;
+                    displayUsername.textContent = '@' + usernameInput.value;
+                    displayBio.textContent = bioInput.value;
+                } catch (err) {
+                    console.error('Error saving profile:', err);
+                    showNotification(errorNotification, 'Error saving profile');
+                } finally {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                }
+            });
+
+            // Cancel button
+            cancelButton.addEventListener('click', () => {
+                loadProfileData();
+            });
+
+            // Password form submission
+            passwordForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+
+                const currentPassword = currentPasswordInput.value;
+                const newPassword = newPasswordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+
+                if (!validatePassword(newPassword)) {
+                    return showNotification(passwordErrorNotification, 'New password does not meet requirements.');
+                }
+
+                if (newPassword !== confirmPassword) {
+                    return showNotification(passwordErrorNotification, 'Passwords do not match.');
+                }
+
+                changePasswordButton.disabled = true;
+                changePasswordButton.innerHTML = '<div class="loading"></div> Updating...';
+
+                try {
+                    const credential = firebase.auth.EmailAuthProvider.credential(
+                        currentUser.email, 
+                        currentPassword
+                    );
+                    await currentUser.reauthenticateWithCredential(credential);
+                    
+                    await currentUser.updatePassword(newPassword);
+                    
+                    showNotification(passwordSuccessNotification, 'Password changed successfully!');
+                    passwordForm.reset();
+                    resetPasswordValidation();
+                } catch (err) {
+                    console.error('Error changing password:', err);
+                    let errorMessage = 'Error changing password. ';
+                    
+                    if (err.code === 'auth/wrong-password') {
+                        errorMessage = 'Current password is incorrect.';
+                    } else if (err.code === 'auth/weak-password') {
+                        errorMessage = 'New password is too weak.';
+                    }
+                    
+                    showNotification(passwordErrorNotification, errorMessage);
+                } finally {
+                    changePasswordButton.disabled = false;
+                    changePasswordButton.innerHTML = '<i class="fas fa-key"></i> Update Password';
+                }
+            });
+
+            // Password validation
+            function validatePassword(password) {
+                const hasLength = password.length >= 8;
+                const hasCase = /[a-z]/.test(password) && /[A-Z]/.test(password);
+                const hasNumber = /\d/.test(password);
+                const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+                
+                lengthReq.className = hasLength ? 'valid' : 'invalid';
+                caseReq.className = hasCase ? 'valid' : 'invalid';
+                numberReq.className = hasNumber ? 'valid' : 'invalid';
+                specialReq.className = hasSpecial ? 'valid' : 'invalid';
+                
+                return hasLength && hasCase && hasNumber && hasSpecial;
+            }
+
+            // Password validation UI
+            newPasswordInput.addEventListener('input', () => {
+                validatePassword(newPasswordInput.value);
+                checkPasswordMatch();
+            });
+
+            confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+
+            function checkPasswordMatch() {
+                const password = newPasswordInput.value;
+                const confirm = confirmPasswordInput.value;
+                
+                if (confirm === '') {
+                    passwordMatch.style.display = 'none';
+                } else if (password === confirm) {
+                    passwordMatch.style.display = 'flex';
+                    passwordMatch.className = 'notification success';
+                    passwordMatch.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
+                } else {
+                    passwordMatch.style.display = 'flex';
+                    passwordMatch.className = 'notification error';
+                    passwordMatch.innerHTML = '<i class="fas fa-exclamation-circle"></i> Passwords do not match';
+                }
+            }
+
+            function resetPasswordValidation() {
+                lengthReq.className = 'invalid';
+                caseReq.className = 'invalid';
+                numberReq.className = 'invalid';
+                specialReq.className = 'invalid';
+                passwordMatch.style.display = 'none';
+            }
+
+            // Password visibility toggle
+            passwordToggleButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const targetId = button.getAttribute('data-target');
+                    const targetInput = document.getElementById(targetId);
+                    
+                    if (targetInput.type === 'password') {
+                        targetInput.type = 'text';
+                        button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                    } else {
+                        targetInput.type = 'password';
+                        button.innerHTML = '<i class="fas fa-eye"></i>';
+                    }
+                });
+            });
+
+            // Notification helper
+            function showNotification(el, message) {
+                while (el.childNodes.length > 1) el.removeChild(el.lastChild);
+                el.appendChild(document.createTextNode(' ' + message));
+                el.style.display = 'flex';
+                setTimeout(() => { el.style.display = 'none'; }, 4000);
+            }
+        });
+    </script>
+</body>
+
+</html>
