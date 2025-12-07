@@ -490,9 +490,6 @@
                         <button class="camera-btn" style="background: #007bff;" onclick="saveAssessment()">
                             <i class="fas fa-save"></i> Save Assessment
                         </button>
-                        <button class="camera-btn" style="background: #6c757d; margin-top: 10px;" onclick="window.viewSavedAssessments()">
-    <i class="fas fa-eye"></i> View Saved Assessments (Debug)
-</button>
                     </div>
                 </div>
             </div>
@@ -515,38 +512,32 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     
     <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-    import { getStorage, ref, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+        import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-        authDomain: "palmaegis-setup.firebaseapp.com",
-        projectId: "palmaegis-setup",
-        storageBucket: "palmaegis-setup.firebasestorage.app",
-        messagingSenderId: "445887502374",
-        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-    };
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-    const storage = getStorage(app); // Add storage
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-    // Global variables to store Firebase instances
-    window.firebaseApp = app;
-    window.firebaseAuth = auth;
-    window.firestoreDb = db;
-    window.firebaseStorage = storage; // Add storage to global
-    window.firebaseAddDoc = addDoc;
-    window.firebaseCollection = collection;
-    window.firebaseServerTimestamp = serverTimestamp;
-    window.firebaseRef = ref;
-    window.firebaseUploadString = uploadString;
-    window.firebaseGetDownloadURL = getDownloadURL;
+        // Global variables to store Firebase instances
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firestoreDb = db;
+        window.firebaseAddDoc = addDoc;
+        window.firebaseCollection = collection;
+        window.firebaseServerTimestamp = serverTimestamp;
 
         // Check authentication state
         onAuthStateChanged(auth, async (user) => {
@@ -1132,178 +1123,71 @@
         }
 
         // Save assessment function with proper Firebase integration
-async function saveAssessment() {
-    // Validate required fields
-    if (!assessmentId.value) {
-        alert('Please enter an Assessment ID');
-        return;
-    }
-    
-    if (!locationInput.value) {
-        alert('Please enter a location');
-        return;
-    }
-    
-    if (!fileInput.files[0]) {
-        alert('Please upload an image first');
-        return;
-    }
+        async function saveAssessment() {
+            // Validate required fields
+            if (!assessmentId.value) {
+                alert('Please enter an Assessment ID');
+                return;
+            }
+            
+            if (!locationInput.value) {
+                alert('Please enter a location');
+                return;
+            }
+            
+            if (!fileInput.files[0]) {
+                alert('Please upload an image first');
+                return;
+            }
 
-    // Check if user is authenticated
-    if (!window.currentUser) {
-        alert('You must be logged in to save assessments');
-        return;
-    }
+            // Check if user is authenticated
+            if (!window.currentUser) {
+                alert('You must be logged in to save assessments');
+                return;
+            }
 
-    try {
-        // Show loading state
-        loading.style.display = 'block';
-        loading.querySelector('p').textContent = 'Saving assessment...';
+            try {
+                // Convert image to base64 for storage
+                const base64Image = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = e => resolve(e.target.result);
+                    reader.onerror = error => reject(error);
+                    reader.readAsDataURL(fileInput.files[0]);
+                });
 
-        // Get current timestamp for unique filename
-        const timestamp = Date.now();
-        const fileName = `assessment_${assessmentId.value}_${timestamp}.jpg`;
-        
-        // Convert canvas with detections to base64
-        const canvasWithDetections = document.createElement('canvas');
-        const ctxWithDetections = canvasWithDetections.getContext('2d');
-        
-        // Set canvas dimensions to match original image
-        canvasWithDetections.width = originalImage.width;
-        canvasWithDetections.height = originalImage.height;
-        
-        // Draw original image
-        ctxWithDetections.drawImage(originalImage, 0, 0);
-        
-        // Draw detection boxes on the full-size image
-        const scaleX = 1; // No scaling for full size
-        const scaleY = 1; // No scaling for full size
-        
-        currentDetections.forEach((prediction) => {
-            const confidencePercent = Math.round(prediction.confidence * 100);
-            const modelConfig = models[prediction.model];
-            const x = (prediction.x - prediction.width / 2) * scaleX;
-            const y = (prediction.y - prediction.height / 2) * scaleY;
-            const width = prediction.width * scaleX;
-            const height = prediction.height * scaleY;
+                // Create assessment object
+                const assessment = {
+                    id: assessmentId.value,
+                    location: locationInput.value,
+                    date: assessmentDate.value,
+                    time: assessmentTime.value,
+                    disease: diseaseInput.value,
+                    healthStatus: healthStatus.textContent,
+                    treatment: treatmentText.value,
+                    nextAssessment: nextAssessment.value,
+                    detections: currentDetections,
+                    image: base64Image,
+                    userId: window.currentUser.uid,
+                    userName: window.userData?.firstName && window.userData?.lastName 
+                        ? `${window.userData.firstName} ${window.userData.lastName}`
+                        : window.userData?.username || window.currentUser.email,
+                    timestamp: window.firebaseServerTimestamp()
+                };
 
-            ctxWithDetections.strokeStyle = modelConfig.color;
-            ctxWithDetections.lineWidth = 3;
-            ctxWithDetections.strokeRect(x, y, width, height);
-
-            ctxWithDetections.fillStyle = modelConfig.color;
-            const labelText = `${prediction.class} (${prediction.model}) ${confidencePercent}%`;
-            const textMetrics = ctxWithDetections.measureText(labelText);
-            const textWidth = textMetrics.width + 10;
-            const textHeight = 20;
-
-            ctxWithDetections.fillRect(x, y - textHeight, textWidth, textHeight);
-            ctxWithDetections.fillStyle = '#ffffff';
-            ctxWithDetections.font = 'bold 12px Arial';
-            ctxWithDetections.fillText(labelText, x + 5, y - 5);
-        });
-        
-        // Get base64 of image with detections
-        const imageWithDetections = canvasWithDetections.toDataURL('image/jpeg', 0.8);
-        
-        // Also get original image without detections
-        const originalCanvas = document.createElement('canvas');
-        const originalCtx = originalCanvas.getContext('2d');
-        originalCanvas.width = originalImage.width;
-        originalCanvas.height = originalImage.height;
-        originalCtx.drawImage(originalImage, 0, 0);
-        const originalImageBase64 = originalCanvas.toDataURL('image/jpeg', 0.8);
-
-        // Upload both images to Firebase Storage
-        const storageRef = window.firebaseRef(window.firebaseStorage, `assessments/${window.currentUser.uid}/${fileName}`);
-        
-        // Upload image with detections
-        const snapshot = await window.firebaseUploadString(storageRef, imageWithDetections.split(',')[1], 'base64', {
-            contentType: 'image/jpeg',
-        });
-
-        // Get download URL
-        const imageUrl = await window.firebaseGetDownloadURL(snapshot.ref);
-        
-        // Upload original image
-        const originalFileName = `original_${assessmentId.value}_${timestamp}.jpg`;
-        const originalStorageRef = window.firebaseRef(window.firebaseStorage, `assessments/${window.currentUser.uid}/${originalFileName}`);
-        const originalSnapshot = await window.firebaseUploadString(originalStorageRef, originalImageBase64.split(',')[1], 'base64', {
-            contentType: 'image/jpeg',
-        });
-        const originalImageUrl = await window.firebaseGetDownloadURL(originalSnapshot.ref);
-
-        // Create assessment object
-        const assessment = {
-            id: assessmentId.value,
-            location: locationInput.value,
-            date: assessmentDate.value,
-            time: assessmentTime.value,
-            disease: diseaseInput.value,
-            healthStatus: healthStatus.textContent,
-            treatment: treatmentText.value,
-            nextAssessment: nextAssessment.value,
-            detections: currentDetections,
-            imageUrl: imageUrl, // URL of image with detections
-            originalImageUrl: originalImageUrl, // URL of original image
-            imageName: fileName,
-            originalImageName: originalFileName,
-            confidenceThreshold: confidenceThreshold,
-            userId: window.currentUser.uid,
-            userName: window.userData?.firstName && window.userData?.lastName 
-                ? `${window.userData.firstName} ${window.userData.lastName}`
-                : window.userData?.username || window.currentUser.email,
-            userEmail: window.currentUser.email,
-            timestamp: window.firebaseServerTimestamp(),
-            locationCoordinates: getCoordinatesFromInput(locationInput.value)
-        };
-
-        // Save to Firebase Firestore
-        const docRef = await window.firebaseAddDoc(window.firebaseCollection(window.firestoreDb, "assessments"), assessment);
-        console.log("Assessment saved with ID: ", docRef.id);
-        
-        // Hide loading
-        loading.style.display = 'none';
-        
-        // Show success message
-        alert(`Assessment saved successfully!\nDocument ID: ${docRef.id}\nImage uploaded to Firebase Storage`);
-        
-        // Reset form
-        resetForm();
-        
-    } catch (error) {
-        console.error("Error saving assessment: ", error);
-        loading.style.display = 'none';
-        alert('Error saving assessment: ' + error.message);
-    }
-}
-
-// Helper function to extract coordinates from location input
-function getCoordinatesFromInput(locationText) {
-    const coordMatch = locationText.match(/Lat:\s*([-\d.]+),\s*Lng:\s*([-\d.]+)/);
-    if (coordMatch) {
-        return {
-            latitude: parseFloat(coordMatch[1]),
-            longitude: parseFloat(coordMatch[2])
-        };
-    }
-    return null;
-}
-
-// Function to view saved assessments (for debugging)
-async function viewSavedAssessments() {
-    try {
-        const querySnapshot = await getDocs(collection(db, "assessments"));
-        querySnapshot.forEach((doc) => {
-            console.log(doc.id, " => ", doc.data());
-        });
-    } catch (error) {
-        console.error("Error getting assessments: ", error);
-    }
-}
-
-// Make it available globally
-window.viewSavedAssessments = viewSavedAssessments;
+                // Save to Firebase using the global Firebase instances
+                const docRef = await window.firebaseAddDoc(window.firebaseCollection(window.firestoreDb, "assessments"), assessment);
+                console.log("Assessment saved with ID: ", docRef.id);
+                
+                // Show success message
+                alert('Assessment saved successfully!');
+                
+                // Reset form
+                resetForm();
+            } catch (error) {
+                console.error("Error saving assessment: ", error);
+                alert('Error saving assessment: ' + error.message);
+            }
+        }
 
         // Reset form function
         function resetForm() {
