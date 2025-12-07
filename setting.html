@@ -27,6 +27,7 @@
             --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             --transition: all 0.3s ease;
             --border-radius: 12px;
+            --scrollbar-width: 8px;
         }
 
         body.dark-mode {
@@ -54,11 +55,45 @@
             color: #333;
             min-height: 100vh;
             transition: var(--transition);
+            overflow-x: hidden;
         }
 
         body.dark-mode {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #f5f5f5;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: var(--scrollbar-width);
+            height: var(--scrollbar-width);
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(var(--primary-color-rgb), 0.5);
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(var(--primary-color-rgb), 0.7);
+        }
+
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb {
+            background: rgba(var(--primary-color-rgb), 0.3);
+        }
+
+        body.dark-mode ::-webkit-scrollbar-thumb:hover {
+            background: rgba(var(--primary-color-rgb), 0.5);
         }
 
         /* Mobile Header */
@@ -156,6 +191,7 @@
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            overflow: hidden;
         }
 
         .main-content {
@@ -163,6 +199,7 @@
             display: flex;
             flex-direction: column;
             transition: var(--transition);
+            overflow: hidden;
         }
 
         /* Desktop Header */
@@ -175,6 +212,7 @@
             box-shadow: var(--card-shadow);
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .header::before {
@@ -236,6 +274,7 @@
             max-width: 1400px;
             margin: 0 auto;
             width: 100%;
+            overflow: hidden;
         }
 
         /* Settings Sidebar */
@@ -245,10 +284,13 @@
             border-radius: var(--border-radius);
             padding: 25px;
             box-shadow: var(--card-shadow);
-            height: fit-content;
+            height: calc(100vh - 180px);
             position: sticky;
             top: 30px;
             border: 1px solid rgba(0, 0, 0, 0.08);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         body.dark-mode .settings-sidebar {
@@ -257,6 +299,7 @@
 
         .settings-nav {
             list-style: none;
+            flex: 1;
         }
 
         .settings-nav li {
@@ -304,6 +347,10 @@
             padding: 35px;
             box-shadow: var(--card-shadow);
             border: 1px solid rgba(0, 0, 0, 0.08);
+            height: calc(100vh - 180px);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         body.dark-mode .settings-content {
@@ -313,6 +360,9 @@
         .profile-section {
             display: none;
             animation: fadeIn 0.5s ease;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
         }
 
         @keyframes fadeIn {
@@ -321,13 +371,15 @@
         }
 
         .profile-section.active {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
 
         .section-header {
             margin-bottom: 35px;
             padding-bottom: 20px;
             border-bottom: 2px solid rgba(var(--primary-color-rgb), 0.1);
+            flex-shrink: 0;
         }
 
         .section-header h2 {
@@ -353,6 +405,7 @@
             border: 2px solid rgba(var(--primary-color-rgb), 0.1);
             position: relative;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .profile-card::before {
@@ -376,6 +429,7 @@
             position: relative;
             width: 120px;
             height: 120px;
+            flex-shrink: 0;
         }
 
         .profile-picture {
@@ -470,6 +524,7 @@
             font-weight: 500;
             animation: slideIn 0.3s ease;
             border: 2px solid transparent;
+            flex-shrink: 0;
         }
 
         @keyframes slideIn {
@@ -499,6 +554,10 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 25px;
             margin-bottom: 35px;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            max-height: 400px;
         }
 
         .form-group {
@@ -610,6 +669,7 @@
             padding: 20px;
             margin: 25px 0;
             border: 2px solid rgba(var(--primary-color-rgb), 0.1);
+            flex-shrink: 0;
         }
 
         body.dark-mode .password-requirements {
@@ -666,6 +726,8 @@
             gap: 20px;
             padding-top: 30px;
             border-top: 2px solid rgba(0, 0, 0, 0.08);
+            flex-shrink: 0;
+            margin-top: auto;
         }
 
         body.dark-mode .action-buttons {
@@ -741,6 +803,103 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Scroll to Top Button */
+        .scroll-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(var(--primary-color-rgb), 0.3);
+            z-index: 100;
+            border: none;
+            opacity: 0;
+            transform: translateY(20px);
+            visibility: hidden;
+        }
+
+        .scroll-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .scroll-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(var(--primary-color-rgb), 0.4);
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color));
+        }
+
+        /* Section Navigation Indicator */
+        .section-indicator {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 10px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 90;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        body.dark-mode .section-indicator {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .section-indicator a {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--gray-light);
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .section-indicator a.active {
+            background: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        .section-indicator a:hover {
+            background: var(--secondary-color);
+            transform: scale(1.1);
+        }
+
+        .section-indicator a::after {
+            content: attr(data-title);
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--dark-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: var(--transition);
+            pointer-events: none;
+        }
+
+        .section-indicator a:hover::after {
+            opacity: 1;
+            right: 25px;
+        }
+
         /* Responsive Design */
         @media (max-width: 1200px) {
             .form-grid {
@@ -750,17 +909,29 @@
             .password-requirements ul {
                 grid-template-columns: 1fr;
             }
+            
+            .section-indicator {
+                display: none;
+            }
         }
 
         @media (max-width: 992px) {
             .settings-container {
                 flex-direction: column;
+                height: auto;
             }
             
             .settings-sidebar {
                 position: static;
                 flex: none;
                 width: 100%;
+                height: auto;
+                max-height: 300px;
+            }
+            
+            .settings-content {
+                height: auto;
+                max-height: none;
             }
             
             .settings-nav {
@@ -778,6 +949,15 @@
             .settings-nav a {
                 justify-content: center;
                 text-align: center;
+            }
+            
+            .profile-section {
+                height: auto;
+                max-height: none;
+            }
+            
+            .form-grid {
+                max-height: none;
             }
         }
 
@@ -827,6 +1007,13 @@
             .settings-nav li {
                 min-width: auto;
             }
+            
+            .scroll-to-top {
+                bottom: 20px;
+                right: 20px;
+                width: 45px;
+                height: 45px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -847,6 +1034,32 @@
                 width: 35px;
                 height: 35px;
             }
+            
+            .btn {
+                padding: 14px 24px;
+                min-width: auto;
+            }
+        }
+
+        /* Smooth scrolling for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Content scroll animation */
+        .scrolling-content {
+            animation: contentScroll 0.5s ease-out;
+        }
+
+        @keyframes contentScroll {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -866,6 +1079,20 @@
 
     <!-- Mobile Overlay -->
     <div class="mobile-overlay" id="mobileOverlay"></div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" id="scrollToTop">
+        <i class="fas fa-chevron-up"></i>
+    </button>
+
+    <!-- Section Navigation Indicator -->
+    <div class="section-indicator" id="sectionIndicator">
+        <a href="#profile" data-title="Profile" class="active"></a>
+        <a href="#password" data-title="Security"></a>
+        <a href="#notifications" data-title="Notifications"></a>
+        <a href="#privacy" data-title="Privacy"></a>
+        <a href="#appearance" data-title="Appearance"></a>
+    </div>
 
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
@@ -907,7 +1134,7 @@
                 </div>
 
                 <!-- Settings Content -->
-                <div class="settings-content">
+                <div class="settings-content" id="settingsContent">
                     <!-- Profile Section -->
                     <div class="profile-section active" id="profile-section">
                         <div class="section-header">
@@ -1097,9 +1324,11 @@
                             <h2><i class="fas fa-bell"></i> Notification Settings</h2>
                             <p>Manage how you receive notifications</p>
                         </div>
-                        <p style="color: var(--gray); padding: 40px; text-align: center;">
-                            Notification settings will be available soon.
-                        </p>
+                        <div class="placeholder-content">
+                            <p style="color: var(--gray); padding: 40px; text-align: center;">
+                                Notification settings will be available soon.
+                            </p>
+                        </div>
                     </div>
 
                     <div class="profile-section" id="privacy-section">
@@ -1107,9 +1336,11 @@
                             <h2><i class="fas fa-shield-alt"></i> Privacy Settings</h2>
                             <p>Control your privacy and data sharing preferences</p>
                         </div>
-                        <p style="color: var(--gray); padding: 40px; text-align: center;">
-                            Privacy settings will be available soon.
-                        </p>
+                        <div class="placeholder-content">
+                            <p style="color: var(--gray); padding: 40px; text-align: center;">
+                                Privacy settings will be available soon.
+                            </p>
+                        </div>
                     </div>
 
                     <div class="profile-section" id="appearance-section">
@@ -1117,9 +1348,11 @@
                             <h2><i class="fas fa-palette"></i> Appearance</h2>
                             <p>Customize the look and feel of your dashboard</p>
                         </div>
-                        <p style="color: var(--gray); padding: 40px; text-align: center;">
-                            Appearance settings will be available soon.
-                        </p>
+                        <div class="placeholder-content">
+                            <p style="color: var(--gray); padding: 40px; text-align: center;">
+                                Appearance settings will be available soon.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1159,6 +1392,55 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
         const storage = firebase.storage();
+
+        // Scroll to Top functionality
+        const scrollToTopBtn = document.getElementById('scrollToTop');
+        const settingsContent = document.getElementById('settingsContent');
+        const sectionIndicator = document.getElementById('sectionIndicator');
+        const indicatorDots = sectionIndicator.querySelectorAll('a');
+
+        // Show/hide scroll to top button
+        function handleScroll() {
+            if (settingsContent) {
+                if (settingsContent.scrollTop > 300) {
+                    scrollToTopBtn.classList.add('visible');
+                } else {
+                    scrollToTopBtn.classList.remove('visible');
+                }
+
+                // Update section indicator
+                const sections = document.querySelectorAll('.profile-section.active');
+                if (sections.length > 0) {
+                    const currentSection = sections[0];
+                    const sectionId = currentSection.id;
+                    
+                    indicatorDots.forEach(dot => {
+                        dot.classList.remove('active');
+                        if (dot.getAttribute('href').substring(1) === sectionId.replace('-section', '')) {
+                            dot.classList.add('active');
+                        }
+                    });
+                }
+            }
+        }
+
+        // Scroll to top function
+        function scrollToTop() {
+            if (settingsContent) {
+                settingsContent.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        }
+
+        // Scroll to section function
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId + '-section');
+            if (section && settingsContent) {
+                settingsContent.scrollTop = 0;
+            }
+        }
 
         // Mobile menu functionality
         const menuToggle = document.getElementById('menuToggle');
@@ -1261,13 +1543,38 @@
                     section.classList.remove('active');
                     if (section.id === `${sectionId}-section`) {
                         section.classList.add('active');
+                        section.classList.add('scrolling-content');
+                        setTimeout(() => {
+                            section.classList.remove('scrolling-content');
+                        }, 500);
                     }
                 });
 
                 // Scroll to top of section
-                const settingsContent = document.querySelector('.settings-content');
                 if (settingsContent) {
                     settingsContent.scrollTop = 0;
+                }
+
+                // Update section indicator
+                indicatorDots.forEach(dot => {
+                    dot.classList.remove('active');
+                    if (dot.getAttribute('href').substring(1) === sectionId) {
+                        dot.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Section indicator navigation
+        indicatorDots.forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = dot.getAttribute('href').substring(1);
+                
+                // Find corresponding nav link and click it
+                const correspondingNavLink = document.querySelector(`.settings-nav a[data-section="${sectionId}"]`);
+                if (correspondingNavLink) {
+                    correspondingNavLink.click();
                 }
             });
         });
@@ -1719,6 +2026,13 @@
                     document.body.style.overflow = '';
                 }
             }
+            
+            // Hide section indicator on small screens
+            if (window.innerWidth <= 1200) {
+                sectionIndicator.style.display = 'none';
+            } else {
+                sectionIndicator.style.display = 'flex';
+            }
         });
 
         // Initialize on load
@@ -1733,6 +2047,20 @@
             
             // Initialize Firebase auth state
             console.log("Settings page initialized");
+            
+            // Set up scroll event listeners
+            if (settingsContent) {
+                settingsContent.addEventListener('scroll', handleScroll);
+            }
+            
+            if (scrollToTopBtn) {
+                scrollToTopBtn.addEventListener('click', scrollToTop);
+            }
+            
+            // Hide section indicator on small screens
+            if (window.innerWidth <= 1200) {
+                sectionIndicator.style.display = 'none';
+            }
         });
     </script>
 </body>
