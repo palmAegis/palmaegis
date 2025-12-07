@@ -821,103 +821,153 @@
     <div id="printable-report" style="display: none;"></div>
 
     <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+    import { getFirestore, doc, getDoc, collection, getDocs, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-            authDomain: "palmaegis-setup.firebaseapp.com",
-            projectId: "palmaegis-setup",
-            storageBucket: "palmaegis-setup.firebasestorage.app",
-            messagingSenderId: "445887502374",
-            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-        };
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+        authDomain: "palmaegis-setup.firebaseapp.com",
+        projectId: "palmaegis-setup",
+        storageBucket: "palmaegis-setup.firebasestorage.app",
+        messagingSenderId: "445887502374",
+        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+    };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        // Global variables for filtering
-        let currentFilters = {
-            status: 'all',
-            disease: 'all',
-            dateFrom: '',
-            dateTo: ''
-        };
+    // Global variables for filtering
+    let currentFilters = {
+        status: 'all',
+        disease: 'all',
+        dateFrom: '',
+        dateTo: ''
+    };
 
-        // Check authentication state
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                console.log('User is signed in:', user.email);
-                window.currentUser = user;
+    // Image modal functionality
+    function createImageModal() {
+        const modal = document.createElement('div');
+        modal.id = 'imageModal';
+        modal.style.cssText = `
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        `;
+        
+        modal.innerHTML = `
+            <div style="position: relative; max-width: 90%; max-height: 80%;">
+                <img id="modalImage" src="" alt="Assessment Image" 
+                     style="max-width: 100%; max-height: 100%; border-radius: 8px;">
+                <button id="closeModal" style="
+                    position: absolute;
+                    top: -40px;
+                    right: -40px;
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 2rem;
+                    cursor: pointer;
+                ">&times;</button>
+            </div>
+            <div style="color: white; margin-top: 20px; text-align: center;">
+                <p id="imageCaption"></p>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Close modal functionality
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || e.target.id === 'closeModal') {
+                modal.style.display = 'none';
+            }
+        });
+    }
 
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        window.userData = userData;
-                        updateUserProfile(user, userData);
-                    } else {
-                        updateUserProfile(user, {});
-                    }
+    // Show image in modal
+    function showImageInModal(imageSrc, caption = 'Assessment Image') {
+        const modal = document.getElementById('imageModal');
+        if (!modal) createImageModal();
+        
+        const modalImg = document.getElementById('modalImage');
+        const captionEl = document.getElementById('imageCaption');
+        
+        modalImg.src = imageSrc;
+        captionEl.textContent = caption;
+        modal.style.display = 'flex';
+    }
 
-                    // Load assessment data
-                    await loadAssessmentData(user.uid);
-                } catch (error) {
-                    console.error('Error loading user data:', error);
+    // Check authentication state
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log('User is signed in:', user.email);
+            window.currentUser = user;
+
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    window.userData = userData;
+                    updateUserProfile(user, userData);
+                } else {
                     updateUserProfile(user, {});
-                    showError("Failed to load user data. Please try again.");
                 }
-            } else {
-                console.log('User is not signed in');
-                window.location.href = 'signin.html';
+
+                // Load assessment data
+                await loadAssessmentData(user.uid);
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                updateUserProfile(user, {});
+                showError("Failed to load user data. Please try again.");
+            }
+        } else {
+            console.log('User is not signed in');
+            window.location.href = 'signin.html';
+        }
+    });
+
+    function updateUserProfile(user, userData) {
+        const userNameElement = document.querySelector('.user-name');
+        const userRoleElement = document.querySelector('.user-role');
+
+        const displayName = userData.firstName && userData.lastName
+            ? `${userData.firstName} ${userData.lastName}`
+            : userData.username
+                ? userData.username
+                : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+
+        if (userNameElement) userNameElement.textContent = displayName;
+        if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
+
+        // set avatar(s) safely
+        const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
+        const avatars = document.querySelectorAll('.user-avatar');
+        avatars.forEach(img => {
+            if (img) {
+                img.src = avatarSrc;
+                img.onerror = () => { img.src = 'images/default-avatar.png'; };
             }
         });
 
-        function updateUserProfile(user, userData) {
-            const userNameElement = document.querySelector('.user-name');
-            const userRoleElement = document.querySelector('.user-role');
+        window.userData = userData;
+    }
 
-            const displayName = userData.firstName && userData.lastName
-                ? `${userData.firstName} ${userData.lastName}`
-                : userData.username
-                    ? userData.username
-                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-
-            if (userNameElement) userNameElement.textContent = displayName;
-            if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
-
-            // set avatar(s) safely (use base64/photoURL/picture or fall back to default)
-            const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
-            const avatars = document.querySelectorAll('.user-avatar');
-            avatars.forEach(img => {
-                if (img) {
-                    img.src = avatarSrc;
-                    img.onerror = () => { img.src = 'images/default-avatar.png'; };
-                }
-            });
-
-            // store for later in case sidebar is loaded after profile
-            window.userData = userData;
-        }
-
-        // If sidebar is loaded after user data, re-apply avatar when sidebar is inserted
-        if (window.__sidebarLoaded) {
-            // sidebar might already be present
-            if (window.userData) updateUserProfile(window.currentUser, window.userData);
-        } else {
-            window.addEventListener('sidebar:loaded', () => {
-                if (window.currentUser) updateUserProfile(window.currentUser, window.userData || {});
-            }, { once: true });
-        }
-
-        // Show error message
-        function showError(message) {
-            const reportsGrid = document.getElementById('reportsGrid');
-            reportsGrid.innerHTML = `
+    // Show error message
+    function showError(message) {
+        const reportsGrid = document.getElementById('reportsGrid');
+        reportsGrid.innerHTML = `
             <div class="error-message">
                 <i class="fas fa-exclamation-triangle"></i>
                 <h3>Error Loading Reports</h3>
@@ -928,17 +978,17 @@
             </div>
         `;
 
-            document.getElementById('retryBtn').addEventListener('click', () => {
-                if (window.currentUser) {
-                    loadAssessmentData(window.currentUser.uid);
-                }
-            });
-        }
+        document.getElementById('retryBtn').addEventListener('click', () => {
+            if (window.currentUser) {
+                loadAssessmentData(window.currentUser.uid);
+            }
+        });
+    }
 
-        // Show no data message
-        function showNoData() {
-            const reportsGrid = document.getElementById('reportsGrid');
-            reportsGrid.innerHTML = `
+    // Show no data message
+    function showNoData() {
+        const reportsGrid = document.getElementById('reportsGrid');
+        reportsGrid.innerHTML = `
             <div class="no-data">
                 <i class="fas fa-tree"></i>
                 <h3>No Health Reports Available</h3>
@@ -949,161 +999,161 @@
             </div>
         `;
 
-            document.getElementById('createAssessmentBtn').addEventListener('click', () => {
-                window.location.href = 'farmassessment.html';
-            });
-        }
+        document.getElementById('createAssessmentBtn').addEventListener('click', () => {
+            window.location.href = 'farmassessment.html';
+        });
+    }
 
-        // Load assessment data from Firebase - FIXED VERSION
-        async function loadAssessmentData(userId) {
-            try {
-                const reportsGrid = document.getElementById('reportsGrid');
-                reportsGrid.innerHTML = `
+    // Load assessment data from Firebase
+    async function loadAssessmentData(userId) {
+        try {
+            const reportsGrid = document.getElementById('reportsGrid');
+            reportsGrid.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
                     <p>Loading health reports...</p>
                 </div>
             `;
 
-                console.log("Loading assessments for user:", userId);
+            console.log("Loading assessments for user:", userId);
 
-                const assessmentsRef = collection(db, "assessments");
+            const assessmentsRef = collection(db, "assessments");
+            let querySnapshot;
 
-                // Try different query approaches
-                let querySnapshot;
+            try {
+                // First try with timestamp ordering
+                const q = query(assessmentsRef, where("userId", "==", userId), orderBy("timestamp", "desc"));
+                querySnapshot = await getDocs(q);
+            } catch (queryError) {
+                console.log("First query failed, trying without ordering:", queryError);
+                
                 try {
-                    // First try: Query with user filter and ordering
-                    const q = query(assessmentsRef, where("userId", "==", userId), orderBy("timestamp", "desc"));
+                    // Try without ordering
+                    const q = query(assessmentsRef, where("userId", "==", userId));
                     querySnapshot = await getDocs(q);
-                } catch (queryError) {
-                    console.log("First query failed, trying without ordering:", queryError);
-
-                    // Second try: Query without ordering (in case timestamp field doesn't exist)
-                    try {
-                        const q = query(assessmentsRef, where("userId", "==", userId));
-                        querySnapshot = await getDocs(q);
-                    } catch (secondError) {
-                        console.log("Second query failed, trying to get all assessments:", secondError);
-
-                        // Third try: Get all assessments and filter client-side
-                        querySnapshot = await getDocs(assessmentsRef);
-                        // Filter by userId manually
-                        const filteredDocs = [];
-                        querySnapshot.forEach(doc => {
-                            const data = doc.data();
-                            if (data.userId === userId) {
-                                filteredDocs.push({ ...doc, data: () => data });
-                            }
-                        });
-                        // Create a mock querySnapshot
-                        querySnapshot = {
-                            empty: filteredDocs.length === 0,
-                            forEach: (callback) => filteredDocs.forEach(callback),
-                            size: filteredDocs.length
-                        };
-                    }
-                }
-
-                console.log("Found assessments:", querySnapshot.size);
-
-                if (querySnapshot.empty) {
-                    showNoData();
-                    return;
-                }
-
-                reportsGrid.innerHTML = '';
-
-                const allAssessments = [];
-                querySnapshot.forEach((doc) => {
-                    const assessment = doc.data ? doc.data() : doc;
-                    allAssessments.push({ assessment, docId: doc.id });
-                });
-
-                // Store all assessments for filtering
-                window.allAssessments = allAssessments;
-
-                // Apply any existing filters
-                applyFilters();
-
-            } catch (error) {
-                console.error("Error loading assessments: ", error);
-
-                // More specific error messages
-                if (error.code === 'permission-denied') {
-                    showError("Database permission denied. Please contact support.");
-                } else if (error.code === 'unavailable') {
-                    showError("Network error. Please check your internet connection.");
-                } else if (error.message && error.message.includes('index')) {
-                    showError("Database indexing issue. Please try creating an assessment first.");
-                } else {
-                    showError("Unable to load assessment data. Please try creating an assessment first.");
+                } catch (secondError) {
+                    console.log("Second query failed, getting all assessments:", secondError);
+                    
+                    // Get all and filter client-side
+                    const allDocs = await getDocs(assessmentsRef);
+                    const filteredDocs = [];
+                    allDocs.forEach(doc => {
+                        const data = doc.data();
+                        if (data.userId === userId) {
+                            filteredDocs.push({ id: doc.id, data: data });
+                        }
+                    });
+                    
+                    querySnapshot = {
+                        empty: filteredDocs.length === 0,
+                        forEach: (callback) => filteredDocs.forEach(item => callback({
+                            id: item.id,
+                            data: () => item.data
+                        })),
+                        size: filteredDocs.length
+                    };
                 }
             }
-        }
 
-        // Apply filters to reports
-        function applyFilters() {
-            const reportsGrid = document.getElementById('reportsGrid');
-            reportsGrid.innerHTML = '';
+            console.log("Found assessments:", querySnapshot.size);
 
-            if (!window.allAssessments || window.allAssessments.length === 0) {
+            if (querySnapshot.empty) {
                 showNoData();
                 return;
             }
 
-            const filteredAssessments = window.allAssessments.filter(({ assessment, docId }) => {
-                // Status filter
-                if (currentFilters.status !== 'all') {
-                    const statusElement = getStatusInfo(assessment);
-                    if (currentFilters.status === 'healthy' && statusElement.statusText !== 'Healthy') return false;
-                    if (currentFilters.status === 'warning' && statusElement.statusText !== 'Needs Review') return false;
-                    if (currentFilters.status === 'critical' && statusElement.statusText !== 'Critical') return false;
-                }
+            reportsGrid.innerHTML = '';
 
-                // Disease filter
-                if (currentFilters.disease !== 'all') {
-                    if (currentFilters.disease === 'none') {
-                        // Filter for no diseases detected
-                        if (assessment.detections && assessment.detections.length > 0) return false;
-                    } else {
-                        // Filter for specific diseases
-                        const hasDisease = hasMatchingDisease(assessment, currentFilters.disease);
-                        if (!hasDisease) return false;
-                    }
-                }
-
-                // Date filter
-                if (currentFilters.dateFrom || currentFilters.dateTo) {
-                    let assessmentDate;
-                    try {
-                        if (assessment.date) {
-                            assessmentDate = new Date(assessment.date);
-                        } else if (assessment.timestamp) {
-                            assessmentDate = new Date(assessment.timestamp.toDate());
-                        } else {
-                            assessmentDate = new Date();
-                        }
-                    } catch (dateError) {
-                        assessmentDate = new Date();
-                    }
-
-                    if (currentFilters.dateFrom) {
-                        const fromDate = new Date(currentFilters.dateFrom);
-                        if (assessmentDate < fromDate) return false;
-                    }
-
-                    if (currentFilters.dateTo) {
-                        const toDate = new Date(currentFilters.dateTo);
-                        toDate.setHours(23, 59, 59, 999); // End of the day
-                        if (assessmentDate > toDate) return false;
-                    }
-                }
-
-                return true;
+            const allAssessments = [];
+            querySnapshot.forEach((doc) => {
+                const assessment = doc.data();
+                allAssessments.push({ 
+                    assessment, 
+                    docId: doc.id,
+                    hasImage: !!(assessment.image || assessment.imageBase64)
+                });
             });
 
-            if (filteredAssessments.length === 0) {
-                reportsGrid.innerHTML = `
+            // Store all assessments for filtering
+            window.allAssessments = allAssessments;
+
+            // Apply any existing filters
+            applyFilters();
+
+        } catch (error) {
+            console.error("Error loading assessments: ", error);
+            
+            if (error.code === 'permission-denied') {
+                showError("Database permission denied. Please contact support.");
+            } else if (error.code === 'unavailable') {
+                showError("Network error. Please check your internet connection.");
+            } else {
+                showError("Unable to load assessment data. Please try creating an assessment first.");
+            }
+        }
+    }
+
+    // Apply filters to reports
+    function applyFilters() {
+        const reportsGrid = document.getElementById('reportsGrid');
+        reportsGrid.innerHTML = '';
+
+        if (!window.allAssessments || window.allAssessments.length === 0) {
+            showNoData();
+            return;
+        }
+
+        const filteredAssessments = window.allAssessments.filter(({ assessment, docId, hasImage }) => {
+            // Status filter
+            if (currentFilters.status !== 'all') {
+                const statusElement = getStatusInfo(assessment);
+                if (currentFilters.status === 'healthy' && statusElement.statusText !== 'Healthy') return false;
+                if (currentFilters.status === 'warning' && statusElement.statusText !== 'Needs Review') return false;
+                if (currentFilters.status === 'critical' && statusElement.statusText !== 'Critical') return false;
+            }
+
+            // Disease filter
+            if (currentFilters.disease !== 'all') {
+                if (currentFilters.disease === 'none') {
+                    if (assessment.detections && assessment.detections.length > 0) return false;
+                } else {
+                    const hasDisease = hasMatchingDisease(assessment, currentFilters.disease);
+                    if (!hasDisease) return false;
+                }
+            }
+
+            // Date filter
+            if (currentFilters.dateFrom || currentFilters.dateTo) {
+                let assessmentDate;
+                try {
+                    if (assessment.date) {
+                        assessmentDate = new Date(assessment.date);
+                    } else if (assessment.timestamp) {
+                        assessmentDate = new Date(assessment.timestamp.toDate());
+                    } else {
+                        assessmentDate = new Date();
+                    }
+                } catch (dateError) {
+                    assessmentDate = new Date();
+                }
+
+                if (currentFilters.dateFrom) {
+                    const fromDate = new Date(currentFilters.dateFrom);
+                    if (assessmentDate < fromDate) return false;
+                }
+
+                if (currentFilters.dateTo) {
+                    const toDate = new Date(currentFilters.dateTo);
+                    toDate.setHours(23, 59, 59, 999);
+                    if (assessmentDate > toDate) return false;
+                }
+            }
+
+            return true;
+        });
+
+        if (filteredAssessments.length === 0) {
+            reportsGrid.innerHTML = `
                 <div class="no-data">
                     <i class="fas fa-filter"></i>
                     <h3>No Reports Match Your Filters</h3>
@@ -1114,149 +1164,164 @@
                 </div>
             `;
 
-                document.getElementById('clearFilterResultsBtn').addEventListener('click', clearFilters);
-            } else {
-                filteredAssessments.forEach(({ assessment, docId }) => {
-                    createReportCard(assessment, docId);
-                });
-            }
-        }
-
-        // Check if assessment has matching disease
-        function hasMatchingDisease(assessment, diseaseFilter) {
-            if (!assessment.detections || assessment.detections.length === 0) {
-                return false;
-            }
-
-            return assessment.detections.some(detection => {
-                const diseaseName = (detection.class || '').toLowerCase();
-
-                switch (diseaseFilter) {
-                    case 'genoderma':
-                        return diseaseName.includes('genoderma') || diseaseName.includes('ganoderma') ||
-                            diseaseName.includes('basal') || diseaseName.includes('stem');
-                    case 'black_spot':
-                        return diseaseName.includes('black') || diseaseName.includes('spot') ||
-                            diseaseName.includes('leaf') || diseaseName.includes('blight');
-                    default:
-                        return false;
-                }
+            document.getElementById('clearFilterResultsBtn').addEventListener('click', clearFilters);
+        } else {
+            filteredAssessments.forEach(({ assessment, docId, hasImage }) => {
+                createReportCard(assessment, docId, hasImage);
             });
         }
+    }
 
-        // Get status information for an assessment
-        function getStatusInfo(assessment) {
-            const isHealthy = assessment.healthStatus === "Healthy";
-            let statusClass = "status-healthy";
-            let statusText = "Healthy";
+    // Check if assessment has matching disease
+    function hasMatchingDisease(assessment, diseaseFilter) {
+        if (!assessment.detections || assessment.detections.length === 0) {
+            return false;
+        }
 
-            if (!isHealthy || (assessment.detections && assessment.detections.length > 0)) {
-                const detectionsCount = assessment.detections ? assessment.detections.length : 0;
+        return assessment.detections.some(detection => {
+            const diseaseName = (detection.class || '').toLowerCase();
 
-                if (detectionsCount === 0) {
-                    statusClass = "status-warning";
-                    statusText = "Needs Review";
-                } else {
-                    statusClass = "status-critical";
-                    statusText = "Critical";
+            switch (diseaseFilter) {
+                case 'genoderma':
+                    return diseaseName.includes('genoderma') || diseaseName.includes('ganoderma') ||
+                        diseaseName.includes('basal') || diseaseName.includes('stem');
+                case 'black_spot':
+                    return diseaseName.includes('black') || diseaseName.includes('spot') ||
+                        diseaseName.includes('leaf') || diseaseName.includes('blight');
+                default:
+                    return false;
+            }
+        });
+    }
+
+    // Get status information for an assessment
+    function getStatusInfo(assessment) {
+        const isHealthy = assessment.healthStatus === "Healthy";
+        let statusClass = "status-healthy";
+        let statusText = "Healthy";
+
+        if (!isHealthy || (assessment.detections && assessment.detections.length > 0)) {
+            const detectionsCount = assessment.detections ? assessment.detections.length : 0;
+
+            if (detectionsCount === 0) {
+                statusClass = "status-warning";
+                statusText = "Needs Review";
+            } else {
+                statusClass = "status-critical";
+                statusText = "Critical";
+            }
+        }
+
+        return { statusClass, statusText };
+    }
+
+    // Get severity information for an assessment
+    function getSeverityInfo(assessment) {
+        const isHealthy = assessment.healthStatus === "Healthy";
+        let severityLevel = "severity-low";
+        let severityText = "Low";
+
+        if (!isHealthy || (assessment.detections && assessment.detections.length > 0)) {
+            const detectionsCount = assessment.detections ? assessment.detections.length : 0;
+
+            if (detectionsCount === 0) {
+                severityLevel = "severity-medium";
+                severityText = "Medium";
+            } else {
+                severityLevel = "severity-high";
+                severityText = "High";
+
+                // Check for specific high-risk diseases
+                if (assessment.detections && assessment.detections.some(d =>
+                    d.class && d.class.toLowerCase().includes('ganoderma'))) {
+                    severityLevel = "severity-critical";
+                    severityText = "Critical";
                 }
             }
-
-            return { statusClass, statusText };
         }
 
-        // Get severity information for an assessment
-        function getSeverityInfo(assessment) {
-            const isHealthy = assessment.healthStatus === "Healthy";
-            let severityLevel = "severity-low";
-            let severityText = "Low";
+        return { severityLevel, severityText };
+    }
 
-            if (!isHealthy || (assessment.detections && assessment.detections.length > 0)) {
-                const detectionsCount = assessment.detections ? assessment.detections.length : 0;
+    // Clear all filters
+    function clearFilters() {
+        currentFilters = {
+            status: 'all',
+            disease: 'all',
+            dateFrom: '',
+            dateTo: ''
+        };
 
-                if (detectionsCount === 0) {
-                    severityLevel = "severity-medium";
-                    severityText = "Medium";
-                } else {
-                    severityLevel = "severity-high";
-                    severityText = "High";
+        document.getElementById('statusFilter').value = 'all';
+        document.getElementById('diseaseFilter').value = 'all';
+        document.getElementById('dateFrom').value = '';
+        document.getElementById('dateTo').value = '';
 
-                    // Check for specific high-risk diseases
-                    if (assessment.detections && assessment.detections.some(d =>
-                        d.class && d.class.toLowerCase().includes('ganoderma'))) {
-                        severityLevel = "severity-critical";
-                        severityText = "Critical";
-                    }
-                }
+        applyFilters();
+        closeFilterModal();
+    }
+
+    // Open filter modal
+    function openFilterModal() {
+        document.getElementById('filterModal').style.display = 'flex';
+    }
+
+    // Close filter modal
+    function closeFilterModal() {
+        document.getElementById('filterModal').style.display = 'none';
+    }
+
+    // Create a report card for each assessment with image
+    function createReportCard(assessment, docId, hasImage) {
+        const reportsGrid = document.getElementById('reportsGrid');
+
+        const { statusClass, statusText } = getStatusInfo(assessment);
+        const { severityLevel, severityText } = getSeverityInfo(assessment);
+
+        // Format date safely
+        let assessmentDate = 'Not specified';
+        try {
+            if (assessment.date) {
+                assessmentDate = new Date(assessment.date).toLocaleDateString();
+            } else if (assessment.timestamp) {
+                assessmentDate = new Date(assessment.timestamp.toDate()).toLocaleDateString();
             }
-
-            return { severityLevel, severityText };
+        } catch (dateError) {
+            console.log("Date parsing error:", dateError);
         }
 
-        // Clear all filters
-        function clearFilters() {
-            currentFilters = {
-                status: 'all',
-                disease: 'all',
-                dateFrom: '',
-                dateTo: ''
-            };
-
-            // Reset filter inputs
-            document.getElementById('statusFilter').value = 'all';
-            document.getElementById('diseaseFilter').value = 'all';
-            document.getElementById('dateFrom').value = '';
-            document.getElementById('dateTo').value = '';
-
-            applyFilters();
-            closeFilterModal();
+        // Get detected diseases
+        let detectedDiseases = 'None';
+        if (assessment.detections && assessment.detections.length > 0) {
+            detectedDiseases = assessment.detections[0].class || 'Unknown';
         }
 
-        // Open filter modal
-        function openFilterModal() {
-            document.getElementById('filterModal').style.display = 'flex';
-        }
+        // Get image source
+        const imageSrc = assessment.image || assessment.imageBase64 || 'images/no-image.png';
+        const hasValidImage = hasImage && imageSrc && !imageSrc.includes('images/no-image.png');
 
-        // Close filter modal
-        function closeFilterModal() {
-            document.getElementById('filterModal').style.display = 'none';
-        }
+        const reportCard = document.createElement('div');
+        reportCard.className = 'report-card';
+        reportCard.setAttribute('data-id', docId);
 
-        // Create a report card for each assessment
-        function createReportCard(assessment, docId) {
-            const reportsGrid = document.getElementById('reportsGrid');
-
-            const { statusClass, statusText } = getStatusInfo(assessment);
-            const { severityLevel, severityText } = getSeverityInfo(assessment);
-
-            // Format date safely
-            let assessmentDate = 'Not specified';
-            try {
-                if (assessment.date) {
-                    assessmentDate = new Date(assessment.date).toLocaleDateString();
-                } else if (assessment.timestamp) {
-                    assessmentDate = new Date(assessment.timestamp.toDate()).toLocaleDateString();
-                }
-            } catch (dateError) {
-                console.log("Date parsing error:", dateError);
-            }
-
-            // Get detected diseases
-            let detectedDiseases = 'None';
-            if (assessment.detections && assessment.detections.length > 0) {
-                detectedDiseases = assessment.detections[0].class || 'Unknown';
-            }
-
-            const reportCard = document.createElement('div');
-            reportCard.className = 'report-card';
-            reportCard.setAttribute('data-id', docId);
-
-            reportCard.innerHTML = `
+        reportCard.innerHTML = `
             <div class="report-header">
                 <div class="report-title">${assessment.id || 'Assessment'}</div>
                 <div class="report-status ${statusClass}">${statusText}</div>
             </div>
             <div class="report-body">
+                ${hasValidImage ? `
+                    <div style="margin-bottom: 15px; text-align: center;">
+                        <img src="${imageSrc}" 
+                             alt="Assessment Image" 
+                             style="max-width: 100%; max-height: 150px; border-radius: 8px; cursor: pointer;"
+                             class="preview-image"
+                             data-image="${imageSrc}"
+                             data-title="${assessment.id || 'Assessment'}">
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Click to view full image</div>
+                    </div>
+                ` : ''}
+                
                 <div class="report-info">
                     <div class="info-item">
                         <span class="info-label">Date:</span>
@@ -1282,6 +1347,11 @@
             <div class="report-footer">
                 <div class="report-date">${assessmentDate}</div>
                 <div class="report-actions">
+                    ${hasValidImage ? `
+                        <button class="action-btn view-image" title="View Image">
+                            <i class="fas fa-image"></i>
+                        </button>
+                    ` : ''}
                     <button class="action-btn view-details" title="View Details">
                         <i class="fas fa-eye"></i>
                     </button>
@@ -1292,147 +1362,208 @@
             </div>
         `;
 
-            reportsGrid.appendChild(reportCard);
+        reportsGrid.appendChild(reportCard);
 
-            // Add event listener for view details
-            const viewBtn = reportCard.querySelector('.view-details');
-            viewBtn.addEventListener('click', () => {
-                showReportDetails(assessment, docId);
-            });
+        // Add event listener for view details
+        const viewBtn = reportCard.querySelector('.view-details');
+        viewBtn.addEventListener('click', () => {
+            showReportDetails(assessment, docId, hasImage);
+        });
 
-            // Add event listener for print report
-            const printBtn = reportCard.querySelector('.print-report');
-            printBtn.addEventListener('click', () => {
-                printReport(assessment, docId);
+        // Add event listener for print report
+        const printBtn = reportCard.querySelector('.print-report');
+        printBtn.addEventListener('click', () => {
+            printReport(assessment, docId);
+        });
+
+        // Add event listener for view image button
+        const viewImageBtn = reportCard.querySelector('.view-image');
+        if (viewImageBtn) {
+            viewImageBtn.addEventListener('click', () => {
+                showImageInModal(imageSrc, `${assessment.id || 'Assessment'} - ${assessmentDate}`);
             });
         }
 
-        // Show detailed report view
-        function showReportDetails(assessment, docId) {
-            const detailsPanel = document.getElementById('reportDetails');
-            const reportsGrid = document.getElementById('reportsGrid');
+        // Add event listener for image preview
+        const previewImage = reportCard.querySelector('.preview-image');
+        if (previewImage) {
+            previewImage.addEventListener('click', () => {
+                showImageInModal(imageSrc, `${assessment.id || 'Assessment'} - ${assessmentDate}`);
+            });
+        }
+    }
 
-            // Hide reports grid and show details
-            reportsGrid.style.display = 'none';
-            detailsPanel.style.display = 'block';
+    // Show detailed report view with image
+    function showReportDetails(assessment, docId, hasImage) {
+        const detailsPanel = document.getElementById('reportDetails');
+        const reportsGrid = document.getElementById('reportsGrid');
 
-            // Store current assessment for printing
-            window.currentAssessment = assessment;
-            window.currentAssessmentId = docId;
+        // Hide reports grid and show details
+        reportsGrid.style.display = 'none';
+        detailsPanel.style.display = 'block';
 
-            // Populate details with safe defaults
-            document.getElementById('detailsTitle').textContent = `Tree Health Report - ${assessment.id || 'Unknown'}`;
-            document.getElementById('detailId').textContent = assessment.id || 'Not specified';
+        // Store current assessment for printing
+        window.currentAssessment = assessment;
+        window.currentAssessmentId = docId;
+        window.currentAssessmentHasImage = hasImage;
 
-            let assessmentDate = 'Not specified';
-            try {
-                if (assessment.date) {
-                    assessmentDate = new Date(assessment.date).toLocaleDateString();
-                } else if (assessment.timestamp) {
-                    assessmentDate = new Date(assessment.timestamp.toDate()).toLocaleDateString();
-                }
-            } catch (dateError) {
-                console.log("Date parsing error:", dateError);
+        // Populate details with safe defaults
+        document.getElementById('detailsTitle').textContent = `Tree Health Report - ${assessment.id || 'Unknown'}`;
+        document.getElementById('detailId').textContent = assessment.id || 'Not specified';
+
+        let assessmentDate = 'Not specified';
+        try {
+            if (assessment.date) {
+                assessmentDate = new Date(assessment.date).toLocaleDateString();
+            } else if (assessment.timestamp) {
+                assessmentDate = new Date(assessment.timestamp.toDate()).toLocaleDateString();
             }
+        } catch (dateError) {
+            console.log("Date parsing error:", dateError);
+        }
 
-            document.getElementById('detailDate').textContent = assessmentDate;
-            document.getElementById('detailLocation').textContent = assessment.location || 'Not specified';
-            document.getElementById('detailHealthStatus').textContent = assessment.healthStatus || 'Not assessed';
-            document.getElementById('detailNextAssessment').textContent = assessment.nextAssessment || 'Not scheduled';
-            document.getElementById('detailTreatment').textContent = assessment.treatment || 'No treatment recommendations available.';
+        document.getElementById('detailDate').textContent = assessmentDate;
+        document.getElementById('detailLocation').textContent = assessment.location || 'Not specified';
+        document.getElementById('detailHealthStatus').textContent = assessment.healthStatus || 'Not assessed';
+        document.getElementById('detailNextAssessment').textContent = assessment.nextAssessment || 'Not scheduled';
+        document.getElementById('detailTreatment').textContent = assessment.treatment || 'No treatment recommendations available.';
 
-            // Determine severity
-            const { severityLevel, severityText } = getSeverityInfo(assessment);
+        // Determine severity
+        const { severityLevel, severityText } = getSeverityInfo(assessment);
 
-            document.getElementById('detailSeverity').textContent = severityText;
-            document.getElementById('detailSeverityBar').className = `severity-level ${severityLevel}`;
+        document.getElementById('detailSeverity').textContent = severityText;
+        document.getElementById('detailSeverityBar').className = `severity-level ${severityLevel}`;
 
-            // Populate diseases list
-            const diseasesList = document.getElementById('detailDiseases');
-            diseasesList.innerHTML = '';
+        // Populate diseases list
+        const diseasesList = document.getElementById('detailDiseases');
+        diseasesList.innerHTML = '';
 
-            if (assessment.detections && assessment.detections.length > 0) {
-                assessment.detections.forEach(detection => {
-                    const confidencePercent = Math.round((detection.confidence || 0) * 100);
-                    let confidenceColor = '#4caf50'; // Green for low confidence
+        if (assessment.detections && assessment.detections.length > 0) {
+            assessment.detections.forEach(detection => {
+                const confidencePercent = Math.round((detection.confidence || 0) * 100);
+                let confidenceColor = '#4caf50';
 
-                    if (confidencePercent > 70) {
-                        confidenceColor = '#f44336'; // Red for high confidence
-                    } else if (confidencePercent > 40) {
-                        confidenceColor = '#ff9800'; // Orange for medium confidence
-                    }
+                if (confidencePercent > 70) {
+                    confidenceColor = '#f44336';
+                } else if (confidencePercent > 40) {
+                    confidenceColor = '#ff9800';
+                }
 
-                    const diseaseItem = document.createElement('li');
-                    diseaseItem.className = 'disease-item';
-                    diseaseItem.innerHTML = `
+                const diseaseItem = document.createElement('li');
+                diseaseItem.className = 'disease-item';
+                diseaseItem.innerHTML = `
                     <span class="disease-name">${detection.class || 'Unknown'}</span>
                     <span class="disease-confidence" style="background-color: ${confidenceColor}">${confidencePercent}%</span>
                 `;
-                    diseasesList.appendChild(diseaseItem);
+                diseasesList.appendChild(diseaseItem);
+            });
+        } else {
+            diseasesList.innerHTML = '<li class="disease-item">No diseases detected</li>';
+        }
+
+        // Populate affected areas
+        const affectedAreas = document.getElementById('detailAffectedAreas');
+        affectedAreas.innerHTML = '';
+
+        if (assessment.detections && assessment.detections.length > 0) {
+            const areas = [...new Set(assessment.detections.map(d => d.class).filter(Boolean))];
+            if (areas.length > 0) {
+                areas.forEach(area => {
+                    const areaTag = document.createElement('div');
+                    areaTag.className = 'area-tag';
+                    areaTag.textContent = area;
+                    affectedAreas.appendChild(areaTag);
                 });
-            } else {
-                diseasesList.innerHTML = '<li class="disease-item">No diseases detected</li>';
-            }
-
-            // Populate affected areas
-            const affectedAreas = document.getElementById('detailAffectedAreas');
-            affectedAreas.innerHTML = '';
-
-            if (assessment.detections && assessment.detections.length > 0) {
-                const areas = [...new Set(assessment.detections.map(d => d.class).filter(Boolean))];
-                if (areas.length > 0) {
-                    areas.forEach(area => {
-                        const areaTag = document.createElement('div');
-                        areaTag.className = 'area-tag';
-                        areaTag.textContent = area;
-                        affectedAreas.appendChild(areaTag);
-                    });
-                } else {
-                    affectedAreas.innerHTML = '<div class="area-tag">No affected areas</div>';
-                }
             } else {
                 affectedAreas.innerHTML = '<div class="area-tag">No affected areas</div>';
             }
+        } else {
+            affectedAreas.innerHTML = '<div class="area-tag">No affected areas</div>';
         }
 
-        // Print report function
-        function printReport(assessment, docId) {
-            // Format date safely
-            let assessmentDate = 'Not specified';
-            try {
-                if (assessment.date) {
-                    assessmentDate = new Date(assessment.date).toLocaleDateString();
-                } else if (assessment.timestamp) {
-                    assessmentDate = new Date(assessment.timestamp.toDate()).toLocaleDateString();
-                }
-            } catch (dateError) {
-                console.log("Date parsing error:", dateError);
+        // Add image section to details if image exists
+        const detailsContent = document.querySelector('.details-content');
+        const imageSection = document.createElement('div');
+        imageSection.className = 'details-section';
+        
+        if (hasImage && (assessment.image || assessment.imageBase64)) {
+            const imageSrc = assessment.image || assessment.imageBase64;
+            imageSection.innerHTML = `
+                <h3 class="section-title">Assessment Image</h3>
+                <div style="text-align: center; margin-top: 10px;">
+                    <img src="${imageSrc}" 
+                         alt="Assessment Image" 
+                         style="max-width: 100%; max-height: 200px; border-radius: 8px; cursor: pointer;"
+                         id="detailsImage"
+                         data-image="${imageSrc}">
+                    <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">Click to enlarge</div>
+                </div>
+            `;
+            
+            // Insert image section at the beginning of the first column
+            const firstColumn = detailsContent.querySelector('.details-column:first-child');
+            if (firstColumn) {
+                firstColumn.insertBefore(imageSection, firstColumn.firstChild);
+                
+                // Add click event for image
+                document.getElementById('detailsImage').addEventListener('click', () => {
+                    showImageInModal(imageSrc, `${assessment.id || 'Assessment'} - ${assessmentDate}`);
+                });
             }
+        }
+    }
 
-            // Determine severity
-            const { severityText } = getSeverityInfo(assessment);
-            let severityWidth = "25%";
-            let severityColor = "#2e7d32"; // Green for low
-
-            if (severityText === "Medium") {
-                severityWidth = "50%";
-                severityColor = "#ff9800";
-            } else if (severityText === "High") {
-                severityWidth = "75%";
-                severityColor = "#f44336";
-            } else if (severityText === "Critical") {
-                severityWidth = "100%";
-                severityColor = "#b71c1c";
+    // Print report function with image
+    function printReport(assessment, docId) {
+        // Format date safely
+        let assessmentDate = 'Not specified';
+        try {
+            if (assessment.date) {
+                assessmentDate = new Date(assessment.date).toLocaleDateString();
+            } else if (assessment.timestamp) {
+                assessmentDate = new Date(assessment.timestamp.toDate()).toLocaleDateString();
             }
+        } catch (dateError) {
+            console.log("Date parsing error:", dateError);
+        }
 
-            // Create printable content
-            const printableReport = document.getElementById('printable-report');
-            printableReport.innerHTML = `
+        // Determine severity
+        const { severityText } = getSeverityInfo(assessment);
+        let severityWidth = "25%";
+        let severityColor = "#2e7d32";
+
+        if (severityText === "Medium") {
+            severityWidth = "50%";
+            severityColor = "#ff9800";
+        } else if (severityText === "High") {
+            severityWidth = "75%";
+            severityColor = "#f44336";
+        } else if (severityText === "Critical") {
+            severityWidth = "100%";
+            severityColor = "#b71c1c";
+        }
+
+        // Get image if exists
+        const imageHtml = (assessment.image || assessment.imageBase64) ? 
+            `<div class="print-section">
+                <div class="print-section-title">Assessment Image</div>
+                <div style="text-align: center;">
+                    <img src="${assessment.image || assessment.imageBase64}" 
+                         alt="Assessment Image" 
+                         style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+                </div>
+            </div>` : '';
+
+        // Create printable content
+        const printableReport = document.getElementById('printable-report');
+        printableReport.innerHTML = `
             <div class="print-header">
                 <div class="print-logo">Palm Aegis</div>
                 <div class="print-title">Tree Health Assessment Report</div>
                 <div class="print-date">Generated on ${new Date().toLocaleDateString()}</div>
             </div>
+            
+            ${imageHtml}
             
             <div class="print-section">
                 <div class="print-section-title">Assessment Information</div>
@@ -1482,14 +1613,14 @@
                         </thead>
                         <tbody>
                             ${assessment.detections.map(detection => {
-                const confidencePercent = Math.round((detection.confidence || 0) * 100);
-                return `
+                                const confidencePercent = Math.round((detection.confidence || 0) * 100);
+                                return `
                                     <tr>
                                         <td>${detection.class || 'Unknown'}</td>
                                         <td>${confidencePercent}%</td>
                                     </tr>
                                 `;
-            }).join('')}
+                            }).join('')}
                         </tbody>
                     </table>
                 ` : '<p>No diseases detected</p>'}
@@ -1507,11 +1638,11 @@
                 <div class="print-section-title">Affected Areas</div>
                 <div>
                     ${assessment.detections && assessment.detections.length > 0 ?
-                    [...new Set(assessment.detections.map(d => d.class).filter(Boolean))].map(area =>
-                        `<span style="display: inline-block; background: #e3f2fd; padding: 5px 10px; margin: 0 5px 5px 0; border-radius: 15px; font-size: 0.8rem;">${area}</span>`
-                    ).join('')
-                    : 'No affected areas identified'
-                }
+                        [...new Set(assessment.detections.map(d => d.class).filter(Boolean))].map(area =>
+                            `<span style="display: inline-block; background: #e3f2fd; padding: 5px 10px; margin: 0 5px 5px 0; border-radius: 15px; font-size: 0.8rem;">${area}</span>`
+                        ).join('')
+                        : 'No affected areas identified'
+                    }
                 </div>
             </div>
             
@@ -1521,84 +1652,95 @@
             </div>
         `;
 
-            // Trigger print
-            window.print();
+        // Trigger print
+        window.print();
+    }
+
+    // Event Listeners
+    document.getElementById('filterBtn').addEventListener('click', openFilterModal);
+    document.getElementById('closeFilterBtn').addEventListener('click', closeFilterModal);
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+
+    document.getElementById('applyFiltersBtn').addEventListener('click', () => {
+        currentFilters.status = document.getElementById('statusFilter').value;
+        currentFilters.disease = document.getElementById('diseaseFilter').value;
+        currentFilters.dateFrom = document.getElementById('dateFrom').value;
+        currentFilters.dateTo = document.getElementById('dateTo').value;
+
+        applyFilters();
+        closeFilterModal();
+    });
+
+    // Close details view
+    document.getElementById('closeDetailsBtn').addEventListener('click', () => {
+        const detailsPanel = document.getElementById('reportDetails');
+        const reportsGrid = document.getElementById('reportsGrid');
+
+        // Remove any dynamically added image section
+        const existingImageSection = detailsPanel.querySelector('.details-section:has(#detailsImage)');
+        if (existingImageSection) {
+            existingImageSection.remove();
         }
 
-        // Event Listeners
-        document.getElementById('filterBtn').addEventListener('click', openFilterModal);
-        document.getElementById('closeFilterBtn').addEventListener('click', closeFilterModal);
-        document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
+        detailsPanel.style.display = 'none';
+        reportsGrid.style.display = 'grid';
+    });
 
-        document.getElementById('applyFiltersBtn').addEventListener('click', () => {
-            currentFilters.status = document.getElementById('statusFilter').value;
-            currentFilters.disease = document.getElementById('diseaseFilter').value;
-            currentFilters.dateFrom = document.getElementById('dateFrom').value;
-            currentFilters.dateTo = document.getElementById('dateTo').value;
+    // Print details button
+    document.getElementById('printDetailsBtn').addEventListener('click', () => {
+        if (window.currentAssessment) {
+            printReport(window.currentAssessment, window.currentAssessmentId);
+        }
+    });
 
-            applyFilters();
+    // New assessment button
+    document.getElementById('newReportBtn').addEventListener('click', () => {
+        window.location.href = 'farmassessment.html';
+    });
+
+    // Search functionality
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const reportCards = document.querySelectorAll('.report-card');
+
+        reportCards.forEach(card => {
+            const title = card.querySelector('.report-title').textContent.toLowerCase();
+            const infoValues = card.querySelectorAll('.info-value');
+            const location = infoValues[1] ? infoValues[1].textContent.toLowerCase() : '';
+            const diseases = infoValues[2] ? infoValues[2].textContent.toLowerCase() : '';
+            const status = card.querySelector('.report-status').textContent.toLowerCase();
+
+            if (title.includes(searchTerm) || location.includes(searchTerm) ||
+                diseases.includes(searchTerm) || status.includes(searchTerm)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    });
+
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', function (e) {
+        e.preventDefault();
+        signOut(auth).then(() => {
+            window.location.href = 'signin.html';
+        }).catch((error) => {
+            console.error('Logout error:', error);
+        });
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('filterModal').addEventListener('click', (e) => {
+        if (e.target.id === 'filterModal') {
             closeFilterModal();
-        });
+        }
+    });
 
-        // Close details view
-        document.getElementById('closeDetailsBtn').addEventListener('click', () => {
-            const detailsPanel = document.getElementById('reportDetails');
-            const reportsGrid = document.getElementById('reportsGrid');
-
-            detailsPanel.style.display = 'none';
-            reportsGrid.style.display = 'grid';
-        });
-
-        // Print details button
-        document.getElementById('printDetailsBtn').addEventListener('click', () => {
-            if (window.currentAssessment) {
-                printReport(window.currentAssessment, window.currentAssessmentId);
-            }
-        });
-
-        // New assessment button
-        document.getElementById('newReportBtn').addEventListener('click', () => {
-            window.location.href = 'farmassessment.html';
-        });
-
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase();
-            const reportCards = document.querySelectorAll('.report-card');
-
-            reportCards.forEach(card => {
-                const title = card.querySelector('.report-title').textContent.toLowerCase();
-                const infoValues = card.querySelectorAll('.info-value');
-                const location = infoValues[1] ? infoValues[1].textContent.toLowerCase() : '';
-                const diseases = infoValues[2] ? infoValues[2].textContent.toLowerCase() : '';
-                const status = card.querySelector('.report-status').textContent.toLowerCase();
-
-                if (title.includes(searchTerm) || location.includes(searchTerm) ||
-                    diseases.includes(searchTerm) || status.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        });
-
-        // Logout functionality
-        document.getElementById('logoutBtn').addEventListener('click', function (e) {
-            e.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = 'signin.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
-            });
-        });
-
-        // Close modal when clicking outside
-        document.getElementById('filterModal').addEventListener('click', (e) => {
-            if (e.target.id === 'filterModal') {
-                closeFilterModal();
-            }
-        });
-    </script>
+    // Initialize image modal when page loads
+    document.addEventListener('DOMContentLoaded', () => {
+        createImageModal();
+    });
+</script>
 </body>
 
 </html>
