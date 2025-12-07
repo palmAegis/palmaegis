@@ -31,17 +31,27 @@
         body {
             background-color: #c8f0c8;
             color: #333;
+            overflow-x: hidden;
+            height: 100vh;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            height: 100%;
         }
 
         .dashboard-container {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
         .top-header {
@@ -51,6 +61,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            flex-shrink: 0;
         }
 
         .header-left h1 {
@@ -83,6 +94,27 @@
             flex: 1;
             padding: 30px;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            height: calc(100vh - 60px);
+        }
+
+        /* Custom scrollbar for all devices */
+        .container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 10px;
+        }
+        
+        .container::-webkit-scrollbar-thumb:hover {
+            background: #1b5e20;
         }
 
         .page-header {
@@ -112,6 +144,8 @@
             align-items: center;
             gap: 8px;
             transition: all 0.3s;
+            min-height: 44px;
+            min-width: 44px;
         }
 
         .btn-primary {
@@ -202,6 +236,8 @@
             overflow: hidden;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
             transition: transform 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .farm-card:hover {
@@ -313,6 +349,11 @@
             cursor: pointer;
             font-size: 1.1rem;
             transition: color 0.3s;
+            min-height: 44px;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .action-btn:hover {
@@ -326,6 +367,9 @@
             padding: 25px;
             margin-top: 30px;
             display: none;
+            max-height: calc(100vh - 180px);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .details-header {
@@ -476,6 +520,9 @@
             width: 90%;
             max-width: 500px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .filter-header {
@@ -566,6 +613,7 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             max-height: 90vh;
             overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         .add-farm-header {
@@ -620,6 +668,39 @@
             gap: 15px;
         }
 
+        /* Back to Top Button */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s, transform 0.3s;
+            transform: translateY(20px);
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .back-to-top:hover {
+            background-color: #1b5e20;
+            transform: scale(1.1);
+        }
+
+        /* Mobile Responsive Styles */
         @media (max-width: 768px) {
             .dashboard-container {
                 flex-direction: column;
@@ -627,6 +708,18 @@
 
             .main-content {
                 width: 100%;
+                height: 100vh;
+            }
+
+            .container {
+                height: calc(100vh - 60px);
+                padding: 20px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .container::-webkit-scrollbar {
+                width: 6px;
             }
 
             .details-content {
@@ -635,19 +728,133 @@
 
             .farms-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
 
             .stats-grid {
                 grid-template-columns: 1fr;
+                gap: 15px;
             }
 
             .filter-modal-content, .add-farm-modal-content {
                 width: 95%;
-                margin: 20px;
+                margin: 10px;
+                max-height: 85vh;
             }
 
             .form-row {
                 grid-template-columns: 1fr;
+            }
+
+            /* Prevent zoom on input focus for iOS */
+            input, select, textarea {
+                font-size: 16px !important;
+            }
+            
+            .form-input, .form-select, .form-textarea {
+                font-size: 16px;
+                padding: 12px;
+            }
+            
+            /* Better modal scrolling for mobile */
+            .filter-modal, .add-farm-modal {
+                align-items: flex-end;
+            }
+            
+            .filter-modal-content, .add-farm-modal-content {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 20px 20px 0 0;
+                max-height: 80vh;
+                margin: 0;
+                padding: 20px;
+            }
+
+            .farm-details {
+                max-height: calc(100vh - 140px);
+                padding: 20px;
+                margin-top: 20px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+                margin-bottom: 20px;
+            }
+
+            .page-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .back-to-top {
+                width: 44px;
+                height: 44px;
+                font-size: 1rem;
+                bottom: 15px;
+                right: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .stats-grid,
+            .farms-grid {
+                gap: 12px;
+            }
+            
+            .filter-modal-content,
+            .add-farm-modal-content {
+                max-height: 85vh;
+                margin: 5px;
+            }
+            
+            .farm-details {
+                padding: 15px;
+            }
+
+            .top-header {
+                padding: 12px 20px;
+            }
+
+            .header-left h1 {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Hide back-to-top on desktop */
+        @media (min-width: 769px) {
+            .back-to-top {
+                display: none;
+            }
+        }
+
+        /* Fix for iOS Safari 100vh issue */
+        @supports (-webkit-touch-callout: none) {
+            body, html {
+                height: -webkit-fill-available;
+            }
+            
+            .dashboard-container {
+                height: -webkit-fill-available;
+            }
+            
+            .main-content {
+                height: -webkit-fill-available;
+            }
+            
+            .container {
+                height: calc(-webkit-fill-available - 60px);
             }
         }
     </style>
@@ -664,7 +871,7 @@
                 </div>
             </div>
 
-            <div class="container">
+            <div class="container" id="mainContainer">
                 <div class="page-header">
                     <h2 class="page-title">Farm Overview</h2>
                     <div class="page-actions">
@@ -911,6 +1118,36 @@
         soil: 'all',
         size: 'all'
     };
+
+    // Create Back to Top Button
+    const backToTopBtn = document.createElement('div');
+    backToTopBtn.className = 'back-to-top';
+    backToTopBtn.id = 'backToTop';
+    backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
+    document.body.appendChild(backToTopBtn);
+
+    // Handle back to top button visibility
+    const mainContainer = document.getElementById('mainContainer');
+    const backToTop = document.getElementById('backToTop');
+
+    mainContainer.addEventListener('scroll', function() {
+        if (mainContainer.scrollTop > 300) {
+            backToTop.classList.add('visible');
+        } else {
+            backToTop.classList.remove('visible');
+        }
+    });
+
+    // Scroll to top when clicked
+    backToTop.addEventListener('click', function() {
+        mainContainer.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Enable touch scrolling on mobile
+    document.addEventListener('touchstart', function() {}, {passive: true});
 
     // Check authentication state
     onAuthStateChanged(auth, async (user) => {
@@ -1364,6 +1601,9 @@
         farmsGrid.style.display = 'none';
         detailsPanel.style.display = 'block';
         
+        // Scroll to top of details
+        detailsPanel.scrollTop = 0;
+        
         // Store current farm for editing
         window.currentFarm = farm;
         window.currentFarmId = docId;
@@ -1543,43 +1783,17 @@
         
         detailsPanel.style.display = 'none';
         farmsGrid.style.display = 'grid';
+        
+        // Scroll back to top of farms grid on mobile
+        if (window.innerWidth <= 768) {
+            mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     });
 
     // Edit farm button
     document.getElementById('editFarmBtn').addEventListener('click', () => {
         // For now, just show an alert
         alert('Edit functionality will be implemented in a future version.');
-    });
-
-    // Search functionality
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const farmCards = document.querySelectorAll('.farm-card');
-        
-        farmCards.forEach(card => {
-            const title = card.querySelector('.farm-title').textContent.toLowerCase();
-            const infoValues = card.querySelectorAll('.info-value');
-            const location = infoValues[0] ? infoValues[0].textContent.toLowerCase() : '';
-            const soilType = infoValues[2] ? infoValues[2].textContent.toLowerCase() : '';
-            const status = card.querySelector('.farm-status').textContent.toLowerCase();
-            
-            if (title.includes(searchTerm) || location.includes(searchTerm) || 
-                soilType.includes(searchTerm) || status.includes(searchTerm)) {
-                card.style.display = 'block';
-            } else {
-                card.style.display = 'none';
-            }
-        });
-    });
-
-    // Logout functionality
-    document.getElementById('logoutBtn').addEventListener('click', function(e) {
-        e.preventDefault();
-        signOut(auth).then(() => {
-            window.location.href = 'signin.html';
-        }).catch((error) => {
-            console.error('Logout error:', error);
-        });
     });
 
     // Close modals when clicking outside
@@ -1594,6 +1808,32 @@
             closeAddFarmModal();
         }
     });
+
+    // Handle mobile keyboard appearance
+    window.addEventListener('resize', function() {
+        if (window.innerWidth <= 768) {
+            // Force scroll to top when keyboard appears
+            const activeElement = document.activeElement;
+            if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+                setTimeout(() => {
+                    activeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+        }
+    });
+
+    // Initialize scrolling
+    function initializeScrolling() {
+        // Force reflow to ensure proper scrolling
+        setTimeout(() => {
+            mainContainer.style.overflowY = 'auto';
+            mainContainer.style.webkitOverflowScrolling = 'touch';
+        }, 100);
+    }
+
+    // Initialize on load
+    window.addEventListener('load', initializeScrolling);
+    initializeScrolling();
 </script>
 </body>
 </html>

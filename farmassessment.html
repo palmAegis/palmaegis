@@ -19,362 +19,421 @@
     <link rel="stylesheet" href="css/farmassessment.css" />
     
     <style>
-        /* Page-specific styles */
-        .health-status {
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-weight: bold;
-            text-align: center;
-        }
+    /* Page-specific styles */
+    .health-status {
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-weight: bold;
+        text-align: center;
+    }
 
-        .healthy {
-            background-color: #f8f9fa;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
+    .healthy {
+        background-color: #f8f9fa;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
 
-        .not-healthy {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
+    .not-healthy {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
 
-        .disease-input.auto-detected {
-            background-color: #e9ecef;
-            font-weight: bold;
-        }
+    .disease-input.auto-detected {
+        background-color: #e9ecef;
+        font-weight: bold;
+    }
 
-        .model-badge {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            color: white;
-            margin-left: 5px;
-        }
+    .model-badge {
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 10px;
+        color: white;
+        margin-left: 5px;
+    }
 
-        .ganoderma-badge {
-            background-color: #28a745;
-        }
+    .ganoderma-badge {
+        background-color: #28a745;
+    }
 
-        .blackspot-badge {
-            background-color: #dc3545;
-        }
+    .blackspot-badge {
+        background-color: #dc3545;
+    }
 
-        .detection-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            border-left: 4px solid #ccc;
-        }
+    .detection-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        border-left: 4px solid #ccc;
+    }
 
-        .detection-class {
-            font-weight: bold;
-        }
+    .detection-class {
+        font-weight: bold;
+    }
 
-        .detection-confidence {
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-        }
+    .detection-confidence {
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 12px;
+    }
 
-        .camera-container {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
+    .camera-container {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .camera-video {
+        max-width: 90%;
+        max-height: 70%;
+        border-radius: 8px;
+    }
+
+    .camera-controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 15px;
+    }
+
+    .capture-btn, .cancel-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .capture-btn {
+        background: #007bff;
+        color: white;
+    }
+
+    .cancel-btn {
+        background: #6c757d;
+        color: white;
+    }
+
+    .upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+        background-color: #f8f9fa;
+    }
+
+    .upload-area:hover {
+        border-color: #007bff;
+        background-color: #e9ecef;
+    }
+
+    .confidence-slider {
+        margin-bottom: 20px;
+    }
+
+    .slider-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .slider-value {
+        font-weight: bold;
+        color: #007bff;
+    }
+
+    .threshold-info {
+        margin-top: 8px;
+        padding: 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .form-input, .form-textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        box-sizing: border-box;
+        font-size: 14px;
+    }
+
+    .form-textarea {
+        min-height: 80px;
+        resize: vertical;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+
+    .form-row .form-group {
+        flex: 1;
+        margin-bottom: 0;
+    }
+
+    .camera-btn {
+        width: 100%;
+        padding: 10px;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        margin-bottom: 10px;
+        transition: background 0.3s;
+        font-size: 14px;
+    }
+
+    .camera-btn:hover {
+        background: #5a6268;
+    }
+
+    .image-container {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 15px;
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        position: relative;
+        width: 100%;
+    }
+
+    .no-image {
+        text-align: center;
+        color: #6c757d;
+        padding: 20px;
+    }
+
+    #previewCanvas {
+        max-width: 100%;
+        max-height: 100%;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+    }
+
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+        margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .results-panel {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-top: 15px;
+    }
+
+    .results-header {
+        background: #f8f9fa;
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .results-title {
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    .objects-count {
+        color: #6c757d;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .detections-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .image-section {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .form-section {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .content {
+        display: flex;
+        gap: 20px;
+        /* CHANGED: Remove fixed height on desktop */
+        height: auto;
+    }
+
+    .container {
+        padding: 20px;
+        /* CHANGED: Remove fixed height */
+        height: auto;
+    }
+
+    .main-content {
+        flex: 1;
+        overflow: auto;
+        margin-left: 260px;
+    }
+
+    .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+    }
+
+    /* Map container styling */
+    .map-container {
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-top: 10px;
+        height: 200px;
+    }
+
+    /* Make the image container responsive */
+    @media (max-width: 768px) {
+        .content {
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            gap: 15px; /* Reduced gap */
         }
-
-        .camera-video {
-            max-width: 90%;
-            max-height: 70%;
-            border-radius: 8px;
+        
+        .image-container {
+            height: auto;
+            min-height: 250px;
+            aspect-ratio: 4/3;
         }
-
-        .camera-controls {
-            margin-top: 20px;
-            display: flex;
+        
+        #previewCanvas {
+            width: 100%;
+            height: auto;
+            max-height: none;
+        }
+        
+        .form-row {
+            flex-direction: column;
             gap: 15px;
         }
-
-        .capture-btn, .cancel-btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
+        
+        /* CHANGED: Adjust sidebar margin on mobile */
+        .main-content {
+            margin-left: 0;
         }
-
-        .capture-btn {
-            background: #007bff;
-            color: white;
+        
+        /* CHANGED: Adjust container padding on mobile */
+        .container {
+            padding: 15px;
         }
-
-        .cancel-btn {
-            background: #6c757d;
-            color: white;
-        }
-
+        
+        /* CHANGED: Reduce spacing on mobile */
         .upload-area {
-            border: 2px dashed #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
         }
-
-        .upload-area:hover {
-            border-color: #007bff;
-            background-color: #e9ecef;
+        
+        .confidence-slider,
+        .form-group {
+            margin-bottom: 12px;
         }
+    }
 
-        .confidence-slider {
-            margin-bottom: 20px;
+    @media (max-width: 576px) {
+        .image-container {
+            min-height: 200px;
+            aspect-ratio: 4/3; /* Changed from 1/1 to 4/3 */
         }
-
-        .slider-label {
-            display: flex;
-            justify-content: space-between;
+        
+        .map-container {
+            height: 150px;
+        }
+        
+        /* CHANGED: Further reduce padding on very small screens */
+        .container {
+            padding: 10px;
+        }
+        
+        /* CHANGED: Adjust top header on mobile */
+        .top-header {
+            padding: 10px 15px;
+        }
+        
+        h1 {
+            font-size: 1.5rem;
+        }
+    }
+    
+    /* NEW: Add small screen optimizations */
+    @media (max-width: 480px) {
+        .camera-btn {
+            padding: 8px;
+            font-size: 13px;
             margin-bottom: 8px;
         }
-
-        .slider-value {
-            font-weight: bold;
-            color: #007bff;
-        }
-
-        .threshold-info {
-            margin-top: 8px;
-            padding: 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
+        
         .form-input, .form-textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            box-sizing: border-box;
-            font-size: 14px;
+            padding: 8px;
+            font-size: 13px;
         }
-
-        .form-textarea {
-            min-height: 80px;
-            resize: vertical;
-        }
-
-        .form-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .form-row .form-group {
-            flex: 1;
-            margin-bottom: 0;
-        }
-
-        .camera-btn {
-            width: 100%;
-            padding: 10px;
-            background: #6c757d;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-bottom: 10px;
-            transition: background 0.3s;
-            font-size: 14px;
-        }
-
-        .camera-btn:hover {
-            background: #5a6268;
-        }
-
+        
         .image-container {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            min-height: 200px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #f8f9fa;
-            position: relative;
-            width: 100%;
-            min-width: 100;
+            min-height: 180px;
         }
-
-        .no-image {
-            text-align: center;
-            color: #6c757d;
-            padding: 20px;
+        
+        .detection-item {
+            padding: 8px;
+            font-size: 13px;
         }
-
-        #previewCanvas {
-            max-width: 100%;
-            max-height: 100%;
-            width: auto;
-            height: auto;
-            object-fit: contain;
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #007bff;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 2s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .results-panel {
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-top: 15px;
-        }
-
-        .results-header {
-            background: #f8f9fa;
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #dee2e6;
-        }
-
-        .results-title {
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .objects-count {
-            color: #6c757d;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .detections-list {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .image-section {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .form-section {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .content {
-            display: flex;
-            gap: 20px;
-            height: calc(100vh - 120px);
-        }
-
-        .container {
-            padding: 20px;
-            height: 100%;
-        }
-
-        .main-content {
-            flex: 1;
-            overflow: auto;
-            margin-left: 260px;
-        }
-
-        .dashboard-container {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* Map container styling */
-        .map-container {
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
-            height: 200px;
-        }
-
-        /* Make the image container responsive */
-        @media (max-width: 768px) {
-            .content {
-                flex-direction: column;
-                height: auto;
-            }
-            
-            .image-container {
-                height: auto;
-                min-height: 250px;
-                aspect-ratio: 4/3;
-            }
-            
-            #previewCanvas {
-                width: 100%;
-                height: auto;
-                max-height: none;
-            }
-            
-            .form-row {
-                flex-direction: column;
-                gap: 15px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .image-container {
-                min-height: 200px;
-                aspect-ratio: 1/1;
-            }
-            
-            .map-container {
-                height: 150px;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 <body>
     <div class="dashboard-container">

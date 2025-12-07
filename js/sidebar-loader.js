@@ -104,26 +104,133 @@
             window.setSidebarActive = setActiveByPath;
         })();
 
-        // apply profile if available
-        (function applyProfile() {
+        // Function to load user profile data for sidebar with Firebase support
+        async function loadSidebarUserProfile() {
             try {
                 const img = document.getElementById('sidebarUserAvatar');
                 const nameEl = document.querySelector('.user-name');
                 const roleEl = document.querySelector('.user-role');
-                const src = window.userData?.imageBase64 || window.userData?.picture || window.currentUser?.photoURL || null;
-                if (img && src) {
-                    img.src = src;
-                    img.onerror = () => { img.onerror = null; img.src = img.getAttribute('data-default') || img.src; };
+                
+                // Check if Firebase is available and user is authenticated
+                if (window.firebase && window.firebase.auth) {
+                    const auth = window.firebase.auth();
+                    const user = auth.currentUser;
+                    
+                    if (user) {
+                        // Try to get user data from Firestore
+                        const db = window.firebase.firestore();
+                        try {
+                            const userDoc = await db.collection('users').doc(user.uid).get();
+                            
+                            if (userDoc.exists) {
+                                const userData = userDoc.data();
+                                
+                                // Update avatar
+                                if (img) {
+                                    const avatarSrc = userData.imageBase64 || userData.picture || user.photoURL || 'images/default-avatar.png';
+                                    img.src = avatarSrc;
+                                    img.onerror = () => {
+                                        img.onerror = null;
+                                        img.src = 'images/default-avatar.png';
+                                    };
+                                }
+                                
+                                // Update name
+                                if (nameEl) {
+                                    let displayName = 'User';
+                                    if (userData.firstName && userData.lastName) {
+                                        displayName = `${userData.firstName} ${userData.lastName}`;
+                                    } else if (userData.username) {
+                                        displayName = userData.username;
+                                    } else if (user.displayName) {
+                                        displayName = user.displayName;
+                                    } else if (user.email) {
+                                        displayName = user.email.split('@')[0];
+                                    }
+                                    nameEl.textContent = displayName;
+                                }
+                                
+                                // Update role
+                                if (roleEl) {
+                                    roleEl.textContent = userData.role || 'Farmer';
+                                }
+                                
+                                return; // Successfully loaded from Firestore
+                            }
+                        } catch (dbError) {
+                            console.warn('Could not load user from Firestore:', dbError);
+                        }
+                        
+                        // Fallback: Use auth user data
+                        if (img) {
+                            const avatarSrc = user.photoURL || 'images/default-avatar.png';
+                            img.src = avatarSrc;
+                            img.onerror = () => {
+                                img.onerror = null;
+                                img.src = 'images/default-avatar.png';
+                            };
+                        }
+                        
+                        if (nameEl) {
+                            nameEl.textContent = user.displayName || user.email.split('@')[0] || 'User';
+                        }
+                        
+                        if (roleEl) {
+                            roleEl.textContent = 'Farmer';
+                        }
+                    } else {
+                        // No user logged in
+                        if (img) img.src = 'images/default-avatar.png';
+                        if (nameEl) nameEl.textContent = 'Guest';
+                        if (roleEl) roleEl.textContent = 'Visitor';
+                    }
+                } else {
+                    // Firebase not available, fallback to legacy system
+                    const src = window.userData?.imageBase64 || window.userData?.picture || window.currentUser?.photoURL || null;
+                    if (img && src) {
+                        img.src = src;
+                        img.onerror = () => { 
+                            img.onerror = null; 
+                            img.src = 'images/default-avatar.png';
+                        };
+                    }
+                    
+                    if (nameEl) {
+                        const display = window.userData?.firstName && window.userData?.lastName
+                            ? `${window.userData.firstName} ${window.userData.lastName}`
+                            : window.userData?.username || window.currentUser?.displayName || (window.currentUser?.email || '').split('@')[0] || 'User';
+                        nameEl.textContent = display;
+                    }
+                    
+                    if (roleEl) {
+                        roleEl.textContent = window.userData?.bio || 'Farmer';
+                    }
                 }
-                if (nameEl) {
-                    const display = window.userData?.firstName && window.userData?.lastName
-                        ? `${window.userData.firstName} ${window.userData.lastName}`
-                        : window.userData?.username || window.currentUser?.displayName || (window.currentUser?.email || '').split('@')[0] || 'User';
-                    nameEl.textContent = display;
-                }
-                if (roleEl) roleEl.textContent = window.userData?.bio || 'Farmer';
-            } catch (e) { /* ignore */ }
-        })();
+            } catch (error) {
+                console.error('Error loading sidebar user profile:', error);
+                // Set defaults on error
+                const img = document.getElementById('sidebarUserAvatar');
+                const nameEl = document.querySelector('.user-name');
+                const roleEl = document.querySelector('.user-role');
+                
+                if (img) img.src = 'images/default-avatar.png';
+                if (nameEl) nameEl.textContent = 'User';
+                if (roleEl) roleEl.textContent = 'Farmer';
+            }
+        }
+
+        // Load sidebar user profile
+        loadSidebarUserProfile();
+
+        // Expose a function to update sidebar profile from other scripts
+        window.updateSidebarProfile = loadSidebarUserProfile;
+
+        // Listen for auth state changes to update sidebar
+        if (window.firebase && window.firebase.auth) {
+            window.firebase.auth().onAuthStateChanged(() => {
+                loadSidebarUserProfile();
+            });
+        }
 
         // wire toggle safely
         const sidebar = document.querySelector('.sidebar');
@@ -203,6 +310,7 @@
 
         // notify other scripts
         window.dispatchEvent(new CustomEvent('sidebar:loaded'));
+        
     } catch (err) {
         console.error('Sidebar loader error:', err);
     }
