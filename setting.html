@@ -1061,6 +1061,154 @@
                 transform: translateY(0);
             }
         }
+        /* Mobile Phone Scroll Fixes */
+@media (max-width: 768px) {
+    .dashboard-container {
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    .mobile-header {
+        display: flex;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        z-index: 1000;
+    }
+
+    .main-content {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-top: 70px; /* Offset for fixed header */
+        height: calc(100vh - 70px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .header {
+        display: none;
+    }
+
+    .settings-container {
+        padding: 20px;
+        flex-direction: column;
+        min-height: 100%;
+        overflow-y: visible;
+    }
+
+    .settings-content {
+        padding: 25px;
+        margin-bottom: 20px;
+        height: auto;
+        min-height: calc(100vh - 150px);
+        overflow-y: visible;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .profile-section {
+        height: auto;
+        overflow-y: visible;
+        padding-right: 0;
+    }
+
+    .form-grid {
+        max-height: none;
+        overflow-y: visible;
+        padding-right: 0;
+    }
+
+    /* Fix for iOS Safari */
+    @supports (-webkit-touch-callout: none) {
+        .main-content {
+            height: -webkit-fill-available;
+        }
+        
+        .settings-content {
+            min-height: -webkit-fill-available;
+        }
+    }
+}
+
+/* Mobile Bottom Safe Area */
+@supports (padding: max(0px)) {
+    @media (max-width: 768px) {
+        .settings-content {
+            padding-bottom: max(25px, env(safe-area-inset-bottom));
+        }
+        
+        .action-buttons {
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+        }
+    }
+}
+
+/* Prevent horizontal scroll on mobile */
+@media (max-width: 768px) {
+    body {
+        overflow-x: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
+    }
+    
+    .settings-container {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .profile-card,
+    .form-grid,
+    .input-with-icon input,
+    .input-with-icon textarea {
+        max-width: 100%;
+    }
+}
+
+/* Improve touch scrolling on mobile */
+@media (max-width: 768px) {
+    .main-content,
+    .settings-content {
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Prevent pull-to-refresh */
+    body {
+        overscroll-behavior-y: none;
+    }
+}
+
+/* Mobile keyboard handling */
+@media (max-width: 768px) {
+    input, textarea, select {
+        font-size: 16px !important; /* Prevents zoom on focus in iOS */
+    }
+    
+    .input-with-icon input:focus,
+    .input-with-icon textarea:focus {
+        position: relative;
+        z-index: 10;
+    }
+}
+
+/* Mobile scrollbar styling */
+@media (max-width: 768px) {
+    .main-content::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .main-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .main-content::-webkit-scrollbar-thumb {
+        background: rgba(var(--primary-color-rgb), 0.3);
+        border-radius: 2px;
+    }
+}
     </style>
 </head>
 <body>
