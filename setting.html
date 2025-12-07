@@ -919,12 +919,8 @@
         <button class="menu-toggle" id="menuToggle">
             <i class="fas fa-bars"></i>
         </button>
-        <h1><i class="fas fa-tractor"></i> Farm Data</h1>
+        <h1><i class="fas fa-cogs"></i> Settings</h1>
         <div class="mobile-actions">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="mobileSearchInput" placeholder="Search farms...">
-            </div>
             <button class="theme-toggle" id="mobileThemeToggle">
                 <i class="fas fa-moon"></i>
             </button>
@@ -936,1059 +932,676 @@
 
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
-        <script src="js/sidebar-loader.js"></script>
-
-        <main class="main-content" id="mainContent">
+        
+        <div class="main-content" id="mainContent">
             <!-- Desktop Header -->
-            <div class="top-header">
-                <div class="header-left">
-                    <h1><i class="fas fa-tractor"></i> Farm Data Management</h1>
+            <div class="header">
+                <div class="header-title">
+                    <h1><i class="fas fa-cogs"></i> Settings</h1>
+                    <p>Manage your account preferences and profile</p>
                 </div>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="desktopSearchInput" placeholder="Search farms...">
+                <div class="header-actions">
+                    <button class="theme-toggle" id="desktopThemeToggle">
+                        <i class="fas fa-moon"></i> Dark Mode
+                    </button>
                 </div>
             </div>
 
-            <div class="container">
-                <div class="page-header">
-                    <h2 class="page-title">Farm Overview</h2>
-                    <div class="page-actions">
-                        <button class="btn btn-secondary" id="filterBtn">
-                            <i class="fas fa-filter"></i> Filter
-                        </button>
-                        <button class="btn btn-primary" id="addFarmBtn">
-                            <i class="fas fa-plus"></i> Add Farm
-                        </button>
-                    </div>
+            <div class="settings-container">
+                <!-- Settings Navigation -->
+                <div class="settings-sidebar">
+                    <ul class="settings-nav">
+                        <li><a href="#profile" class="active" data-section="profile">
+                            <i class="fas fa-user"></i> Profile Settings
+                        </a></li>
+                        <li><a href="#password" data-section="password">
+                            <i class="fas fa-lock"></i> Security
+                        </a></li>
+                        <li><a href="#notifications" data-section="notifications">
+                            <i class="fas fa-bell"></i> Notifications
+                        </a></li>
+                        <li><a href="#privacy" data-section="privacy">
+                            <i class="fas fa-shield-alt"></i> Privacy
+                        </a></li>
+                        <li><a href="#appearance" data-section="appearance">
+                            <i class="fas fa-palette"></i> Appearance
+                        </a></li>
+                    </ul>
                 </div>
 
-                <div class="stats-grid" id="statsGrid">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading farm statistics...</p>
-                    </div>
-                </div>
-
-                <div class="farms-grid" id="farmsGrid">
-                    <!-- Farm cards will be populated here -->
-                </div>
-
-                <div class="farm-details" id="farmDetails">
-                    <div class="details-header">
-                        <h2 class="details-title" id="detailsTitle">Farm Details</h2>
-                        <div>
-                            <button class="btn btn-secondary" id="editFarmBtn">
-                                <i class="fas fa-edit"></i> Edit Farm
-                            </button>
-                            <button class="btn btn-secondary" id="closeDetailsBtn">
-                                <i class="fas fa-times"></i> Close
-                            </button>
+                <!-- Settings Content -->
+                <div class="settings-content">
+                    <!-- Profile Section -->
+                    <div class="profile-section active" id="profile-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-user-edit"></i> Profile Information</h2>
+                            <p>Update your personal information and profile picture</p>
                         </div>
-                    </div>
-                    <div class="details-content">
-                        <div class="details-column">
-                            <div class="details-section">
-                                <h3 class="section-title">Farm Information</h3>
-                                <div class="farm-info">
-                                    <div class="info-item">
-                                        <span class="info-label">Farm ID:</span>
-                                        <span class="info-value" id="detailId">-</span>
+
+                        <div class="profile-card">
+                            <div class="profile-header">
+                                <div class="profile-picture-container">
+                                    <img id="profile-picture" src="" alt="Profile Picture" class="profile-picture">
+                                    <div class="upload-overlay" id="upload-trigger">
+                                        <i class="fas fa-camera"></i>
                                     </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Farm Name:</span>
-                                        <span class="info-value" id="detailName">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Location:</span>
-                                        <span class="info-value" id="detailLocation">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Total Area:</span>
-                                        <span class="info-value" id="detailArea">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Status:</span>
-                                        <span class="info-value" id="detailStatus">-</span>
-                                    </div>
+                                    <input type="file" id="file-input" class="file-input" accept="image/*">
+                                </div>
+                                <div class="profile-info">
+                                    <h3 id="display-name">John Doe</h3>
+                                    <p id="display-username">@johndoe</p>
+                                    <span class="badge">Pro Member</span>
                                 </div>
                             </div>
-                            
-                            <div class="details-section">
-                                <h3 class="section-title">Crops</h3>
-                                <ul class="crop-list" id="detailCrops">
-                                    <!-- Crops will be populated here -->
-                                </ul>
-                            </div>
+                            <p class="profile-bio" id="display-bio">Digital designer & photography enthusiast. Love to travel and capture moments.</p>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div id="success-notification" class="notification success">
+                            <i class="fas fa-check-circle"></i> Profile updated successfully!
                         </div>
                         
-                        <div class="details-column">
-                            <div class="details-section">
-                                <h3 class="section-title">Soil Information</h3>
-                                <div class="farm-info">
-                                    <div class="info-item">
-                                        <span class="info-label">Soil Type:</span>
-                                        <span class="info-value" id="detailSoilType">-</span>
+                        <div id="error-notification" class="notification error">
+                            <i class="fas fa-exclamation-circle"></i> Please fill in all required fields.
+                        </div>
+
+                        <div id="auth-notification" class="notification error">
+                            <i class="fas fa-exclamation-circle"></i> You must be logged in to save your profile.
+                        </div>
+
+                        <!-- Profile Form -->
+                        <form id="profile-form">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-at"></i>
+                                        <input type="text" id="username" name="username" placeholder="johndoe" required>
                                     </div>
-                                    <div class="info-item">
-                                        <span class="info-label">pH Level:</span>
-                                        <span class="info-value" id="detailPHLevel">-</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="email">Email Address</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-envelope"></i>
+                                        <input type="email" id="email" name="email" placeholder="john@example.com" disabled>
                                     </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Nutrient Level:</span>
-                                        <span class="info-value" id="detailNutrient">-</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="first-name">First Name</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" id="first-name" name="first-name" placeholder="John" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="last-name">Last Name</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-user"></i>
+                                        <input type="text" id="last-name" name="last-name" placeholder="Doe" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group full-width">
+                                    <label for="bio">Bio</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-pencil-alt"></i>
+                                        <textarea id="bio" name="bio" placeholder="Tell us about yourself..."></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="location">Location</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <input type="text" id="location" name="location" placeholder="New York, USA">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="phone">Phone Number</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-phone"></i>
+                                        <input type="tel" id="phone" name="phone" placeholder="+1 (123) 456-7890">
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="details-section">
-                                <h3 class="section-title">Recent Activities</h3>
-                                <ul class="activity-list" id="detailActivities">
-                                    <!-- Activities will be populated here -->
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-primary" id="save-button">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="cancel-button">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Password Section -->
+                    <div class="profile-section" id="password-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-lock"></i> Change Password</h2>
+                            <p>Update your password to keep your account secure</p>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div id="password-success-notification" class="notification success">
+                            <i class="fas fa-check-circle"></i> Password changed successfully!
+                        </div>
+                        
+                        <div id="password-error-notification" class="notification error">
+                            <i class="fas fa-exclamation-circle"></i> Error changing password.
+                        </div>
+
+                        <form id="password-form">
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label for="current-password">Current Password</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-key"></i>
+                                        <input type="password" id="current-password" name="current-password" placeholder="Enter current password" required>
+                                        <button type="button" class="password-toggle" data-target="current-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="new-password">New Password</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="password" id="new-password" name="new-password" placeholder="Enter new password" required>
+                                        <button type="button" class="password-toggle" data-target="new-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="confirm-password">Confirm New Password</label>
+                                    <div class="input-with-icon">
+                                        <i class="fas fa-lock"></i>
+                                        <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm new password" required>
+                                        <button type="button" class="password-toggle" data-target="confirm-password">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="password-requirements">
+                                <p>Password Requirements:</p>
+                                <ul>
+                                    <li id="length-req" class="invalid">Minimum 8 characters</li>
+                                    <li id="case-req" class="invalid">Uppercase and lowercase letters</li>
+                                    <li id="number-req" class="invalid">At least one number</li>
+                                    <li id="special-req" class="invalid">At least one special character</li>
                                 </ul>
                             </div>
                             
-                            <div class="details-section">
-                                <h3 class="section-title">Notes</h3>
-                                <div id="detailNotes">-</div>
+                            <div id="password-match" class="notification" style="display: none;">
+                                <i class="fas fa-info-circle"></i> Passwords match
                             </div>
+                            
+                            <div class="action-buttons">
+                                <button type="submit" class="btn btn-primary" id="change-password-button">
+                                    <i class="fas fa-key"></i> Update Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Other Sections (Placeholder) -->
+                    <div class="profile-section" id="notifications-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-bell"></i> Notification Settings</h2>
+                            <p>Manage how you receive notifications</p>
                         </div>
+                        <p style="color: var(--gray); padding: 40px; text-align: center;">
+                            Notification settings will be available soon.
+                        </p>
+                    </div>
+
+                    <div class="profile-section" id="privacy-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-shield-alt"></i> Privacy Settings</h2>
+                            <p>Control your privacy and data sharing preferences</p>
+                        </div>
+                        <p style="color: var(--gray); padding: 40px; text-align: center;">
+                            Privacy settings will be available soon.
+                        </p>
+                    </div>
+
+                    <div class="profile-section" id="appearance-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-palette"></i> Appearance</h2>
+                            <p>Customize the look and feel of your dashboard</p>
+                        </div>
+                        <p style="color: var(--gray); padding: 40px; text-align: center;">
+                            Appearance settings will be available soon.
+                        </p>
                     </div>
                 </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Filter Modal -->
-    <div class="filter-modal" id="filterModal">
-        <div class="filter-modal-content">
-            <div class="filter-header">
-                <h2 class="filter-title">Filter Farms</h2>
-                <button class="close-filter" id="closeFilterBtn">&times;</button>
-            </div>
-            <div class="filter-options">
-                <div class="filter-group">
-                    <label class="filter-label">Farm Status</label>
-                    <select class="filter-select" id="statusFilter">
-                        <option value="all">All Statuses</option>
-                        <option value="active">Active</option>
-                        <option value="inactive">Inactive</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label class="filter-label">Soil Type</label>
-                    <select class="filter-select" id="soilFilter">
-                        <option value="all">All Soil Types</option>
-                        <option value="clay">Clay</option>
-                        <option value="sandy">Sandy</option>
-                        <option value="loam">Loam</option>
-                        <option value="silt">Silt</option>
-                    </select>
-                </div>
-                
-                <div class="filter-group">
-                    <label class="filter-label">Farm Size</label>
-                    <select class="filter-select" id="sizeFilter">
-                        <option value="all">All Sizes</option>
-                        <option value="small">Small (0-5 acres)</option>
-                        <option value="medium">Medium (5-20 acres)</option>
-                        <option value="large">Large (20+ acres)</option>
-                    </select>
-                </div>
-            </div>
-            <div class="filter-actions">
-                <button class="btn btn-outline" id="clearFiltersBtn">Clear Filters</button>
-                <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
             </div>
         </div>
     </div>
 
-    <!-- Add Farm Modal -->
-    <div class="add-farm-modal" id="addFarmModal">
-        <div class="add-farm-modal-content">
-            <div class="add-farm-header">
-                <h2 class="add-farm-title">Add New Farm</h2>
-                <button class="close-add-farm" id="closeAddFarmBtn">&times;</button>
-            </div>
-            <form id="addFarmForm">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="farmName">Farm Name *</label>
-                        <input type="text" class="form-input" id="farmName" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="farmLocation">Location *</label>
-                        <input type="text" class="form-input" id="farmLocation" required>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="farmArea">Total Area (acres) *</label>
-                        <input type="number" class="form-input" id="farmArea" min="0" step="0.1" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="farmStatus">Status</label>
-                        <select class="form-select" id="farmStatus">
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label class="form-label" for="soilType">Soil Type</label>
-                        <select class="form-select" id="soilType">
-                            <option value="clay">Clay</option>
-                            <option value="sandy">Sandy</option>
-                            <option value="loam">Loam</option>
-                            <option value="silt">Silt</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="phLevel">pH Level</label>
-                        <input type="number" class="form-input" id="phLevel" min="0" max="14" step="0.1" value="6.5">
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="farmCrops">Crops (comma separated)</label>
-                    <input type="text" class="form-input" id="farmCrops" placeholder="e.g., Oil Palm, Coconut, Banana">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label" for="farmNotes">Notes</label>
-                    <textarea class="form-textarea" id="farmNotes" placeholder="Additional notes about the farm..."></textarea>
-                </div>
-                
-                <div class="filter-actions">
-                    <button type="button" class="btn btn-outline" id="cancelAddFarmBtn">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Add Farm</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <script src="js/sidebar-loader.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
 
-    <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
 
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-        authDomain: "palmaegis-setup.firebaseapp.com",
-        projectId: "palmaegis-setup",
-        storageBucket: "palmaegis-setup.firebasestorage.app",
-        messagingSenderId: "445887502374",
-        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-    };
-
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Global variables for filtering
-    let currentFilters = {
-        status: 'all',
-        soil: 'all',
-        size: 'all'
-    };
-
-    // Mobile menu functionality
-    const menuToggle = document.getElementById('menuToggle');
-    const mobileOverlay = document.getElementById('mobileOverlay');
-    const mainContent = document.getElementById('mainContent');
-
-    // Toggle mobile sidebar
-    function toggleMobileMenu() {
+        // Mobile menu functionality
+        const menuToggle = document.getElementById('menuToggle');
+        const mobileOverlay = document.getElementById('mobileOverlay');
         const sidebar = document.querySelector('.sidebar');
-        if (sidebar) {
+        const mainContent = document.getElementById('mainContent');
+
+        // Toggle mobile sidebar
+        function toggleMobileMenu() {
             sidebar.classList.toggle('active');
             mobileOverlay.classList.toggle('active');
             document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
         }
-    }
 
-    if (menuToggle) {
         menuToggle.addEventListener('click', toggleMobileMenu);
-    }
-
-    if (mobileOverlay) {
         mobileOverlay.addEventListener('click', toggleMobileMenu);
-    }
 
-    // Close sidebar when clicking on a nav link (mobile)
-    document.addEventListener('click', (e) => {
-        if (window.innerWidth <= 768) {
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar && sidebar.classList.contains('active')) {
-                if (e.target.closest('.sidebar-nav a') || e.target.closest('.logout-btn')) {
-                    toggleMobileMenu();
+        // Close sidebar when clicking on a nav link (mobile)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                sidebar.classList.contains('active') && 
+                (e.target.closest('.sidebar-nav a') || e.target.closest('.logout-btn'))) {
+                toggleMobileMenu();
+            }
+        });
+
+        // Theme toggle functionality
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            
+            // Update both theme toggles
+            const desktopToggle = document.getElementById('desktopThemeToggle');
+            const mobileToggle = document.getElementById('mobileThemeToggle');
+            
+            if (isDarkMode) {
+                desktopToggle.innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+                mobileToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            } else {
+                desktopToggle.innerHTML = '<i class="fas fa-moon"></i> Dark Mode';
+                mobileToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            }
+            
+            // Save theme preference
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        }
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('desktopThemeToggle').innerHTML = '<i class="fas fa-sun"></i> Light Mode';
+            document.getElementById('mobileThemeToggle').innerHTML = '<i class="fas fa-sun"></i>';
+        }
+
+        // Attach theme toggle events
+        document.getElementById('desktopThemeToggle').addEventListener('click', toggleTheme);
+        document.getElementById('mobileThemeToggle').addEventListener('click', toggleTheme);
+
+        // Section Navigation
+        const navLinks = document.querySelectorAll('.settings-nav a');
+        const sections = document.querySelectorAll('.profile-section');
+        
+        navLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = link.getAttribute('data-section');
+                
+                // Update active nav
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+                
+                // Show corresponding section
+                sections.forEach(section => {
+                    section.classList.remove('active');
+                    if (section.id === `${sectionId}-section`) {
+                        section.classList.add('active');
+                    }
+                });
+
+                // Scroll to top of section
+                document.querySelector('.settings-content').scrollTop = 0;
+            });
+        });
+
+        // Firebase initialization and existing functionality
+        const profileForm = document.getElementById('profile-form');
+        const passwordForm = document.getElementById('password-form');
+        const fileInput = document.getElementById('file-input');
+        const uploadTrigger = document.getElementById('upload-trigger');
+        const profilePicture = document.getElementById('profile-picture');
+        const usernameInput = document.getElementById('username');
+        const firstNameInput = document.getElementById('first-name');
+        const lastNameInput = document.getElementById('last-name');
+        const bioInput = document.getElementById('bio');
+        const locationInput = document.getElementById('location');
+        const emailInput = document.getElementById('email');
+        const phoneInput = document.getElementById('phone');
+        const displayName = document.getElementById('display-name');
+        const displayUsername = document.getElementById('display-username');
+        const displayBio = document.getElementById('display-bio');
+        const successNotification = document.getElementById('success-notification');
+        const errorNotification = document.getElementById('error-notification');
+        const authNotification = document.getElementById('auth-notification');
+        const saveButton = document.getElementById('save-button');
+        const cancelButton = document.getElementById('cancel-button');
+        
+        // Password elements
+        const currentPasswordInput = document.getElementById('current-password');
+        const newPasswordInput = document.getElementById('new-password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        const passwordSuccessNotification = document.getElementById('password-success-notification');
+        const passwordErrorNotification = document.getElementById('password-error-notification');
+        const changePasswordButton = document.getElementById('change-password-button');
+        const passwordToggleButtons = document.querySelectorAll('.password-toggle');
+        const lengthReq = document.getElementById('length-req');
+        const caseReq = document.getElementById('case-req');
+        const numberReq = document.getElementById('number-req');
+        const specialReq = document.getElementById('special-req');
+        const passwordMatch = document.getElementById('password-match');
+
+        let currentUser = null;
+        let isUploading = false;
+
+        // Authentication
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                authNotification.style.display = 'none';
+                loadProfileData();
+            } else {
+                currentUser = null;
+                authNotification.style.display = 'block';
+            }
+        });
+
+        // Load profile data
+        async function loadProfileData() {
+            if (!currentUser) return;
+
+            try {
+                const doc = await db.collection('users').doc(currentUser.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+
+                    if (data.imageBase64) {
+                        profilePicture.src = data.imageBase64;
+                    } else if (data.picture) {
+                        profilePicture.src = data.picture;
+                    } else {
+                        profilePicture.src = 'images/user-avatar.jpg';
+                    }
+
+                    usernameInput.value = data.username || currentUser.email.split('@')[0];
+                    displayUsername.textContent = '@' + (data.username || currentUser.email.split('@')[0]);
+                    firstNameInput.value = data.firstName || '';
+                    lastNameInput.value = data.lastName || '';
+                    displayName.textContent = `${data.firstName || ''} ${data.lastName || ''}`.trim();
+                    bioInput.value = data.bio || '';
+                    displayBio.textContent = data.bio || '';
+                    locationInput.value = data.location || '';
+                    emailInput.value = currentUser.email;
+                    phoneInput.value = data.phone || '';
                 }
+            } catch (err) {
+                console.error('Error loading profile:', err);
+                showNotification(errorNotification, 'Error loading profile data');
             }
         }
-    });
 
-    // Theme toggle functionality
-    function toggleTheme() {
-        document.body.classList.toggle('dark-mode');
-        const isDarkMode = document.body.classList.contains('dark-mode');
-        
-        // Update theme toggles
-        const mobileToggle = document.getElementById('mobileThemeToggle');
-        
-        if (isDarkMode) {
-            mobileToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        } else {
-            mobileToggle.innerHTML = '<i class="fas fa-moon"></i>';
+        // File upload
+        uploadTrigger.addEventListener('click', () => {
+            if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', async () => {
+            if (!currentUser || isUploading) return;
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            try {
+                if (!file.type.startsWith('image/')) throw new Error('Only image files allowed.');
+                if (file.size > 5 * 1024 * 1024) throw new Error('File too large (max 5MB).');
+
+                isUploading = true;
+                uploadTrigger.innerHTML = '<div class="loading"></div>';
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Image = e.target.result;
+                    profilePicture.src = base64Image;
+
+                    await db.collection('users').doc(currentUser.uid).set({
+                        imageBase64: base64Image,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+
+                    showNotification(successNotification, 'Profile picture updated!');
+                };
+                reader.readAsDataURL(file);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showNotification(errorNotification, error.message);
+            } finally {
+                isUploading = false;
+                uploadTrigger.innerHTML = '<i class="fas fa-camera"></i>';
+                fileInput.value = '';
+            }
+        });
+
+        // Profile form submission
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+
+            if (!usernameInput.value || !firstNameInput.value || !lastNameInput.value) {
+                return showNotification(errorNotification, 'Please fill all required fields.');
+            }
+
+            const profileData = {
+                username: usernameInput.value,
+                firstName: firstNameInput.value,
+                lastName: lastNameInput.value,
+                email: currentUser.email,
+                bio: bioInput.value,
+                location: locationInput.value,
+                phone: phoneInput.value,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            saveButton.disabled = true;
+            saveButton.innerHTML = '<div class="loading"></div> Saving...';
+
+            try {
+                await db.collection('users').doc(currentUser.uid).set(profileData, { merge: true });
+                showNotification(successNotification, 'Profile updated successfully!');
+                displayName.textContent = `${firstNameInput.value} ${lastNameInput.value}`;
+                displayUsername.textContent = '@' + usernameInput.value;
+                displayBio.textContent = bioInput.value;
+            } catch (err) {
+                console.error('Error saving profile:', err);
+                showNotification(errorNotification, 'Error saving profile');
+            } finally {
+                saveButton.disabled = false;
+                saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            }
+        });
+
+        // Cancel button
+        cancelButton.addEventListener('click', () => {
+            loadProfileData();
+        });
+
+        // Password form submission
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return showNotification(authNotification, 'Please log in first.');
+
+            const currentPassword = currentPasswordInput.value;
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (!validatePassword(newPassword)) {
+                return showNotification(passwordErrorNotification, 'New password does not meet requirements.');
+            }
+
+            if (newPassword !== confirmPassword) {
+                return showNotification(passwordErrorNotification, 'Passwords do not match.');
+            }
+
+            changePasswordButton.disabled = true;
+            changePasswordButton.innerHTML = '<div class="loading"></div> Updating...';
+
+            try {
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    currentUser.email, 
+                    currentPassword
+                );
+                await currentUser.reauthenticateWithCredential(credential);
+                
+                await currentUser.updatePassword(newPassword);
+                
+                showNotification(passwordSuccessNotification, 'Password changed successfully!');
+                passwordForm.reset();
+                resetPasswordValidation();
+            } catch (err) {
+                console.error('Error changing password:', err);
+                let errorMessage = 'Error changing password. ';
+                
+                if (err.code === 'auth/wrong-password') {
+                    errorMessage = 'Current password is incorrect.';
+                } else if (err.code === 'auth/weak-password') {
+                    errorMessage = 'New password is too weak.';
+                }
+                
+                showNotification(passwordErrorNotification, errorMessage);
+            } finally {
+                changePasswordButton.disabled = false;
+                changePasswordButton.innerHTML = '<i class="fas fa-key"></i> Update Password';
+            }
+        });
+
+        // Password validation
+        function validatePassword(password) {
+            const hasLength = password.length >= 8;
+            const hasCase = /[a-z]/.test(password) && /[A-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+            
+            lengthReq.className = hasLength ? 'valid' : 'invalid';
+            caseReq.className = hasCase ? 'valid' : 'invalid';
+            numberReq.className = hasNumber ? 'valid' : 'invalid';
+            specialReq.className = hasSpecial ? 'valid' : 'invalid';
+            
+            return hasLength && hasCase && hasNumber && hasSpecial;
         }
-        
-        // Save theme preference
-        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-    }
 
-    // Load saved theme
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark-mode');
-        document.getElementById('mobileThemeToggle').innerHTML = '<i class="fas fa-sun"></i>';
-    }
+        // Password validation UI
+        newPasswordInput.addEventListener('input', () => {
+            validatePassword(newPasswordInput.value);
+            checkPasswordMatch();
+        });
 
-    // Attach theme toggle events
-    document.getElementById('mobileThemeToggle').addEventListener('click', toggleTheme);
+        confirmPasswordInput.addEventListener('input', checkPasswordMatch);
 
-    // Handle window resize
-    window.addEventListener('resize', () => {
-        if (window.innerWidth > 768) {
-            // Close mobile menu on desktop
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
+        function checkPasswordMatch() {
+            const password = newPasswordInput.value;
+            const confirm = confirmPasswordInput.value;
+            
+            if (confirm === '') {
+                passwordMatch.style.display = 'none';
+            } else if (password === confirm) {
+                passwordMatch.style.display = 'flex';
+                passwordMatch.className = 'notification success';
+                passwordMatch.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
+            } else {
+                passwordMatch.style.display = 'flex';
+                passwordMatch.className = 'notification error';
+                passwordMatch.innerHTML = '<i class="fas fa-exclamation-circle"></i> Passwords do not match';
+            }
+        }
+
+        function resetPasswordValidation() {
+            lengthReq.className = 'invalid';
+            caseReq.className = 'invalid';
+            numberReq.className = 'invalid';
+            specialReq.className = 'invalid';
+            passwordMatch.style.display = 'none';
+        }
+
+        // Password visibility toggle
+        passwordToggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetId = button.getAttribute('data-target');
+                const targetInput = document.getElementById(targetId);
+                
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    targetInput.type = 'password';
+                    button.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            });
+        });
+
+        // Notification helper
+        function showNotification(el, message) {
+            while (el.childNodes.length > 1) el.removeChild(el.lastChild);
+            el.appendChild(document.createTextNode(' ' + message));
+            el.style.display = 'flex';
+            setTimeout(() => { el.style.display = 'none'; }, 4000);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                // Close mobile menu on desktop
                 sidebar.classList.remove('active');
                 mobileOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             }
-        }
-    });
-
-    // Initialize on load
-    document.addEventListener('DOMContentLoaded', () => {
-        // Set initial padding for main content based on sidebar
-        const sidebarElement = document.querySelector('.sidebar');
-        if (sidebarElement && window.innerWidth > 768) {
-            const sidebarWidth = sidebarElement.offsetWidth;
-            mainContent.style.marginLeft = `${sidebarWidth}px`;
-            mainContent.style.width = `calc(100% - ${sidebarWidth}px)`;
-        }
-    });
-
-    // Check authentication state
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            console.log('User is signed in:', user.email);
-            window.currentUser = user;
-            
-            try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    window.userData = userData;
-                    updateUserProfile(user, userData);
-                } else {
-                    updateUserProfile(user, {});
-                }
-                
-                // Load farm data
-                await loadFarmData(user.uid);
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                updateUserProfile(user, {});
-                showError("Failed to load user data. Please try again.");
-            }
-        } else {
-            console.log('User is not signed in');
-            window.location.href = 'signin.html';
-        }
-    });
-
-    function updateUserProfile(user, userData) {
-        const userNameElement = document.querySelector('.user-name');
-        const userRoleElement = document.querySelector('.user-role');
-
-        const displayName = userData.firstName && userData.lastName 
-            ? `${userData.firstName} ${userData.lastName}`
-            : userData.username 
-            ? userData.username
-            : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-
-        if (userNameElement) userNameElement.textContent = displayName;
-        if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
-
-        // set avatar(s) safely (use base64/photoURL/picture or fall back to default)
-        const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
-        const avatars = document.querySelectorAll('.user-avatar');
-        avatars.forEach(img => {
-            if (img) {
-                img.src = avatarSrc;
-                img.onerror = () => { img.src = 'images/default-avatar.png'; };
-            }
         });
 
-        // store for later in case sidebar is loaded after profile
-        window.userData = userData;
-    }
-
-    // If sidebar is loaded after user data, re-apply avatar when sidebar is inserted
-    if (window.__sidebarLoaded) {
-        // sidebar might already be present
-        if (window.userData) updateUserProfile(window.currentUser, window.userData);
-    } else {
-        window.addEventListener('sidebar:loaded', () => {
-            if (window.currentUser) updateUserProfile(window.currentUser, window.userData || {});
-        }, { once: true });
-    }
-
-    // Show error message
-    function showError(message) {
-        const farmsGrid = document.getElementById('farmsGrid');
-        farmsGrid.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>Error Loading Farms</h3>
-                <p>${message}</p>
-                <button class="btn btn-primary" id="retryBtn" style="margin-top: 15px;">
-                    <i class="fas fa-redo"></i> Try Again
-                </button>
-            </div>
-        `;
-        
-        document.getElementById('retryBtn').addEventListener('click', () => {
-            if (window.currentUser) {
-                loadFarmData(window.currentUser.uid);
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Set initial padding for main content based on sidebar
+            const sidebarElement = document.querySelector('.sidebar');
+            if (sidebarElement && window.innerWidth > 768) {
+                const sidebarWidth = sidebarElement.offsetWidth;
+                mainContent.style.marginLeft = `${sidebarWidth}px`;
+                mainContent.style.width = `calc(100% - ${sidebarWidth}px)`;
             }
         });
-    }
-
-    // Show no data message
-    function showNoData() {
-        const farmsGrid = document.getElementById('farmsGrid');
-        farmsGrid.innerHTML = `
-            <div class="no-data">
-                <i class="fas fa-tractor"></i>
-                <h3>No Farms Available</h3>
-                <p>Add your first farm to get started with farm management.</p>
-                <button class="btn btn-primary" id="createFarmBtn" style="margin-top: 15px;">
-                    <i class="fas fa-plus"></i> Add Farm
-                </button>
-            </div>
-        `;
-        
-        document.getElementById('createFarmBtn').addEventListener('click', openAddFarmModal);
-    }
-
-    // Load farm data from Firebase
-    async function loadFarmData(userId) {
-        try {
-            const farmsGrid = document.getElementById('farmsGrid');
-            const statsGrid = document.getElementById('statsGrid');
-            
-            farmsGrid.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading farm data...</p>
-                </div>
-            `;
-            
-            statsGrid.innerHTML = `
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Loading farm statistics...</p>
-                </div>
-            `;
-
-            console.log("Loading farms for user:", userId);
-            
-            const farmsRef = collection(db, "farms");
-            
-            // Try different query approaches
-            let querySnapshot;
-            try {
-                // First try: Query with user filter and ordering
-                const q = query(farmsRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
-                querySnapshot = await getDocs(q);
-            } catch (queryError) {
-                console.log("First query failed, trying without ordering:", queryError);
-                
-                // Second try: Query without ordering (in case createdAt field doesn't exist)
-                try {
-                    const q = query(farmsRef, where("userId", "==", userId));
-                    querySnapshot = await getDocs(q);
-                } catch (secondError) {
-                    console.log("Second query failed, trying to get all farms:", secondError);
-                    
-                    // Third try: Get all farms and filter client-side
-                    querySnapshot = await getDocs(farmsRef);
-                    // Filter by userId manually
-                    const filteredDocs = [];
-                    querySnapshot.forEach(doc => {
-                        const data = doc.data();
-                        if (data.userId === userId) {
-                            filteredDocs.push({...doc, data: () => data});
-                        }
-                    });
-                    // Create a mock querySnapshot
-                    querySnapshot = {
-                        empty: filteredDocs.length === 0,
-                        forEach: (callback) => filteredDocs.forEach(callback),
-                        size: filteredDocs.length
-                    };
-                }
-            }
-            
-            console.log("Found farms:", querySnapshot.size);
-            
-            if (querySnapshot.empty) {
-                showNoData();
-                // Still show stats with zeros
-                updateStats([]);
-                return;
-            }
-            
-            const allFarms = [];
-            querySnapshot.forEach((doc) => {
-                const farm = doc.data ? doc.data() : doc;
-                allFarms.push({farm, docId: doc.id});
-            });
-            
-            // Store all farms for filtering
-            window.allFarms = allFarms;
-            
-            // Update stats
-            updateStats(allFarms);
-            
-            // Apply any existing filters
-            applyFilters();
-            
-        } catch (error) {
-            console.error("Error loading farms: ", error);
-            
-            // More specific error messages
-            if (error.code === 'permission-denied') {
-                showError("Database permission denied. Please contact support.");
-            } else if (error.code === 'unavailable') {
-                showError("Network error. Please check your internet connection.");
-            } else if (error.message && error.message.includes('index')) {
-                showError("Database indexing issue. Please try creating a farm first.");
-            } else {
-                showError("Unable to load farm data. Please try creating a farm first.");
-            }
-        }
-    }
-
-    // Update statistics
-    function updateStats(farms) {
-        const statsGrid = document.getElementById('statsGrid');
-        
-        // Calculate stats
-        const totalFarms = farms.length;
-        const activeFarms = farms.filter(({farm}) => farm.status === 'active').length;
-        const totalArea = farms.reduce((sum, {farm}) => sum + (parseFloat(farm.area) || 0), 0);
-        const avgArea = totalFarms > 0 ? (totalArea / totalFarms).toFixed(1) : 0;
-        
-        statsGrid.innerHTML = `
-            <div class="stat-card">
-                <div class="stat-icon icon-primary">
-                    <i class="fas fa-tractor"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>${totalFarms}</h3>
-                    <p>Total Farms</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon icon-info">
-                    <i class="fas fa-seedling"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>${activeFarms}</h3>
-                    <p>Active Farms</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon icon-warning">
-                    <i class="fas fa-ruler-combined"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>${totalArea.toFixed(1)}</h3>
-                    <p>Total Area (acres)</p>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon icon-danger">
-                    <i class="fas fa-chart-area"></i>
-                </div>
-                <div class="stat-info">
-                    <h3>${avgArea}</h3>
-                    <p>Avg. Farm Size</p>
-                </div>
-            </div>
-        `;
-    }
-
-    // Apply filters to farms
-    function applyFilters() {
-        const farmsGrid = document.getElementById('farmsGrid');
-        farmsGrid.innerHTML = '';
-        
-        if (!window.allFarms || window.allFarms.length === 0) {
-            showNoData();
-            return;
-        }
-        
-        const filteredFarms = window.allFarms.filter(({farm, docId}) => {
-            // Status filter
-            if (currentFilters.status !== 'all' && farm.status !== currentFilters.status) {
-                return false;
-            }
-            
-            // Soil filter
-            if (currentFilters.soil !== 'all' && farm.soilType !== currentFilters.soil) {
-                return false;
-            }
-            
-            // Size filter
-            if (currentFilters.size !== 'all') {
-                const area = parseFloat(farm.area) || 0;
-                if (currentFilters.size === 'small' && area > 5) return false;
-                if (currentFilters.size === 'medium' && (area <= 5 || area > 20)) return false;
-                if (currentFilters.size === 'large' && area <= 20) return false;
-            }
-            
-            return true;
-        });
-        
-        if (filteredFarms.length === 0) {
-            farmsGrid.innerHTML = `
-                <div class="no-data">
-                    <i class="fas fa-filter"></i>
-                    <h3>No Farms Match Your Filters</h3>
-                    <p>Try adjusting your filter criteria to see more results.</p>
-                    <button class="btn btn-primary" id="clearFilterResultsBtn" style="margin-top: 15px;">
-                        <i class="fas fa-times"></i> Clear Filters
-                    </button>
-                </div>
-            `;
-            
-            document.getElementById('clearFilterResultsBtn').addEventListener('click', clearFilters);
-        } else {
-            filteredFarms.forEach(({farm, docId}) => {
-                createFarmCard(farm, docId);
-            });
-        }
-    }
-
-    // Clear all filters
-    function clearFilters() {
-        currentFilters = {
-            status: 'all',
-            soil: 'all',
-            size: 'all'
-        };
-        
-        // Reset filter inputs
-        document.getElementById('statusFilter').value = 'all';
-        document.getElementById('soilFilter').value = 'all';
-        document.getElementById('sizeFilter').value = 'all';
-        
-        applyFilters();
-        closeFilterModal();
-    }
-
-    // Open filter modal
-    function openFilterModal() {
-        document.getElementById('filterModal').style.display = 'flex';
-    }
-
-    // Close filter modal
-    function closeFilterModal() {
-        document.getElementById('filterModal').style.display = 'none';
-    }
-
-    // Open add farm modal
-    function openAddFarmModal() {
-        document.getElementById('addFarmModal').style.display = 'flex';
-    }
-
-    // Close add farm modal
-    function closeAddFarmModal() {
-        document.getElementById('addFarmModal').style.display = 'none';
-        document.getElementById('addFarmForm').reset();
-    }
-
-    // Create a farm card for each farm
-    function createFarmCard(farm, docId) {
-        const farmsGrid = document.getElementById('farmsGrid');
-        
-        // Format area
-        const area = parseFloat(farm.area) || 0;
-        const areaText = area > 0 ? `${area} acres` : 'Not specified';
-        
-        // Determine utilization percentage (for progress bar)
-        let utilizationPercent = 0;
-        let utilizationClass = "progress-low";
-        
-        if (farm.crops && farm.crops.length > 0) {
-            utilizationPercent = Math.min(farm.crops.length * 20, 100);
-            if (utilizationPercent <= 25) {
-                utilizationClass = "progress-low";
-            } else if (utilizationPercent <= 50) {
-                utilizationClass = "progress-medium";
-            } else if (utilizationPercent <= 75) {
-                utilizationClass = "progress-high";
-            } else {
-                utilizationClass = "progress-full";
-            }
-        }
-        
-        const farmCard = document.createElement('div');
-        farmCard.className = 'farm-card';
-        farmCard.setAttribute('data-id', docId);
-        
-        farmCard.innerHTML = `
-            <div class="farm-header">
-                <div class="farm-title">${farm.name || 'Unnamed Farm'}</div>
-                <div class="farm-status ${farm.status === 'active' ? 'status-active' : 'status-inactive'}">
-                    ${farm.status === 'active' ? 'Active' : 'Inactive'}
-                </div>
-            </div>
-            <div class="farm-body">
-                <div class="farm-info">
-                    <div class="info-item">
-                        <span class="info-label">Location:</span>
-                        <span class="info-value">${farm.location || 'Not specified'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Area:</span>
-                        <span class="info-value">${areaText}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Soil Type:</span>
-                        <span class="info-value">${farm.soilType || 'Not specified'}</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Crops:</span>
-                        <span class="info-value">${farm.crops ? farm.crops.length : 0} types</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Land Utilization:</span>
-                        <span class="info-value">${utilizationPercent}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-level ${utilizationClass}"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="farm-footer">
-                <div class="farm-date">${farm.createdAt ? new Date(farm.createdAt.toDate()).toLocaleDateString() : 'Unknown'}</div>
-                <div class="farm-actions">
-                    <button class="action-btn view-details" title="View Details">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                    <button class="action-btn edit-farm" title="Edit Farm">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="action-btn delete-farm" title="Delete Farm">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        `;
-        
-        farmsGrid.appendChild(farmCard);
-        
-        // Add event listener for view details
-        const viewBtn = farmCard.querySelector('.view-details');
-        viewBtn.addEventListener('click', () => {
-            showFarmDetails(farm, docId);
-        });
-        
-        // Add event listener for edit farm
-        const editBtn = farmCard.querySelector('.edit-farm');
-        editBtn.addEventListener('click', () => {
-            editFarm(farm, docId);
-        });
-        
-        // Add event listener for delete farm
-        const deleteBtn = farmCard.querySelector('.delete-farm');
-        deleteBtn.addEventListener('click', () => {
-            deleteFarm(docId);
-        });
-    }
-
-    // Show detailed farm view
-    function showFarmDetails(farm, docId) {
-        const detailsPanel = document.getElementById('farmDetails');
-        const farmsGrid = document.getElementById('farmsGrid');
-        
-        // Hide farms grid and show details
-        farmsGrid.style.display = 'none';
-        detailsPanel.style.display = 'block';
-        
-        // Store current farm for editing
-        window.currentFarm = farm;
-        window.currentFarmId = docId;
-        
-        // Populate details with safe defaults
-        document.getElementById('detailsTitle').textContent = `Farm Details - ${farm.name || 'Unknown'}`;
-        document.getElementById('detailId').textContent = farm.id || docId || 'Not specified';
-        document.getElementById('detailName').textContent = farm.name || 'Not specified';
-        document.getElementById('detailLocation').textContent = farm.location || 'Not specified';
-        document.getElementById('detailArea').textContent = `${parseFloat(farm.area) || 0} acres`;
-        document.getElementById('detailStatus').textContent = farm.status === 'active' ? 'Active' : 'Inactive';
-        document.getElementById('detailSoilType').textContent = farm.soilType || 'Not specified';
-        document.getElementById('detailPHLevel').textContent = farm.phLevel || 'Not tested';
-        document.getElementById('detailNutrient').textContent = farm.nutrientLevel || 'Not tested';
-        document.getElementById('detailNotes').textContent = farm.notes || 'No notes available.';
-        
-        // Populate crops list
-        const cropsList = document.getElementById('detailCrops');
-        cropsList.innerHTML = '';
-        
-        if (farm.crops && farm.crops.length > 0) {
-            farm.crops.forEach(crop => {
-                const cropItem = document.createElement('li');
-                cropItem.className = 'crop-item';
-                cropItem.innerHTML = `
-                    <span class="crop-name">${crop}</span>
-                    <span class="crop-area">${farm.cropAreas && farm.cropAreas[crop] ? farm.cropAreas[crop] + ' acres' : 'Area not specified'}</span>
-                `;
-                cropsList.appendChild(cropItem);
-            });
-        } else {
-            cropsList.innerHTML = '<li class="crop-item">No crops recorded</li>';
-        }
-        
-        // Populate activities list
-        const activitiesList = document.getElementById('detailActivities');
-        activitiesList.innerHTML = '';
-        
-        if (farm.activities && farm.activities.length > 0) {
-            // Show only the 5 most recent activities
-            const recentActivities = farm.activities.slice(-5).reverse();
-            
-            recentActivities.forEach(activity => {
-                const activityItem = document.createElement('li');
-                activityItem.className = 'activity-item';
-                
-                let activityDate = 'Unknown date';
-                try {
-                    if (activity.date) {
-                        activityDate = new Date(activity.date).toLocaleDateString();
-                    } else if (activity.timestamp) {
-                        activityDate = new Date(activity.timestamp.toDate()).toLocaleDateString();
-                    }
-                } catch (dateError) {
-                    console.log("Date parsing error:", dateError);
-                }
-                
-                activityItem.innerHTML = `
-                    <span class="activity-name">${activity.type || 'Activity'}</span>
-                    <span class="activity-date">${activityDate}</span>
-                `;
-                activitiesList.appendChild(activityItem);
-            });
-        } else {
-            activitiesList.innerHTML = '<li class="activity-item">No recent activities</li>';
-        }
-    }
-
-    // Edit farm function
-    function editFarm(farm, docId) {
-        // For now, just show the details and enable editing
-        showFarmDetails(farm, docId);
-        
-        // Enable editing mode
-        document.getElementById('editFarmBtn').style.display = 'block';
-    }
-
-    // Delete farm function
-    async function deleteFarm(docId) {
-        if (confirm('Are you sure you want to delete this farm? This action cannot be undone.')) {
-            try {
-                await deleteDoc(doc(db, "farms", docId));
-                
-                // Remove from local data
-                window.allFarms = window.allFarms.filter(({docId: id}) => id !== docId);
-                
-                // Refresh display
-                applyFilters();
-                updateStats(window.allFarms);
-                
-                // If we're viewing details for this farm, close the details
-                if (window.currentFarmId === docId) {
-                    document.getElementById('farmDetails').style.display = 'none';
-                    document.getElementById('farmsGrid').style.display = 'grid';
-                }
-                
-                alert('Farm deleted successfully.');
-            } catch (error) {
-                console.error('Error deleting farm:', error);
-                alert('Failed to delete farm. Please try again.');
-            }
-        }
-    }
-
-    // Add new farm
-    async function addNewFarm(farmData) {
-        try {
-            // Add user ID and timestamp
-            farmData.userId = window.currentUser.uid;
-            farmData.createdAt = new Date();
-            
-            // Parse crops if provided
-            if (farmData.crops) {
-                farmData.crops = farmData.crops.split(',').map(crop => crop.trim()).filter(crop => crop.length > 0);
-            } else {
-                farmData.crops = [];
-            }
-            
-            // Add to Firestore
-            const docRef = await addDoc(collection(db, "farms"), farmData);
-            console.log("Farm added with ID: ", docRef.id);
-            
-            // Reload farm data
-            await loadFarmData(window.currentUser.uid);
-            
-            // Close modal
-            closeAddFarmModal();
-            
-            alert('Farm added successfully!');
-        } catch (error) {
-            console.error('Error adding farm:', error);
-            alert('Failed to add farm. Please try again.');
-        }
-    }
-
-    // Search functionality
-    function setupSearch() {
-        const desktopSearch = document.getElementById('desktopSearchInput');
-        const mobileSearch = document.getElementById('mobileSearchInput');
-        
-        function handleSearch(searchTerm) {
-            searchTerm = searchTerm.toLowerCase();
-            const farmCards = document.querySelectorAll('.farm-card');
-            
-            farmCards.forEach(card => {
-                const title = card.querySelector('.farm-title').textContent.toLowerCase();
-                const infoValues = card.querySelectorAll('.info-value');
-                const location = infoValues[0] ? infoValues[0].textContent.toLowerCase() : '';
-                const soilType = infoValues[2] ? infoValues[2].textContent.toLowerCase() : '';
-                const status = card.querySelector('.farm-status').textContent.toLowerCase();
-                
-                if (title.includes(searchTerm) || location.includes(searchTerm) || 
-                    soilType.includes(searchTerm) || status.includes(searchTerm)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-        }
-        
-        if (desktopSearch) {
-            desktopSearch.addEventListener('input', (e) => {
-                handleSearch(e.target.value);
-            });
-        }
-        
-        if (mobileSearch) {
-            mobileSearch.addEventListener('input', (e) => {
-                handleSearch(e.target.value);
-            });
-        }
-    }
-
-    // Event Listeners
-    document.getElementById('filterBtn').addEventListener('click', openFilterModal);
-    document.getElementById('closeFilterBtn').addEventListener('click', closeFilterModal);
-    document.getElementById('clearFiltersBtn').addEventListener('click', clearFilters);
-    
-    document.getElementById('applyFiltersBtn').addEventListener('click', () => {
-        currentFilters.status = document.getElementById('statusFilter').value;
-        currentFilters.soil = document.getElementById('soilFilter').value;
-        currentFilters.size = document.getElementById('sizeFilter').value;
-        
-        applyFilters();
-        closeFilterModal();
-    });
-
-    // Add farm modal events
-    document.getElementById('addFarmBtn').addEventListener('click', openAddFarmModal);
-    document.getElementById('closeAddFarmBtn').addEventListener('click', closeAddFarmModal);
-    document.getElementById('cancelAddFarmBtn').addEventListener('click', closeAddFarmModal);
-
-    // Add farm form submission
-    document.getElementById('addFarmForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        
-        const farmData = {
-            name: document.getElementById('farmName').value,
-            location: document.getElementById('farmLocation').value,
-            area: parseFloat(document.getElementById('farmArea').value),
-            status: document.getElementById('farmStatus').value,
-            soilType: document.getElementById('soilType').value,
-            phLevel: parseFloat(document.getElementById('phLevel').value),
-            crops: document.getElementById('farmCrops').value,
-            notes: document.getElementById('farmNotes').value
-        };
-        
-        addNewFarm(farmData);
-    });
-
-    // Close details view
-    document.getElementById('closeDetailsBtn').addEventListener('click', () => {
-        const detailsPanel = document.getElementById('farmDetails');
-        const farmsGrid = document.getElementById('farmsGrid');
-        
-        detailsPanel.style.display = 'none';
-        farmsGrid.style.display = 'grid';
-    });
-
-    // Edit farm button
-    document.getElementById('editFarmBtn').addEventListener('click', () => {
-        // For now, just show an alert
-        alert('Edit functionality will be implemented in a future version.');
-    });
-
-    // Logout functionality
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('#logoutBtn')) {
-            e.preventDefault();
-            signOut(auth).then(() => {
-                window.location.href = 'signin.html';
-            }).catch((error) => {
-                console.error('Logout error:', error);
-            });
-        }
-    });
-
-    // Close modals when clicking outside
-    document.getElementById('filterModal').addEventListener('click', (e) => {
-        if (e.target.id === 'filterModal') {
-            closeFilterModal();
-        }
-    });
-
-    document.getElementById('addFarmModal').addEventListener('click', (e) => {
-        if (e.target.id === 'addFarmModal') {
-            closeAddFarmModal();
-        }
-    });
-
-    // Setup search functionality
-    setupSearch();
     </script>
 </body>
 </html>
