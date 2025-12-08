@@ -715,6 +715,7 @@
     let userData = null;
     let generatedAssessmentId = '';
     let isProcessing = false;
+    let hasProcessedImage = false; // Track if image has been processed
 
     // Check authentication state
     onAuthStateChanged(auth, async (user) => {
@@ -881,36 +882,69 @@
             });
     }
 
-    // Function to auto-generate assessment ID after detection
-    async function autoGenerateAssessmentId() {
-        console.log('Auto-generating Assessment ID...');
-        console.log('Current detections:', currentDetections);
+    // Manual regeneration function
+    async function regenerateAssessmentId() {
+        console.log('Manual regeneration requested');
+        console.log('hasProcessedImage:', hasProcessedImage);
+        console.log('currentDetections:', currentDetections);
         
-        // Check if detection has been performed
-        if (!currentDetections || currentDetections.length === 0) {
-            console.log('No detections available for auto-generation');
-            updateAssessmentIdStatus(false, 'No diseases detected');
+        // Check if an image has been uploaded
+        if (!fileInput.files[0]) {
+            alert('Please upload an image first to generate Assessment ID');
             return;
         }
 
+        // Check if image has been processed
+        if (!hasProcessedImage) {
+            alert('Please wait for the image analysis to complete first. The Assessment ID will be generated automatically.');
+            return;
+        }
+
+        // Check if detection has been performed
+        if (!currentDetections || currentDetections.length === 0) {
+            // If we have an image but no detections, it might be a clean image
+            console.log('No diseases detected in the image');
+            // Still allow generation of ID (for healthy plants)
+            await autoGenerateAssessmentId();
+            return;
+        }
+
+        // Call the auto-generation function
+        await autoGenerateAssessmentId();
+    }
+
+    // Function to auto-generate assessment ID after detection
+    async function autoGenerateAssessmentId() {
+        console.log('Auto-generating Assessment ID...');
+        console.log('hasProcessedImage:', hasProcessedImage);
+        console.log('Current detections:', currentDetections);
+        
+        // Check if an image has been processed
+        if (!hasProcessedImage) {
+            console.log('No image has been processed yet');
+            updateAssessmentIdStatus(false, 'Please process an image first');
+            return;
+        }
+
+        // Even if no detections, we can still generate an ID (for healthy plants)
         try {
             // Determine disease type from detections
             const detectedDiseases = new Set();
-            currentDetections.forEach(det => {
-                if (det.confidence >= confidenceThreshold) {
-                    detectedDiseases.add(det.model);
-                }
-            });
+            if (currentDetections && currentDetections.length > 0) {
+                currentDetections.forEach(det => {
+                    if (det.confidence >= confidenceThreshold) {
+                        detectedDiseases.add(det.model);
+                    }
+                });
+            }
 
             console.log('Detected diseases:', Array.from(detectedDiseases));
 
-            let diseaseCode = diseaseCodes.unknown;
+            let diseaseCode = diseaseCodes.healthy; // Default to healthy if no diseases detected
             if (detectedDiseases.has('ganoderma')) {
                 diseaseCode = diseaseCodes.ganoderma;
             } else if (detectedDiseases.has('blackspot')) {
                 diseaseCode = diseaseCodes.blackspot;
-            } else if (detectedDiseases.size === 0) {
-                diseaseCode = diseaseCodes.healthy;
             }
 
             console.log('Selected disease code:', diseaseCode);
@@ -968,26 +1002,6 @@
             assessmentId.value = generatedAssessmentId;
             updateAssessmentIdStatus(true, 'Generated fallback ID');
         }
-    }
-
-    // Manual regeneration function
-    async function regenerateAssessmentId() {
-        console.log('Manual regeneration requested');
-        
-        // Check if an image has been uploaded
-        if (!fileInput.files[0]) {
-            alert('Please upload an image first to generate Assessment ID');
-            return;
-        }
-
-        // Check if detection has been performed
-        if (!currentDetections || currentDetections.length === 0) {
-            alert('Please analyze an image first to generate Assessment ID');
-            return;
-        }
-
-        // Call the auto-generation function
-        await autoGenerateAssessmentId();
     }
 
     // Update assessment ID status display
@@ -1248,6 +1262,7 @@
         }
 
         isProcessing = true;
+        hasProcessedImage = false; // Reset this flag
         loading.style.display = 'block';
         resetAssessmentIdStatus();
         
@@ -1289,7 +1304,9 @@
 
             // Store all detections globally
             currentDetections = allDetections;
+            hasProcessedImage = true; // Set flag to true after processing
             console.log('Detection complete. Total detections:', allDetections.length);
+            console.log('hasProcessedImage set to true');
             
             // Auto-detect disease type and set threshold
             autoDetectDiseaseType(allDetections);
@@ -1512,6 +1529,7 @@
         clearDetections();
         currentDetections = [];
         isProcessing = false;
+        hasProcessedImage = false; // Reset this flag
     }
 
     // Initialize the application
