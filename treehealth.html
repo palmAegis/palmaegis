@@ -261,7 +261,7 @@
         .assessments-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1000px;
+            min-width: 1200px;
         }
 
         .assessments-table th {
@@ -349,9 +349,10 @@
         .action-buttons {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .view-btn, .delete-btn {
+        .view-btn, .delete-btn, .treatment-btn, .complete-btn {
             padding: 6px 12px;
             border: none;
             border-radius: 4px;
@@ -380,6 +381,24 @@
 
         .delete-btn:hover {
             background: #c82333;
+        }
+
+        .treatment-btn {
+            background: #f57c00;
+            color: white;
+        }
+
+        .treatment-btn:hover {
+            background: #e65100;
+        }
+
+        .complete-btn {
+            background: #388e3c;
+            color: white;
+        }
+
+        .complete-btn:hover {
+            background: #2e7d32;
         }
 
         .no-data {
@@ -463,7 +482,7 @@
             background: white;
             border-radius: 8px;
             width: 90%;
-            max-width: 800px;
+            max-width: 900px;
             max-height: 90vh;
             overflow-y: auto;
         }
@@ -553,6 +572,194 @@
             margin-bottom: 5px;
         }
 
+        /* Treatment Modal Styles */
+        .treatment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-group {
+            flex: 1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .treatment-type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .treatment-type-card {
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .treatment-type-card:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(46, 125, 50, 0.05);
+        }
+
+        .treatment-type-card.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(46, 125, 50, 0.1);
+        }
+
+        .treatment-type-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .treatment-type-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+
+        .treatment-type-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .treatment-history {
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .history-item {
+            background: var(--light-bg);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-type {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .history-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .history-details {
+            font-size: 13px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .history-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .edit-btn, .remove-btn {
+            padding: 4px 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .edit-btn {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .remove-btn {
+            background: #dc3545;
+            color: white;
+        }
+
+        .submit-btn {
+            padding: 12px 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+            align-self: flex-start;
+        }
+
+        .submit-btn:hover {
+            background: var(--secondary-color);
+        }
+
+        .treatment-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inprogress {
+            background: #cce5ff;
+            color: #004085;
+        }
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .main-content {
@@ -596,7 +803,11 @@
             }
 
             .assessments-table {
-                min-width: 800px;
+                min-width: 1000px;
+            }
+
+            .form-row {
+                flex-direction: column;
             }
         }
 
@@ -635,6 +846,10 @@
             
             .stat-value {
                 font-size: 20px;
+            }
+
+            .treatment-type-grid {
+                grid-template-columns: 1fr;
             }
         }
         
@@ -740,12 +955,12 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon" style="background: #fff3e0; color: #f57c00;">
-                            <i class="fas fa-bug"></i>
+                            <i class="fas fa-medkit"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>Total Detections</h3>
-                            <p class="stat-value" id="totalDetections">0</p>
-                            <p class="stat-trend">Last 30 days</p>
+                            <h3>Active Treatments</h3>
+                            <p class="stat-value" id="activeTreatments">0</p>
+                            <p class="stat-trend">Ongoing</p>
                         </div>
                     </div>
                 </div>
@@ -769,6 +984,7 @@
                                     <th>Disease Detected</th>
                                     <th>Detections</th>
                                     <th>Health Status</th>
+                                    <th>Treatment Status</th>
                                     <th>Next Assessment</th>
                                     <th>Actions</th>
                                 </tr>
@@ -815,11 +1031,26 @@
         </div>
     </div>
 
+    <!-- Treatment Management Modal -->
+    <div class="modal" id="treatmentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Manage Treatment</h3>
+                <button class="close-modal" onclick="closeTreatmentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="treatmentModalBody">
+                <!-- Treatment form will be loaded here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, collection, getDocs, query, where, orderBy, deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, query, where, orderBy, deleteDoc, doc, updateDoc, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -841,6 +1072,26 @@
         let filteredAssessments = [];
         let currentPage = 1;
         const itemsPerPage = 10;
+        let selectedAssessmentId = null;
+
+        // Treatment types
+        const treatmentTypes = {
+            racun: {
+                name: 'Racun (Pesticide)',
+                icon: 'fas fa-skull-crossbones',
+                description: 'Chemical treatment for pest control'
+            },
+            penjagaan: {
+                name: 'Penjagaan (Care)',
+                icon: 'fas fa-hands-helping',
+                description: 'General care and maintenance'
+            },
+            baja: {
+                name: 'Baja (Fertilizer)',
+                icon: 'fas fa-seedling',
+                description: 'Nutrient and fertilizer application'
+            }
+        };
 
         // Check authentication state
         onAuthStateChanged(auth, (user) => {
@@ -910,7 +1161,9 @@
                     assessments.push({
                         id: doc.id,
                         ...data,
-                        dateObj: dateObj
+                        dateObj: dateObj,
+                        treatments: data.treatments || [],
+                        treatmentStatus: data.treatmentStatus || 'No Treatment'
                     });
                 });
 
@@ -935,12 +1188,14 @@
             const total = assessments.length;
             const healthy = assessments.filter(a => a.healthStatus === "Healthy").length;
             const disease = assessments.filter(a => a.healthStatus === "Not Healthy").length;
-            const totalDetections = assessments.reduce((sum, a) => sum + (a.detectionCount || 0), 0);
+            const activeTreatments = assessments.filter(a => {
+                return a.treatments && a.treatments.some(t => t.status === 'inprogress' || t.status === 'pending');
+            }).length;
 
             document.getElementById('totalAssessments').textContent = total;
             document.getElementById('healthyCount').textContent = healthy;
             document.getElementById('diseaseCount').textContent = disease;
-            document.getElementById('totalDetections').textContent = totalDetections;
+            document.getElementById('activeTreatments').textContent = activeTreatments;
             
             if (total > 0) {
                 document.getElementById('healthyPercentage').textContent = `${Math.round((healthy / total) * 100)}%`;
@@ -1036,6 +1291,31 @@
                 // Detection count badge
                 const detectionCount = assessment.detectionCount || 0;
 
+                // Treatment status
+                let treatmentStatus = 'No Treatment';
+                let statusClass = 'status-pending';
+                
+                if (assessment.treatments && assessment.treatments.length > 0) {
+                    const activeTreatment = assessment.treatments.find(t => 
+                        t.status === 'inprogress' || t.status === 'pending'
+                    );
+                    
+                    if (activeTreatment) {
+                        treatmentStatus = 'In Progress';
+                        statusClass = 'status-inprogress';
+                    } else if (assessment.treatments.some(t => t.status === 'completed')) {
+                        treatmentStatus = 'Completed';
+                        statusClass = 'status-completed';
+                    } else {
+                        treatmentStatus = 'Pending';
+                        statusClass = 'status-pending';
+                    }
+                }
+
+                // Count active treatments
+                const activeTreatmentCount = assessment.treatments ? 
+                    assessment.treatments.filter(t => t.status === 'inprogress' || t.status === 'pending').length : 0;
+
                 return `
                     <tr>
                         <td>
@@ -1056,12 +1336,24 @@
                                 ${assessment.healthStatus || 'Unknown'}
                             </span>
                         </td>
+                        <td>
+                            <span class="treatment-status ${statusClass}">${treatmentStatus}</span>
+                            ${activeTreatmentCount > 0 ? `<small style="color: #666; display: block;">(${activeTreatmentCount} active)</small>` : ''}
+                        </td>
                         <td>${assessment.nextAssessment || 'Not scheduled'}</td>
                         <td>
                             <div class="action-buttons">
                                 <button class="view-btn" onclick="viewAssessment('${assessment.id}')">
                                     <i class="fas fa-eye"></i> View
                                 </button>
+                                <button class="treatment-btn" onclick="manageTreatment('${assessment.id}')">
+                                    <i class="fas fa-medkit"></i> Treatment
+                                </button>
+                                ${activeTreatmentCount > 0 ? `
+                                <button class="complete-btn" onclick="completeTreatment('${assessment.id}')">
+                                    <i class="fas fa-check"></i> Complete
+                                </button>
+                                ` : ''}
                                 <button class="delete-btn" onclick="deleteAssessment('${assessment.id}')">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
@@ -1148,6 +1440,33 @@
                     }).join('');
                 }
 
+                // Create treatment history
+                let treatmentHistory = '<p>No treatment history available</p>';
+                if (assessment.treatments && assessment.treatments.length > 0) {
+                    treatmentHistory = assessment.treatments.map(treatment => {
+                        const startDate = new Date(treatment.startDate).toLocaleDateString();
+                        const endDate = treatment.endDate ? new Date(treatment.endDate).toLocaleDateString() : 'Ongoing';
+                        const statusClass = treatment.status === 'completed' ? 'status-completed' :
+                                          treatment.status === 'inprogress' ? 'status-inprogress' : 'status-pending';
+                        
+                        return `
+                            <div class="history-item">
+                                <div class="history-header">
+                                    <span class="history-type">${treatmentTypes[treatment.type]?.name || treatment.type}</span>
+                                    <span class="treatment-status ${statusClass}">${treatment.status.charAt(0).toUpperCase() + treatment.status.slice(1)}</span>
+                                </div>
+                                <div class="history-details">
+                                    <p><strong>Duration:</strong> ${treatment.duration} ${treatment.durationUnit}</p>
+                                    <p><strong>Start Date:</strong> ${startDate}</p>
+                                    <p><strong>End Date:</strong> ${endDate}</p>
+                                    <p><strong>Re-assessment Date:</strong> ${treatment.reassessmentDate ? new Date(treatment.reassessmentDate).toLocaleDateString() : 'Not set'}</p>
+                                    <p><strong>Notes:</strong> ${treatment.notes || 'No notes'}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
                 modalBody.innerHTML = `
                     <div class="assessment-details">
                         <div class="detail-group">
@@ -1195,11 +1514,9 @@
                         </div>
                     </div>
 
-                    <div style="margin-top: 20px;">
-                        <h4>Treatment Recommendations</h4>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; white-space: pre-line; font-size: 14px; line-height: 1.5;">
-                            ${assessment.treatment || 'No treatment recommendations available'}
-                        </div>
+                    <div class="treatment-history">
+                        <h4>Treatment History (${assessment.treatments?.length || 0})</h4>
+                        ${treatmentHistory}
                     </div>
 
                     ${assessment.image ? `
@@ -1219,6 +1536,306 @@
                 console.error('Error loading assessment details:', error);
                 alert('Error loading assessment details');
             }
+        }
+
+        // Manage treatment
+        async function manageTreatment(assessmentId) {
+            selectedAssessmentId = assessmentId;
+            const assessment = assessments.find(a => a.id === assessmentId);
+            
+            if (!assessment) {
+                alert('Assessment not found');
+                return;
+            }
+
+            const modalBody = document.getElementById('treatmentModalBody');
+            
+            modalBody.innerHTML = `
+                <div class="treatment-form">
+                    <h4>Add New Treatment</h4>
+                    
+                    <div class="treatment-type-grid">
+                        ${Object.entries(treatmentTypes).map(([key, type]) => `
+                            <div class="treatment-type-card" onclick="selectTreatmentType('${key}')" id="type-${key}">
+                                <div class="treatment-type-icon">
+                                    <i class="${type.icon}"></i>
+                                </div>
+                                <div class="treatment-type-title">${type.name}</div>
+                                <div class="treatment-type-desc">${type.description}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <input type="hidden" id="selectedTreatmentType" value="">
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startDate">Start Date</label>
+                            <input type="date" id="startDate" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <div class="form-group">
+                            <label for="duration">Duration</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="number" id="duration" class="form-input" placeholder="Duration" min="1" value="7">
+                                <select id="durationUnit" class="form-select" style="flex: 1;">
+                                    <option value="days">Days</option>
+                                    <option value="weeks">Weeks</option>
+                                    <option value="months">Months</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="reassessmentDate">Re-assessment Date</label>
+                            <input type="date" id="reassessmentDate" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status" class="form-select">
+                                <option value="pending">Pending</option>
+                                <option value="inprogress" selected>In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Treatment Notes</label>
+                        <textarea id="notes" class="form-textarea" placeholder="Enter treatment details, instructions, or observations..."></textarea>
+                    </div>
+                    
+                    <button class="submit-btn" onclick="saveTreatment()">
+                        <i class="fas fa-save"></i> Save Treatment
+                    </button>
+                    
+                    <div class="treatment-history" style="margin-top: 30px;">
+                        <h4>Treatment History</h4>
+                        <div id="treatmentHistoryList">
+                            ${assessment.treatments && assessment.treatments.length > 0 ? 
+                                assessment.treatments.map((treatment, index) => `
+                                    <div class="history-item">
+                                        <div class="history-header">
+                                            <span class="history-type">${treatmentTypes[treatment.type]?.name || treatment.type}</span>
+                                            <span class="treatment-status ${treatment.status === 'completed' ? 'status-completed' : treatment.status === 'inprogress' ? 'status-inprogress' : 'status-pending'}">
+                                                ${treatment.status.charAt(0).toUpperCase() + treatment.status.slice(1)}
+                                            </span>
+                                        </div>
+                                        <div class="history-details">
+                                            <p><strong>Duration:</strong> ${treatment.duration} ${treatment.durationUnit}</p>
+                                            <p><strong>Start Date:</strong> ${new Date(treatment.startDate).toLocaleDateString()}</p>
+                                            <p><strong>End Date:</strong> ${treatment.endDate ? new Date(treatment.endDate).toLocaleDateString() : 'Ongoing'}</p>
+                                            <p><strong>Re-assessment:</strong> ${treatment.reassessmentDate ? new Date(treatment.reassessmentDate).toLocaleDateString() : 'Not set'}</p>
+                                            <p><strong>Notes:</strong> ${treatment.notes || 'No notes'}</p>
+                                        </div>
+                                        <div class="history-actions">
+                                            <button class="edit-btn" onclick="editTreatment('${assessmentId}', ${index})">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </button>
+                                            <button class="remove-btn" onclick="removeTreatment('${assessmentId}', ${index})">
+                                                <i class="fas fa-trash"></i> Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('') : 
+                                '<p>No treatment history available</p>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('treatmentModal').style.display = 'flex';
+        }
+
+        // Select treatment type
+        function selectTreatmentType(type) {
+            // Remove selected class from all cards
+            document.querySelectorAll('.treatment-type-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked card
+            const selectedCard = document.getElementById(`type-${type}`);
+            if (selectedCard) {
+                selectedCard.classList.add('selected');
+            }
+            
+            // Update hidden input
+            document.getElementById('selectedTreatmentType').value = type;
+        }
+
+        // Save treatment
+        async function saveTreatment() {
+            const type = document.getElementById('selectedTreatmentType').value;
+            const startDate = document.getElementById('startDate').value;
+            const duration = parseInt(document.getElementById('duration').value);
+            const durationUnit = document.getElementById('durationUnit').value;
+            const reassessmentDate = document.getElementById('reassessmentDate').value;
+            const status = document.getElementById('status').value;
+            const notes = document.getElementById('notes').value;
+
+            if (!type) {
+                alert('Please select a treatment type');
+                return;
+            }
+
+            if (!startDate) {
+                alert('Please select a start date');
+                return;
+            }
+
+            if (!duration || duration < 1) {
+                alert('Please enter a valid duration');
+                return;
+            }
+
+            try {
+                const assessment = assessments.find(a => a.id === selectedAssessmentId);
+                if (!assessment) {
+                    alert('Assessment not found');
+                    return;
+                }
+
+                // Calculate end date based on duration
+                const endDateObj = new Date(startDate);
+                if (durationUnit === 'days') {
+                    endDateObj.setDate(endDateObj.getDate() + duration);
+                } else if (durationUnit === 'weeks') {
+                    endDateObj.setDate(endDateObj.getDate() + (duration * 7));
+                } else if (durationUnit === 'months') {
+                    endDateObj.setMonth(endDateObj.getMonth() + duration);
+                }
+                const endDate = endDateObj.toISOString().split('T')[0];
+
+                const treatment = {
+                    id: Date.now().toString(),
+                    type: type,
+                    startDate: startDate,
+                    endDate: status === 'completed' ? endDate : null,
+                    plannedEndDate: endDate,
+                    duration: duration,
+                    durationUnit: durationUnit,
+                    reassessmentDate: reassessmentDate || null,
+                    status: status,
+                    notes: notes,
+                    createdAt: new Date().toISOString(),
+                    createdBy: currentUser.uid,
+                    createdByName: currentUser.displayName || currentUser.email
+                };
+
+                // Add treatment to assessment
+                const assessmentRef = doc(db, "assessments", selectedAssessmentId);
+                await updateDoc(assessmentRef, {
+                    treatments: arrayUnion(treatment)
+                });
+
+                // Update local data
+                assessment.treatments = assessment.treatments || [];
+                assessment.treatments.push(treatment);
+
+                alert('Treatment saved successfully!');
+                loadAssessments(); // Reload to update UI
+                closeTreatmentModal();
+            } catch (error) {
+                console.error('Error saving treatment:', error);
+                alert('Error saving treatment: ' + error.message);
+            }
+        }
+
+        // Complete treatment
+        async function completeTreatment(assessmentId) {
+            const assessment = assessments.find(a => a.id === assessmentId);
+            if (!assessment || !assessment.treatments) {
+                alert('No treatments found for this assessment');
+                return;
+            }
+
+            const activeTreatments = assessment.treatments.filter(t => 
+                t.status === 'inprogress' || t.status === 'pending'
+            );
+
+            if (activeTreatments.length === 0) {
+                alert('No active treatments to complete');
+                return;
+            }
+
+            if (confirm(`Complete ${activeTreatments.length} active treatment(s)?`)) {
+                try {
+                    const assessmentRef = doc(db, "assessments", assessmentId);
+                    
+                    // Update each active treatment
+                    const updatedTreatments = assessment.treatments.map(treatment => {
+                        if (treatment.status === 'inprogress' || treatment.status === 'pending') {
+                            return {
+                                ...treatment,
+                                status: 'completed',
+                                endDate: new Date().toISOString().split('T')[0]
+                            };
+                        }
+                        return treatment;
+                    });
+
+                    await updateDoc(assessmentRef, {
+                        treatments: updatedTreatments
+                    });
+
+                    // Update local data
+                    assessment.treatments = updatedTreatments;
+
+                    alert('Treatments marked as completed!');
+                    loadAssessments(); // Reload to update UI
+                } catch (error) {
+                    console.error('Error completing treatments:', error);
+                    alert('Error completing treatments: ' + error.message);
+                }
+            }
+        }
+
+        // Remove treatment
+        async function removeTreatment(assessmentId, treatmentIndex) {
+            if (!confirm('Are you sure you want to remove this treatment?')) {
+                return;
+            }
+
+            try {
+                const assessment = assessments.find(a => a.id === assessmentId);
+                if (!assessment || !assessment.treatments || !assessment.treatments[treatmentIndex]) {
+                    alert('Treatment not found');
+                    return;
+                }
+
+                const treatmentToRemove = assessment.treatments[treatmentIndex];
+                const assessmentRef = doc(db, "assessments", assessmentId);
+                
+                // Remove the specific treatment
+                const updatedTreatments = assessment.treatments.filter((_, index) => index !== treatmentIndex);
+                
+                await updateDoc(assessmentRef, {
+                    treatments: updatedTreatments
+                });
+
+                // Update local data
+                assessment.treatments = updatedTreatments;
+
+                alert('Treatment removed successfully!');
+                manageTreatment(assessmentId); // Refresh the modal
+            } catch (error) {
+                console.error('Error removing treatment:', error);
+                alert('Error removing treatment: ' + error.message);
+            }
+        }
+
+        // Close treatment modal
+        function closeTreatmentModal() {
+            document.getElementById('treatmentModal').style.display = 'none';
+            selectedAssessmentId = null;
+        }
+
+        // Close assessment modal
+        function closeModal() {
+            document.getElementById('detailModal').style.display = 'none';
         }
 
         // Delete assessment
@@ -1248,11 +1865,6 @@
             }
         }
 
-        // Close modal
-        function closeModal() {
-            document.getElementById('detailModal').style.display = 'none';
-        }
-
         // Export to CSV
         function exportToCSV() {
             if (filteredAssessments.length === 0) {
@@ -1268,12 +1880,16 @@
                 'Disease',
                 'Detection Count',
                 'Health Status',
+                'Treatment Status',
                 'Next Assessment',
-                'Treatment'
+                'Active Treatments'
             ];
 
             const csvData = filteredAssessments.map(assessment => {
                 const date = assessment.dateObj;
+                const activeTreatmentCount = assessment.treatments ? 
+                    assessment.treatments.filter(t => t.status === 'inprogress' || t.status === 'pending').length : 0;
+                
                 return [
                     `"${assessment.assessmentId || ''}"`,
                     `"${date.toLocaleDateString()}"`,
@@ -1282,8 +1898,9 @@
                     `"${assessment.disease || ''}"`,
                     assessment.detectionCount || 0,
                     `"${assessment.healthStatus || ''}"`,
+                    `"${assessment.treatmentStatus || 'No Treatment'}"`,
                     `"${assessment.nextAssessment || ''}"`,
-                    `"${(assessment.treatment || '').replace(/"/g, '""')}"`
+                    activeTreatmentCount
                 ];
             });
 
@@ -1313,7 +1930,7 @@
             document.getElementById('totalAssessments').textContent = '0';
             document.getElementById('healthyCount').textContent = '0';
             document.getElementById('diseaseCount').textContent = '0';
-            document.getElementById('totalDetections').textContent = '0';
+            document.getElementById('activeTreatments').textContent = '0';
             document.getElementById('healthyPercentage').textContent = '0%';
             document.getElementById('diseasePercentage').textContent = '0%';
         }
@@ -1336,17 +1953,28 @@
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('detailModal');
-            if (event.target === modal) {
+            const detailModal = document.getElementById('detailModal');
+            const treatmentModal = document.getElementById('treatmentModal');
+            
+            if (event.target === detailModal) {
                 closeModal();
+            }
+            if (event.target === treatmentModal) {
+                closeTreatmentModal();
             }
         }
 
         // Make functions globally available
         window.loadAssessments = loadAssessments;
         window.viewAssessment = viewAssessment;
+        window.manageTreatment = manageTreatment;
+        window.selectTreatmentType = selectTreatmentType;
+        window.saveTreatment = saveTreatment;
+        window.completeTreatment = completeTreatment;
+        window.removeTreatment = removeTreatment;
         window.deleteAssessment = deleteAssessment;
         window.closeModal = closeModal;
+        window.closeTreatmentModal = closeTreatmentModal;
         window.changePage = changePage;
         window.exportToCSV = exportToCSV;
     </script>
