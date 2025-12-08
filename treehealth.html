@@ -24,12 +24,12 @@
             --text-secondary: #6c757d;
         }
 
-        /* FIXED: Proper scrolling layout */
         body, html {
             height: 100%;
             margin: 0;
             padding: 0;
             overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .dashboard-container {
@@ -65,6 +65,7 @@
             margin: 0;
             color: var(--text-primary);
             font-size: 1.8rem;
+            font-weight: 600;
         }
 
         .header-controls {
@@ -82,15 +83,17 @@
             width: 100%;
             padding: 10px 15px 10px 40px;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 14px;
             transition: all 0.3s;
+            background: #f8f9fa;
         }
 
         .search-box input:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+            background: white;
         }
 
         .search-box i {
@@ -111,17 +114,19 @@
         .filter-select {
             padding: 10px 15px;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
             background: white;
             font-size: 14px;
             color: var(--text-primary);
             cursor: pointer;
             min-width: 150px;
+            transition: all 0.3s;
         }
 
         .filter-select:focus {
             outline: none;
             border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
         }
 
         .refresh-btn {
@@ -129,21 +134,22 @@
             background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: background 0.3s;
+            transition: all 0.3s;
         }
 
         .refresh-btn:hover {
             background: var(--secondary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
-        /* FIXED: Scrollable content area */
         .content-wrapper {
             flex: 1;
             overflow-y: auto;
@@ -164,17 +170,25 @@
         .stat-card {
             background: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             display: flex;
             align-items: center;
             gap: 15px;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+            border-color: var(--primary-color);
         }
 
         .stat-icon {
             width: 50px;
             height: 50px;
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -198,6 +212,7 @@
         .stat-trend {
             font-size: 12px;
             margin-top: 5px;
+            font-weight: 600;
         }
 
         .trend-up {
@@ -210,10 +225,11 @@
 
         .table-container {
             background: white;
-            border-radius: 8px;
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             margin-bottom: 30px;
+            border: 1px solid var(--border-color);
         }
 
         .table-header {
@@ -229,6 +245,7 @@
             margin: 0;
             font-size: 18px;
             color: var(--text-primary);
+            font-weight: 600;
         }
 
         .table-actions {
@@ -240,7 +257,7 @@
             padding: 8px 15px;
             background: white;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             color: var(--text-primary);
@@ -248,10 +265,12 @@
             align-items: center;
             gap: 8px;
             transition: all 0.3s;
+            font-weight: 600;
         }
 
         .export-btn:hover {
             background: var(--light-bg);
+            border-color: var(--primary-color);
         }
 
         .table-wrapper {
@@ -271,7 +290,7 @@
             font-weight: 600;
             color: var(--text-primary);
             font-size: 14px;
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid var(--border-color);
             position: sticky;
             top: 0;
         }
@@ -281,10 +300,11 @@
             border-bottom: 1px solid var(--border-color);
             font-size: 14px;
             color: var(--text-primary);
+            vertical-align: middle;
         }
 
         .assessments-table tbody tr:hover {
-            background: rgba(46, 125, 50, 0.05);
+            background: rgba(46, 125, 50, 0.04);
         }
 
         .assessments-table tbody tr:last-child td {
@@ -297,16 +317,20 @@
             font-size: 12px;
             font-weight: 600;
             display: inline-block;
+            min-width: 80px;
+            text-align: center;
         }
 
         .status-healthy {
             background: #d4edda;
             color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
         .status-not-healthy {
             background: #f8d7da;
             color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
         .disease-tag {
@@ -438,14 +462,18 @@
             border: 1px solid var(--border-color);
             background: white;
             color: var(--text-primary);
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
         .page-btn:hover:not(:disabled) {
             background: var(--light-bg);
+            border-color: var(--primary-color);
         }
 
         .page-btn.active {
@@ -462,6 +490,7 @@
         .page-info {
             font-size: 14px;
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
         /* Modal Styles */
@@ -476,15 +505,29 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(4px);
         }
 
         .modal-content {
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             width: 90%;
             max-width: 900px;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .modal-header {
@@ -493,11 +536,15 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--light-bg);
+            border-radius: 12px 12px 0 0;
         }
 
         .modal-header h3 {
             margin: 0;
             color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
         }
 
         .close-modal {
@@ -512,6 +559,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .close-modal:hover {
+            background: rgba(0,0,0,0.1);
+            color: var(--text-primary);
         }
 
         .modal-body {
@@ -540,10 +594,13 @@
             font-size: 14px;
             color: var(--text-primary);
             word-break: break-word;
+            padding: 8px 0;
         }
 
         .detections-section {
             margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid var(--light-bg);
         }
 
         .detections-grid {
@@ -555,9 +612,15 @@
 
         .detection-card {
             background: var(--light-bg);
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 15px;
             border-left: 4px solid var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .detection-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .detection-title {
@@ -590,7 +653,7 @@
 
         .form-group label {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             font-weight: 600;
             color: var(--text-primary);
             font-size: 14px;
@@ -598,11 +661,13 @@
 
         .form-input, .form-select, .form-textarea {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             border: 1px solid var(--border-color);
-            border-radius: 4px;
+            border-radius: 6px;
             font-size: 14px;
             box-sizing: border-box;
+            transition: all 0.3s;
+            background: white;
         }
 
         .form-input:focus, .form-select:focus, .form-textarea:focus {
@@ -612,8 +677,9 @@
         }
 
         .form-textarea {
-            min-height: 80px;
+            min-height: 100px;
             resize: vertical;
+            line-height: 1.5;
         }
 
         .treatment-type-grid {
@@ -625,64 +691,77 @@
 
         .treatment-type-card {
             border: 2px solid var(--border-color);
-            border-radius: 6px;
-            padding: 15px;
+            border-radius: 8px;
+            padding: 20px;
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
+            background: white;
         }
 
         .treatment-type-card:hover {
             border-color: var(--primary-color);
             background-color: rgba(46, 125, 50, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .treatment-type-card.selected {
             border-color: var(--primary-color);
             background-color: rgba(46, 125, 50, 0.1);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
         }
 
         .treatment-type-icon {
-            font-size: 24px;
-            margin-bottom: 10px;
+            font-size: 28px;
+            margin-bottom: 12px;
             color: var(--primary-color);
         }
 
         .treatment-type-title {
             font-weight: 600;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             color: var(--text-primary);
+            font-size: 16px;
         }
 
         .treatment-type-desc {
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-secondary);
+            line-height: 1.4;
         }
 
         .treatment-history {
             margin-top: 30px;
-            border-top: 1px solid var(--border-color);
+            border-top: 2px solid var(--light-bg);
             padding-top: 20px;
         }
 
         .history-item {
             background: var(--light-bg);
-            border-radius: 6px;
-            padding: 15px;
+            border-radius: 8px;
+            padding: 20px;
             margin-bottom: 15px;
             border-left: 4px solid var(--primary-color);
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
 
         .history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
         .history-type {
             font-weight: 600;
             color: var(--text-primary);
+            font-size: 15px;
         }
 
         .history-date {
@@ -693,21 +772,27 @@
         .history-details {
             font-size: 13px;
             color: var(--text-primary);
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            line-height: 1.6;
         }
 
         .history-actions {
             display: flex;
             gap: 10px;
+            margin-top: 10px;
         }
 
         .edit-btn, .remove-btn {
-            padding: 4px 8px;
+            padding: 6px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
         }
 
         .edit-btn {
@@ -715,49 +800,217 @@
             color: white;
         }
 
+        .edit-btn:hover {
+            background: var(--secondary-color);
+        }
+
         .remove-btn {
             background: #dc3545;
             color: white;
         }
 
+        .remove-btn:hover {
+            background: #c82333;
+        }
+
         .submit-btn {
-            padding: 12px 20px;
+            padding: 12px 24px;
             background: var(--primary-color);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
             font-weight: 600;
-            transition: background 0.3s;
+            transition: all 0.3s;
             align-self: flex-start;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .submit-btn:hover {
             background: var(--secondary-color);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         .treatment-status {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 600;
             display: inline-block;
+            min-width: 90px;
+            text-align: center;
         }
 
         .status-pending {
             background: #fff3cd;
             color: #856404;
+            border: 1px solid #ffeaa7;
         }
 
         .status-completed {
             background: #d4edda;
             color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
         .status-inprogress {
             background: #cce5ff;
             color: #004085;
+            border: 1px solid #b8daff;
+        }
+
+        /* New styles for treatment suggestions */
+        .treatment-suggestions {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .treatment-suggestions.active {
+            display: block;
+        }
+
+        .suggestion-header {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+        }
+
+        .suggestion-header i {
+            color: var(--primary-color);
+        }
+
+        .suggestion-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .suggestion-list li {
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.5;
+            position: relative;
+        }
+
+        .suggestion-list li:before {
+            content: "•";
+            color: var(--primary-color);
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+        }
+
+        .suggestion-category {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-top: 15px;
+            margin-bottom: 10px;
+            display: block;
+            font-size: 14px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .suggestion-category:first-child {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .recommendation-note {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-style: italic;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px dashed var(--border-color);
+            line-height: 1.5;
+        }
+
+        .recommendation-note i {
+            color: #ffc107;
+            margin-right: 8px;
+        }
+
+        .treatment-details-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #1976d2;
+        }
+
+        .details-title {
+            font-weight: 600;
+            color: #1976d2;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+        }
+
+        .details-content {
+            font-size: 14px;
+            color: #1976d2;
+            line-height: 1.6;
+        }
+
+        .form-hint {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            font-style: italic;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .form-hint i {
+            font-size: 12px;
+        }
+
+        .disease-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin: 0 5px 5px 0;
+        }
+
+        .badge-ganoderma {
+            background: #28a745;
+            color: white;
+        }
+
+        .badge-blackspot {
+            background: #dc3545;
+            color: white;
         }
 
         /* Responsive Design */
@@ -809,6 +1062,10 @@
             .form-row {
                 flex-direction: column;
             }
+
+            .treatment-type-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 576px) {
@@ -848,8 +1105,9 @@
                 font-size: 20px;
             }
 
-            .treatment-type-grid {
-                grid-template-columns: 1fr;
+            .modal-content {
+                width: 95%;
+                margin: 10px;
             }
         }
         
@@ -864,6 +1122,14 @@
             
             h1 {
                 font-size: 1.5rem;
+            }
+            
+            .modal-header {
+                padding: 15px;
+            }
+            
+            .modal-body {
+                padding: 15px;
             }
         }
 
@@ -885,6 +1151,22 @@
 
         ::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
+        }
+
+        /* Loading animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -1073,23 +1355,101 @@
         let currentPage = 1;
         const itemsPerPage = 10;
         let selectedAssessmentId = null;
+        let isEditingTreatment = false;
+        let editingTreatmentIndex = -1;
 
-        // Treatment types
+        // Enhanced treatment types with detailed information and suggestions
         const treatmentTypes = {
             racun: {
                 name: 'Racun (Pesticide)',
                 icon: 'fas fa-skull-crossbones',
-                description: 'Chemical treatment for pest control'
+                description: 'Chemical treatment for pest and disease control',
+                suggestions: {
+                    ganoderma: [
+                        'Systemic Fungicides: Use propiconazole (Tilt, Banner Maxx) at 15-20ml per liter for trunk injection',
+                        'Contact Fungicides: Apply copper oxychloride (Blitox) at 3g per liter as foliar spray',
+                        'Soil Treatment: Use hexaconazole (Contaf, Anvil) at 2ml per liter for soil drenching around root zone',
+                        'Preventive Treatment: Phosphonic acid compounds (Agri-Fos) at 2.5ml per liter every 3 months'
+                    ],
+                    blackspot: [
+                        'Protective Fungicides: Mancozeb (Dithane M-45) at 2g per liter weekly during wet season',
+                        'Systemic Fungicides: Azoxystrobin (Amistar) at 0.5ml per liter every 14 days',
+                        'Curative Treatment: Tebuconazole (Folicur) at 1ml per liter for active infections',
+                        'Multi-site Fungicides: Chlorothalonil (Bravo) at 2ml per liter for broad-spectrum protection'
+                    ],
+                    general: [
+                        'Application Timing: Apply during early morning or late evening to avoid sun exposure',
+                        'Mixing Instructions: Always add pesticides to water, not water to pesticides',
+                        'Safety Equipment: Use gloves, mask, goggles, and protective clothing during application',
+                        'Weather Conditions: Avoid application before rain or during strong winds (>15 km/h)',
+                        'Equipment Cleaning: Thoroughly clean sprayers after each use to prevent cross-contamination'
+                    ]
+                },
+                details: 'Pesticides are chemical substances used to control, prevent, or eliminate pests and diseases. They work by disrupting the biological processes of target organisms. For palm trees, proper dosage and application timing are critical for effectiveness while minimizing environmental impact.',
+                durationHint: 'Typical duration: 7-14 days per application cycle',
+                reassessmentHint: 'Re-assess 7 days after application to check effectiveness'
             },
             penjagaan: {
                 name: 'Penjagaan (Care)',
                 icon: 'fas fa-hands-helping',
-                description: 'General care and maintenance'
+                description: 'Cultural practices and maintenance procedures',
+                suggestions: {
+                    ganoderma: [
+                        'Sanitation Protocol: Remove and burn infected plant material immediately. Sterilize tools with 70% alcohol between trees',
+                        'Pruning Technique: Cut infected fronds 30-50cm below visible symptoms. Make clean cuts at 45° angle',
+                        'Water Management: Implement drainage channels to prevent waterlogging. Maintain soil moisture at 60-70% field capacity',
+                        'Isolation Procedure: Create 3-meter buffer zones around infected trees. Mark with red warning tape',
+                        'Monitoring Schedule: Weekly inspections during rainy season, bi-weekly during dry season'
+                    ],
+                    blackspot: [
+                        'Pruning Strategy: Remove infected leaves with sterilized shears. Maintain proper spacing (8-10m between trees)',
+                        'Irrigation Method: Use drip irrigation to avoid wetting foliage. Water at soil level only',
+                        'Mulching Practice: Apply 10-15cm layer of organic mulch (coconut husk, empty fruit bunches) around base',
+                        'Sanitation Routine: Collect and destroy fallen infected leaves. Clean debris from crown region',
+                        'Air Circulation: Prune lower leaves to improve airflow through canopy'
+                    ],
+                    general: [
+                        'Inspection Frequency: Visual inspections every 2 weeks during growing season',
+                        'Record Keeping: Document all observations including weather conditions and tree responses',
+                        'Tool Maintenance: Regularly sharpen and sterilize pruning tools',
+                        'Worker Training: Ensure all personnel understand disease symptoms and prevention measures',
+                        'Environmental Monitoring: Track rainfall, temperature, and humidity patterns'
+                    ]
+                },
+                details: 'Cultural practices focus on preventing disease spread through proper maintenance, sanitation, and environmental management. These methods are sustainable, cost-effective, and reduce reliance on chemicals. Regular monitoring and timely interventions are key components of effective cultural control.',
+                durationHint: 'Ongoing - implement as regular maintenance schedule',
+                reassessmentHint: 'Monitor progress weekly and adjust practices as needed'
             },
             baja: {
                 name: 'Baja (Fertilizer)',
                 icon: 'fas fa-seedling',
-                description: 'Nutrient and fertilizer application'
+                description: 'Nutrient management and soil amendment',
+                suggestions: {
+                    ganoderma: [
+                        'Potassium Boost: Apply muriate of potash (MOP) at 1.5-2kg per tree quarterly to strengthen cell walls',
+                        'Calcium Supplement: Use calcium nitrate at 500g per tree monthly to improve disease resistance',
+                        'Silicon Fertilizer: Apply potassium silicate at 200g per tree every 2 months for structural strength',
+                        'Nutrition Balance: Reduce nitrogen (avoid urea) to limit soft growth vulnerable to infection',
+                        'Organic Amendments: Incorporate palm oil mill effluent (POME) compost at 20kg per tree annually'
+                    ],
+                    blackspot: [
+                        'Balanced Nutrition: Apply NPK 12:12:17+2MgO at 2-3kg per tree every 4 months',
+                        'Micronutrient Package: Include zinc sulfate (100g), manganese sulfate (50g), and boron (20g) per tree',
+                        'Organic Matter: Incorporate well-decomposed EFB compost at 15-20kg per tree semi-annually',
+                        'Slow-Release Formulation: Use controlled-release fertilizers for consistent nutrient availability',
+                        'Foliar Feeding: Apply micronutrient sprays (especially magnesium and zinc) during recovery phase'
+                    ],
+                    general: [
+                        'Soil Testing: Conduct soil analysis every 6 months to determine exact nutrient requirements',
+                        'Application Timing: Fertilize during active growth periods (typically rainy season)',
+                        'Application Method: Broadcast within drip line and incorporate lightly into soil',
+                        'Moisture Management: Water thoroughly after fertilizer application to aid absorption',
+                        '4R Nutrient Stewardship: Right source, Right rate, Right time, Right place'
+                    ]
+                },
+                details: 'Fertilizers provide essential nutrients to improve tree health, strengthen natural defenses, and promote recovery from disease stress. Balanced nutrition enhances the tree\'s ability to resist and recover from infections. Soil amendments improve soil structure and microbial activity, creating unfavorable conditions for pathogens.',
+                durationHint: '30-60 days for visible improvement, continue quarterly',
+                reassessmentHint: 'Re-assess nutrient status and tree response after 30 days'
             }
         };
 
@@ -1098,7 +1458,6 @@
             if (user) {
                 currentUser = user;
                 console.log('User authenticated:', user.email);
-                console.log('User UID:', user.uid);
                 loadAssessments();
             } else {
                 console.log('User not authenticated');
@@ -1117,17 +1476,13 @@
                 console.log('Loading assessments for user:', currentUser.uid);
                 
                 const assessmentsRef = collection(db, "assessments");
-                console.log('Collection reference created');
-                
-                // Remove orderBy to avoid index issues
                 const q = query(
                     assessmentsRef,
                     where("userId", "==", currentUser.uid)
                 );
 
-                console.log('Executing query...');
                 const querySnapshot = await getDocs(q);
-                console.log(`Query completed. Found ${querySnapshot.size} documents`);
+                console.log(`Found ${querySnapshot.size} assessments`);
                 
                 assessments = [];
                 
@@ -1139,12 +1494,6 @@
                 
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    console.log('Document data:', {
-                        id: doc.id,
-                        assessmentId: data.assessmentId,
-                        userId: data.userId,
-                        timestamp: data.timestamp
-                    });
                     
                     // Handle different timestamp formats
                     let dateObj;
@@ -1177,8 +1526,6 @@
                 renderTable();
             } catch (error) {
                 console.error("Error loading assessments:", error);
-                console.error("Error code:", error.code);
-                console.error("Error message:", error.message);
                 showNoDataMessage();
             }
         }
@@ -1294,11 +1641,16 @@
                 // Treatment status
                 let treatmentStatus = 'No Treatment';
                 let statusClass = 'status-pending';
+                let activeTreatmentCount = 0;
                 
                 if (assessment.treatments && assessment.treatments.length > 0) {
                     const activeTreatment = assessment.treatments.find(t => 
                         t.status === 'inprogress' || t.status === 'pending'
                     );
+                    
+                    activeTreatmentCount = assessment.treatments.filter(t => 
+                        t.status === 'inprogress' || t.status === 'pending'
+                    ).length;
                     
                     if (activeTreatment) {
                         treatmentStatus = 'In Progress';
@@ -1312,9 +1664,9 @@
                     }
                 }
 
-                // Count active treatments
-                const activeTreatmentCount = assessment.treatments ? 
-                    assessment.treatments.filter(t => t.status === 'inprogress' || t.status === 'pending').length : 0;
+                // Count completed treatments
+                const completedTreatmentCount = assessment.treatments ? 
+                    assessment.treatments.filter(t => t.status === 'completed').length : 0;
 
                 return `
                     <tr>
@@ -1338,7 +1690,20 @@
                         </td>
                         <td>
                             <span class="treatment-status ${statusClass}">${treatmentStatus}</span>
-                            ${activeTreatmentCount > 0 ? `<small style="color: #666; display: block;">(${activeTreatmentCount} active)</small>` : ''}
+                            ${activeTreatmentCount > 0 ? `
+                                <div style="margin-top: 4px;">
+                                    <small style="color: #666; font-size: 11px;">
+                                        <i class="fas fa-running"></i> ${activeTreatmentCount} active
+                                        ${completedTreatmentCount > 0 ? ` | <i class="fas fa-check"></i> ${completedTreatmentCount} completed` : ''}
+                                    </small>
+                                </div>
+                            ` : completedTreatmentCount > 0 ? `
+                                <div style="margin-top: 4px;">
+                                    <small style="color: #666; font-size: 11px;">
+                                        <i class="fas fa-check"></i> ${completedTreatmentCount} completed
+                                    </small>
+                                </div>
+                            ` : ''}
                         </td>
                         <td>${assessment.nextAssessment || 'Not scheduled'}</td>
                         <td>
@@ -1449,10 +1814,15 @@
                         const statusClass = treatment.status === 'completed' ? 'status-completed' :
                                           treatment.status === 'inprogress' ? 'status-inprogress' : 'status-pending';
                         
+                        // Show treatment type with icon
+                        const treatmentType = treatmentTypes[treatment.type];
+                        const typeIcon = treatmentType ? `<i class="${treatmentType.icon}"></i>` : '';
+                        const typeName = treatmentType ? treatmentType.name : treatment.type;
+                        
                         return `
                             <div class="history-item">
                                 <div class="history-header">
-                                    <span class="history-type">${treatmentTypes[treatment.type]?.name || treatment.type}</span>
+                                    <span class="history-type">${typeIcon} ${typeName}</span>
                                     <span class="treatment-status ${statusClass}">${treatment.status.charAt(0).toUpperCase() + treatment.status.slice(1)}</span>
                                 </div>
                                 <div class="history-details">
@@ -1461,6 +1831,7 @@
                                     <p><strong>End Date:</strong> ${endDate}</p>
                                     <p><strong>Re-assessment Date:</strong> ${treatment.reassessmentDate ? new Date(treatment.reassessmentDate).toLocaleDateString() : 'Not set'}</p>
                                     <p><strong>Notes:</strong> ${treatment.notes || 'No notes'}</p>
+                                    ${treatment.createdByName ? `<p><strong>Created by:</strong> ${treatment.createdByName} on ${new Date(treatment.createdAt).toLocaleDateString()}</p>` : ''}
                                 </div>
                             </div>
                         `;
@@ -1520,12 +1891,12 @@
                     </div>
 
                     ${assessment.image ? `
-                    <div style="margin-top: 20px;">
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--light-bg);">
                         <h4>Captured Image</h4>
                         <div style="text-align: center; margin-top: 15px;">
                             <img src="${assessment.image}" 
                                  alt="Assessment Image" 
-                                 style="max-width: 100%; max-height: 300px; border-radius: 6px; border: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                 style="max-width: 100%; max-height: 300px; border-radius: 8px; border: 1px solid #dee2e6; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
                         </div>
                     </div>
                     ` : ''}
@@ -1548,15 +1919,41 @@
                 return;
             }
 
+            // Reset edit mode
+            isEditingTreatment = false;
+            editingTreatmentIndex = -1;
+
             const modalBody = document.getElementById('treatmentModalBody');
+            
+            // Detect disease type for suggestions
+            let detectedDiseases = [];
+            if (assessment.disease && assessment.disease !== "No disease detected") {
+                if (assessment.disease.toLowerCase().includes('ganoderma')) {
+                    detectedDiseases.push('Ganoderma');
+                }
+                if (assessment.disease.toLowerCase().includes('blackspot')) {
+                    detectedDiseases.push('Blackspot');
+                }
+            }
+            
+            const diseaseBadges = detectedDiseases.map(disease => 
+                `<span class="disease-badge ${disease === 'Ganoderma' ? 'badge-ganoderma' : 'badge-blackspot'}">${disease}</span>`
+            ).join('');
             
             modalBody.innerHTML = `
                 <div class="treatment-form">
                     <h4>Add New Treatment</h4>
                     
+                    ${detectedDiseases.length > 0 ? `
+                        <div style="margin-bottom: 15px;">
+                            <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Detected Diseases:</div>
+                            ${diseaseBadges}
+                        </div>
+                    ` : ''}
+                    
                     <div class="treatment-type-grid">
                         ${Object.entries(treatmentTypes).map(([key, type]) => `
-                            <div class="treatment-type-card" onclick="selectTreatmentType('${key}')" id="type-${key}">
+                            <div class="treatment-type-card" onclick="selectTreatmentType('${key}', '${assessmentId}')" id="type-${key}">
                                 <div class="treatment-type-icon">
                                     <i class="${type.icon}"></i>
                                 </div>
@@ -1568,10 +1965,18 @@
                     
                     <input type="hidden" id="selectedTreatmentType" value="">
                     
+                    <!-- Treatment Suggestions Section -->
+                    <div id="treatmentSuggestions" class="treatment-suggestions">
+                        <!-- Suggestions will be displayed here -->
+                    </div>
+                    
                     <div class="form-row">
                         <div class="form-group">
                             <label for="startDate">Start Date</label>
                             <input type="date" id="startDate" class="form-input" value="${new Date().toISOString().split('T')[0]}">
+                            <div class="form-hint">
+                                <i class="fas fa-calendar-alt"></i> Best to start treatment immediately after detection
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="duration">Duration</label>
@@ -1583,6 +1988,9 @@
                                     <option value="months">Months</option>
                                 </select>
                             </div>
+                            <div class="form-hint" id="durationHint">
+                                <i class="fas fa-clock"></i> Select treatment type for specific duration recommendation
+                            </div>
                         </div>
                     </div>
                     
@@ -1590,6 +1998,9 @@
                         <div class="form-group">
                             <label for="reassessmentDate">Re-assessment Date</label>
                             <input type="date" id="reassessmentDate" class="form-input">
+                            <div class="form-hint" id="reassessmentHint">
+                                <i class="fas fa-calendar-check"></i> Schedule follow-up to monitor treatment effectiveness
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="status">Status</label>
@@ -1603,43 +2014,54 @@
                     
                     <div class="form-group">
                         <label for="notes">Treatment Notes</label>
-                        <textarea id="notes" class="form-textarea" placeholder="Enter treatment details, instructions, or observations..."></textarea>
+                        <textarea id="notes" class="form-textarea" placeholder="Enter specific details: Product name, dosage, application method, weather conditions, observations..."></textarea>
+                        <div class="form-hint">
+                            <i class="fas fa-sticky-note"></i> Include: Product used, concentration, application rate, and any observed effects
+                        </div>
                     </div>
                     
-                    <button class="submit-btn" onclick="saveTreatment()">
+                    <button class="submit-btn" onclick="saveTreatment()" id="saveTreatmentBtn">
                         <i class="fas fa-save"></i> Save Treatment
                     </button>
                     
                     <div class="treatment-history" style="margin-top: 30px;">
-                        <h4>Treatment History</h4>
+                        <h4>Treatment History (${assessment.treatments?.length || 0})</h4>
                         <div id="treatmentHistoryList">
                             ${assessment.treatments && assessment.treatments.length > 0 ? 
-                                assessment.treatments.map((treatment, index) => `
-                                    <div class="history-item">
-                                        <div class="history-header">
-                                            <span class="history-type">${treatmentTypes[treatment.type]?.name || treatment.type}</span>
-                                            <span class="treatment-status ${treatment.status === 'completed' ? 'status-completed' : treatment.status === 'inprogress' ? 'status-inprogress' : 'status-pending'}">
-                                                ${treatment.status.charAt(0).toUpperCase() + treatment.status.slice(1)}
-                                            </span>
+                                assessment.treatments.map((treatment, index) => {
+                                    const treatmentType = treatmentTypes[treatment.type];
+                                    const typeName = treatmentType ? treatmentType.name : treatment.type;
+                                    const statusClass = treatment.status === 'completed' ? 'status-completed' : 
+                                                      treatment.status === 'inprogress' ? 'status-inprogress' : 'status-pending';
+                                    
+                                    return `
+                                        <div class="history-item">
+                                            <div class="history-header">
+                                                <span class="history-type">${typeName}</span>
+                                                <span class="treatment-status ${statusClass}">
+                                                    ${treatment.status.charAt(0).toUpperCase() + treatment.status.slice(1)}
+                                                </span>
+                                            </div>
+                                            <div class="history-details">
+                                                <p><strong>Duration:</strong> ${treatment.duration} ${treatment.durationUnit}</p>
+                                                <p><strong>Start Date:</strong> ${new Date(treatment.startDate).toLocaleDateString()}</p>
+                                                <p><strong>End Date:</strong> ${treatment.endDate ? new Date(treatment.endDate).toLocaleDateString() : 'Ongoing'}</p>
+                                                <p><strong>Re-assessment:</strong> ${treatment.reassessmentDate ? new Date(treatment.reassessmentDate).toLocaleDateString() : 'Not set'}</p>
+                                                <p><strong>Notes:</strong> ${treatment.notes || 'No notes'}</p>
+                                                ${treatment.createdByName ? `<p><strong>Created by:</strong> ${treatment.createdByName} on ${new Date(treatment.createdAt).toLocaleDateString()}</p>` : ''}
+                                            </div>
+                                            <div class="history-actions">
+                                                <button class="edit-btn" onclick="editTreatment('${assessmentId}', ${index})">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </button>
+                                                <button class="remove-btn" onclick="removeTreatment('${assessmentId}', ${index})">
+                                                    <i class="fas fa-trash"></i> Remove
+                                                </button>
+                                            </div>
                                         </div>
-                                        <div class="history-details">
-                                            <p><strong>Duration:</strong> ${treatment.duration} ${treatment.durationUnit}</p>
-                                            <p><strong>Start Date:</strong> ${new Date(treatment.startDate).toLocaleDateString()}</p>
-                                            <p><strong>End Date:</strong> ${treatment.endDate ? new Date(treatment.endDate).toLocaleDateString() : 'Ongoing'}</p>
-                                            <p><strong>Re-assessment:</strong> ${treatment.reassessmentDate ? new Date(treatment.reassessmentDate).toLocaleDateString() : 'Not set'}</p>
-                                            <p><strong>Notes:</strong> ${treatment.notes || 'No notes'}</p>
-                                        </div>
-                                        <div class="history-actions">
-                                            <button class="edit-btn" onclick="editTreatment('${assessmentId}', ${index})">
-                                                <i class="fas fa-edit"></i> Edit
-                                            </button>
-                                            <button class="remove-btn" onclick="removeTreatment('${assessmentId}', ${index})">
-                                                <i class="fas fa-trash"></i> Remove
-                                            </button>
-                                        </div>
-                                    </div>
-                                `).join('') : 
-                                '<p>No treatment history available</p>'
+                                    `;
+                                }).join('') : 
+                                '<p style="text-align: center; color: var(--text-secondary); padding: 20px;">No treatment history available</p>'
                             }
                         </div>
                     </div>
@@ -1649,8 +2071,93 @@
             document.getElementById('treatmentModal').style.display = 'flex';
         }
 
+        // Show treatment suggestions based on selected type and assessment disease
+        function showTreatmentSuggestions(treatmentType, assessmentId = null) {
+            const suggestionsDiv = document.getElementById('treatmentSuggestions');
+            const durationHint = document.getElementById('durationHint');
+            const reassessmentHint = document.getElementById('reassessmentHint');
+            
+            if (!suggestionsDiv) return;
+
+            const treatmentInfo = treatmentTypes[treatmentType];
+            if (!treatmentInfo) {
+                suggestionsDiv.innerHTML = '';
+                suggestionsDiv.classList.remove('active');
+                return;
+            }
+
+            // Get assessment disease if available
+            let diseaseTypes = ['general'];
+            if (assessmentId) {
+                const assessment = assessments.find(a => a.id === assessmentId);
+                if (assessment && assessment.disease) {
+                    if (assessment.disease.toLowerCase().includes('ganoderma')) {
+                        diseaseTypes.push('ganoderma');
+                    }
+                    if (assessment.disease.toLowerCase().includes('blackspot')) {
+                        diseaseTypes.push('blackspot');
+                    }
+                }
+            }
+
+            // Build suggestions HTML
+            let suggestionsHTML = `
+                <div class="suggestion-header">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Recommended Practices for ${treatmentInfo.name}</span>
+                </div>
+            `;
+
+            // Add disease-specific suggestions
+            diseaseTypes.forEach(diseaseType => {
+                if (treatmentInfo.suggestions[diseaseType]) {
+                    const diseaseTitle = diseaseType === 'ganoderma' ? 'Ganoderma' : 
+                                       diseaseType === 'blackspot' ? 'Blackspot' : 'General Guidelines';
+                    
+                    suggestionsHTML += `
+                        <span class="suggestion-category">${diseaseTitle}:</span>
+                        <ul class="suggestion-list">
+                            ${treatmentInfo.suggestions[diseaseType].map(item => `<li>${item}</li>`).join('')}
+                        </ul>
+                    `;
+                }
+            });
+
+            // Add details section
+            suggestionsHTML += `
+                <div class="treatment-details-info">
+                    <div class="details-title">
+                        <i class="fas fa-info-circle"></i>
+                        <span>About ${treatmentInfo.name}</span>
+                    </div>
+                    <div class="details-content">
+                        ${treatmentInfo.details}
+                    </div>
+                </div>
+            `;
+
+            // Add recommendation note
+            suggestionsHTML += `
+                <div class="recommendation-note">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Important:</strong> These are general recommendations. Adjust based on local conditions, tree age, infection severity, and consult with agricultural experts for specific situations.
+                </div>
+            `;
+
+            suggestionsDiv.innerHTML = suggestionsHTML;
+            suggestionsDiv.classList.add('active');
+
+            // Update hints
+            if (durationHint && treatmentInfo.durationHint) {
+                durationHint.innerHTML = `<i class="fas fa-clock"></i> ${treatmentInfo.durationHint}`;
+            }
+            if (reassessmentHint && treatmentInfo.reassessmentHint) {
+                reassessmentHint.innerHTML = `<i class="fas fa-calendar-check"></i> ${treatmentInfo.reassessmentHint}`;
+            }
+        }
+
         // Select treatment type
-        function selectTreatmentType(type) {
+        function selectTreatmentType(type, assessmentId = null) {
             // Remove selected class from all cards
             document.querySelectorAll('.treatment-type-card').forEach(card => {
                 card.classList.remove('selected');
@@ -1664,6 +2171,9 @@
             
             // Update hidden input
             document.getElementById('selectedTreatmentType').value = type;
+            
+            // Show treatment suggestions
+            showTreatmentSuggestions(type, assessmentId);
         }
 
         // Save treatment
@@ -1722,26 +2232,76 @@
                     notes: notes,
                     createdAt: new Date().toISOString(),
                     createdBy: currentUser.uid,
-                    createdByName: currentUser.displayName || currentUser.email
+                    createdByName: currentUser.displayName || currentUser.email.split('@')[0]
                 };
 
-                // Add treatment to assessment
-                const assessmentRef = doc(db, "assessments", selectedAssessmentId);
-                await updateDoc(assessmentRef, {
-                    treatments: arrayUnion(treatment)
-                });
+                if (isEditingTreatment && editingTreatmentIndex !== -1) {
+                    // Update existing treatment
+                    const assessmentRef = doc(db, "assessments", selectedAssessmentId);
+                    const updatedTreatments = [...assessment.treatments];
+                    treatment.updatedAt = new Date().toISOString();
+                    treatment.updatedBy = currentUser.uid;
+                    treatment.updatedByName = currentUser.displayName || currentUser.email.split('@')[0];
+                    updatedTreatments[editingTreatmentIndex] = treatment;
+                    
+                    await updateDoc(assessmentRef, {
+                        treatments: updatedTreatments
+                    });
 
-                // Update local data
-                assessment.treatments = assessment.treatments || [];
-                assessment.treatments.push(treatment);
+                    assessment.treatments = updatedTreatments;
+                    alert('Treatment updated successfully!');
+                } else {
+                    // Add new treatment
+                    const assessmentRef = doc(db, "assessments", selectedAssessmentId);
+                    await updateDoc(assessmentRef, {
+                        treatments: arrayUnion(treatment)
+                    });
 
-                alert('Treatment saved successfully!');
-                loadAssessments(); // Reload to update UI
-                closeTreatmentModal();
+                    assessment.treatments = assessment.treatments || [];
+                    assessment.treatments.push(treatment);
+                    alert('Treatment saved successfully!');
+                }
+
+                loadAssessments();
+                manageTreatment(selectedAssessmentId); // Refresh modal
             } catch (error) {
                 console.error('Error saving treatment:', error);
                 alert('Error saving treatment: ' + error.message);
             }
+        }
+
+        // Edit treatment
+        function editTreatment(assessmentId, treatmentIndex) {
+            const assessment = assessments.find(a => a.id === assessmentId);
+            if (!assessment || !assessment.treatments || !assessment.treatments[treatmentIndex]) {
+                alert('Treatment not found');
+                return;
+            }
+
+            const treatment = assessment.treatments[treatmentIndex];
+            selectedAssessmentId = assessmentId;
+            isEditingTreatment = true;
+            editingTreatmentIndex = treatmentIndex;
+
+            // Select the treatment type
+            selectTreatmentType(treatment.type, assessmentId);
+
+            // Populate form fields
+            document.getElementById('startDate').value = treatment.startDate || new Date().toISOString().split('T')[0];
+            document.getElementById('duration').value = treatment.duration || 7;
+            document.getElementById('durationUnit').value = treatment.durationUnit || 'days';
+            document.getElementById('reassessmentDate').value = treatment.reassessmentDate || '';
+            document.getElementById('status').value = treatment.status || 'inprogress';
+            document.getElementById('notes').value = treatment.notes || '';
+
+            // Change button text
+            const saveBtn = document.getElementById('saveTreatmentBtn');
+            if (saveBtn) {
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Treatment';
+            }
+
+            // Scroll to form top
+            document.querySelector('.treatment-form').scrollIntoView({ behavior: 'smooth' });
         }
 
         // Complete treatment
@@ -1761,7 +2321,7 @@
                 return;
             }
 
-            if (confirm(`Complete ${activeTreatments.length} active treatment(s)?`)) {
+            if (confirm(`Complete ${activeTreatments.length} active treatment(s)? This will mark them as completed and set the end date to today.`)) {
                 try {
                     const assessmentRef = doc(db, "assessments", assessmentId);
                     
@@ -1771,7 +2331,10 @@
                             return {
                                 ...treatment,
                                 status: 'completed',
-                                endDate: new Date().toISOString().split('T')[0]
+                                endDate: new Date().toISOString().split('T')[0],
+                                updatedAt: new Date().toISOString(),
+                                updatedBy: currentUser.uid,
+                                updatedByName: currentUser.displayName || currentUser.email.split('@')[0]
                             };
                         }
                         return treatment;
@@ -1781,11 +2344,10 @@
                         treatments: updatedTreatments
                     });
 
-                    // Update local data
                     assessment.treatments = updatedTreatments;
 
                     alert('Treatments marked as completed!');
-                    loadAssessments(); // Reload to update UI
+                    loadAssessments();
                 } catch (error) {
                     console.error('Error completing treatments:', error);
                     alert('Error completing treatments: ' + error.message);
@@ -1795,7 +2357,7 @@
 
         // Remove treatment
         async function removeTreatment(assessmentId, treatmentIndex) {
-            if (!confirm('Are you sure you want to remove this treatment?')) {
+            if (!confirm('Are you sure you want to remove this treatment? This action cannot be undone.')) {
                 return;
             }
 
@@ -1809,18 +2371,16 @@
                 const treatmentToRemove = assessment.treatments[treatmentIndex];
                 const assessmentRef = doc(db, "assessments", assessmentId);
                 
-                // Remove the specific treatment
-                const updatedTreatments = assessment.treatments.filter((_, index) => index !== treatmentIndex);
-                
+                // Remove the specific treatment using arrayRemove
                 await updateDoc(assessmentRef, {
-                    treatments: updatedTreatments
+                    treatments: arrayRemove(treatmentToRemove)
                 });
 
                 // Update local data
-                assessment.treatments = updatedTreatments;
+                assessment.treatments = assessment.treatments.filter((_, index) => index !== treatmentIndex);
 
                 alert('Treatment removed successfully!');
-                manageTreatment(assessmentId); // Refresh the modal
+                manageTreatment(assessmentId);
             } catch (error) {
                 console.error('Error removing treatment:', error);
                 alert('Error removing treatment: ' + error.message);
@@ -1831,6 +2391,8 @@
         function closeTreatmentModal() {
             document.getElementById('treatmentModal').style.display = 'none';
             selectedAssessmentId = null;
+            isEditingTreatment = false;
+            editingTreatmentIndex = -1;
         }
 
         // Close assessment modal
@@ -1845,9 +2407,7 @@
             }
 
             try {
-                console.log('Deleting assessment:', assessmentId);
                 await deleteDoc(doc(db, "assessments", assessmentId));
-                console.log(`Assessment ${assessmentId} deleted`);
                 
                 // Remove from local arrays
                 assessments = assessments.filter(a => a.id !== assessmentId);
@@ -1857,7 +2417,6 @@
                 updateStatistics();
                 renderTable();
                 
-                // Show confirmation
                 alert('Assessment deleted successfully');
             } catch (error) {
                 console.error('Error deleting assessment:', error);
@@ -1881,14 +2440,30 @@
                 'Detection Count',
                 'Health Status',
                 'Treatment Status',
-                'Next Assessment',
-                'Active Treatments'
+                'Active Treatments',
+                'Completed Treatments',
+                'Total Treatments',
+                'Next Assessment'
             ];
 
             const csvData = filteredAssessments.map(assessment => {
                 const date = assessment.dateObj;
                 const activeTreatmentCount = assessment.treatments ? 
                     assessment.treatments.filter(t => t.status === 'inprogress' || t.status === 'pending').length : 0;
+                const completedTreatmentCount = assessment.treatments ? 
+                    assessment.treatments.filter(t => t.status === 'completed').length : 0;
+                const totalTreatmentCount = (activeTreatmentCount + completedTreatmentCount);
+                
+                let treatmentStatus = 'No Treatment';
+                if (totalTreatmentCount > 0) {
+                    if (activeTreatmentCount > 0) {
+                        treatmentStatus = 'In Progress';
+                    } else if (completedTreatmentCount > 0) {
+                        treatmentStatus = 'Completed';
+                    } else {
+                        treatmentStatus = 'Pending';
+                    }
+                }
                 
                 return [
                     `"${assessment.assessmentId || ''}"`,
@@ -1898,9 +2473,11 @@
                     `"${assessment.disease || ''}"`,
                     assessment.detectionCount || 0,
                     `"${assessment.healthStatus || ''}"`,
-                    `"${assessment.treatmentStatus || 'No Treatment'}"`,
-                    `"${assessment.nextAssessment || ''}"`,
-                    activeTreatmentCount
+                    `"${treatmentStatus}"`,
+                    activeTreatmentCount,
+                    completedTreatmentCount,
+                    totalTreatmentCount,
+                    `"${assessment.nextAssessment || ''}"`
                 ];
             });
 
@@ -1969,7 +2546,9 @@
         window.viewAssessment = viewAssessment;
         window.manageTreatment = manageTreatment;
         window.selectTreatmentType = selectTreatmentType;
+        window.showTreatmentSuggestions = showTreatmentSuggestions;
         window.saveTreatment = saveTreatment;
+        window.editTreatment = editTreatment;
         window.completeTreatment = completeTreatment;
         window.removeTreatment = removeTreatment;
         window.deleteAssessment = deleteAssessment;
