@@ -1358,6 +1358,24 @@
         let isEditingTreatment = false;
         let editingTreatmentIndex = -1;
 
+        onAuthStateChanged(auth, (user) => {
+    if (user) {
+        currentUser = user;
+        window.currentUser = user; // Make available globally
+        
+        // Force sidebar update if it's already loaded
+        if (window.updateSidebarProfile) {
+            window.updateSidebarProfile();
+        }
+        
+        console.log('User authenticated:', user.email);
+        loadAssessments();
+    } else {
+        console.log('User not authenticated');
+        window.location.href = 'signin.html';
+    }
+});
+
         // Enhanced treatment types with detailed information and suggestions
         const treatmentTypes = {
             racun: {
