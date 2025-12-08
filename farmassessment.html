@@ -545,7 +545,7 @@
                             <label class="form-label">Assessment ID <span style="color: red;">*</span></label>
                             <div class="assessment-id-container">
                                 <input type="text" class="form-input" id="assessmentId" placeholder="Will auto-generate after image analysis" readonly>
-                                <button type="button" class="regenerate-btn" onclick="generateAssessmentId()">
+                                <button type="button" class="regenerate-btn" onclick="regenerateAssessmentId()">
                                     <i class="fas fa-sync-alt"></i> Regenerate
                                 </button>
                             </div>
@@ -714,6 +714,7 @@
     let currentUser = null;
     let userData = null;
     let generatedAssessmentId = '';
+    let isProcessing = false;
 
     // Check authentication state
     onAuthStateChanged(auth, async (user) => {
@@ -880,17 +881,15 @@
             });
     }
 
-    // Generate unique assessment ID based on disease detection
-    async function generateAssessmentId() {
-        // Check if an image has been uploaded
-        if (!fileInput.files[0]) {
-            alert('Please upload and analyze an image first to generate Assessment ID');
-            return;
-        }
-
+    // Function to auto-generate assessment ID after detection
+    async function autoGenerateAssessmentId() {
+        console.log('Auto-generating Assessment ID...');
+        console.log('Current detections:', currentDetections);
+        
         // Check if detection has been performed
         if (!currentDetections || currentDetections.length === 0) {
-            alert('Please analyze an image first to generate Assessment ID');
+            console.log('No detections available for auto-generation');
+            updateAssessmentIdStatus(false, 'No diseases detected');
             return;
         }
 
@@ -903,6 +902,8 @@
                 }
             });
 
+            console.log('Detected diseases:', Array.from(detectedDiseases));
+
             let diseaseCode = diseaseCodes.unknown;
             if (detectedDiseases.has('ganoderma')) {
                 diseaseCode = diseaseCodes.ganoderma;
@@ -911,6 +912,8 @@
             } else if (detectedDiseases.size === 0) {
                 diseaseCode = diseaseCodes.healthy;
             }
+
+            console.log('Selected disease code:', diseaseCode);
 
             // Generate timestamp component
             const now = new Date();
@@ -956,14 +959,35 @@
             // Update the input field
             assessmentId.value = generatedAssessmentId;
             updateAssessmentIdStatus(true, 'Unique Assessment ID generated');
+            console.log('Generated Assessment ID:', generatedAssessmentId);
 
         } catch (error) {
-            console.error('Error generating Assessment ID:', error);
+            console.error('Error auto-generating Assessment ID:', error);
             // Fallback to random ID
             generatedAssessmentId = `ASS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
             assessmentId.value = generatedAssessmentId;
             updateAssessmentIdStatus(true, 'Generated fallback ID');
         }
+    }
+
+    // Manual regeneration function
+    async function regenerateAssessmentId() {
+        console.log('Manual regeneration requested');
+        
+        // Check if an image has been uploaded
+        if (!fileInput.files[0]) {
+            alert('Please upload an image first to generate Assessment ID');
+            return;
+        }
+
+        // Check if detection has been performed
+        if (!currentDetections || currentDetections.length === 0) {
+            alert('Please analyze an image first to generate Assessment ID');
+            return;
+        }
+
+        // Call the auto-generation function
+        await autoGenerateAssessmentId();
     }
 
     // Update assessment ID status display
@@ -972,7 +996,7 @@
         if (isValid) {
             assessmentIdStatus.className = 'id-status valid';
         } else {
-            assessmentIdStatus.className = 'id-status invalid';
+            assessmentIdStatus.className = 'id-status info';
         }
     }
 
@@ -1218,7 +1242,14 @@
             return;
         }
 
+        if (isProcessing) {
+            console.log('Already processing an image');
+            return;
+        }
+
+        isProcessing = true;
         loading.style.display = 'block';
+        resetAssessmentIdStatus();
         
         try {
             // Convert image to base64
@@ -1258,6 +1289,7 @@
 
             // Store all detections globally
             currentDetections = allDetections;
+            console.log('Detection complete. Total detections:', allDetections.length);
             
             // Auto-detect disease type and set threshold
             autoDetectDiseaseType(allDetections);
@@ -1267,13 +1299,14 @@
             displayDetections(filteredDetections);
 
             // Auto-generate assessment ID based on detections
-            generateAssessmentId();
+            await autoGenerateAssessmentId();
 
         } catch (error) {
             console.error('Error during image detection:', error);
             alert('Error processing image: ' + error.message);
         } finally {
             loading.style.display = 'none';
+            isProcessing = false;
         }
     }
 
@@ -1478,6 +1511,7 @@
         objectsCount.textContent = '0 objects';
         clearDetections();
         currentDetections = [];
+        isProcessing = false;
     }
 
     // Initialize the application
@@ -1499,7 +1533,7 @@
     window.updateConfidence = updateConfidence;
     window.saveAssessment = saveAssessment;
     window.performImageDetection = performImageDetection;
-    window.generateAssessmentId = generateAssessmentId;
+    window.regenerateAssessmentId = regenerateAssessmentId;
 </script>
 </body>
 </html>
