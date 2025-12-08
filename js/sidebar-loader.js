@@ -73,219 +73,6 @@
 
         window.__sidebarLoaded = true;
 
-        // Function to create fallback avatar with initials
-        function createFallbackAvatar(initials, size = 128) {
-            const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-            const ctx = canvas.getContext('2d');
-            
-            // Color palette for avatars (green theme matching your app)
-            const colors = [
-                '#2e7d32', // Primary green
-                '#388e3c', // Secondary green
-                '#43a047', // Light green
-                '#4caf50', // Lighter green
-                '#66bb6a'  // Very light green
-            ];
-            
-            // Pick a color based on initials for consistency
-            const colorIndex = initials.charCodeAt(0) % colors.length;
-            
-            // Draw background circle
-            ctx.fillStyle = colors[colorIndex];
-            ctx.beginPath();
-            ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Draw initials
-            ctx.fillStyle = 'white';
-            ctx.font = `bold ${size * 0.35}px Arial, sans-serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(initials, size/2, size/2);
-            
-            return canvas.toDataURL();
-        }
-
-        // Function to get user initials
-        function getUserInitials(user) {
-            if (!user) return 'U';
-            
-            if (user.displayName) {
-                // Get initials from display name
-                const nameParts = user.displayName.split(' ');
-                if (nameParts.length >= 2) {
-                    return (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
-                }
-                return user.displayName.charAt(0).toUpperCase();
-            }
-            
-            if (user.email) {
-                // Use first letter of email
-                return user.email.charAt(0).toUpperCase();
-            }
-            
-            return 'U';
-        }
-
-        // Function to load user profile data for sidebar with Firebase support
-        async function loadSidebarUserProfile() {
-            try {
-                const img = document.getElementById('sidebarUserAvatar');
-                const nameEl = document.querySelector('.user-name');
-                const roleEl = document.querySelector('.user-role');
-                const bioEl = document.getElementById('sidebarUserBio');
-                
-                // Default values
-                let avatarSrc = '';
-                let displayName = 'Guest';
-                let role = 'Visitor';
-                let bio = '';
-                let userInitials = 'G';
-                
-                // Check if Firebase is available and user is authenticated
-                if (typeof firebase !== 'undefined' && firebase.auth) {
-                    const auth = firebase.auth();
-                    const user = auth.currentUser;
-                    
-                    if (user) {
-                        displayName = user.displayName || user.email?.split('@')[0] || 'User';
-                        userInitials = getUserInitials(user);
-                        
-                        // Try to get user data from Firestore
-                        try {
-                            const db = firebase.firestore();
-                            const userDoc = await db.collection('users').doc(user.uid).get();
-                            
-                            if (userDoc.exists) {
-                                const userData = userDoc.data();
-                                
-                                // Get avatar source
-                                if (userData.imageBase64) {
-                                    avatarSrc = userData.imageBase64;
-                                } else if (userData.profilePicture) {
-                                    avatarSrc = userData.profilePicture;
-                                } else if (userData.picture) {
-                                    avatarSrc = userData.picture;
-                                } else if (user.photoURL) {
-                                    avatarSrc = user.photoURL;
-                                }
-                                
-                                // Get display name
-                                if (userData.firstName && userData.lastName) {
-                                    displayName = `${userData.firstName} ${userData.lastName}`;
-                                    userInitials = (userData.firstName.charAt(0) + userData.lastName.charAt(0)).toUpperCase();
-                                } else if (userData.username) {
-                                    displayName = userData.username;
-                                }
-                                
-                                // Get role
-                                role = userData.role || 'Farmer';
-                                
-                                // Get bio
-                                bio = userData.bio || userData.description || '';
-                            } else {
-                                // Fallback to auth user data
-                                if (user.photoURL) {
-                                    avatarSrc = user.photoURL;
-                                }
-                                role = 'Farmer';
-                            }
-                        } catch (dbError) {
-                            console.warn('Could not load user from Firestore:', dbError);
-                            // Fallback to auth user data
-                            if (user.photoURL) {
-                                avatarSrc = user.photoURL;
-                            }
-                            role = 'Farmer';
-                        }
-                    }
-                } 
-                // Check for legacy user data
-                else if (window.userData) {
-                    const userData = window.userData;
-                    
-                    if (userData.imageBase64) {
-                        avatarSrc = userData.imageBase64;
-                    } else if (userData.profilePicture) {
-                        avatarSrc = userData.profilePicture;
-                    } else if (userData.picture) {
-                        avatarSrc = userData.picture;
-                    }
-                    
-                    if (userData.firstName && userData.lastName) {
-                        displayName = `${userData.firstName} ${userData.lastName}`;
-                        userInitials = (userData.firstName.charAt(0) + userData.lastName.charAt(0)).toUpperCase();
-                    } else if (userData.username) {
-                        displayName = userData.username;
-                        userInitials = userData.username.charAt(0).toUpperCase();
-                    }
-                    
-                    role = userData.role || 'Farmer';
-                    bio = userData.bio || userData.description || '';
-                }
-                
-                // Update DOM elements
-                if (img) {
-                    // Remove any previous error handlers
-                    img.onerror = null;
-                    
-                    if (avatarSrc) {
-                        // Try to load the actual avatar
-                        img.src = avatarSrc;
-                        img.onerror = function() {
-                            console.log('Avatar image failed to load, using fallback with initials');
-                            this.onerror = null; // Prevent infinite loop
-                            this.src = createFallbackAvatar(userInitials);
-                        };
-                    } else {
-                        // No avatar URL, use fallback immediately
-                        console.log('No avatar URL available, using fallback with initials');
-                        img.src = createFallbackAvatar(userInitials);
-                    }
-                }
-                
-                if (nameEl) {
-                    nameEl.textContent = displayName;
-                }
-                
-                if (roleEl) {
-                    roleEl.textContent = role;
-                }
-                
-                if (bioEl && bio) {
-                    bioEl.textContent = bio;
-                    bioEl.style.display = 'block';
-                } else if (bioEl) {
-                    bioEl.style.display = 'none';
-                }
-                
-                console.log('Sidebar profile loaded:', { 
-                    displayName, 
-                    role, 
-                    initials: userInitials,
-                    hasAvatar: !!avatarSrc,
-                    bio: bio ? 'Yes' : 'No' 
-                });
-                
-            } catch (error) {
-                console.error('Error loading sidebar user profile:', error);
-                // Set defaults on error
-                const img = document.getElementById('sidebarUserAvatar');
-                const nameEl = document.querySelector('.user-name');
-                const roleEl = document.querySelector('.user-role');
-                const bioEl = document.getElementById('sidebarUserBio');
-                
-                if (img) {
-                    img.src = createFallbackAvatar('U');
-                }
-                if (nameEl) nameEl.textContent = 'User';
-                if (roleEl) roleEl.textContent = 'Farmer';
-                if (bioEl) bioEl.style.display = 'none';
-            }
-        }
-
         // --- set active nav item based on current location and add click feedback ---
         (function updateSidebarActive() {
             function setActiveByPath() {
@@ -317,21 +104,133 @@
             window.setSidebarActive = setActiveByPath;
         })();
 
-        // Load sidebar user profile immediately
+        // Function to load user profile data for sidebar with Firebase support
+        async function loadSidebarUserProfile() {
+            try {
+                const img = document.getElementById('sidebarUserAvatar');
+                const nameEl = document.querySelector('.user-name');
+                const roleEl = document.querySelector('.user-role');
+                
+                // Check if Firebase is available and user is authenticated
+                if (window.firebase && window.firebase.auth) {
+                    const auth = window.firebase.auth();
+                    const user = auth.currentUser;
+                    
+                    if (user) {
+                        // Try to get user data from Firestore
+                        const db = window.firebase.firestore();
+                        try {
+                            const userDoc = await db.collection('users').doc(user.uid).get();
+                            
+                            if (userDoc.exists) {
+                                const userData = userDoc.data();
+                                
+                                // Update avatar
+                                if (img) {
+                                    const avatarSrc = userData.imageBase64 || userData.picture || user.photoURL || 'images/default-avatar.png';
+                                    img.src = avatarSrc;
+                                    img.onerror = () => {
+                                        img.onerror = null;
+                                        img.src = 'images/default-avatar.png';
+                                    };
+                                }
+                                
+                                // Update name
+                                if (nameEl) {
+                                    let displayName = 'User';
+                                    if (userData.firstName && userData.lastName) {
+                                        displayName = `${userData.firstName} ${userData.lastName}`;
+                                    } else if (userData.username) {
+                                        displayName = userData.username;
+                                    } else if (user.displayName) {
+                                        displayName = user.displayName;
+                                    } else if (user.email) {
+                                        displayName = user.email.split('@')[0];
+                                    }
+                                    nameEl.textContent = displayName;
+                                }
+                                
+                                // Update role
+                                if (roleEl) {
+                                    roleEl.textContent = userData.role || 'Farmer';
+                                }
+                                
+                                return; // Successfully loaded from Firestore
+                            }
+                        } catch (dbError) {
+                            console.warn('Could not load user from Firestore:', dbError);
+                        }
+                        
+                        // Fallback: Use auth user data
+                        if (img) {
+                            const avatarSrc = user.photoURL || 'images/default-avatar.png';
+                            img.src = avatarSrc;
+                            img.onerror = () => {
+                                img.onerror = null;
+                                img.src = 'images/default-avatar.png';
+                            };
+                        }
+                        
+                        if (nameEl) {
+                            nameEl.textContent = user.displayName || user.email.split('@')[0] || 'User';
+                        }
+                        
+                        if (roleEl) {
+                            roleEl.textContent = 'Farmer';
+                        }
+                    } else {
+                        // No user logged in
+                        if (img) img.src = 'images/default-avatar.png';
+                        if (nameEl) nameEl.textContent = 'Guest';
+                        if (roleEl) roleEl.textContent = 'Visitor';
+                    }
+                } else {
+                    // Firebase not available, fallback to legacy system
+                    const src = window.userData?.imageBase64 || window.userData?.picture || window.currentUser?.photoURL || null;
+                    if (img && src) {
+                        img.src = src;
+                        img.onerror = () => { 
+                            img.onerror = null; 
+                            img.src = 'images/default-avatar.png';
+                        };
+                    }
+                    
+                    if (nameEl) {
+                        const display = window.userData?.firstName && window.userData?.lastName
+                            ? `${window.userData.firstName} ${window.userData.lastName}`
+                            : window.userData?.username || window.currentUser?.displayName || (window.currentUser?.email || '').split('@')[0] || 'User';
+                        nameEl.textContent = display;
+                    }
+                    
+                    if (roleEl) {
+                        roleEl.textContent = window.userData?.bio || 'Farmer';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading sidebar user profile:', error);
+                // Set defaults on error
+                const img = document.getElementById('sidebarUserAvatar');
+                const nameEl = document.querySelector('.user-name');
+                const roleEl = document.querySelector('.user-role');
+                
+                if (img) img.src = 'images/default-avatar.png';
+                if (nameEl) nameEl.textContent = 'User';
+                if (roleEl) roleEl.textContent = 'Farmer';
+            }
+        }
+
+        // Load sidebar user profile
         loadSidebarUserProfile();
 
         // Expose a function to update sidebar profile from other scripts
         window.updateSidebarProfile = loadSidebarUserProfile;
 
         // Listen for auth state changes to update sidebar
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-            firebase.auth().onAuthStateChanged(() => {
+        if (window.firebase && window.firebase.auth) {
+            window.firebase.auth().onAuthStateChanged(() => {
                 loadSidebarUserProfile();
             });
         }
-
-        // Also try to load profile after a short delay to ensure Firebase is initialized
-        setTimeout(loadSidebarUserProfile, 1000);
 
         // wire toggle safely
         const sidebar = document.querySelector('.sidebar');
@@ -352,7 +251,7 @@
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (ev) => {
                 ev.preventDefault();
-                const auth = window.firebaseAuth || (typeof firebase !== 'undefined' && firebase.auth && firebase.auth());
+                const auth = window.firebaseAuth || (window.firebase && window.firebase.auth && window.firebase.auth());
                 if (auth && typeof auth.signOut === 'function') {
                     auth.signOut().catch(() => { }).finally(() => { window.location.href = 'signin.html'; });
                 } else {
