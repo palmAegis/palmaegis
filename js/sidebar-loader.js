@@ -110,127 +110,150 @@
                 const img = document.getElementById('sidebarUserAvatar');
                 const nameEl = document.querySelector('.user-name');
                 const roleEl = document.querySelector('.user-role');
+                const bioEl = document.getElementById('sidebarUserBio');
+                
+                // Default values
+                let avatarSrc = 'images/default-avatar.png';
+                let displayName = 'Guest';
+                let role = 'Visitor';
+                let bio = '';
                 
                 // Check if Firebase is available and user is authenticated
-                if (window.firebase && window.firebase.auth) {
-                    const auth = window.firebase.auth();
+                if (typeof firebase !== 'undefined' && firebase.auth) {
+                    const auth = firebase.auth();
                     const user = auth.currentUser;
                     
                     if (user) {
+                        displayName = user.displayName || user.email?.split('@')[0] || 'User';
+                        
                         // Try to get user data from Firestore
-                        const db = window.firebase.firestore();
                         try {
+                            const db = firebase.firestore();
                             const userDoc = await db.collection('users').doc(user.uid).get();
                             
                             if (userDoc.exists) {
                                 const userData = userDoc.data();
                                 
-                                // Update avatar
-                                if (img) {
-                                    const avatarSrc = userData.imageBase64 || userData.picture || user.photoURL || 'images/default-avatar.png';
-                                    img.src = avatarSrc;
-                                    img.onerror = () => {
-                                        img.onerror = null;
-                                        img.src = 'images/default-avatar.png';
-                                    };
+                                // Get avatar source
+                                if (userData.imageBase64) {
+                                    avatarSrc = userData.imageBase64;
+                                } else if (userData.profilePicture) {
+                                    avatarSrc = userData.profilePicture;
+                                } else if (userData.picture) {
+                                    avatarSrc = userData.picture;
+                                } else if (user.photoURL) {
+                                    avatarSrc = user.photoURL;
                                 }
                                 
-                                // Update name
-                                if (nameEl) {
-                                    let displayName = 'User';
-                                    if (userData.firstName && userData.lastName) {
-                                        displayName = `${userData.firstName} ${userData.lastName}`;
-                                    } else if (userData.username) {
-                                        displayName = userData.username;
-                                    } else if (user.displayName) {
-                                        displayName = user.displayName;
-                                    } else if (user.email) {
-                                        displayName = user.email.split('@')[0];
-                                    }
-                                    nameEl.textContent = displayName;
+                                // Get display name
+                                if (userData.firstName && userData.lastName) {
+                                    displayName = `${userData.firstName} ${userData.lastName}`;
+                                } else if (userData.username) {
+                                    displayName = userData.username;
                                 }
                                 
-                                // Update role
-                                if (roleEl) {
-                                    roleEl.textContent = userData.role || 'Farmer';
-                                }
+                                // Get role
+                                role = userData.role || 'Farmer';
                                 
-                                return; // Successfully loaded from Firestore
+                                // Get bio
+                                bio = userData.bio || userData.description || '';
+                            } else {
+                                // Fallback to auth user data
+                                if (user.photoURL) {
+                                    avatarSrc = user.photoURL;
+                                }
+                                role = 'Farmer';
                             }
                         } catch (dbError) {
                             console.warn('Could not load user from Firestore:', dbError);
+                            // Fallback to auth user data
+                            if (user.photoURL) {
+                                avatarSrc = user.photoURL;
+                            }
+                            role = 'Farmer';
                         }
-                        
-                        // Fallback: Use auth user data
-                        if (img) {
-                            const avatarSrc = user.photoURL || 'images/default-avatar.png';
-                            img.src = avatarSrc;
-                            img.onerror = () => {
-                                img.onerror = null;
-                                img.src = 'images/default-avatar.png';
-                            };
-                        }
-                        
-                        if (nameEl) {
-                            nameEl.textContent = user.displayName || user.email.split('@')[0] || 'User';
-                        }
-                        
-                        if (roleEl) {
-                            roleEl.textContent = 'Farmer';
-                        }
-                    } else {
-                        // No user logged in
-                        if (img) img.src = 'images/default-avatar.png';
-                        if (nameEl) nameEl.textContent = 'Guest';
-                        if (roleEl) roleEl.textContent = 'Visitor';
                     }
-                } else {
-                    // Firebase not available, fallback to legacy system
-                    const src = window.userData?.imageBase64 || window.userData?.picture || window.currentUser?.photoURL || null;
-                    if (img && src) {
-                        img.src = src;
-                        img.onerror = () => { 
-                            img.onerror = null; 
-                            img.src = 'images/default-avatar.png';
-                        };
+                } 
+                // Check for legacy user data
+                else if (window.userData) {
+                    const userData = window.userData;
+                    
+                    if (userData.imageBase64) {
+                        avatarSrc = userData.imageBase64;
+                    } else if (userData.profilePicture) {
+                        avatarSrc = userData.profilePicture;
+                    } else if (userData.picture) {
+                        avatarSrc = userData.picture;
                     }
                     
-                    if (nameEl) {
-                        const display = window.userData?.firstName && window.userData?.lastName
-                            ? `${window.userData.firstName} ${window.userData.lastName}`
-                            : window.userData?.username || window.currentUser?.displayName || (window.currentUser?.email || '').split('@')[0] || 'User';
-                        nameEl.textContent = display;
+                    if (userData.firstName && userData.lastName) {
+                        displayName = `${userData.firstName} ${userData.lastName}`;
+                    } else if (userData.username) {
+                        displayName = userData.username;
                     }
                     
-                    if (roleEl) {
-                        roleEl.textContent = window.userData?.bio || 'Farmer';
-                    }
+                    role = userData.role || 'Farmer';
+                    bio = userData.bio || userData.description || '';
                 }
+                
+                // Update DOM elements
+                if (img) {
+                    // Set src and handle errors
+                    img.src = avatarSrc;
+                    img.onerror = () => {
+                        img.onerror = null; // Prevent infinite loop
+                        img.src = 'images/default-avatar.png';
+                        console.log('Avatar image failed to load, using default');
+                    };
+                }
+                
+                if (nameEl) {
+                    nameEl.textContent = displayName;
+                }
+                
+                if (roleEl) {
+                    roleEl.textContent = role;
+                }
+                
+                if (bioEl && bio) {
+                    bioEl.textContent = bio;
+                    bioEl.style.display = 'block';
+                } else if (bioEl) {
+                    bioEl.style.display = 'none';
+                }
+                
+                console.log('Sidebar profile loaded:', { displayName, role, bio: bio ? 'Yes' : 'No' });
+                
             } catch (error) {
                 console.error('Error loading sidebar user profile:', error);
                 // Set defaults on error
                 const img = document.getElementById('sidebarUserAvatar');
                 const nameEl = document.querySelector('.user-name');
                 const roleEl = document.querySelector('.user-role');
+                const bioEl = document.getElementById('sidebarUserBio');
                 
                 if (img) img.src = 'images/default-avatar.png';
                 if (nameEl) nameEl.textContent = 'User';
                 if (roleEl) roleEl.textContent = 'Farmer';
+                if (bioEl) bioEl.style.display = 'none';
             }
         }
 
-        // Load sidebar user profile
+        // Load sidebar user profile immediately
         loadSidebarUserProfile();
 
         // Expose a function to update sidebar profile from other scripts
         window.updateSidebarProfile = loadSidebarUserProfile;
 
         // Listen for auth state changes to update sidebar
-        if (window.firebase && window.firebase.auth) {
-            window.firebase.auth().onAuthStateChanged(() => {
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().onAuthStateChanged(() => {
                 loadSidebarUserProfile();
             });
         }
+
+        // Also try to load profile after a short delay to ensure Firebase is initialized
+        setTimeout(loadSidebarUserProfile, 1000);
 
         // wire toggle safely
         const sidebar = document.querySelector('.sidebar');
@@ -251,7 +274,7 @@
         if (logoutBtn) {
             logoutBtn.addEventListener('click', (ev) => {
                 ev.preventDefault();
-                const auth = window.firebaseAuth || (window.firebase && window.firebase.auth && window.firebase.auth());
+                const auth = window.firebaseAuth || (typeof firebase !== 'undefined' && firebase.auth && firebase.auth());
                 if (auth && typeof auth.signOut === 'function') {
                     auth.signOut().catch(() => { }).finally(() => { window.location.href = 'signin.html'; });
                 } else {
