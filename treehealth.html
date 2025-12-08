@@ -775,6 +775,7 @@
             if (user) {
                 currentUser = user;
                 console.log('User authenticated:', user.email);
+                console.log('User UID:', user.uid);
                 loadAssessments();
             } else {
                 console.log('User not authenticated');
@@ -790,30 +791,69 @@
                     return;
                 }
 
+                console.log('Loading assessments for user:', currentUser.uid);
+                
                 const assessmentsRef = collection(db, "assessments");
+                console.log('Collection reference created');
+                
+                // Remove orderBy to avoid index issues
                 const q = query(
                     assessmentsRef,
-                    where("userId", "==", currentUser.uid),
-                    orderBy("timestamp", "desc")
+                    where("userId", "==", currentUser.uid)
                 );
 
+                console.log('Executing query...');
                 const querySnapshot = await getDocs(q);
+                console.log(`Query completed. Found ${querySnapshot.size} documents`);
+                
                 assessments = [];
+                
+                if (querySnapshot.size === 0) {
+                    console.log('No assessments found for this user');
+                    showNoDataMessage();
+                    return;
+                }
+                
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
+                    console.log('Document data:', {
+                        id: doc.id,
+                        assessmentId: data.assessmentId,
+                        userId: data.userId,
+                        timestamp: data.timestamp
+                    });
+                    
+                    // Handle different timestamp formats
+                    let dateObj;
+                    if (data.createdAt) {
+                        dateObj = new Date(data.createdAt);
+                    } else if (data.timestamp && typeof data.timestamp === 'string') {
+                        dateObj = new Date(data.timestamp);
+                    } else if (data.timestamp && data.timestamp.toDate) {
+                        dateObj = data.timestamp.toDate();
+                    } else {
+                        dateObj = new Date();
+                    }
+                    
                     assessments.push({
                         id: doc.id,
                         ...data,
-                        dateObj: new Date(data.createdAt || data.timestamp?.toDate?.() || new Date())
+                        dateObj: dateObj
                     });
                 });
 
                 console.log(`Loaded ${assessments.length} assessments`);
+                
+                // Sort manually by date (newest first)
+                assessments.sort((a, b) => b.dateObj - a.dateObj);
+                
                 updateStatistics();
                 filterAssessments();
                 renderTable();
             } catch (error) {
                 console.error("Error loading assessments:", error);
+                console.error("Error code:", error.code);
+                console.error("Error message:", error.message);
                 showNoDataMessage();
             }
         }
@@ -833,6 +873,9 @@
             if (total > 0) {
                 document.getElementById('healthyPercentage').textContent = `${Math.round((healthy / total) * 100)}%`;
                 document.getElementById('diseasePercentage').textContent = `${Math.round((disease / total) * 100)}%`;
+            } else {
+                document.getElementById('healthyPercentage').textContent = '0%';
+                document.getElementById('diseasePercentage').textContent = '0%';
             }
         }
 
@@ -845,9 +888,9 @@
             filteredAssessments = assessments.filter(assessment => {
                 // Search filter
                 const matchesSearch = !searchTerm || 
-                    assessment.assessmentId?.toLowerCase().includes(searchTerm) ||
-                    assessment.location?.toLowerCase().includes(searchTerm) ||
-                    assessment.disease?.toLowerCase().includes(searchTerm);
+                    (assessment.assessmentId && assessment.assessmentId.toLowerCase().includes(searchTerm)) ||
+                    (assessment.location && assessment.location.toLowerCase().includes(searchTerm)) ||
+                    (assessment.disease && assessment.disease.toLowerCase().includes(searchTerm));
 
                 // Status filter
                 const matchesStatus = !statusFilter || assessment.healthStatus === statusFilter;
@@ -855,11 +898,13 @@
                 // Disease filter
                 let matchesDisease = true;
                 if (diseaseFilter) {
-                    if (diseaseFilter === "Multiple") {
-                        matchesDisease = assessment.disease?.includes(",") || 
+                    if (!assessment.disease) {
+                        matchesDisease = false;
+                    } else if (diseaseFilter === "Multiple") {
+                        matchesDisease = assessment.disease.includes(",") || 
                                        (assessment.detectionCount && assessment.detectionCount > 1);
                     } else {
-                        matchesDisease = assessment.disease?.toLowerCase().includes(diseaseFilter.toLowerCase());
+                        matchesDisease = assessment.disease.toLowerCase().includes(diseaseFilter.toLowerCase());
                     }
                 }
 
@@ -867,6 +912,7 @@
             });
 
             currentPage = 1;
+            console.log(`Filtered to ${filteredAssessments.length} assessments`);
         }
 
         // Render table with pagination
@@ -893,15 +939,27 @@
             // Render table rows
             tableBody.innerHTML = pageAssessments.map(assessment => {
                 const date = assessment.dateObj;
-                const formattedDate = date.toLocaleDateString();
-                const formattedTime = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const formattedDate = date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                const formattedTime = date.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: true 
+                });
 
                 // Create disease tags
-                const diseaseTags = assessment.disease ? assessment.disease.split(', ').map(disease => {
-                    const tagClass = disease.includes('Ganoderma') ? 'tag-ganoderma' :
-                                   disease.includes('Blackspot') ? 'tag-blackspot' : 'tag-unknown';
-                    return `<span class="disease-tag ${tagClass}">${disease.trim()}</span>`;
-                }).join('') : '<span class="disease-tag tag-unknown">None</span>';
+                let diseaseTags = '<span class="disease-tag tag-unknown">None</span>';
+                if (assessment.disease && assessment.disease !== "No disease detected") {
+                    const diseases = assessment.disease.split(', ').map(disease => {
+                        const tagClass = disease.includes('Ganoderma') ? 'tag-ganoderma' :
+                                       disease.includes('Blackspot') ? 'tag-blackspot' : 'tag-unknown';
+                        return `<span class="disease-tag ${tagClass}">${disease.trim()}</span>`;
+                    }).join('');
+                    diseaseTags = diseases;
+                }
 
                 // Detection count badge
                 const detectionCount = assessment.detectionCount || 0;
@@ -954,7 +1012,7 @@
 
             pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
             prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages;
+            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
         }
 
         // Change page
@@ -972,30 +1030,47 @@
         async function viewAssessment(assessmentId) {
             try {
                 const assessment = assessments.find(a => a.id === assessmentId);
-                if (!assessment) return;
+                if (!assessment) {
+                    console.error('Assessment not found:', assessmentId);
+                    return;
+                }
 
                 const modalBody = document.getElementById('modalBody');
                 const date = assessment.dateObj;
-                const formattedDateTime = date.toLocaleString();
+                const formattedDateTime = date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
 
                 // Format disease tags
-                const diseaseTags = assessment.disease ? assessment.disease.split(', ').map(disease => {
-                    const tagClass = disease.includes('Ganoderma') ? 'tag-ganoderma' :
-                                   disease.includes('Blackspot') ? 'tag-blackspot' : 'tag-unknown';
-                    return `<span class="disease-tag ${tagClass}">${disease.trim()}</span>`;
-                }).join(' ') : 'None detected';
+                let diseaseTags = 'None detected';
+                if (assessment.disease && assessment.disease !== "No disease detected") {
+                    diseaseTags = assessment.disease.split(', ').map(disease => {
+                        const tagClass = disease.includes('Ganoderma') ? 'tag-ganoderma' :
+                                       disease.includes('Blackspot') ? 'tag-blackspot' : 'tag-unknown';
+                        return `<span class="disease-tag ${tagClass}">${disease.trim()}</span>`;
+                    }).join(' ');
+                }
 
                 // Create detection details
                 let detectionDetails = '<p>No detection data available</p>';
                 if (assessment.detections && assessment.detections.length > 0) {
                     detectionDetails = assessment.detections.map(det => {
                         const confidencePercent = Math.round((det.confidence || 0) * 100);
+                        const borderColor = det.model === 'ganoderma' ? '#28a745' : 
+                                          det.model === 'blackspot' ? '#dc3545' : '#0288d1';
+                        
                         return `
-                            <div class="detection-card">
+                            <div class="detection-card" style="border-left-color: ${borderColor}">
                                 <div class="detection-title">${det.class || 'Unknown'}</div>
-                                <div class="detection-info">Model: ${det.model || 'Unknown'}</div>
-                                <div class="detection-info">Confidence: ${confidencePercent}%</div>
-                                <div class="detection-info">Coordinates: ${Math.round(det.x)}, ${Math.round(det.y)}</div>
+                                <div class="detection-info"><strong>Model:</strong> ${det.model || 'Unknown'}</div>
+                                <div class="detection-info"><strong>Confidence:</strong> ${confidencePercent}%</div>
+                                <div class="detection-info"><strong>Coordinates:</strong> X: ${Math.round(det.x || 0)}, Y: ${Math.round(det.y || 0)}</div>
+                                <div class="detection-info"><strong>Size:</strong> ${Math.round(det.width || 0)} × ${Math.round(det.height || 0)}</div>
                             </div>
                         `;
                     }).join('');
@@ -1005,7 +1080,7 @@
                     <div class="assessment-details">
                         <div class="detail-group">
                             <span class="detail-label">Assessment ID</span>
-                            <span class="detail-value">${assessment.assessmentId}</span>
+                            <span class="detail-value">${assessment.assessmentId || 'N/A'}</span>
                         </div>
                         <div class="detail-group">
                             <span class="detail-label">Date & Time</span>
@@ -1013,7 +1088,7 @@
                         </div>
                         <div class="detail-group">
                             <span class="detail-label">Location</span>
-                            <span class="detail-value">${assessment.location}</span>
+                            <span class="detail-value">${assessment.location || 'Not specified'}</span>
                         </div>
                         <div class="detail-group">
                             <span class="detail-label">Detected Diseases</span>
@@ -1023,7 +1098,7 @@
                             <span class="detail-label">Health Status</span>
                             <span class="detail-value">
                                 <span class="status-badge ${assessment.healthStatus === 'Healthy' ? 'status-healthy' : 'status-not-healthy'}">
-                                    ${assessment.healthStatus}
+                                    ${assessment.healthStatus || 'Unknown'}
                                 </span>
                             </span>
                         </div>
@@ -1042,15 +1117,15 @@
                     </div>
 
                     <div class="detections-section">
-                        <h4>Detection Details</h4>
+                        <h4>Detection Details (${assessment.detectionCount || 0})</h4>
                         <div class="detections-grid" id="detectionsGrid">
                             ${detectionDetails}
                         </div>
                     </div>
 
                     <div style="margin-top: 20px;">
-                        <h4>Treatment</h4>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; white-space: pre-line;">
+                        <h4>Treatment Recommendations</h4>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; white-space: pre-line; font-size: 14px; line-height: 1.5;">
                             ${assessment.treatment || 'No treatment recommendations available'}
                         </div>
                     </div>
@@ -1061,7 +1136,7 @@
                         <div style="text-align: center; margin-top: 15px;">
                             <img src="${assessment.image}" 
                                  alt="Assessment Image" 
-                                 style="max-width: 100%; max-height: 300px; border-radius: 6px; border: 1px solid #dee2e6;">
+                                 style="max-width: 100%; max-height: 300px; border-radius: 6px; border: 1px solid #dee2e6; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                         </div>
                     </div>
                     ` : ''}
@@ -1081,6 +1156,7 @@
             }
 
             try {
+                console.log('Deleting assessment:', assessmentId);
                 await deleteDoc(doc(db, "assessments", assessmentId));
                 console.log(`Assessment ${assessmentId} deleted`);
                 
@@ -1096,7 +1172,7 @@
                 alert('Assessment deleted successfully');
             } catch (error) {
                 console.error('Error deleting assessment:', error);
-                alert('Error deleting assessment');
+                alert('Error deleting assessment: ' + error.message);
             }
         }
 
