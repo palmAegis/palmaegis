@@ -73,36 +73,61 @@
 
         window.__sidebarLoaded = true;
 
-        // --- set active nav item based on current location and add click feedback ---
-        (function updateSidebarActive() {
-            function setActiveByPath() {
-                try {
-                    const current = (window.location.pathname || '').split('/').pop() || 'homepage.html';
-                    document.querySelectorAll('.sidebar-nav a').forEach(a => {
-                        const href = (a.getAttribute('href') || '').split('/').pop();
-                        const li = a.closest('li');
-                        if (!li) return;
-                        if (href === current) li.classList.add('active'); else li.classList.remove('active');
-                    });
-                } catch (e) { /* ignore */ }
+        // Function to create fallback avatar with initials
+        function createFallbackAvatar(initials, size = 128) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Color palette for avatars (green theme matching your app)
+            const colors = [
+                '#2e7d32', // Primary green
+                '#388e3c', // Secondary green
+                '#43a047', // Light green
+                '#4caf50', // Lighter green
+                '#66bb6a'  // Very light green
+            ];
+            
+            // Pick a color based on initials for consistency
+            const colorIndex = initials.charCodeAt(0) % colors.length;
+            
+            // Draw background circle
+            ctx.fillStyle = colors[colorIndex];
+            ctx.beginPath();
+            ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw initials
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size * 0.35}px Arial, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(initials, size/2, size/2);
+            
+            return canvas.toDataURL();
+        }
+
+        // Function to get user initials
+        function getUserInitials(user) {
+            if (!user) return 'U';
+            
+            if (user.displayName) {
+                // Get initials from display name
+                const nameParts = user.displayName.split(' ');
+                if (nameParts.length >= 2) {
+                    return (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                }
+                return user.displayName.charAt(0).toUpperCase();
             }
-
-            // immediate highlight
-            setActiveByPath();
-
-            // update on clicks for instant feedback (page will normally reload, but this helps single-page or anchor navigation)
-            document.querySelectorAll('.sidebar-nav a').forEach(a => {
-                a.addEventListener('click', (ev) => {
-                    // allow normal navigation, but update class for immediate visual feedback
-                    document.querySelectorAll('.sidebar-nav li').forEach(li => li.classList.remove('active'));
-                    const li = a.closest('li');
-                    if (li) li.classList.add('active');
-                });
-            });
-
-            // also expose a function other pages can call after dynamic navigation
-            window.setSidebarActive = setActiveByPath;
-        })();
+            
+            if (user.email) {
+                // Use first letter of email
+                return user.email.charAt(0).toUpperCase();
+            }
+            
+            return 'U';
+        }
 
         // Function to load user profile data for sidebar with Firebase support
         async function loadSidebarUserProfile() {
@@ -113,10 +138,11 @@
                 const bioEl = document.getElementById('sidebarUserBio');
                 
                 // Default values
-                let avatarSrc = 'images/default-avatar.png';
+                let avatarSrc = '';
                 let displayName = 'Guest';
                 let role = 'Visitor';
                 let bio = '';
+                let userInitials = 'G';
                 
                 // Check if Firebase is available and user is authenticated
                 if (typeof firebase !== 'undefined' && firebase.auth) {
@@ -125,6 +151,7 @@
                     
                     if (user) {
                         displayName = user.displayName || user.email?.split('@')[0] || 'User';
+                        userInitials = getUserInitials(user);
                         
                         // Try to get user data from Firestore
                         try {
@@ -148,6 +175,7 @@
                                 // Get display name
                                 if (userData.firstName && userData.lastName) {
                                     displayName = `${userData.firstName} ${userData.lastName}`;
+                                    userInitials = (userData.firstName.charAt(0) + userData.lastName.charAt(0)).toUpperCase();
                                 } else if (userData.username) {
                                     displayName = userData.username;
                                 }
@@ -188,8 +216,10 @@
                     
                     if (userData.firstName && userData.lastName) {
                         displayName = `${userData.firstName} ${userData.lastName}`;
+                        userInitials = (userData.firstName.charAt(0) + userData.lastName.charAt(0)).toUpperCase();
                     } else if (userData.username) {
                         displayName = userData.username;
+                        userInitials = userData.username.charAt(0).toUpperCase();
                     }
                     
                     role = userData.role || 'Farmer';
@@ -198,13 +228,22 @@
                 
                 // Update DOM elements
                 if (img) {
-                    // Set src and handle errors
-                    img.src = avatarSrc;
-                    img.onerror = () => {
-                        img.onerror = null; // Prevent infinite loop
-                        img.src = 'images/default-avatar.png';
-                        console.log('Avatar image failed to load, using default');
-                    };
+                    // Remove any previous error handlers
+                    img.onerror = null;
+                    
+                    if (avatarSrc) {
+                        // Try to load the actual avatar
+                        img.src = avatarSrc;
+                        img.onerror = function() {
+                            console.log('Avatar image failed to load, using fallback with initials');
+                            this.onerror = null; // Prevent infinite loop
+                            this.src = createFallbackAvatar(userInitials);
+                        };
+                    } else {
+                        // No avatar URL, use fallback immediately
+                        console.log('No avatar URL available, using fallback with initials');
+                        img.src = createFallbackAvatar(userInitials);
+                    }
                 }
                 
                 if (nameEl) {
@@ -222,7 +261,13 @@
                     bioEl.style.display = 'none';
                 }
                 
-                console.log('Sidebar profile loaded:', { displayName, role, bio: bio ? 'Yes' : 'No' });
+                console.log('Sidebar profile loaded:', { 
+                    displayName, 
+                    role, 
+                    initials: userInitials,
+                    hasAvatar: !!avatarSrc,
+                    bio: bio ? 'Yes' : 'No' 
+                });
                 
             } catch (error) {
                 console.error('Error loading sidebar user profile:', error);
@@ -232,12 +277,45 @@
                 const roleEl = document.querySelector('.user-role');
                 const bioEl = document.getElementById('sidebarUserBio');
                 
-                if (img) img.src = 'images/default-avatar.png';
+                if (img) {
+                    img.src = createFallbackAvatar('U');
+                }
                 if (nameEl) nameEl.textContent = 'User';
                 if (roleEl) roleEl.textContent = 'Farmer';
                 if (bioEl) bioEl.style.display = 'none';
             }
         }
+
+        // --- set active nav item based on current location and add click feedback ---
+        (function updateSidebarActive() {
+            function setActiveByPath() {
+                try {
+                    const current = (window.location.pathname || '').split('/').pop() || 'homepage.html';
+                    document.querySelectorAll('.sidebar-nav a').forEach(a => {
+                        const href = (a.getAttribute('href') || '').split('/').pop();
+                        const li = a.closest('li');
+                        if (!li) return;
+                        if (href === current) li.classList.add('active'); else li.classList.remove('active');
+                    });
+                } catch (e) { /* ignore */ }
+            }
+
+            // immediate highlight
+            setActiveByPath();
+
+            // update on clicks for instant feedback (page will normally reload, but this helps single-page or anchor navigation)
+            document.querySelectorAll('.sidebar-nav a').forEach(a => {
+                a.addEventListener('click', (ev) => {
+                    // allow normal navigation, but update class for immediate visual feedback
+                    document.querySelectorAll('.sidebar-nav li').forEach(li => li.classList.remove('active'));
+                    const li = a.closest('li');
+                    if (li) li.classList.add('active');
+                });
+            });
+
+            // also expose a function other pages can call after dynamic navigation
+            window.setSidebarActive = setActiveByPath;
+        })();
 
         // Load sidebar user profile immediately
         loadSidebarUserProfile();
