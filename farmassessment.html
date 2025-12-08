@@ -310,13 +310,11 @@
     .content {
         display: flex;
         gap: 20px;
-        /* CHANGED: Remove fixed height on desktop */
         height: auto;
     }
 
     .container {
         padding: 20px;
-        /* CHANGED: Remove fixed height */
         height: auto;
     }
 
@@ -331,7 +329,6 @@
         min-height: 100vh;
     }
 
-    /* Map container styling */
     .map-container {
         border: 1px solid #dee2e6;
         border-radius: 4px;
@@ -340,11 +337,55 @@
         height: 200px;
     }
 
-    /* Make the image container responsive */
+    .assessment-id-container {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .assessment-id-container .form-input {
+        flex: 1;
+    }
+
+    .regenerate-btn {
+        padding: 8px 12px;
+        background: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
+    .regenerate-btn:hover {
+        background: #5a6268;
+    }
+
+    .id-status {
+        font-size: 12px;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .id-status.valid {
+        color: #28a745;
+    }
+
+    .id-status.invalid {
+        color: #dc3545;
+    }
+
+    .id-status.info {
+        color: #6c757d;
+    }
+
     @media (max-width: 768px) {
         .content {
             flex-direction: column;
-            gap: 15px; /* Reduced gap */
+            gap: 15px;
         }
         
         .image-container {
@@ -364,17 +405,14 @@
             gap: 15px;
         }
         
-        /* CHANGED: Adjust sidebar margin on mobile */
         .main-content {
             margin-left: 0;
         }
         
-        /* CHANGED: Adjust container padding on mobile */
         .container {
             padding: 15px;
         }
         
-        /* CHANGED: Reduce spacing on mobile */
         .upload-area {
             padding: 15px;
             margin-bottom: 10px;
@@ -384,24 +422,32 @@
         .form-group {
             margin-bottom: 12px;
         }
+        
+        .assessment-id-container {
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .regenerate-btn {
+            width: 100%;
+            padding: 10px;
+        }
     }
 
     @media (max-width: 576px) {
         .image-container {
             min-height: 200px;
-            aspect-ratio: 4/3; /* Changed from 1/1 to 4/3 */
+            aspect-ratio: 4/3;
         }
         
         .map-container {
             height: 150px;
         }
         
-        /* CHANGED: Further reduce padding on very small screens */
         .container {
             padding: 10px;
         }
         
-        /* CHANGED: Adjust top header on mobile */
         .top-header {
             padding: 10px 15px;
         }
@@ -411,7 +457,6 @@
         }
     }
     
-    /* NEW: Add small screen optimizations */
     @media (max-width: 480px) {
         .camera-btn {
             padding: 8px;
@@ -453,7 +498,6 @@
                         <div class="image-container" id="imageContainer">
                             <div class="no-image" id="noImage">
                                 <i class="fas fa-camera fa-2x" style="margin-bottom: 10px; color: #6c757d;"></i>
-                                <!-- <p>Drag and drop image here</p> -->
                             </div>
                             <canvas id="previewCanvas" style="display: none;"></canvas>
                         </div>
@@ -498,8 +542,16 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Assessment ID</label>
-                            <input type="text" class="form-input" id="assessmentId" placeholder="Enter assessment ID">
+                            <label class="form-label">Assessment ID <span style="color: red;">*</span></label>
+                            <div class="assessment-id-container">
+                                <input type="text" class="form-input" id="assessmentId" placeholder="Will auto-generate after image analysis" readonly>
+                                <button type="button" class="regenerate-btn" onclick="generateAssessmentId()">
+                                    <i class="fas fa-sync-alt"></i> Regenerate
+                                </button>
+                            </div>
+                            <div id="assessmentIdStatus" class="id-status info">
+                                Upload and analyze an image to generate Assessment ID
+                            </div>
                         </div>
 
                         <div class="form-group">
@@ -573,7 +625,7 @@
     <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
     // Firebase configuration
     const firebaseConfig = {
@@ -618,6 +670,14 @@
         }
     };
 
+    // Disease codes for ID generation
+    const diseaseCodes = {
+        'ganoderma': 'GAN',
+        'blackspot': 'BLS',
+        'healthy': 'HLT',
+        'unknown': 'UNK'
+    };
+
     // Variables
     const fileInput = document.getElementById('fileInput');
     const loading = document.getElementById('loading');
@@ -633,6 +693,7 @@
 
     // Form elements
     const assessmentId = document.getElementById('assessmentId');
+    const assessmentIdStatus = document.getElementById('assessmentIdStatus');
     const locationInput = document.getElementById('locationInput');
     const assessmentDate = document.getElementById('assessmentDate');
     const assessmentTime = document.getElementById('assessmentTime');
@@ -649,9 +710,10 @@
     let currentDiseaseType = null;
     let map = null;
     let marker = null;
-    let currentDetections = []; // This will store all detection data
+    let currentDetections = [];
     let currentUser = null;
     let userData = null;
+    let generatedAssessmentId = '';
 
     // Check authentication state
     onAuthStateChanged(auth, async (user) => {
@@ -816,6 +878,122 @@
             .catch(error => {
                 console.error('Error getting address:', error);
             });
+    }
+
+    // Generate unique assessment ID based on disease detection
+    async function generateAssessmentId() {
+        // Check if an image has been uploaded
+        if (!fileInput.files[0]) {
+            alert('Please upload and analyze an image first to generate Assessment ID');
+            return;
+        }
+
+        // Check if detection has been performed
+        if (!currentDetections || currentDetections.length === 0) {
+            alert('Please analyze an image first to generate Assessment ID');
+            return;
+        }
+
+        try {
+            // Determine disease type from detections
+            const detectedDiseases = new Set();
+            currentDetections.forEach(det => {
+                if (det.confidence >= confidenceThreshold) {
+                    detectedDiseases.add(det.model);
+                }
+            });
+
+            let diseaseCode = diseaseCodes.unknown;
+            if (detectedDiseases.has('ganoderma')) {
+                diseaseCode = diseaseCodes.ganoderma;
+            } else if (detectedDiseases.has('blackspot')) {
+                diseaseCode = diseaseCodes.blackspot;
+            } else if (detectedDiseases.size === 0) {
+                diseaseCode = diseaseCodes.healthy;
+            }
+
+            // Generate timestamp component
+            const now = new Date();
+            const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
+            const timeStr = now.getHours().toString().padStart(2, '0') + 
+                           now.getMinutes().toString().padStart(2, '0');
+
+            // User initials (first letter of first name and last name)
+            let userInitials = 'XX';
+            if (userData) {
+                const firstInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 'U';
+                const lastInitial = userData.lastName ? userData.lastName.charAt(0).toUpperCase() : 'S';
+                userInitials = firstInitial + lastInitial;
+            }
+
+            // Generate base ID
+            const baseId = `${diseaseCode}-${dateStr}-${userInitials}`;
+
+            // Check for existing IDs and find a unique sequence number
+            let sequence = 1;
+            let isUnique = false;
+            let maxAttempts = 100;
+
+            while (!isUnique && sequence <= maxAttempts) {
+                generatedAssessmentId = `${baseId}-${sequence.toString().padStart(3, '0')}`;
+                
+                // Check if this ID already exists in Firestore
+                const assessmentsRef = collection(db, "assessments");
+                const q = query(assessmentsRef, where("assessmentId", "==", generatedAssessmentId));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    isUnique = true;
+                } else {
+                    sequence++;
+                }
+            }
+
+            if (!isUnique) {
+                throw new Error('Could not generate unique Assessment ID');
+            }
+
+            // Update the input field
+            assessmentId.value = generatedAssessmentId;
+            updateAssessmentIdStatus(true, 'Unique Assessment ID generated');
+
+        } catch (error) {
+            console.error('Error generating Assessment ID:', error);
+            // Fallback to random ID
+            generatedAssessmentId = `ASS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+            assessmentId.value = generatedAssessmentId;
+            updateAssessmentIdStatus(true, 'Generated fallback ID');
+        }
+    }
+
+    // Update assessment ID status display
+    function updateAssessmentIdStatus(isValid, message) {
+        assessmentIdStatus.textContent = message;
+        if (isValid) {
+            assessmentIdStatus.className = 'id-status valid';
+        } else {
+            assessmentIdStatus.className = 'id-status invalid';
+        }
+    }
+
+    // Reset assessment ID status
+    function resetAssessmentIdStatus() {
+        assessmentId.value = '';
+        assessmentIdStatus.textContent = 'Upload and analyze an image to generate Assessment ID';
+        assessmentIdStatus.className = 'id-status info';
+    }
+
+    // Check if assessment ID already exists
+    async function checkAssessmentIdExists(id) {
+        try {
+            const assessmentsRef = collection(db, "assessments");
+            const q = query(assessmentsRef, where("assessmentId", "==", id));
+            const querySnapshot = await getDocs(q);
+            return !querySnapshot.empty;
+        } catch (error) {
+            console.error('Error checking assessment ID:', error);
+            return false;
+        }
     }
 
     // Update disease field based on detection results
@@ -1078,7 +1256,7 @@
                 }
             });
 
-            // Store all detections globally (not filtered by threshold yet)
+            // Store all detections globally
             currentDetections = allDetections;
             
             // Auto-detect disease type and set threshold
@@ -1087,6 +1265,9 @@
             // Filter by current threshold and display
             const filteredDetections = allDetections.filter(det => det.confidence >= confidenceThreshold);
             displayDetections(filteredDetections);
+
+            // Auto-generate assessment ID based on detections
+            generateAssessmentId();
 
         } catch (error) {
             console.error('Error during image detection:', error);
@@ -1194,7 +1375,7 @@
     async function saveAssessment() {
         // Validate required fields
         if (!assessmentId.value) {
-            alert('Please enter an Assessment ID');
+            alert('Please generate an Assessment ID first');
             return;
         }
         
@@ -1211,6 +1392,13 @@
         // Check if user is authenticated
         if (!currentUser) {
             alert('You must be logged in to save assessments');
+            return;
+        }
+
+        // Double-check if Assessment ID already exists
+        const idExists = await checkAssessmentIdExists(assessmentId.value);
+        if (idExists) {
+            alert('This Assessment ID already exists. Please regenerate a new one.');
             return;
         }
 
@@ -1236,7 +1424,6 @@
                 healthStatus: healthStatus.textContent,
                 treatment: treatmentText.value,
                 nextAssessment: nextAssessment.value,
-                // Store all detection data
                 detections: filteredDetections,
                 detectionCount: filteredDetections.length,
                 confidenceThreshold: confidenceThreshold,
@@ -1257,7 +1444,7 @@
             console.log("Assessment saved with ID: ", docRef.id);
             
             // Show success message
-            alert('Assessment saved successfully with ' + filteredDetections.length + ' detections!');
+            alert('Assessment saved successfully with ID: ' + assessmentId.value);
             
             // Reset form
             resetForm();
@@ -1270,7 +1457,10 @@
 
     // Reset form function
     function resetForm() {
-        assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
+        // Clear assessment ID
+        resetAssessmentIdStatus();
+        
+        // Clear other fields
         locationInput.value = '';
         initializeDateTime();
         diseaseInput.value = '';
@@ -1294,7 +1484,8 @@
     function init() {
         initializeDateTime();
         initializeMap();
-        assessmentId.value = 'ASS-' + Math.floor(1000 + Math.random() * 9000);
+        // DO NOT generate assessment ID on page load
+        // Assessment ID will be generated after image analysis
     }
 
     // Initialize when page loads
@@ -1308,6 +1499,7 @@
     window.updateConfidence = updateConfidence;
     window.saveAssessment = saveAssessment;
     window.performImageDetection = performImageDetection;
+    window.generateAssessmentId = generateAssessmentId;
 </script>
 </body>
 </html>
