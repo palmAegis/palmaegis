@@ -1,3 +1,66 @@
+<!DOCTYPE html>
+<style>/* Dialog CSS */
+.logout-dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 0;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.logout-dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.dialog-content {
+    padding: 24px;
+}
+
+.dialog-content h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.warning {
+    color: #666;
+    font-size: 14px;
+    margin: 8px 0 20px 0;
+}
+
+.dialog-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.dialog-buttons button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.dialog-buttons .secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.dialog-buttons .secondary:hover {
+    background-color: #5a6268;
+}
+
+.dialog-buttons .primary {
+    background-color: #dc3545;
+    color: white;
+}
+
+.dialog-buttons .primary:hover {
+    background-color: #c82333;
+}</style>
+
 <aside class="sidebar">
     <div class="sidebar-header">
         <div class="logo">
@@ -58,11 +121,26 @@
                     <span>Settings</span>
                 </a>
             </li>
-            <li class="nav-item">
-                <a href="signin.html" id="logoutBtn" data-tooltip="Logout" onclick="return confirm('Are you sure you want to logout? Please confirm to proceed.');">
-                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
-                </a>
-            </li>
+            <!-- In the logout nav-item -->
+<li class="nav-item">
+    <a href="#" id="logoutBtn" data-tooltip="Logout" onclick="logoutDialog.showModal()">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+    </a>
+</li>
+
+<!-- Dialog HTML -->
+<dialog id="logoutDialog" class="logout-dialog">
+    <div class="dialog-content">
+        <h3>Confirm Logout</h3>
+        <p>Are you sure you want to logout?</p>
+        <p class="warning">You will need to sign in again to access your account.</p>
+        <div class="dialog-buttons">
+            <button class="secondary" onclick="logoutDialog.close()">Cancel</button>
+            <button class="primary" onclick="performLogout()">Logout</button>
+        </div>
+    </div>
+</dialog>
         </ul>
     </nav>
 
