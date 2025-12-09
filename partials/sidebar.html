@@ -1,505 +1,78 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sidebar Navigation</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Dialog CSS */
-        .logout-dialog {
-            border: none;
-            border-radius: 12px;
-            padding: 0;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-        }
-
-        .logout-dialog::backdrop {
-            background-color: rgba(0, 0, 0, 0.5);
-        }
-
-        .dialog-content {
-            padding: 24px;
-        }
-
-        .dialog-content h3 {
-            margin-top: 0;
-            color: #333;
-        }
-
-        .warning {
-            color: #666;
-            font-size: 14px;
-            margin: 8px 0 20px 0;
-        }
-
-        .dialog-buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-        }
-
-        .dialog-buttons button {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-
-        .dialog-buttons .secondary {
-            background-color: #6c757d;
-            color: white;
-        }
-
-        .dialog-buttons .secondary:hover {
-            background-color: #5a6268;
-        }
-
-        .dialog-buttons .primary {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .dialog-buttons .primary:hover {
-            background-color: #c82333;
-        }
-
-        /* Sidebar Styles */
-        .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 250px;
-            height: 100vh;
-            background: linear-gradient(180deg, #2c3e50 0%, #1a252f 100%);
-            color: white;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar.collapsed {
-            width: 70px;
-        }
-
-        .sidebar.collapsed .sidebar-header h1,
-        .sidebar.collapsed .user-name,
-        .sidebar.collapsed .user-role,
-        .sidebar.collapsed .nav-item span {
-            display: none;
-        }
-
-        .sidebar.collapsed .logo img {
-            margin-right: 0;
-        }
-
-        .sidebar.collapsed .sidebar-toggle i {
-            transform: rotate(180deg);
-        }
-
-        .sidebar.collapsed .nav-item a {
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .sidebar-footer {
-            padding: 15px 10px;
-        }
-
-        .sidebar.collapsed .user-info {
-            display: none;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo img {
-            width: 36px;
-            height: 36px;
-            object-fit: contain;
-        }
-
-        .logo h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: white;
-        }
-
-        .sidebar-toggle {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-
-        .sidebar-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 20px 0;
-            overflow-y: auto;
-        }
-
-        .sidebar-nav ul {
-            list-style: none;
-        }
-
-        .nav-item {
-            margin: 4px 12px;
-        }
-
-        .nav-item a {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s;
-            position: relative;
-        }
-
-        .nav-item a:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: white;
-        }
-
-        .nav-item.active a {
-            background: linear-gradient(90deg, rgba(52, 152, 219, 0.2) 0%, rgba(41, 128, 185, 0.1) 100%);
-            color: white;
-            border-left: 4px solid #3498db;
-        }
-
-        .nav-item i {
-            width: 24px;
-            text-align: center;
-            margin-right: 12px;
-            font-size: 1.1rem;
-        }
-
-        .nav-item span {
-            font-size: 0.95rem;
-            font-weight: 500;
-        }
-
-        /* Tooltip for collapsed sidebar */
-        .nav-item a::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            background: #1a252f;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 1001;
-        }
-
-        .sidebar.collapsed .nav-item a:hover::after {
-            opacity: 1;
-            visibility: visible;
-            left: calc(100% + 10px);
-        }
-
-        /* Sidebar Footer */
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .user-profile-mini {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .user-info {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: white;
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.6);
-        }
-    </style>
-</head>
-<body>
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <img src="images/Palm.png" alt="Palm Aegis Logo">
-                <h1>Palm Aegis</h1>
-            </div>
-            <button class="sidebar-toggle" id="sidebarToggle">
-                <i class="fas fa-chevron-left"></i>
-            </button>
+<aside class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">
+            <img src="images/Palm.png" alt="Palm Aegis Logo">
+            <h1>Palm Aegis</h1>
         </div>
-        <nav class="sidebar-nav">
-            <ul>
-                <li class="nav-item">
-                    <a href="homepage.html" data-tooltip="Dashboard">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="farmassessment.html" data-tooltip="Farm Assessment">
-                        <i class="fas fa-seedling"></i>
-                        <span>Farm Assessment</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="treehealth.html" data-tooltip="Tree Health Test">
-                        <i class="fas fa-tree"></i>
-                        <span>Tree Health</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="treatment.html" data-tooltip="Treatment">
-                        <i class="fas fa-shield"></i>
-                        <span>Treatment</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="farmdatatest.html" data-tooltip="Farm Data">
-                        <i class="fas fa-database"></i>
-                        <span>Farm Data</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="forum.html" data-tooltip="Forum">
-                        <i class="fas fa-comments"></i>
-                        <span>Forum</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="setting.html" data-tooltip="Settings">
-                        <i class="fas fa-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" id="logoutBtn" data-tooltip="Logout" onclick="showLogoutDialog(event)">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+    </div>
+    <nav class="sidebar-nav">
+        <ul>
+            <li class="nav-item"><!-- removed static 'active' class; JS will set it -->
+                <a href="homepage.html" data-tooltip="Dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="farmassessment.html" data-tooltip="Farm Assessment">
+                    <i class="fas fa-seedling"></i>
+                    <span>Farm Assestment</span>
+                </a>
+            </li>
+            <!-- <li class="nav-item">
+                <a href="treehealthTest.html" data-tooltip="Tree Health Test">
+                    <i class="fas fa-tree"></i>
+                    <span>Tree Health</span>
+                </a>
+            </li> -->
+            <li class="nav-item">
+                <a href="treehealth.html" data-tooltip="Tree Health Test">
+                    <i class="fas fa-tree"></i>
+                    <span>Tree Health</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="treatment.html" data-tooltip="Treatment">
+                    <i class="fas fa-shield"></i>
+                    <span>Treatment</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="farmdatatest.html" data-tooltip="Farm Data">
+                    <i class="fas fa-database"></i>
+                    <span>Farm Data</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="forum.html" data-tooltip="Forum">
+                    <i class="fas fa-comments"></i>
+                    <span>Forum</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="setting.html" data-tooltip="Settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="signin.html" id="logoutBtn" data-tooltip="Logout" onclick="return confirm('Are you sure you want to logout? Please confirm to proceed.');">
+                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 
-        <div class="sidebar-footer">
-            <div class="user-profile-mini">
-                <img src="images/user-avatar.jpg" alt="User Avatar" class="user-avatar" id="sidebarUserAvatar">
-                <div class="user-info">
-                    <span class="user-name" id="userName">John Farmer</span>
-                    <span class="user-role">Farmer</span>
-                </div>
+    <div class="sidebar-footer">
+        <div class="user-profile-mini">
+            <img src="images/user-avatar.jpg" alt="User Avatar" class="user-avatar" id="sidebarUserAvatar">
+            <div class="user-info">
+                <span class="user-name">Loading...</span>
+                <span class="user-role">Farmer</span>
             </div>
         </div>
-    </aside>
-
-    <!-- Dialog HTML -->
-    <dialog id="logoutDialog" class="logout-dialog">
-        <div class="dialog-content">
-            <h3>Confirm Logout</h3>
-            <p>Are you sure you want to logout?</p>
-            <p class="warning">You will need to sign in again to access your account.</p>
-            <div class="dialog-buttons">
-                <button class="secondary" onclick="closeLogoutDialog()">Cancel</button>
-                <button class="primary" onclick="performLogout()">Logout</button>
-            </div>
-        </div>
-    </dialog>
-
-    <script>
-        // DOM Elements
-        const sidebar = document.getElementById('sidebar');
-        const sidebarToggle = document.getElementById('sidebarToggle');
-        const logoutDialog = document.getElementById('logoutDialog');
-        const navItems = document.querySelectorAll('.nav-item a');
-        const userName = document.getElementById('userName');
-
-        // Sidebar Toggle Functionality
-        sidebarToggle.addEventListener('click', function() {
-            sidebar.classList.toggle('collapsed');
-            
-            // Update toggle icon rotation
-            const icon = this.querySelector('i');
-            icon.style.transform = sidebar.classList.contains('collapsed') ? 'rotate(180deg)' : 'rotate(0deg)';
-            
-            // Save state to localStorage
-            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-        });
-
-        // Set active nav item based on current page
-        function setActiveNavItem() {
-            const currentPage = window.location.pathname.split('/').pop() || 'homepage.html';
-            
-            navItems.forEach(item => {
-                const href = item.getAttribute('href');
-                if (href === currentPage) {
-                    item.parentElement.classList.add('active');
-                } else {
-                    item.parentElement.classList.remove('active');
-                }
-            });
-        }
-
-        // Load sidebar state from localStorage
-        function loadSidebarState() {
-            const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-            if (isCollapsed) {
-                sidebar.classList.add('collapsed');
-                sidebarToggle.querySelector('i').style.transform = 'rotate(180deg)';
-            }
-        }
-
-        // Logout Dialog Functions
-        function showLogoutDialog(event) {
-            if (event) event.preventDefault();
-            logoutDialog.showModal();
-        }
-
-        function closeLogoutDialog() {
-            logoutDialog.close();
-        }
-
-        function performLogout() {
-            console.log('Logging out...');
-            
-            // Clear any stored data
-            localStorage.removeItem('userToken');
-            localStorage.removeItem('userData');
-            
-            // Show loading state
-            const logoutBtn = document.querySelector('.dialog-buttons .primary');
-            const originalText = logoutBtn.textContent;
-            logoutBtn.textContent = 'Logging out...';
-            logoutBtn.disabled = true;
-            
-            // Simulate logout process
-            setTimeout(() => {
-                // Redirect to login page
-                window.location.href = 'signin.html';
-            }, 1000);
-        }
-
-        // Load user data
-        function loadUserData() {
-            // Try to get user data from localStorage
-            const storedUser = localStorage.getItem('userData');
-            
-            if (storedUser) {
-                try {
-                    const user = JSON.parse(storedUser);
-                    userName.textContent = user.name || 'John Farmer';
-                } catch (e) {
-                    console.error('Error parsing user data:', e);
-                    userName.textContent = 'John Farmer';
-                }
-            } else {
-                // Default values
-                userName.textContent = 'John Farmer';
-            }
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSidebarState();
-            setActiveNavItem();
-            loadUserData();
-            
-            // Add click event to all nav links (except logout)
-            navItems.forEach(item => {
-                if (!item.id.includes('logoutBtn')) {
-                    item.addEventListener('click', function(e) {
-                        // Remove active class from all items
-                        navItems.forEach(i => i.parentElement.classList.remove('active'));
-                        
-                        // Add active class to clicked item
-                        this.parentElement.classList.add('active');
-                    });
-                }
-            });
-            
-            // Close dialog when clicking outside (for browsers that support it)
-            logoutDialog.addEventListener('click', function(e) {
-                const dialogDimensions = logoutDialog.getBoundingClientRect();
-                if (
-                    e.clientX < dialogDimensions.left ||
-                    e.clientX > dialogDimensions.right ||
-                    e.clientY < dialogDimensions.top ||
-                    e.clientY > dialogDimensions.bottom
-                ) {
-                    logoutDialog.close();
-                }
-            });
-            
-            // Close dialog with Escape key
-            logoutDialog.addEventListener('cancel', function(e) {
-                e.preventDefault();
-            });
-            
-            // Add Escape key listener
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && logoutDialog.open) {
-                    e.preventDefault();
-                    logoutDialog.close();
-                }
-            });
-        });
-
-        // Make functions available globally
-        window.showLogoutDialog = showLogoutDialog;
-        window.closeLogoutDialog = closeLogoutDialog;
-        window.performLogout = performLogout;
-    </script>
-</body>
-</html>
+    </div>
+</aside>
