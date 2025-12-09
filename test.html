@@ -1267,7 +1267,7 @@
             </div>
         </div>
     </div>
-    
+
     <div id="sidebarPlaceholder"></div>
     <script src="js/sidebar-loader.js"></script>
     <!-- Add Firebase SDKs -->
@@ -1277,939 +1277,955 @@
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-storage-compat.js"></script>
 
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-            authDomain: "palmaegis-setup.firebaseapp.com",
-            projectId: "palmaegis-setup",
-            storageBucket: "palmaegis-setup.firebasestorage.app",
-            messagingSenderId: "445887502374",
-            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-        };
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+        authDomain: "palmaegis-setup.firebaseapp.com",
+        projectId: "palmaegis-setup",
+        storageBucket: "palmaegis-setup.firebasestorage.app",
+        messagingSenderId: "445887502374",
+        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+    };
 
-        // Initialize Firebase
-        try {
-            // Check if Firebase is already initialized
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-                console.log("Firebase initialized successfully");
-            }
-        } catch (error) {
-            console.error("Firebase initialization error:", error);
+    // Initialize Firebase
+    try {
+        // Check if Firebase is already initialized
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase initialized successfully");
         }
+    } catch (error) {
+        console.error("Firebase initialization error:", error);
+    }
 
-        // Get Firebase services
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        const storage = firebase.storage();
+    // Get Firebase services
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const storage = firebase.storage();
 
-        // Global variables for mobile scrolling
-        let isMobileView = false;
-        let touchStartY = 0;
+    // Global variables for mobile scrolling
+    let isMobileView = false;
+    let touchStartY = 0;
 
-        // Mobile scrolling functionality
-        function setupMobileScrolling() {
-            const mainContent = document.getElementById('mainContent');
-            const settingsContent = document.getElementById('settingsContent');
-            
-            isMobileView = window.innerWidth <= 768;
-            
-            if (!isMobileView) {
-                // Desktop behavior
-                if (mainContent) {
-                    mainContent.style.overflow = 'auto';
-                    mainContent.style.webkitOverflowScrolling = 'auto';
-                    mainContent.style.height = 'auto';
-                }
-                
-                if (settingsContent) {
-                    settingsContent.style.height = 'calc(100vh - 150px)';
-                    settingsContent.style.overflowY = 'auto';
-                }
-                return;
-            }
-            
-            // Mobile behavior
+    // Function to create dynamic avatar with initials
+    function createDefaultAvatar(name) {
+        console.log("Creating default avatar for:", name);
+        const firstName = name?.split(' ')[0] || 'User';
+        const lastName = name?.split(' ')[1] || '';
+        const initials = (firstName.charAt(0) + (lastName ? lastName.charAt(0) : '')).toUpperCase();
+        
+        // Create a colored avatar with initials using SVG
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+            <rect width="100" height="100" fill="#2e7d32"/>
+            <text x="50" y="55" font-size="40" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="bold">${initials}</text>
+        </svg>`;
+        
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    // Mobile scrolling functionality
+    function setupMobileScrolling() {
+        const mainContent = document.getElementById('mainContent');
+        const settingsContent = document.getElementById('settingsContent');
+        
+        isMobileView = window.innerWidth <= 768;
+        
+        if (!isMobileView) {
+            // Desktop behavior
             if (mainContent) {
-                // Enable smooth scrolling on mobile
-                mainContent.style.webkitOverflowScrolling = 'touch';
                 mainContent.style.overflow = 'auto';
-                
-                // Calculate proper height
-                const headerHeight = document.querySelector('.mobile-header').offsetHeight;
-                mainContent.style.height = `calc(100vh - ${headerHeight}px)`;
-                
-                // Handle scroll events
-                mainContent.addEventListener('scroll', function() {
-                    updateScrollPosition();
-                });
-                
-                // Prevent body scroll when scrolling content
-                mainContent.addEventListener('touchstart', function(e) {
-                    touchStartY = e.touches[0].clientY;
-                }, { passive: true });
-                
-                mainContent.addEventListener('touchmove', function(e) {
-                    // Allow scroll only if content is scrollable
-                    const content = this;
-                    const atTop = content.scrollTop === 0;
-                    const atBottom = content.scrollHeight - content.scrollTop === content.clientHeight;
-                    const direction = e.touches[0].clientY - touchStartY;
-                    
-                    // Prevent overscroll bounce effect
-                    if ((atTop && direction > 0) || (atBottom && direction < 0)) {
-                        e.preventDefault();
-                    }
-                }, { passive: false });
+                mainContent.style.webkitOverflowScrolling = 'auto';
+                mainContent.style.height = 'auto';
             }
             
             if (settingsContent) {
-                settingsContent.style.webkitOverflowScrolling = 'touch';
+                settingsContent.style.height = 'calc(100vh - 150px)';
                 settingsContent.style.overflowY = 'auto';
-                settingsContent.style.maxHeight = 'none';
-                settingsContent.style.height = 'auto';
-                
-                // Adjust for iOS safe areas
-                const safeAreaBottom = getSafeAreaBottom();
-                if (safeAreaBottom > 0) {
-                    settingsContent.style.paddingBottom = `${safeAreaBottom + 20}px`;
-                }
             }
-            
-            // Adjust viewport for mobile browsers
-            adjustViewportForMobile();
-            
-            // Set up form inputs for mobile
-            setupMobileFormInputs();
+            return;
         }
-
-        function getSafeAreaBottom() {
-            // Get safe area inset for bottom (iOS notch devices)
-            const style = window.getComputedStyle(document.documentElement);
-            const safeAreaInsetBottom = style.getPropertyValue('--safe-area-inset-bottom');
+        
+        // Mobile behavior
+        if (mainContent) {
+            // Enable smooth scrolling on mobile
+            mainContent.style.webkitOverflowScrolling = 'touch';
+            mainContent.style.overflow = 'auto';
             
-            if (safeAreaInsetBottom) {
-                return parseInt(safeAreaInsetBottom);
-            }
+            // Calculate proper height
+            const headerHeight = document.querySelector('.mobile-header').offsetHeight;
+            mainContent.style.height = `calc(100vh - ${headerHeight}px)`;
             
-            // Fallback detection
-            const isIphone = /iPhone/.test(navigator.userAgent);
-            const hasNotch = isIphone && window.screen.height >= 812;
-            
-            return hasNotch ? 34 : 0;
-        }
-
-        function adjustViewportForMobile() {
-            if (!isMobileView) return;
-            
-            // Calculate viewport units considering browser UI
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-            
-            // Apply to main content
-            const mainContent = document.getElementById('mainContent');
-            if (mainContent) {
-                const headerHeight = document.querySelector('.mobile-header').offsetHeight;
-                mainContent.style.height = `calc(var(--vh, 1vh) * 100 - ${headerHeight}px)`;
-            }
-        }
-
-        function updateScrollPosition() {
-            const scrollToTopBtn = document.getElementById('scrollToTop');
-            const mainContent = document.getElementById('mainContent');
-            
-            if (scrollToTopBtn && mainContent) {
-                if (mainContent.scrollTop > 300) {
-                    scrollToTopBtn.classList.add('visible');
-                } else {
-                    scrollToTopBtn.classList.remove('visible');
-                }
-            }
-        }
-
-        function setupMobileFormInputs() {
-            if (!isMobileView) return;
-            
-            const inputs = document.querySelectorAll('input, textarea, select');
-            
-            inputs.forEach(input => {
-                // Prevent zoom on focus in iOS
-                input.addEventListener('focus', function() {
-                    if (this.tagName === 'INPUT' || this.tagName === 'TEXTAREA') {
-                        this.style.fontSize = '16px';
-                    }
-                    
-                    // Scroll input into view with delay for keyboard animation
-                    setTimeout(() => {
-                        const inputRect = this.getBoundingClientRect();
-                        const isInputInView = (
-                            inputRect.top >= 0 &&
-                            inputRect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
-                        );
-                        
-                        if (!isInputInView) {
-                            this.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'center',
-                                inline: 'nearest'
-                            });
-                        }
-                    }, 500); // Increased delay for keyboard animation
-                });
-                
-                // Reset font size on blur
-                input.addEventListener('blur', function() {
-                    if (this.tagName === 'INPUT' || this.tagName === 'TEXTAREA') {
-                        this.style.fontSize = '';
-                    }
-                });
-                
-                // Handle touch events for better mobile UX
-                input.addEventListener('touchstart', function(e) {
-                    e.stopPropagation();
-                });
+            // Handle scroll events
+            mainContent.addEventListener('scroll', function() {
+                updateScrollPosition();
             });
-        }
-
-        // Scroll to Top functionality
-        const scrollToTopBtn = document.getElementById('scrollToTop');
-        const settingsContent = document.getElementById('settingsContent');
-        const sectionIndicator = document.getElementById('sectionIndicator');
-        const indicatorDots = sectionIndicator ? sectionIndicator.querySelectorAll('a') : [];
-
-        // Show/hide scroll to top button
-        function handleScroll() {
-            const scrollContainer = isMobileView ? 
-                document.getElementById('mainContent') : 
-                document.getElementById('settingsContent');
             
-            if (scrollContainer) {
-                if (scrollContainer.scrollTop > 300) {
-                    scrollToTopBtn.classList.add('visible');
-                } else {
-                    scrollToTopBtn.classList.remove('visible');
+            // Prevent body scroll when scrolling content
+            mainContent.addEventListener('touchstart', function(e) {
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+            
+            mainContent.addEventListener('touchmove', function(e) {
+                // Allow scroll only if content is scrollable
+                const content = this;
+                const atTop = content.scrollTop === 0;
+                const atBottom = content.scrollHeight - content.scrollTop === content.clientHeight;
+                const direction = e.touches[0].clientY - touchStartY;
+                
+                // Prevent overscroll bounce effect
+                if ((atTop && direction > 0) || (atBottom && direction < 0)) {
+                    e.preventDefault();
                 }
+            }, { passive: false });
+        }
+        
+        if (settingsContent) {
+            settingsContent.style.webkitOverflowScrolling = 'touch';
+            settingsContent.style.overflowY = 'auto';
+            settingsContent.style.maxHeight = 'none';
+            settingsContent.style.height = 'auto';
+            
+            // Adjust for iOS safe areas
+            const safeAreaBottom = getSafeAreaBottom();
+            if (safeAreaBottom > 0) {
+                settingsContent.style.paddingBottom = `${safeAreaBottom + 20}px`;
+            }
+        }
+        
+        // Adjust viewport for mobile browsers
+        adjustViewportForMobile();
+        
+        // Set up form inputs for mobile
+        setupMobileFormInputs();
+    }
 
-                // Update section indicator
-                if (!isMobileView && indicatorDots.length > 0) {
-                    const sections = document.querySelectorAll('.profile-section.active');
-                    if (sections.length > 0) {
-                        const currentSection = sections[0];
-                        const sectionId = currentSection.id;
-                        
-                        indicatorDots.forEach(dot => {
-                            dot.classList.remove('active');
-                            if (dot.getAttribute('href').substring(1) === sectionId.replace('-section', '')) {
-                                dot.classList.add('active');
-                            }
+    function getSafeAreaBottom() {
+        // Get safe area inset for bottom (iOS notch devices)
+        const style = window.getComputedStyle(document.documentElement);
+        const safeAreaInsetBottom = style.getPropertyValue('--safe-area-inset-bottom');
+        
+        if (safeAreaInsetBottom) {
+            return parseInt(safeAreaInsetBottom);
+        }
+        
+        // Fallback detection
+        const isIphone = /iPhone/.test(navigator.userAgent);
+        const hasNotch = isIphone && window.screen.height >= 812;
+        
+        return hasNotch ? 34 : 0;
+    }
+
+    function adjustViewportForMobile() {
+        if (!isMobileView) return;
+        
+        // Calculate viewport units considering browser UI
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        
+        // Apply to main content
+        const mainContent = document.getElementById('mainContent');
+        if (mainContent) {
+            const headerHeight = document.querySelector('.mobile-header').offsetHeight;
+            mainContent.style.height = `calc(var(--vh, 1vh) * 100 - ${headerHeight}px)`;
+        }
+    }
+
+    function updateScrollPosition() {
+        const scrollToTopBtn = document.getElementById('scrollToTop');
+        const mainContent = document.getElementById('mainContent');
+        
+        if (scrollToTopBtn && mainContent) {
+            if (mainContent.scrollTop > 300) {
+                scrollToTopBtn.classList.add('visible');
+            } else {
+                scrollToTopBtn.classList.remove('visible');
+            }
+        }
+    }
+
+    function setupMobileFormInputs() {
+        if (!isMobileView) return;
+        
+        const inputs = document.querySelectorAll('input, textarea, select');
+        
+        inputs.forEach(input => {
+            // Prevent zoom on focus in iOS
+            input.addEventListener('focus', function() {
+                if (this.tagName === 'INPUT' || this.tagName === 'TEXTAREA') {
+                    this.style.fontSize = '16px';
+                }
+                
+                // Scroll input into view with delay for keyboard animation
+                setTimeout(() => {
+                    const inputRect = this.getBoundingClientRect();
+                    const isInputInView = (
+                        inputRect.top >= 0 &&
+                        inputRect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
+                    );
+                    
+                    if (!isInputInView) {
+                        this.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                            inline: 'nearest'
                         });
                     }
-                }
-            }
-        }
-
-        // Scroll to top function
-        function scrollToTop() {
-            const scrollContainer = isMobileView ? 
-                document.getElementById('mainContent') : 
-                document.getElementById('settingsContent');
+                }, 500);
+            });
             
-            if (scrollContainer) {
-                scrollContainer.scrollTo({
-                    top: 0,
-                    behavior: 'smooth'
-                });
-            }
-        }
-
-        // Scroll to section function
-        function scrollToSection(sectionId) {
-            const section = document.getElementById(sectionId + '-section');
-            const scrollContainer = isMobileView ? 
-                document.getElementById('mainContent') : 
-                document.getElementById('settingsContent');
+            // Reset font size on blur
+            input.addEventListener('blur', function() {
+                if (this.tagName === 'INPUT' || this.tagName === 'TEXTAREA') {
+                    this.style.fontSize = '';
+                }
+            });
             
-            if (section && scrollContainer) {
-                scrollContainer.scrollTop = 0;
-            }
-        }
-
-        // Mobile menu functionality
-        const menuToggle = document.getElementById('menuToggle');
-        const mobileOverlay = document.getElementById('mobileOverlay');
-        const mainContent = document.getElementById('mainContent');
-
-        // Function to safely get sidebar element
-        function getSidebar() {
-            return document.querySelector('.sidebar');
-        }
-
-        // Toggle mobile sidebar
-        function toggleMobileMenu() {
-            const sidebar = getSidebar();
-            if (sidebar) {
-                sidebar.classList.toggle('active');
-                mobileOverlay.classList.toggle('active');
-                document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
-                
-                // Lock/unlock main content scroll when menu is open
-                if (mainContent) {
-                    if (sidebar.classList.contains('active')) {
-                        mainContent.style.overflow = 'hidden';
-                    } else {
-                        mainContent.style.overflow = 'auto';
-                        if (isMobileView) {
-                            mainContent.style.webkitOverflowScrolling = 'touch';
-                        }
-                    }
-                }
-            }
-        }
-
-        if (menuToggle) {
-            menuToggle.addEventListener('click', toggleMobileMenu);
-        }
-
-        if (mobileOverlay) {
-            mobileOverlay.addEventListener('click', toggleMobileMenu);
-        }
-
-        // Close sidebar when clicking on a nav link (mobile)
-        document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 768) {
-                const sidebar = getSidebar();
-                if (sidebar && sidebar.classList.contains('active')) {
-                    if (e.target.closest('.sidebar-nav a') || e.target.closest('.logout-btn')) {
-                        toggleMobileMenu();
-                    }
-                }
-            }
+            // Handle touch events for better mobile UX
+            input.addEventListener('touchstart', function(e) {
+                e.stopPropagation();
+            });
         });
+    }
 
-        // Theme toggle functionality
-        function toggleTheme() {
-            document.body.classList.toggle('dark-mode');
-            const isDarkMode = document.body.classList.contains('dark-mode');
-            
-            // Update both theme toggles
-            const desktopToggle = document.getElementById('desktopThemeToggle');
-            const mobileToggle = document.getElementById('mobileThemeToggle');
-            
-            if (isDarkMode) {
-                if (desktopToggle) desktopToggle.innerHTML = '<i class="fas fa-sun"></i>';
-                if (mobileToggle) mobileToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    // Scroll to Top functionality
+    const scrollToTopBtn = document.getElementById('scrollToTop');
+    const settingsContent = document.getElementById('settingsContent');
+    const sectionIndicator = document.getElementById('sectionIndicator');
+    const indicatorDots = sectionIndicator ? sectionIndicator.querySelectorAll('a') : [];
+
+    // Show/hide scroll to top button
+    function handleScroll() {
+        const scrollContainer = isMobileView ? 
+            document.getElementById('mainContent') : 
+            document.getElementById('settingsContent');
+        
+        if (scrollContainer) {
+            if (scrollContainer.scrollTop > 300) {
+                scrollToTopBtn.classList.add('visible');
             } else {
-                if (desktopToggle) desktopToggle.innerHTML = '<i class="fas fa-moon"></i>';
-                if (mobileToggle) mobileToggle.innerHTML = '<i class="fas fa-moon"></i>';
+                scrollToTopBtn.classList.remove('visible');
             }
-            
-            // Save theme preference
-            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
-        }
 
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme');
-        if (savedTheme === 'dark') {
-            document.body.classList.add('dark-mode');
-            const desktopToggle = document.getElementById('desktopThemeToggle');
-            const mobileToggle = document.getElementById('mobileThemeToggle');
-            if (desktopToggle) desktopToggle.innerHTML = '<i class="fas fa-sun"></i>';
-            if (mobileToggle) mobileToggle.innerHTML = '<i class="fas fa-sun"></i>';
-        }
-
-        // Attach theme toggle events
-        const desktopThemeToggle = document.getElementById('desktopThemeToggle');
-        const mobileThemeToggle = document.getElementById('mobileThemeToggle');
-        
-        if (desktopThemeToggle) {
-            desktopThemeToggle.addEventListener('click', toggleTheme);
-        }
-        
-        if (mobileThemeToggle) {
-            mobileThemeToggle.addEventListener('click', toggleTheme);
-        }
-
-        // Section Navigation
-        const navLinks = document.querySelectorAll('.settings-nav a');
-        const sections = document.querySelectorAll('.profile-section');
-        
-        navLinks.forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const sectionId = link.getAttribute('data-section');
-                
-                // Update active nav
-                navLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-                
-                // Show corresponding section
-                sections.forEach(section => {
-                    section.classList.remove('active');
-                    if (section.id === `${sectionId}-section`) {
-                        section.classList.add('active');
-                        section.classList.add('scrolling-content');
-                        setTimeout(() => {
-                            section.classList.remove('scrolling-content');
-                        }, 500);
-                    }
-                });
-
-                // Scroll to top of section
-                const scrollContainer = isMobileView ? 
-                    document.getElementById('mainContent') : 
-                    document.getElementById('settingsContent');
-                
-                if (scrollContainer) {
-                    scrollContainer.scrollTop = 0;
-                }
-
-                // Update section indicator
-                if (!isMobileView && indicatorDots.length > 0) {
+            // Update section indicator
+            if (!isMobileView && indicatorDots.length > 0) {
+                const sections = document.querySelectorAll('.profile-section.active');
+                if (sections.length > 0) {
+                    const currentSection = sections[0];
+                    const sectionId = currentSection.id;
+                    
                     indicatorDots.forEach(dot => {
                         dot.classList.remove('active');
-                        if (dot.getAttribute('href').substring(1) === sectionId) {
+                        if (dot.getAttribute('href').substring(1) === sectionId.replace('-section', '')) {
                             dot.classList.add('active');
                         }
                     });
                 }
-            });
-        });
-
-        // Section indicator navigation
-        if (indicatorDots.length > 0) {
-            indicatorDots.forEach(dot => {
-                dot.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const sectionId = dot.getAttribute('href').substring(1);
-                    
-                    // Find corresponding nav link and click it
-                    const correspondingNavLink = document.querySelector(`.settings-nav a[data-section="${sectionId}"]`);
-                    if (correspondingNavLink) {
-                        correspondingNavLink.click();
-                    }
-                });
-            });
+            }
         }
+    }
 
-        // Profile management elements
-        const profileForm = document.getElementById('profile-form');
-        const passwordForm = document.getElementById('password-form');
-        const fileInput = document.getElementById('file-input');
-        const uploadTrigger = document.getElementById('upload-trigger');
-        const profilePicture = document.getElementById('profile-picture');
-        const usernameInput = document.getElementById('username');
-        const firstNameInput = document.getElementById('first-name');
-        const lastNameInput = document.getElementById('last-name');
-        const bioInput = document.getElementById('bio');
-        const locationInput = document.getElementById('location');
-        const emailInput = document.getElementById('email');
-        const phoneInput = document.getElementById('phone');
-        const displayName = document.getElementById('display-name');
-        const displayUsername = document.getElementById('display-username');
-        const displayBio = document.getElementById('display-bio');
-        const successNotification = document.getElementById('success-notification');
-        const errorNotification = document.getElementById('error-notification');
-        const authNotification = document.getElementById('auth-notification');
-        const saveButton = document.getElementById('save-button');
-        const cancelButton = document.getElementById('cancel-button');
+    // Scroll to top function
+    function scrollToTop() {
+        const scrollContainer = isMobileView ? 
+            document.getElementById('mainContent') : 
+            document.getElementById('settingsContent');
         
-        // Password elements
-        const currentPasswordInput = document.getElementById('current-password');
-        const newPasswordInput = document.getElementById('new-password');
-        const confirmPasswordInput = document.getElementById('confirm-password');
-        const passwordSuccessNotification = document.getElementById('password-success-notification');
-        const passwordErrorNotification = document.getElementById('password-error-notification');
-        const changePasswordButton = document.getElementById('change-password-button');
-        const passwordToggleButtons = document.querySelectorAll('.password-toggle');
-        const lengthReq = document.getElementById('length-req');
-        const caseReq = document.getElementById('case-req');
-        const numberReq = document.getElementById('number-req');
-        const specialReq = document.getElementById('special-req');
-        const passwordMatch = document.getElementById('password-match');
-
-        let currentUser = null;
-        let isUploading = false;
-
-        // Check if required elements exist
-        if (!profilePicture) {
-            console.error('Profile picture element not found');
-            // Create a default image element if needed
-            const profilePicContainer = document.querySelector('.profile-picture-container');
-            if (profilePicContainer) {
-                const img = document.createElement('img');
-                img.id = 'profile-picture';
-                img.src = 'images/default-avatar.png';
-                img.alt = 'Profile Picture';
-                img.className = 'profile-picture';
-                img.onerror = function() {
-                    this.src = 'images/default-avatar.png';
-                    this.onerror = null; // Prevent infinite loop
-                };
-                profilePicContainer.prepend(img);
-            }
+        if (scrollContainer) {
+            scrollContainer.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         }
+    }
 
-        // Set default avatar on error
-        if (profilePicture) {
-            profilePicture.onerror = function() {
-                this.src = 'images/default-avatar.png';
-                this.onerror = null; // Prevent infinite loop
-            };
-        }
+    // Mobile menu functionality
+    const menuToggle = document.getElementById('menuToggle');
+    const mobileOverlay = document.getElementById('mobileOverlay');
+    const mainContent = document.getElementById('mainContent');
 
-        // Authentication
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                currentUser = user;
-                console.log("User authenticated:", user.email);
-                if (authNotification) authNotification.style.display = 'none';
-                loadProfileData();
-            } else {
-                console.log("No user authenticated");
-                currentUser = null;
-                if (authNotification) authNotification.style.display = 'block';
-                // Redirect to login if needed
-                // window.location.href = 'signin.html';
-            }
-        });
+    // Function to safely get sidebar element
+    function getSidebar() {
+        return document.querySelector('.sidebar');
+    }
 
-        // Load profile data
-        async function loadProfileData() {
-            if (!currentUser) {
-                console.log("No current user, skipping profile load");
-                return;
-            }
-
-            try {
-                console.log("Loading profile for user:", currentUser.uid);
-                const doc = await db.collection('users').doc(currentUser.uid).get();
-                
-                if (doc.exists) {
-                    const data = doc.data();
-                    console.log("Profile data loaded:", data);
-
-                    // Update profile picture
-                    if (profilePicture) {
-                        if (data.imageBase64) {
-                            profilePicture.src = data.imageBase64;
-                        } else if (data.picture) {
-                            profilePicture.src = data.picture;
-                        } else if (data.photoURL) {
-                            profilePicture.src = data.photoURL;
-                        } else {
-                            // Use default avatar
-                            profilePicture.src = 'images/default-avatar.png';
-                        }
-                    }
-
-                    // Update form fields
-                    if (usernameInput) {
-                        usernameInput.value = data.username || currentUser.email?.split('@')[0] || '';
-                    }
-                    
-                    if (displayUsername) {
-                        const username = data.username || currentUser.email?.split('@')[0] || 'username';
-                        displayUsername.textContent = '@' + username;
-                    }
-                    
-                    if (firstNameInput) firstNameInput.value = data.firstName || '';
-                    if (lastNameInput) lastNameInput.value = data.lastName || '';
-                    
-                    if (displayName) {
-                        const firstName = data.firstName || '';
-                        const lastName = data.lastName || '';
-                        const fullName = `${firstName} ${lastName}`.trim() || 'User';
-                        displayName.textContent = fullName;
-                    }
-                    
-                    if (bioInput) bioInput.value = data.bio || '';
-                    if (displayBio) displayBio.textContent = data.bio || 'No bio yet';
-                    if (locationInput) locationInput.value = data.location || '';
-                    if (emailInput) emailInput.value = currentUser.email || '';
-                    if (phoneInput) phoneInput.value = data.phone || '';
-                    
+    // Toggle mobile sidebar
+    function toggleMobileMenu() {
+        const sidebar = getSidebar();
+        if (sidebar) {
+            sidebar.classList.toggle('active');
+            mobileOverlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+            
+            // Lock/unlock main content scroll when menu is open
+            if (mainContent) {
+                if (sidebar.classList.contains('active')) {
+                    mainContent.style.overflow = 'hidden';
                 } else {
-                    console.log("No profile found for user");
-                    // Set default values
-                    if (profilePicture) profilePicture.src = 'images/default-avatar.png';
-                    if (emailInput && currentUser.email) emailInput.value = currentUser.email;
-                    if (displayName) displayName.textContent = 'User';
-                    if (displayUsername) {
-                        const username = currentUser.email?.split('@')[0] || 'username';
-                        displayUsername.textContent = '@' + username;
+                    mainContent.style.overflow = 'auto';
+                    if (isMobileView) {
+                        mainContent.style.webkitOverflowScrolling = 'touch';
                     }
                 }
-            } catch (err) {
-                console.error('Error loading profile:', err);
-                showNotification(errorNotification, 'Error loading profile data');
             }
         }
+    }
 
-        // File upload
-        if (uploadTrigger) {
-            uploadTrigger.addEventListener('click', () => {
-                if (!currentUser) {
-                    showNotification(authNotification, 'Please log in first.');
-                    return;
+    if (menuToggle) {
+        menuToggle.addEventListener('click', toggleMobileMenu);
+    }
+
+    if (mobileOverlay) {
+        mobileOverlay.addEventListener('click', toggleMobileMenu);
+    }
+
+    // Close sidebar when clicking on a nav link (mobile)
+    document.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768) {
+            const sidebar = getSidebar();
+            if (sidebar && sidebar.classList.contains('active')) {
+                if (e.target.closest('.sidebar-nav a') || e.target.closest('.logout-btn')) {
+                    toggleMobileMenu();
                 }
-                if (fileInput) fileInput.click();
-            });
-        }
-
-        if (fileInput) {
-            fileInput.addEventListener('change', async () => {
-                if (!currentUser || isUploading || !fileInput.files.length) return;
-                const file = fileInput.files[0];
-                if (!file) return;
-
-                try {
-                    if (!file.type.startsWith('image/')) throw new Error('Only image files allowed.');
-                    if (file.size > 5 * 1024 * 1024) throw new Error('File too large (max 5MB).');
-
-                    isUploading = true;
-                    if (uploadTrigger) uploadTrigger.innerHTML = '<div class="loading"></div>';
-
-                    const reader = new FileReader();
-                    reader.onload = async (e) => {
-                        const base64Image = e.target.result;
-                        if (profilePicture) profilePicture.src = base64Image;
-
-                        try {
-                            await db.collection('users').doc(currentUser.uid).set({
-                                imageBase64: base64Image,
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            }, { merge: true });
-
-                            showNotification(successNotification, 'Profile picture updated!');
-                        } catch (dbError) {
-                            console.error('Database error:', dbError);
-                            showNotification(errorNotification, 'Error saving picture');
-                        }
-                    };
-                    
-                    reader.onerror = () => {
-                        throw new Error('Error reading file');
-                    };
-                    
-                    reader.readAsDataURL(file);
-
-                } catch (error) {
-                    console.error('Upload error:', error);
-                    showNotification(errorNotification, error.message || 'Upload failed');
-                } finally {
-                    isUploading = false;
-                    if (uploadTrigger) uploadTrigger.innerHTML = '<i class="fas fa-camera"></i>';
-                    fileInput.value = '';
-                }
-            });
-        }
-
-        // Profile form submission
-        if (profileForm) {
-            profileForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!currentUser) {
-                    showNotification(authNotification, 'Please log in first.');
-                    return;
-                }
-
-                if (!usernameInput || !usernameInput.value || !firstNameInput || !firstNameInput.value || !lastNameInput || !lastNameInput.value) {
-                    showNotification(errorNotification, 'Please fill all required fields.');
-                    return;
-                }
-
-                const profileData = {
-                    username: usernameInput.value,
-                    firstName: firstNameInput.value,
-                    lastName: lastNameInput.value,
-                    email: currentUser.email,
-                    bio: bioInput ? bioInput.value : '',
-                    location: locationInput ? locationInput.value : '',
-                    phone: phoneInput ? phoneInput.value : '',
-                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                if (saveButton) {
-                    saveButton.disabled = true;
-                    saveButton.innerHTML = '<div class="loading"></div> Saving...';
-                }
-
-                try {
-                    await db.collection('users').doc(currentUser.uid).set(profileData, { merge: true });
-                    showNotification(successNotification, 'Profile updated successfully!');
-                    
-                    if (displayName) {
-                        displayName.textContent = `${firstNameInput.value} ${lastNameInput.value}`.trim();
-                    }
-                    
-                    if (displayUsername) {
-                        displayUsername.textContent = '@' + usernameInput.value;
-                    }
-                    
-                    if (displayBio && bioInput) {
-                        displayBio.textContent = bioInput.value || 'No bio yet';
-                    }
-                } catch (err) {
-                    console.error('Error saving profile:', err);
-                    showNotification(errorNotification, 'Error saving profile');
-                } finally {
-                    if (saveButton) {
-                        saveButton.disabled = false;
-                        saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
-                    }
-                }
-            });
-        }
-
-        // Cancel button
-        if (cancelButton) {
-            cancelButton.addEventListener('click', () => {
-                loadProfileData();
-            });
-        }
-
-        // Password form submission
-        if (passwordForm) {
-            passwordForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                if (!currentUser) {
-                    showNotification(authNotification, 'Please log in first.');
-                    return;
-                }
-
-                const currentPassword = currentPasswordInput ? currentPasswordInput.value : '';
-                const newPassword = newPasswordInput ? newPasswordInput.value : '';
-                const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
-
-                if (!validatePassword(newPassword)) {
-                    showNotification(passwordErrorNotification, 'New password does not meet requirements.');
-                    return;
-                }
-
-                if (newPassword !== confirmPassword) {
-                    showNotification(passwordErrorNotification, 'Passwords do not match.');
-                    return;
-                }
-
-                if (changePasswordButton) {
-                    changePasswordButton.disabled = true;
-                    changePasswordButton.innerHTML = '<div class="loading"></div> Updating...';
-                }
-
-                try {
-                    const credential = firebase.auth.EmailAuthProvider.credential(
-                        currentUser.email, 
-                        currentPassword
-                    );
-                    
-                    await currentUser.reauthenticateWithCredential(credential);
-                    await currentUser.updatePassword(newPassword);
-                    
-                    showNotification(passwordSuccessNotification, 'Password changed successfully!');
-                    
-                    if (passwordForm) passwordForm.reset();
-                    resetPasswordValidation();
-                } catch (err) {
-                    console.error('Error changing password:', err);
-                    let errorMessage = 'Error changing password.';
-                    
-                    if (err.code === 'auth/wrong-password') {
-                        errorMessage = 'Current password is incorrect.';
-                    } else if (err.code === 'auth/weak-password') {
-                        errorMessage = 'New password is too weak.';
-                    } else if (err.code === 'auth/requires-recent-login') {
-                        errorMessage = 'Please log in again to change password.';
-                    }
-                    
-                    showNotification(passwordErrorNotification, errorMessage);
-                } finally {
-                    if (changePasswordButton) {
-                        changePasswordButton.disabled = false;
-                        changePasswordButton.innerHTML = '<i class="fas fa-key"></i> Update Password';
-                    }
-                }
-            });
-        }
-
-        // Password validation
-        function validatePassword(password) {
-            if (!password) return false;
-            
-            const hasLength = password.length >= 8;
-            const hasCase = /[a-z]/.test(password) && /[A-Z]/.test(password);
-            const hasNumber = /\d/.test(password);
-            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-            
-            if (lengthReq) lengthReq.className = hasLength ? 'valid' : 'invalid';
-            if (caseReq) caseReq.className = hasCase ? 'valid' : 'invalid';
-            if (numberReq) numberReq.className = hasNumber ? 'valid' : 'invalid';
-            if (specialReq) specialReq.className = hasSpecial ? 'valid' : 'invalid';
-            
-            return hasLength && hasCase && hasNumber && hasSpecial;
-        }
-
-        // Password validation UI
-        if (newPasswordInput) {
-            newPasswordInput.addEventListener('input', () => {
-                validatePassword(newPasswordInput.value);
-                checkPasswordMatch();
-            });
-        }
-
-        if (confirmPasswordInput) {
-            confirmPasswordInput.addEventListener('input', checkPasswordMatch);
-        }
-
-        function checkPasswordMatch() {
-            if (!newPasswordInput || !confirmPasswordInput || !passwordMatch) return;
-            
-            const password = newPasswordInput.value;
-            const confirm = confirmPasswordInput.value;
-            
-            if (confirm === '') {
-                passwordMatch.style.display = 'none';
-            } else if (password === confirm) {
-                passwordMatch.style.display = 'flex';
-                passwordMatch.className = 'notification success';
-                passwordMatch.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
-            } else {
-                passwordMatch.style.display = 'flex';
-                passwordMatch.className = 'notification error';
-                passwordMatch.innerHTML = '<i class="fas fa-exclamation-circle"></i> Passwords do not match';
             }
         }
+    });
 
-        function resetPasswordValidation() {
-            if (lengthReq) lengthReq.className = 'invalid';
-            if (caseReq) caseReq.className = 'invalid';
-            if (numberReq) numberReq.className = 'invalid';
-            if (specialReq) specialReq.className = 'invalid';
-            if (passwordMatch) passwordMatch.style.display = 'none';
+    // Theme toggle functionality
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        
+        // Update both theme toggles
+        const desktopToggle = document.getElementById('desktopThemeToggle');
+        const mobileToggle = document.getElementById('mobileThemeToggle');
+        
+        if (isDarkMode) {
+            if (desktopToggle) desktopToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            if (mobileToggle) mobileToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        } else {
+            if (desktopToggle) desktopToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            if (mobileToggle) mobileToggle.innerHTML = '<i class="fas fa-moon"></i>';
         }
+        
+        // Save theme preference
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+    }
 
-        // Password visibility toggle
-        passwordToggleButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetId = button.getAttribute('data-target');
-                const targetInput = document.getElementById(targetId);
-                
-                if (targetInput) {
-                    if (targetInput.type === 'password') {
-                        targetInput.type = 'text';
-                        button.innerHTML = '<i class="fas fa-eye-slash"></i>';
-                    } else {
-                        targetInput.type = 'password';
-                        button.innerHTML = '<i class="fas fa-eye"></i>';
-                    }
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        const desktopToggle = document.getElementById('desktopThemeToggle');
+        const mobileToggle = document.getElementById('mobileThemeToggle');
+        if (desktopToggle) desktopToggle.innerHTML = '<i class="fas fa-sun"></i>';
+        if (mobileToggle) mobileToggle.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+
+    // Attach theme toggle events
+    const desktopThemeToggle = document.getElementById('desktopThemeToggle');
+    const mobileThemeToggle = document.getElementById('mobileThemeToggle');
+    
+    if (desktopThemeToggle) {
+        desktopThemeToggle.addEventListener('click', toggleTheme);
+    }
+    
+    if (mobileThemeToggle) {
+        mobileThemeToggle.addEventListener('click', toggleTheme);
+    }
+
+    // Section Navigation
+    const navLinks = document.querySelectorAll('.settings-nav a');
+    const sections = document.querySelectorAll('.profile-section');
+    
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const sectionId = link.getAttribute('data-section');
+            
+            // Update active nav
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+            
+            // Show corresponding section
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === `${sectionId}-section`) {
+                    section.classList.add('active');
+                    section.classList.add('scrolling-content');
+                    setTimeout(() => {
+                        section.classList.remove('scrolling-content');
+                    }, 500);
                 }
             });
-        });
 
-        // Notification helper
-        function showNotification(el, message) {
-            if (!el) {
-                console.log("Notification:", message);
-                return;
-            }
-            
-            // Clear existing text nodes except the icon
-            while (el.childNodes.length > 1) {
-                el.removeChild(el.lastChild);
-            }
-            
-            // Add new message
-            el.appendChild(document.createTextNode(' ' + message));
-            el.style.display = 'flex';
-            
-            // Hide after 4 seconds
-            setTimeout(() => {
-                el.style.display = 'none';
-            }, 4000);
-        }
-
-        // Handle window resize
-        function handleResize() {
-            setupMobileScrolling();
-            
-            if (window.innerWidth > 768) {
-                // Close mobile menu on desktop
-                const sidebar = getSidebar();
-                if (sidebar) {
-                    sidebar.classList.remove('active');
-                    if (mobileOverlay) mobileOverlay.classList.remove('active');
-                    document.body.style.overflow = '';
-                    
-                    if (mainContent) {
-                        mainContent.style.overflow = 'auto';
-                    }
-                }
-                
-                // Show section indicator on desktop
-                if (sectionIndicator) {
-                    sectionIndicator.style.display = 'flex';
-                }
-            } else {
-                // Hide section indicator on mobile
-                if (sectionIndicator) {
-                    sectionIndicator.style.display = 'none';
-                }
-                
-                // Adjust viewport for mobile
-                adjustViewportForMobile();
-            }
-        }
-
-        // Initialize on load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Set initial scrolling setup
-            setupMobileScrolling();
-            
-            // Set up scroll event listeners
+            // Scroll to top of section
             const scrollContainer = isMobileView ? 
                 document.getElementById('mainContent') : 
                 document.getElementById('settingsContent');
             
             if (scrollContainer) {
-                scrollContainer.addEventListener('scroll', handleScroll);
+                scrollContainer.scrollTop = 0;
             }
-            
-            if (scrollToTopBtn) {
-                scrollToTopBtn.addEventListener('click', scrollToTop);
+
+            // Update section indicator
+            if (!isMobileView && indicatorDots.length > 0) {
+                indicatorDots.forEach(dot => {
+                    dot.classList.remove('active');
+                    if (dot.getAttribute('href').substring(1) === sectionId) {
+                        dot.classList.add('active');
+                    }
+                });
             }
-            
-            // Set initial padding for main content based on sidebar
-            const sidebarElement = getSidebar();
-            if (sidebarElement && window.innerWidth > 768 && mainContent) {
-                const sidebarWidth = sidebarElement.offsetWidth;
-                mainContent.style.marginLeft = `${sidebarWidth}px`;
-                mainContent.style.width = `calc(100% - ${sidebarWidth}px)`;
-            }
-            
-            // Initialize Firebase auth state
-            console.log("Settings page initialized");
-            
-            // Set up resize listener
-            window.addEventListener('resize', handleResize);
-            
-            // Handle orientation change specifically for mobile
-            window.addEventListener('orientationchange', function() {
-                if (window.innerWidth <= 768) {
-                    setTimeout(() => {
-                        adjustViewportForMobile();
-                        setupMobileScrolling();
-                    }, 300);
+        });
+    });
+
+    // Section indicator navigation
+    if (indicatorDots.length > 0) {
+        indicatorDots.forEach(dot => {
+            dot.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = dot.getAttribute('href').substring(1);
+                
+                // Find corresponding nav link and click it
+                const correspondingNavLink = document.querySelector(`.settings-nav a[data-section="${sectionId}"]`);
+                if (correspondingNavLink) {
+                    correspondingNavLink.click();
                 }
             });
+        });
+    }
+
+    // Profile management elements
+    const profileForm = document.getElementById('profile-form');
+    const passwordForm = document.getElementById('password-form');
+    const fileInput = document.getElementById('file-input');
+    const uploadTrigger = document.getElementById('upload-trigger');
+    const profilePicture = document.getElementById('profile-picture');
+    const usernameInput = document.getElementById('username');
+    const firstNameInput = document.getElementById('first-name');
+    const lastNameInput = document.getElementById('last-name');
+    const bioInput = document.getElementById('bio');
+    const locationInput = document.getElementById('location');
+    const emailInput = document.getElementById('email');
+    const phoneInput = document.getElementById('phone');
+    const displayName = document.getElementById('display-name');
+    const displayUsername = document.getElementById('display-username');
+    const displayBio = document.getElementById('display-bio');
+    const successNotification = document.getElementById('success-notification');
+    const errorNotification = document.getElementById('error-notification');
+    const authNotification = document.getElementById('auth-notification');
+    const saveButton = document.getElementById('save-button');
+    const cancelButton = document.getElementById('cancel-button');
+    
+    // Password elements
+    const currentPasswordInput = document.getElementById('current-password');
+    const newPasswordInput = document.getElementById('new-password');
+    const confirmPasswordInput = document.getElementById('confirm-password');
+    const passwordSuccessNotification = document.getElementById('password-success-notification');
+    const passwordErrorNotification = document.getElementById('password-error-notification');
+    const changePasswordButton = document.getElementById('change-password-button');
+    const passwordToggleButtons = document.querySelectorAll('.password-toggle');
+    const lengthReq = document.getElementById('length-req');
+    const caseReq = document.getElementById('case-req');
+    const numberReq = document.getElementById('number-req');
+    const specialReq = document.getElementById('special-req');
+    const passwordMatch = document.getElementById('password-match');
+
+    let currentUser = null;
+    let isUploading = false;
+
+    // Set default avatar on error
+    if (profilePicture) {
+        profilePicture.onerror = function() {
+            console.log("Profile picture failed to load, creating default avatar");
+            const name = displayName ? displayName.textContent : 'User';
+            this.src = createDefaultAvatar(name);
+            this.onerror = null; // Prevent infinite loop
+        };
+    }
+
+    // Authentication
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            currentUser = user;
+            console.log("User authenticated:", user.email);
+            if (authNotification) authNotification.style.display = 'none';
+            loadProfileData();
+        } else {
+            console.log("No user authenticated");
+            currentUser = null;
+            if (authNotification) authNotification.style.display = 'block';
+            // Redirect to login if needed
+            // window.location.href = 'signin.html';
+        }
+    });
+
+    // Load profile data
+    async function loadProfileData() {
+        if (!currentUser) {
+            console.log("No current user, skipping profile load");
+            return;
+        }
+
+        try {
+            console.log("Loading profile for user:", currentUser.uid);
+            const doc = await db.collection('users').doc(currentUser.uid).get();
             
-            // Add safe area CSS variable for iOS
-            const safeAreaBottom = getSafeAreaBottom();
-            if (safeAreaBottom > 0) {
-                document.documentElement.style.setProperty('--safe-area-inset-bottom', `${safeAreaBottom}px`);
+            if (doc.exists) {
+                const data = doc.data();
+                console.log("Profile data loaded:", data);
+
+                // Update form fields
+                if (usernameInput) {
+                    usernameInput.value = data.username || currentUser.email?.split('@')[0] || '';
+                }
+                
+                if (displayUsername) {
+                    const username = data.username || currentUser.email?.split('@')[0] || 'username';
+                    displayUsername.textContent = '@' + username;
+                }
+                
+                if (firstNameInput) firstNameInput.value = data.firstName || '';
+                if (lastNameInput) lastNameInput.value = data.lastName || '';
+                
+                if (displayName) {
+                    const firstName = data.firstName || '';
+                    const lastName = data.lastName || '';
+                    const fullName = `${firstName} ${lastName}`.trim() || 'User';
+                    displayName.textContent = fullName;
+                }
+                
+                if (bioInput) bioInput.value = data.bio || '';
+                if (displayBio) displayBio.textContent = data.bio || 'No bio yet';
+                if (locationInput) locationInput.value = data.location || '';
+                if (emailInput) emailInput.value = currentUser.email || '';
+                if (phoneInput) phoneInput.value = data.phone || '';
+                
+                // UPDATE: Load profile picture from Firebase (like forum.html)
+                if (profilePicture) {
+                    console.log("Checking profile picture sources:", {
+                        hasImageBase64: !!data.imageBase64,
+                        hasPicture: !!data.picture,
+                        hasPhotoURL: !!data.photoURL
+                    });
+                    
+                    if (data.imageBase64) {
+                        console.log("Using imageBase64 from Firestore");
+                        profilePicture.src = data.imageBase64;
+                    } else if (data.picture) {
+                        console.log("Using picture field from Firestore");
+                        profilePicture.src = data.picture;
+                    } else if (data.photoURL) {
+                        console.log("Using photoURL from Firebase Auth");
+                        profilePicture.src = data.photoURL;
+                    } else {
+                        // Create dynamic avatar with user initials
+                        console.log("No profile image found, creating dynamic avatar");
+                        const name = `${data.firstName || ''} ${data.lastName || ''}`.trim() || 'User';
+                        profilePicture.src = createDefaultAvatar(name);
+                    }
+                }
+                
+            } else {
+                console.log("No profile found for user");
+                // Set default values
+                if (emailInput && currentUser.email) emailInput.value = currentUser.email;
+                if (displayName) displayName.textContent = 'User';
+                if (displayUsername) {
+                    const username = currentUser.email?.split('@')[0] || 'username';
+                    displayUsername.textContent = '@' + username;
+                }
+                
+                // Set default avatar
+                if (profilePicture) {
+                    const name = currentUser.displayName || currentUser.email?.split('@')[0] || 'User';
+                    profilePicture.src = createDefaultAvatar(name);
+                }
+            }
+        } catch (err) {
+            console.error('Error loading profile:', err);
+            showNotification(errorNotification, 'Error loading profile data');
+            
+            // Set default avatar on error
+            if (profilePicture) {
+                profilePicture.src = createDefaultAvatar('User');
+            }
+        }
+    }
+
+    // File upload
+    if (uploadTrigger) {
+        uploadTrigger.addEventListener('click', () => {
+            if (!currentUser) {
+                showNotification(authNotification, 'Please log in first.');
+                return;
+            }
+            if (fileInput) fileInput.click();
+        });
+    }
+
+    if (fileInput) {
+        fileInput.addEventListener('change', async () => {
+            if (!currentUser || isUploading || !fileInput.files.length) return;
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            try {
+                if (!file.type.startsWith('image/')) throw new Error('Only image files allowed.');
+                if (file.size > 5 * 1024 * 1024) throw new Error('File too large (max 5MB).');
+
+                isUploading = true;
+                if (uploadTrigger) uploadTrigger.innerHTML = '<div class="loading"></div>';
+
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    const base64Image = e.target.result;
+                    if (profilePicture) profilePicture.src = base64Image;
+
+                    try {
+                        // Save to Firestore (same as forum.html does)
+                        await db.collection('users').doc(currentUser.uid).set({
+                            imageBase64: base64Image,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        }, { merge: true });
+
+                        console.log("Profile picture saved to Firestore as base64");
+                        showNotification(successNotification, 'Profile picture updated!');
+                    } catch (dbError) {
+                        console.error('Database error:', dbError);
+                        showNotification(errorNotification, 'Error saving picture');
+                    }
+                };
+                
+                reader.onerror = () => {
+                    throw new Error('Error reading file');
+                };
+                
+                reader.readAsDataURL(file);
+
+            } catch (error) {
+                console.error('Upload error:', error);
+                showNotification(errorNotification, error.message || 'Upload failed');
+            } finally {
+                isUploading = false;
+                if (uploadTrigger) uploadTrigger.innerHTML = '<i class="fas fa-camera"></i>';
+                fileInput.value = '';
+            }
+        });
+    }
+
+    // Profile form submission
+    if (profileForm) {
+        profileForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                showNotification(authNotification, 'Please log in first.');
+                return;
+            }
+
+            if (!usernameInput || !usernameInput.value || !firstNameInput || !firstNameInput.value || !lastNameInput || !lastNameInput.value) {
+                showNotification(errorNotification, 'Please fill all required fields.');
+                return;
+            }
+
+            const profileData = {
+                username: usernameInput.value,
+                firstName: firstNameInput.value,
+                lastName: lastNameInput.value,
+                email: currentUser.email,
+                bio: bioInput ? bioInput.value : '',
+                location: locationInput ? locationInput.value : '',
+                phone: phoneInput ? phoneInput.value : '',
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (saveButton) {
+                saveButton.disabled = true;
+                saveButton.innerHTML = '<div class="loading"></div> Saving...';
+            }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).set(profileData, { merge: true });
+                showNotification(successNotification, 'Profile updated successfully!');
+                
+                if (displayName) {
+                    displayName.textContent = `${firstNameInput.value} ${lastNameInput.value}`.trim();
+                }
+                
+                if (displayUsername) {
+                    displayUsername.textContent = '@' + usernameInput.value;
+                }
+                
+                if (displayBio && bioInput) {
+                    displayBio.textContent = bioInput.value || 'No bio yet';
+                }
+                
+                // Update avatar initials if no image is set
+                if (profilePicture && !profilePicture.src.includes('data:image')) {
+                    const name = `${firstNameInput.value} ${lastNameInput.value}`.trim() || 'User';
+                    profilePicture.src = createDefaultAvatar(name);
+                }
+            } catch (err) {
+                console.error('Error saving profile:', err);
+                showNotification(errorNotification, 'Error saving profile');
+            } finally {
+                if (saveButton) {
+                    saveButton.disabled = false;
+                    saveButton.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                }
+            }
+        });
+    }
+
+    // Cancel button
+    if (cancelButton) {
+        cancelButton.addEventListener('click', () => {
+            loadProfileData();
+        });
+    }
+
+    // Password form submission
+    if (passwordForm) {
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUser) {
+                showNotification(authNotification, 'Please log in first.');
+                return;
+            }
+
+            const currentPassword = currentPasswordInput ? currentPasswordInput.value : '';
+            const newPassword = newPasswordInput ? newPasswordInput.value : '';
+            const confirmPassword = confirmPasswordInput ? confirmPasswordInput.value : '';
+
+            if (!validatePassword(newPassword)) {
+                showNotification(passwordErrorNotification, 'New password does not meet requirements.');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showNotification(passwordErrorNotification, 'Passwords do not match.');
+                return;
+            }
+
+            if (changePasswordButton) {
+                changePasswordButton.disabled = true;
+                changePasswordButton.innerHTML = '<div class="loading"></div> Updating...';
+            }
+
+            try {
+                const credential = firebase.auth.EmailAuthProvider.credential(
+                    currentUser.email, 
+                    currentPassword
+                );
+                
+                await currentUser.reauthenticateWithCredential(credential);
+                await currentUser.updatePassword(newPassword);
+                
+                showNotification(passwordSuccessNotification, 'Password changed successfully!');
+                
+                if (passwordForm) passwordForm.reset();
+                resetPasswordValidation();
+            } catch (err) {
+                console.error('Error changing password:', err);
+                let errorMessage = 'Error changing password.';
+                
+                if (err.code === 'auth/wrong-password') {
+                    errorMessage = 'Current password is incorrect.';
+                } else if (err.code === 'auth/weak-password') {
+                    errorMessage = 'New password is too weak.';
+                } else if (err.code === 'auth/requires-recent-login') {
+                    errorMessage = 'Please log in again to change password.';
+                }
+                
+                showNotification(passwordErrorNotification, errorMessage);
+            } finally {
+                if (changePasswordButton) {
+                    changePasswordButton.disabled = false;
+                    changePasswordButton.innerHTML = '<i class="fas fa-key"></i> Update Password';
+                }
+            }
+        });
+    }
+
+    // Password validation
+    function validatePassword(password) {
+        if (!password) return false;
+        
+        const hasLength = password.length >= 8;
+        const hasCase = /[a-z]/.test(password) && /[A-Z]/.test(password);
+        const hasNumber = /\d/.test(password);
+        const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+        
+        if (lengthReq) lengthReq.className = hasLength ? 'valid' : 'invalid';
+        if (caseReq) caseReq.className = hasCase ? 'valid' : 'invalid';
+        if (numberReq) numberReq.className = hasNumber ? 'valid' : 'invalid';
+        if (specialReq) specialReq.className = hasSpecial ? 'valid' : 'invalid';
+        
+        return hasLength && hasCase && hasNumber && hasSpecial;
+    }
+
+    // Password validation UI
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', () => {
+            validatePassword(newPasswordInput.value);
+            checkPasswordMatch();
+        });
+    }
+
+    if (confirmPasswordInput) {
+        confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+    }
+
+    function checkPasswordMatch() {
+        if (!newPasswordInput || !confirmPasswordInput || !passwordMatch) return;
+        
+        const password = newPasswordInput.value;
+        const confirm = confirmPasswordInput.value;
+        
+        if (confirm === '') {
+            passwordMatch.style.display = 'none';
+        } else if (password === confirm) {
+            passwordMatch.style.display = 'flex';
+            passwordMatch.className = 'notification success';
+            passwordMatch.innerHTML = '<i class="fas fa-check-circle"></i> Passwords match';
+        } else {
+            passwordMatch.style.display = 'flex';
+            passwordMatch.className = 'notification error';
+            passwordMatch.innerHTML = '<i class="fas fa-exclamation-circle"></i> Passwords do not match';
+        }
+    }
+
+    function resetPasswordValidation() {
+        if (lengthReq) lengthReq.className = 'invalid';
+        if (caseReq) caseReq.className = 'invalid';
+        if (numberReq) numberReq.className = 'invalid';
+        if (specialReq) specialReq.className = 'invalid';
+        if (passwordMatch) passwordMatch.style.display = 'none';
+    }
+
+    // Password visibility toggle
+    passwordToggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetId = button.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            
+            if (targetInput) {
+                if (targetInput.type === 'password') {
+                    targetInput.type = 'text';
+                    button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    targetInput.type = 'password';
+                    button.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            }
+        });
+    });
+
+    // Notification helper
+    function showNotification(el, message) {
+        if (!el) {
+            console.log("Notification:", message);
+            return;
+        }
+        
+        // Clear existing text nodes except the icon
+        while (el.childNodes.length > 1) {
+            el.removeChild(el.lastChild);
+        }
+        
+        // Add new message
+        el.appendChild(document.createTextNode(' ' + message));
+        el.style.display = 'flex';
+        
+        // Hide after 4 seconds
+        setTimeout(() => {
+            el.style.display = 'none';
+        }, 4000);
+    }
+
+    // Handle window resize
+    function handleResize() {
+        setupMobileScrolling();
+        
+        if (window.innerWidth > 768) {
+            // Close mobile menu on desktop
+            const sidebar = getSidebar();
+            if (sidebar) {
+                sidebar.classList.remove('active');
+                if (mobileOverlay) mobileOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                if (mainContent) {
+                    mainContent.style.overflow = 'auto';
+                }
             }
             
-            // Initial section indicator visibility
-            handleResize();
+            // Show section indicator on desktop
+            if (sectionIndicator) {
+                sectionIndicator.style.display = 'flex';
+            }
+        } else {
+            // Hide section indicator on mobile
+            if (sectionIndicator) {
+                sectionIndicator.style.display = 'none';
+            }
+            
+            // Adjust viewport for mobile
+            adjustViewportForMobile();
+        }
+    }
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', () => {
+        // Set initial scrolling setup
+        setupMobileScrolling();
+        
+        // Set up scroll event listeners
+        const scrollContainer = isMobileView ? 
+            document.getElementById('mainContent') : 
+            document.getElementById('settingsContent');
+        
+        if (scrollContainer) {
+            scrollContainer.addEventListener('scroll', handleScroll);
+        }
+        
+        if (scrollToTopBtn) {
+            scrollToTopBtn.addEventListener('click', scrollToTop);
+        }
+        
+        // Set initial padding for main content based on sidebar
+        const sidebarElement = getSidebar();
+        if (sidebarElement && window.innerWidth > 768 && mainContent) {
+            const sidebarWidth = sidebarElement.offsetWidth;
+            mainContent.style.marginLeft = `${sidebarWidth}px`;
+            mainContent.style.width = `calc(100% - ${sidebarWidth}px)`;
+        }
+        
+        // Initialize Firebase auth state
+        console.log("Settings page initialized");
+        
+        // Set up resize listener
+        window.addEventListener('resize', handleResize);
+        
+        // Handle orientation change specifically for mobile
+        window.addEventListener('orientationchange', function() {
+            if (window.innerWidth <= 768) {
+                setTimeout(() => {
+                    adjustViewportForMobile();
+                    setupMobileScrolling();
+                }, 300);
+            }
         });
-    </script>
+        
+        // Add safe area CSS variable for iOS
+        const safeAreaBottom = getSafeAreaBottom();
+        if (safeAreaBottom > 0) {
+            document.documentElement.style.setProperty('--safe-area-inset-bottom', `${safeAreaBottom}px`);
+        }
+        
+        // Initial section indicator visibility
+        handleResize();
+    });
+</script>
 </body>
 </html>
