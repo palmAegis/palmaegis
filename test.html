@@ -32,17 +32,20 @@
         body {
             background-color: #c8f0c8;
             color: #333;
+            overflow: hidden; /* Prevent body scroll */
         }
 
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            max-height: 100vh; /* Limit height to viewport */
         }
 
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
+            overflow: hidden; /* Prevent overflow */
         }
 
         .top-header {
@@ -52,6 +55,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Prevent header from shrinking */
         }
 
         .header-left h1 {
@@ -62,7 +66,28 @@
         .container {
             flex: 1;
             padding: 30px;
-            overflow-y: auto;
+            overflow-y: auto; /* Enable vertical scrolling */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+            max-height: calc(100vh - 80px); /* Adjust based on header height */
+        }
+
+        /* Custom scrollbar styling */
+        .container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .container::-webkit-scrollbar-thumb:hover {
+            background: #1b5e20;
         }
 
         .page-header {
@@ -120,6 +145,7 @@
         .settings-container {
             max-width: 1000px;
             margin: 0 auto;
+            min-height: 100%; /* Ensure container takes full height */
         }
 
         .settings-card {
@@ -424,10 +450,80 @@
             }
         }
 
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .modal-content::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .dashboard-container {
                 flex-direction: column;
+            }
+
+            .container {
+                padding: 20px;
+                max-height: calc(100vh - 70px);
+            }
+
+            .settings-card {
+                padding: 20px;
             }
 
             .form-row {
@@ -449,12 +545,61 @@
                 align-items: stretch;
             }
 
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .page-actions {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+
+        @media (max-width: 480px) {
             .container {
-                padding: 20px;
+                padding: 15px;
             }
 
             .settings-card {
-                padding: 20px;
+                padding: 15px;
+            }
+
+            .profile-image {
+                width: 120px;
+                height: 120px;
+            }
+
+            .image-placeholder {
+                width: 120px;
+                height: 120px;
+                font-size: 2.5rem;
+            }
+
+            .upload-overlay {
+                width: 35px;
+                height: 35px;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+
+        /* Ensure form is scrollable on very small screens */
+        @media (max-height: 600px) {
+            .container {
+                padding: 15px;
+                max-height: calc(100vh - 60px);
+            }
+
+            .settings-section {
+                margin-bottom: 25px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
             }
         }
     </style>
