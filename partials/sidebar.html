@@ -84,18 +84,19 @@
             <p class="dialog-subtext">You'll need to sign in again to access your dashboard.</p>
         </div>
         <div class="dialog-footer">
-            <button class="dialog-btn cancel-btn" id="cancelLogout">
-                <i class="fas fa-times"></i>
-                Cancel
-            </button>
-            <button class="dialog-btn confirm-btn" id="confirmLogout">
-                <i class="fas fa-check"></i>
-                Yes, Logout
-            </button>
+            <button class="dialog-btn cancel-btn" id="cancelLogout" onclick="document.getElementById('logoutDialogOverlay').style.display='none'; document.body.style.overflow='auto';">
+    <i class="fas fa-times"></i>
+    Cancel
+</button>
+            <button class="dialog-btn confirm-btn" id="confirmLogout" onclick="window.location.href='signin.html';">
+    <i class="fas fa-check"></i>
+    Yes, Logout
+</button>
         </div>
     </div>
 </div>
 
+<!-- Add this CSS to your stylesheet -->
 <style>
 .logout-dialog-overlay {
     display: none;
@@ -182,12 +183,6 @@
     transition: all 0.3s ease;
     min-width: 120px;
     justify-content: center;
-    user-select: none;
-    -webkit-tap-highlight-color: transparent; /* Remove blue tap highlight on mobile */
-}
-
-.dialog-btn:active {
-    transform: scale(0.98); /* Add press effect for mobile */
 }
 
 .cancel-btn {
@@ -214,16 +209,6 @@
     box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
 }
 
-/* Add loading state for logout button */
-.confirm-btn.loading {
-    opacity: 0.8;
-    pointer-events: none;
-}
-
-.confirm-btn.loading i {
-    animation: spin 1s linear infinite;
-}
-
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -237,30 +222,6 @@
     to {
         opacity: 1;
         transform: translate(-50%, -50%);
-    }
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* Mobile-specific improvements */
-@media (max-width: 768px) {
-    .dialog-btn {
-        padding: 1rem 1.5rem;
-        min-height: 44px; /* Minimum touch target size for mobile */
-    }
-    
-    /* Remove hover effects on touch devices */
-    @media (hover: none) and (pointer: coarse) {
-        .dialog-btn:hover {
-            transform: none !important;
-        }
-        
-        .dialog-btn:active {
-            transform: scale(0.96) !important;
-        }
     }
 }
 
@@ -279,52 +240,28 @@
         width: 100%;
     }
 }
+
 </style>
 
 <script>
 // JavaScript for logout dialog functionality
 function showLogoutDialog(event) {
-    if (event) event.preventDefault();
+    event.preventDefault();
     const dialog = document.getElementById('logoutDialogOverlay');
     dialog.style.display = 'block';
     document.body.style.overflow = 'hidden'; // Prevent scrolling
-    
-    // Add a small delay for better UX
-    setTimeout(() => {
-        document.addEventListener('touchstart', handleOutsideTouch, { passive: true });
-    }, 100);
 }
 
 function hideLogoutDialog() {
     const dialog = document.getElementById('logoutDialogOverlay');
     dialog.style.display = 'none';
     document.body.style.overflow = 'auto'; // Restore scrolling
-    document.removeEventListener('touchstart', handleOutsideTouch);
-}
-
-function handleOutsideTouch(event) {
-    const dialog = document.getElementById('logoutDialogOverlay');
-    if (event.target === dialog) {
-        hideLogoutDialog();
-    }
 }
 
 function confirmLogout() {
-    const confirmBtn = document.getElementById('confirmLogout');
-    
-    // Add loading state
-    confirmBtn.classList.add('loading');
-    confirmBtn.innerHTML = '<i class="fas fa-spinner"></i> Logging out...';
-    
-    // Simulate logout process (replace with actual logout API call)
-    setTimeout(() => {
-        // Clear any stored data
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('userData');
-        
-        // Redirect to login page
-        window.location.href = 'signin.html';
-    }, 1000);
+    // You can add any cleanup or logout logic here before redirecting
+    hideLogoutDialog();
+    window.location.href = 'signin.html';
 }
 
 // Initialize dialog functionality
@@ -335,78 +272,43 @@ document.addEventListener('DOMContentLoaded', function() {
     const logoutBtn = document.getElementById('logoutBtn');
     
     // Check if elements exist
-    if (!dialogOverlay || !cancelBtn || !confirmBtn) {
+    if (!dialogOverlay || !cancelBtn || !confirmBtn || !logoutBtn) {
         console.error('One or more dialog elements not found!');
         return;
     }
     
-    // Hide dialog when clicking outside (for desktop)
+    // Hide dialog when clicking outside
     dialogOverlay.addEventListener('click', function(event) {
         if (event.target === dialogOverlay) {
             hideLogoutDialog();
         }
     });
     
-    // Cancel button click (works for both click and touch)
+    // Cancel button click
     cancelBtn.addEventListener('click', function(event) {
         event.stopPropagation();
         hideLogoutDialog();
     });
     
-    // Add touch event for mobile
-    cancelBtn.addEventListener('touchend', function(event) {
-        event.preventDefault(); // Prevent double fire
-        event.stopPropagation();
-        hideLogoutDialog();
-    });
-    
-    // Confirm button click (works for both click and touch)
+    // Confirm button click
     confirmBtn.addEventListener('click', function(event) {
         event.stopPropagation();
         confirmLogout();
     });
     
-    // Add touch event for mobile
-    confirmBtn.addEventListener('touchend', function(event) {
-        event.preventDefault(); // Prevent double fire
-        event.stopPropagation();
-        confirmLogout();
+    // Logout button click
+    logoutBtn.addEventListener('click', function(event) {
+        showLogoutDialog(event);
     });
-    
-    // Logout button in sidebar
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', showLogoutDialog);
-        logoutBtn.addEventListener('touchend', function(event) {
-            event.preventDefault();
-            showLogoutDialog(event);
-        });
-    }
-    
-    // Add event listener for Escape key
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Escape') {
-            const dialog = document.getElementById('logoutDialogOverlay');
-            if (dialog && dialog.style.display === 'block') {
-                hideLogoutDialog();
-            }
+});
+
+// Add event listener for Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const dialog = document.getElementById('logoutDialogOverlay');
+        if (dialog && dialog.style.display === '') {
+            hideLogoutDialog();
         }
-    });
-});
-
-// Prevent dialog from closing when clicking inside the dialog box
-document.addEventListener('click', function(event) {
-    const dialog = document.querySelector('.logout-dialog');
-    if (dialog && dialog.contains(event.target)) {
-        event.stopPropagation();
     }
 });
-
-// Additional mobile touch handling
-document.addEventListener('touchstart', function(event) {
-    // Prevent accidental background scrolling when dialog is open
-    const dialog = document.getElementById('logoutDialogOverlay');
-    if (dialog && dialog.style.display === 'block') {
-        event.preventDefault();
-    }
-}, { passive: false });
 </script>
