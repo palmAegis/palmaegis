@@ -32,20 +32,20 @@
         body {
             background-color: #c8f0c8;
             color: #333;
-            overflow: hidden; /* Prevent body scroll */
+            overflow: hidden;
         }
 
         .dashboard-container {
             display: flex;
             min-height: 100vh;
-            max-height: 100vh; /* Limit height to viewport */
+            max-height: 100vh;
         }
 
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: hidden; /* Prevent overflow */
+            overflow: hidden;
         }
 
         .top-header {
@@ -55,7 +55,7 @@
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            flex-shrink: 0; /* Prevent header from shrinking */
+            flex-shrink: 0;
         }
 
         .header-left h1 {
@@ -66,9 +66,9 @@
         .container {
             flex: 1;
             padding: 30px;
-            overflow-y: auto; /* Enable vertical scrolling */
-            overflow-x: hidden; /* Prevent horizontal scroll */
-            max-height: calc(100vh - 80px); /* Adjust based on header height */
+            overflow-y: auto;
+            overflow-x: hidden;
+            max-height: calc(100vh - 80px);
         }
 
         /* Custom scrollbar styling */
@@ -145,7 +145,56 @@
         .settings-container {
             max-width: 1000px;
             margin: 0 auto;
-            min-height: 100%; /* Ensure container takes full height */
+            min-height: 100%;
+        }
+
+        /* Settings Navigation Tabs */
+        .settings-nav {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            overflow-x: auto;
+        }
+
+        .settings-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .settings-nav::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .settings-nav::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .nav-tab {
+            padding: 12px 25px;
+            background-color: #f5f5f5;
+            border: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .nav-tab:hover {
+            background-color: #e8f5e9;
+            color: var(--primary-color);
+        }
+
+        .nav-tab.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
         }
 
         .settings-card {
@@ -154,6 +203,17 @@
             padding: 30px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             margin-bottom: 30px;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .settings-card.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .settings-section {
@@ -522,6 +582,16 @@
                 max-height: calc(100vh - 70px);
             }
 
+            .settings-nav {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            .nav-tab {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
             .settings-card {
                 padding: 20px;
             }
@@ -587,7 +657,6 @@
             }
         }
 
-        /* Ensure form is scrollable on very small screens */
         @media (max-height: 600px) {
             .container {
                 padding: 15px;
@@ -640,10 +709,27 @@
                         <p>Loading your profile...</p>
                     </div>
 
-                    <!-- Profile Settings Form -->
+                    <!-- Settings Navigation Tabs -->
+                    <div class="settings-nav" id="settingsNav" style="display: none;">
+                        <button class="nav-tab active" data-tab="personal">
+                            <i class="fas fa-user"></i> Personal Information
+                        </button>
+                        <button class="nav-tab" data-tab="security">
+                            <i class="fas fa-shield-alt"></i> Account Security
+                        </button>
+                        <button class="nav-tab" data-tab="activity">
+                            <i class="fas fa-chart-bar"></i> Activity & Stats
+                        </button>
+                        <button class="nav-tab" data-tab="danger">
+                            <i class="fas fa-exclamation-triangle"></i> Danger Zone
+                        </button>
+                    </div>
+
+                    <!-- Personal Information Card -->
                     <form id="profileSettingsForm" style="display: none;">
-                        <!-- Profile Picture Section -->
-                        <div class="settings-card">
+                        <!-- Personal Information Card -->
+                        <div class="settings-card active" id="personalCard">
+                            <!-- Profile Picture Section -->
                             <div class="profile-picture-section">
                                 <div class="profile-image-container">
                                     <div id="profileImagePlaceholder" class="image-placeholder">
@@ -709,11 +795,30 @@
                                 </div>
                             </div>
 
-                            <!-- Account Security Section -->
+                            <!-- Action Buttons for Personal Info -->
+                            <div class="actions-row">
+                                <div>
+                                    <button type="button" class="btn btn-secondary" id="cancelPersonalBtn">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-primary" id="savePersonalBtn">
+                                        <i class="fas fa-save"></i> Save Changes
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Account Security Card -->
+                        <div class="settings-card" id="securityCard">
                             <div class="settings-section">
                                 <h3 class="section-title">
                                     <i class="fas fa-shield-alt"></i> Account Security
                                 </h3>
+                                <p style="margin-bottom: 20px; color: #666;">
+                                    Update your password and enhance your account security.
+                                </p>
 
                                 <div class="form-group">
                                     <label class="form-label" for="currentPassword">Current Password</label>
@@ -744,13 +849,46 @@
                                         <i class="fas fa-eye toggle-icon" id="toggleConfirmPassword"></i>
                                     </div>
                                 </div>
+
+                                <!-- Security Tips -->
+                                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 30px;">
+                                    <h4 style="color: var(--primary-color); margin-bottom: 10px;">
+                                        <i class="fas fa-lightbulb"></i> Security Tips
+                                    </h4>
+                                    <ul style="color: #666; padding-left: 20px;">
+                                        <li>Use a strong, unique password</li>
+                                        <li>Don't reuse passwords across different sites</li>
+                                        <li>Consider using a password manager</li>
+                                        <li>Never share your password with anyone</li>
+                                    </ul>
+                                </div>
                             </div>
 
-                            <!-- Account Statistics Section -->
+                            <!-- Action Buttons for Security -->
+                            <div class="actions-row">
+                                <div>
+                                    <button type="button" class="btn btn-secondary" id="cancelSecurityBtn">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-primary" id="saveSecurityBtn">
+                                        <i class="fas fa-save"></i> Update Password
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity & Stats Card -->
+                        <div class="settings-card" id="activityCard">
                             <div class="settings-section">
                                 <h3 class="section-title">
                                     <i class="fas fa-chart-bar"></i> Your Activity
                                 </h3>
+                                <p style="margin-bottom: 20px; color: #666;">
+                                    Overview of your activity and contributions to the community.
+                                </p>
+
                                 <div class="stats-grid">
                                     <div class="stat-card">
                                         <div class="stat-value" id="statPosts">0</div>
@@ -769,21 +907,54 @@
                                         <div class="stat-label">Days Active</div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <!-- Action Buttons -->
-                            <div class="actions-row">
-                                <div>
-                                    <button type="button" class="btn btn-danger" id="deleteAccountBtn">
+                                <!-- Recent Activity -->
+                                <div style="margin-top: 40px;">
+                                    <h4 style="color: var(--primary-color); margin-bottom: 15px;">
+                                        <i class="fas fa-history"></i> Recent Activity
+                                    </h4>
+                                    <div id="recentActivity" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px;">
+                                        <p style="text-align: center; color: #999;">
+                                            <i class="fas fa-spinner fa-spin"></i> Loading your recent activity...
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Danger Zone Card -->
+                        <div class="settings-card" id="dangerCard">
+                            <div class="settings-section">
+                                <h3 class="section-title" style="color: var(--danger-color);">
+                                    <i class="fas fa-exclamation-triangle"></i> Danger Zone
+                                </h3>
+                                <p style="margin-bottom: 30px; color: #666;">
+                                    These actions are irreversible. Please proceed with caution.
+                                </p>
+
+                                <!-- Delete Account Section -->
+                                <div style="background-color: #ffebee; border: 1px solid #ffcdd2; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
+                                    <h4 style="color: var(--danger-color); margin-bottom: 10px;">
                                         <i class="fas fa-trash"></i> Delete Account
+                                    </h4>
+                                    <p style="color: #666; margin-bottom: 15px;">
+                                        Once you delete your account, there is no going back. All your data, including forum posts, replies, and profile information will be permanently removed.
+                                    </p>
+                                    <button type="button" class="btn btn-danger" id="deleteAccountBtn">
+                                        <i class="fas fa-trash"></i> Delete My Account
                                     </button>
                                 </div>
-                                <div>
-                                    <button type="button" class="btn btn-secondary" id="cancelChangesBtn">
-                                        <i class="fas fa-times"></i> Cancel
-                                    </button>
-                                    <button type="submit" class="btn btn-primary" id="saveChangesBtn">
-                                        <i class="fas fa-save"></i> Save Changes
+
+                                <!-- Export Data Section -->
+                                <div style="background-color: #fff3e0; border: 1px solid #ffe0b2; border-radius: 8px; padding: 20px;">
+                                    <h4 style="color: var(--warning-color); margin-bottom: 10px;">
+                                        <i class="fas fa-download"></i> Export Your Data
+                                    </h4>
+                                    <p style="color: #666; margin-bottom: 15px;">
+                                        Download a copy of all your personal data from Palm Aegis.
+                                    </p>
+                                    <button type="button" class="btn btn-secondary" id="exportDataBtn">
+                                        <i class="fas fa-download"></i> Export My Data
                                     </button>
                                 </div>
                             </div>
@@ -845,7 +1016,9 @@
             query, 
             where, 
             getDocs,
-            deleteDoc 
+            deleteDoc,
+            orderBy,
+            limit
         } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
         // Firebase configuration
@@ -872,19 +1045,23 @@
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                window.currentUser = user; // Make available globally for sidebar
+                window.currentUser = user;
                 console.log('User signed in:', user.email);
 
                 try {
                     // Load user data from Firestore
                     await loadUserData(user.uid);
                     
+                    // Show the form and navigation
+                    document.getElementById('loadingState').style.display = 'none';
+                    document.getElementById('settingsNav').style.display = 'flex';
+                    document.getElementById('profileSettingsForm').style.display = 'block';
+                    
                     // Load user statistics
                     await loadUserStatistics(user.uid);
                     
-                    // Show the form
-                    document.getElementById('loadingState').style.display = 'none';
-                    document.getElementById('profileSettingsForm').style.display = 'block';
+                    // Load recent activity
+                    await loadRecentActivity(user.uid);
                     
                 } catch (error) {
                     console.error('Error loading user data:', error);
@@ -915,7 +1092,6 @@
                     updateSidebarProfile(userData);
                 } else {
                     console.log('No user document found, creating default...');
-                    // Create default user document if it doesn't exist
                     await initializeUserProfile(userId);
                 }
                 
@@ -943,8 +1119,6 @@
             populateForm(defaultData);
             storeOriginalData();
             
-            // Note: We won't create the document here since it should be created during registration
-            // Instead, we'll use the default data for the session
             console.log('Using default user data');
         }
 
@@ -997,15 +1171,14 @@
             };
         }
 
-        // Check if form has changes
-        function hasFormChanges() {
+        // Check if personal info has changes
+        function hasPersonalChanges() {
             return (
                 document.getElementById('firstName').value !== originalFormData.firstName ||
                 document.getElementById('lastName').value !== originalFormData.lastName ||
                 document.getElementById('username').value !== originalFormData.username ||
                 document.getElementById('phone').value !== originalFormData.phone ||
                 document.getElementById('bio').value !== originalFormData.bio ||
-                document.getElementById('newPassword').value ||
                 (document.getElementById('profileImage').style.display === 'block' && 
                  document.getElementById('profileImage').src !== originalFormData.imageBase64)
             );
@@ -1024,7 +1197,6 @@
             if (userNameElement) userNameElement.textContent = displayName;
             if (userRoleElement) userRoleElement.textContent = data.bio || 'Farmer';
 
-            // Update profile image in sidebar
             if (userAvatarElement && data.imageBase64) {
                 userAvatarElement.src = data.imageBase64;
                 userAvatarElement.onerror = () => {
@@ -1045,14 +1217,6 @@
                 const postsSnapshot = await getDocs(postsQuery);
                 document.getElementById('statPosts').textContent = postsSnapshot.size;
 
-                // Count total replies (this would need additional logic to count all replies across posts)
-                // For now, we'll use a placeholder or you can implement this based on your database structure
-                document.getElementById('statReplies').textContent = '0';
-
-                // Count likes received (this would need to query all posts and sum likes)
-                // For now, we'll use a placeholder
-                document.getElementById('statLikes').textContent = '0';
-
                 // Calculate days since account creation
                 if (userData?.createdAt) {
                     const createdDate = userData.createdAt.toDate ? userData.createdAt.toDate() : new Date(userData.createdAt);
@@ -1066,11 +1230,62 @@
 
             } catch (error) {
                 console.error('Error loading user statistics:', error);
-                // Set default values if there's an error
                 document.getElementById('statPosts').textContent = '0';
-                document.getElementById('statReplies').textContent = '0';
-                document.getElementById('statLikes').textContent = '0';
                 document.getElementById('statDays').textContent = '1';
+            }
+        }
+
+        // Load recent activity
+        async function loadRecentActivity(userId) {
+            try {
+                const recentActivityDiv = document.getElementById('recentActivity');
+                
+                // Get recent forum posts
+                const postsQuery = query(
+                    collection(db, "forum_posts"),
+                    where("authorId", "==", userId),
+                    orderBy("createdAt", "desc"),
+                    limit(5)
+                );
+                const postsSnapshot = await getDocs(postsQuery);
+                
+                if (postsSnapshot.empty) {
+                    recentActivityDiv.innerHTML = `
+                        <p style="text-align: center; color: #999;">
+                            <i class="fas fa-comments"></i> No recent activity yet
+                        </p>
+                    `;
+                    return;
+                }
+                
+                let activityHTML = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+                
+                postsSnapshot.docs.forEach((doc, index) => {
+                    const post = doc.data();
+                    const postDate = post.createdAt ? new Date(post.createdAt.toDate()).toLocaleDateString() : 'Recently';
+                    
+                    activityHTML += `
+                        <div style="padding: 10px; background-color: white; border-radius: 6px; border-left: 4px solid var(--primary-color);">
+                            <div style="font-weight: 600; color: #333; margin-bottom: 5px;">
+                                <i class="fas fa-comment"></i> ${post.title || 'Forum Post'}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #666;">
+                                ${postDate} • ${post.category || 'General'}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                activityHTML += '</div>';
+                recentActivityDiv.innerHTML = activityHTML;
+                
+            } catch (error) {
+                console.error('Error loading recent activity:', error);
+                document.getElementById('recentActivity').innerHTML = `
+                    <p style="text-align: center; color: #999;">
+                        <i class="fas fa-exclamation-circle"></i> Unable to load activity
+                    </p>
+                `;
             }
         }
 
@@ -1079,13 +1294,11 @@
             const file = e.target.files[0];
             if (!file) return;
 
-            // Validate file size (max 2MB)
             if (file.size > 2 * 1024 * 1024) {
                 showToast('Image size should be less than 2MB', 'error');
                 return;
             }
 
-            // Validate file type
             if (!file.type.match('image.*')) {
                 showToast('Please select an image file', 'error');
                 return;
@@ -1095,12 +1308,10 @@
             reader.onload = function(e) {
                 const imageBase64 = e.target.result;
                 
-                // Update profile image display
                 document.getElementById('profileImage').src = imageBase64;
                 document.getElementById('profileImage').style.display = 'block';
                 document.getElementById('profileImagePlaceholder').style.display = 'none';
                 
-                // Store in userData for saving
                 userData.imageBase64 = imageBase64;
                 
                 showToast('Profile picture updated! Click Save Changes to keep it.', 'info');
@@ -1135,69 +1346,52 @@
             const strengthBar = document.getElementById('passwordStrengthBar');
             
             let strength = 0;
-            let color = '#f44336'; // Red
+            let color = '#f44336';
             
-            // Length check
             if (password.length >= 8) strength += 25;
-            
-            // Lowercase check
             if (/[a-z]/.test(password)) strength += 25;
-            
-            // Uppercase check
             if (/[A-Z]/.test(password)) strength += 25;
-            
-            // Number/Special char check
             if (/[0-9!@#$%^&*]/.test(password)) strength += 25;
             
-            // Update strength bar
             strengthBar.style.width = `${strength}%`;
             
-            // Update color based on strength
             if (strength <= 25) {
-                color = '#f44336'; // Red
+                color = '#f44336';
             } else if (strength <= 50) {
-                color = '#ff9800'; // Orange
+                color = '#ff9800';
             } else if (strength <= 75) {
-                color = '#ffc107'; // Yellow
+                color = '#ffc107';
             } else {
-                color = '#4caf50'; // Green
+                color = '#4caf50';
             }
             
             strengthBar.style.backgroundColor = color;
         });
 
-        // Handle form submission
-        document.getElementById('profileSettingsForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (!validateForm()) {
-                return;
-            }
-            
-            await saveProfileChanges();
-        });
-
-        // Validate form data
-        function validateForm() {
+        // Validate personal information form
+        function validatePersonalForm() {
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
             const username = document.getElementById('username').value.trim();
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
             
-            // Check required fields
             if (!firstName || !lastName || !username) {
                 showToast('Please fill in all required fields', 'error');
                 return false;
             }
             
-            // Check username length
             if (username.length < 3) {
                 showToast('Username must be at least 3 characters long', 'error');
                 return false;
             }
             
-            // Check password match
+            return true;
+        }
+
+        // Validate security form
+        function validateSecurityForm() {
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
             if (newPassword) {
                 if (newPassword.length < 8) {
                     showToast('New password must be at least 8 characters long', 'error');
@@ -1209,7 +1403,6 @@
                     return false;
                 }
                 
-                // If changing password, current password is required
                 const currentPassword = document.getElementById('currentPassword').value;
                 if (!currentPassword) {
                     showToast('Please enter your current password to change password', 'error');
@@ -1220,14 +1413,13 @@
             return true;
         }
 
-        // Save profile changes to Firestore
-        async function saveProfileChanges() {
+        // Save personal information
+        async function savePersonalInfo() {
             try {
-                const saveBtn = document.getElementById('saveChangesBtn');
+                const saveBtn = document.getElementById('savePersonalBtn');
                 saveBtn.disabled = true;
                 saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
                 
-                // Collect form data
                 const updatedData = {
                     firstName: document.getElementById('firstName').value.trim(),
                     lastName: document.getElementById('lastName').value.trim(),
@@ -1237,43 +1429,15 @@
                     updatedAt: new Date()
                 };
                 
-                // Add profile image if changed
                 if (userData.imageBase64 && userData.imageBase64 !== originalFormData.imageBase64) {
                     updatedData.imageBase64 = userData.imageBase64;
                 }
                 
-                // Update Firestore
                 const userRef = doc(db, "users", currentUser.uid);
                 await updateDoc(userRef, updatedData);
                 
-                // Update password if provided
-                const newPassword = document.getElementById('newPassword').value;
-                if (newPassword) {
-                    const currentPassword = document.getElementById('currentPassword').value;
-                    
-                    // Re-authenticate user
-                    const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
-                    await reauthenticateWithCredential(currentUser, credential);
-                    
-                    // Update password
-                    await updatePassword(currentUser, newPassword);
-                    
-                    // Clear password fields
-                    document.getElementById('currentPassword').value = '';
-                    document.getElementById('newPassword').value = '';
-                    document.getElementById('confirmPassword').value = '';
-                    document.getElementById('passwordStrengthBar').style.width = '0%';
-                    
-                    showToast('Password updated successfully!', 'success');
-                }
-                
-                // Update local userData
                 userData = { ...userData, ...updatedData };
-                
-                // Update original form data
                 storeOriginalData();
-                
-                // Update sidebar
                 updateSidebarProfile(userData);
                 
                 saveBtn.disabled = false;
@@ -1283,15 +1447,54 @@
                 
             } catch (error) {
                 console.error('Error saving profile:', error);
-                document.getElementById('saveChangesBtn').disabled = false;
-                document.getElementById('saveChangesBtn').innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                document.getElementById('savePersonalBtn').disabled = false;
+                document.getElementById('savePersonalBtn').innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                showToast('Failed to save changes. Please try again.', 'error');
+            }
+        }
+
+        // Update password
+        async function updateUserPassword() {
+            try {
+                const saveBtn = document.getElementById('saveSecurityBtn');
+                saveBtn.disabled = true;
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
                 
-                let errorMessage = 'Failed to save changes. ';
+                const newPassword = document.getElementById('newPassword').value;
+                const currentPassword = document.getElementById('currentPassword').value;
                 
+                if (!newPassword) {
+                    showToast('Please enter a new password', 'error');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
+                    return;
+                }
+                
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+                await reauthenticateWithCredential(currentUser, credential);
+                await updatePassword(currentUser, newPassword);
+                
+                // Clear password fields
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                document.getElementById('passwordStrengthBar').style.width = '0%';
+                
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Update Password';
+                
+                showToast('Password updated successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error updating password:', error);
+                document.getElementById('saveSecurityBtn').disabled = false;
+                document.getElementById('saveSecurityBtn').innerHTML = '<i class="fas fa-save"></i> Update Password';
+                
+                let errorMessage = 'Failed to update password. ';
                 if (error.code === 'auth/wrong-password') {
-                    errorMessage += 'Current password is incorrect.';
+                    errorMessage = 'Current password is incorrect.';
                 } else if (error.code === 'auth/requires-recent-login') {
-                    errorMessage += 'Please log in again to change your password.';
+                    errorMessage = 'Please log in again to change your password.';
                 } else {
                     errorMessage += 'Please try again.';
                 }
@@ -1310,15 +1513,12 @@
             }
             
             try {
-                // Re-authenticate user
                 const credential = EmailAuthProvider.credential(currentUser.email, password);
                 await reauthenticateWithCredential(currentUser, credential);
                 
-                // Delete user data from Firestore
                 const userRef = doc(db, "users", currentUser.uid);
                 await deleteDoc(userRef);
                 
-                // Delete forum posts (optional - you might want to anonymize instead)
                 const postsQuery = query(
                     collection(db, "forum_posts"),
                     where("authorId", "==", currentUser.uid)
@@ -1327,12 +1527,10 @@
                 const deletePromises = postsSnapshot.docs.map(doc => deleteDoc(doc.ref));
                 await Promise.all(deletePromises);
                 
-                // Delete user from Firebase Auth
                 await deleteUser(currentUser);
                 
                 showToast('Account deleted successfully. Redirecting to login...', 'success');
                 
-                // Redirect to login page after a delay
                 setTimeout(() => {
                     window.location.href = 'signin.html';
                 }, 2000);
@@ -1359,12 +1557,10 @@
             toastMessage.textContent = message;
             toast.className = 'toast ' + type;
             
-            // Show toast
             setTimeout(() => {
                 toast.classList.add('show');
             }, 10);
             
-            // Hide toast after 5 seconds
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 5000);
@@ -1379,21 +1575,48 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
+        // Tab switching function
+        function switchTab(tabName) {
+            // Hide all cards
+            document.querySelectorAll('.settings-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            // Show selected card
+            document.getElementById(`${tabName}Card`).classList.add('active');
+            
+            // Update tab active state
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`.nav-tab[data-tab="${tabName}"]`).classList.add('active');
+        }
+
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
             // Setup password toggles
             setupPasswordToggles();
             
-            // Save changes button
-            document.getElementById('saveChangesBtn').addEventListener('click', function(e) {
-                e.preventDefault();
-                document.getElementById('profileSettingsForm').dispatchEvent(new Event('submit'));
+            // Tab navigation
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    switchTab(tabName);
+                });
             });
             
-            // Cancel changes button
-            document.getElementById('cancelChangesBtn').addEventListener('click', function() {
-                if (hasFormChanges()) {
-                    if (confirm('You have unsaved changes. Are you sure you want to cancel?')) {
+            // Save personal info button
+            document.getElementById('savePersonalBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (validatePersonalForm()) {
+                    savePersonalInfo();
+                }
+            });
+            
+            // Cancel personal changes button
+            document.getElementById('cancelPersonalBtn').addEventListener('click', function() {
+                if (hasPersonalChanges()) {
+                    if (confirm('You have unsaved changes. Are you sure you want to discard them?')) {
                         populateForm(userData);
                         showToast('Changes discarded', 'info');
                     }
@@ -1402,9 +1625,31 @@
                 }
             });
             
+            // Save security button
+            document.getElementById('saveSecurityBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (validateSecurityForm()) {
+                    updateUserPassword();
+                }
+            });
+            
+            // Cancel security changes button
+            document.getElementById('cancelSecurityBtn').addEventListener('click', function() {
+                document.getElementById('currentPassword').value = '';
+                document.getElementById('newPassword').value = '';
+                document.getElementById('confirmPassword').value = '';
+                document.getElementById('passwordStrengthBar').style.width = '0%';
+                showToast('Password fields cleared', 'info');
+            });
+            
             // Delete account button
             document.getElementById('deleteAccountBtn').addEventListener('click', function() {
                 openModal('deleteAccountModal');
+            });
+            
+            // Export data button
+            document.getElementById('exportDataBtn').addEventListener('click', function() {
+                showToast('Data export feature coming soon!', 'info');
             });
             
             // Delete account modal buttons
@@ -1423,24 +1668,15 @@
             
             // View public profile button
             document.getElementById('viewProfileBtn').addEventListener('click', function() {
-                // You can implement a public profile view page here
                 showToast('Public profile view coming soon!', 'info');
             });
             
             // Warn user before leaving with unsaved changes
             window.addEventListener('beforeunload', function(e) {
-                if (hasFormChanges()) {
+                if (hasPersonalChanges()) {
                     e.preventDefault();
                     e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
                 }
-            });
-            
-            // Check for changes on form input
-            const formInputs = document.querySelectorAll('#profileSettingsForm input, #profileSettingsForm textarea');
-            formInputs.forEach(input => {
-                input.addEventListener('input', function() {
-                    // You could add visual indicators for changed fields here
-                });
             });
         });
     </script>
