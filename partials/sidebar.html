@@ -22,12 +22,6 @@
                     <span>Farm Assestment</span>
                 </a>
             </li>
-            <!-- <li class="nav-item">
-                <a href="treehealthTest.html" data-tooltip="Tree Health Test">
-                    <i class="fas fa-tree"></i>
-                    <span>Tree Health</span>
-                </a>
-            </li> -->
             <li class="nav-item">
                 <a href="treehealth.html" data-tooltip="Tree Health Test">
                     <i class="fas fa-tree"></i>
@@ -59,8 +53,9 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="signin.html" id="logoutBtn" data-tooltip="Logout" onclick="return confirm('Are you sure you want to logout? Please confirm to proceed.');">
-                    <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+                <a href="#" id="logoutBtn" data-tooltip="Logout" onclick="showLogoutDialog(event)">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
                 </a>
             </li>
         </ul>
@@ -76,3 +71,221 @@
         </div>
     </div>
 </aside>
+
+<!-- Stylish Logout Dialog -->
+<div class="logout-dialog-overlay" id="logoutDialogOverlay">
+    <div class="logout-dialog">
+        <div class="dialog-header">
+            <i class="fas fa-sign-out-alt"></i>
+            <h3>Confirm Logout</h3>
+        </div>
+        <div class="dialog-body">
+            <p>Are you sure you want to logout from Palm Aegis?</p>
+            <p class="dialog-subtext">You'll need to sign in again to access your dashboard.</p>
+        </div>
+        <div class="dialog-footer">
+            <button class="dialog-btn cancel-btn" id="cancelLogout">
+                <i class="fas fa-times"></i>
+                Cancel
+            </button>
+            <button class="dialog-btn confirm-btn" id="confirmLogout">
+                <i class="fas fa-check"></i>
+                Yes, Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add this CSS to your stylesheet -->
+<style>
+.logout-dialog-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+}
+
+.logout-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideUp 0.4s ease;
+}
+
+.dialog-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.dialog-header i {
+    font-size: 3rem;
+    color: #e74c3c;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.dialog-header h3 {
+    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.dialog-body {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.dialog-body p {
+    color: #34495e;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0.5rem 0;
+}
+
+.dialog-subtext {
+    color: #7f8c8d !important;
+    font-size: 0.9rem !important;
+}
+
+.dialog-footer {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.dialog-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.cancel-btn {
+    background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+    color: #2c3e50;
+    border: 2px solid #bdc3c7;
+}
+
+.cancel-btn:hover {
+    background: linear-gradient(135deg, #bdc3c7, #95a5a6);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(189, 195, 199, 0.4);
+}
+
+.confirm-btn {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border: 2px solid #c0392b;
+}
+
+.confirm-btn:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* Optional: Add responsive design */
+@media (max-width: 480px) {
+    .logout-dialog {
+        width: 95%;
+        padding: 1.5rem;
+    }
+    
+    .dialog-footer {
+        flex-direction: column;
+    }
+    
+    .dialog-btn {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+// JavaScript for logout dialog functionality
+function showLogoutDialog(event) {
+    event.preventDefault();
+    const dialog = document.getElementById('logoutDialogOverlay');
+    dialog.style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+}
+
+function hideLogoutDialog() {
+    const dialog = document.getElementById('logoutDialogOverlay');
+    dialog.style.display = 'none';
+    document.body.style.overflow = 'auto'; // Restore scrolling
+}
+
+function confirmLogout() {
+    // You can add any cleanup or logout logic here before redirecting
+    hideLogoutDialog();
+    window.location.href = 'signin.html';
+}
+
+// Initialize dialog functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dialogOverlay = document.getElementById('logoutDialogOverlay');
+    const cancelBtn = document.getElementById('cancelLogout');
+    const confirmBtn = document.getElementById('confirmLogout');
+    
+    // Hide dialog when clicking outside
+    dialogOverlay.addEventListener('click', function(event) {
+        if (event.target === dialogOverlay) {
+            hideLogoutDialog();
+        }
+    });
+    
+    // Cancel button click
+    cancelBtn.addEventListener('click', hideLogoutDialog);
+    
+    // Confirm button click
+    confirmBtn.addEventListener('click', confirmLogout);
+    
+    // Add click event to logout link (removing inline onclick)
+    const logoutBtn = document.getElementById('logoutBtn');
+    logoutBtn.onclick = function(event) {
+        showLogoutDialog(event);
+    };
+});
+</script>
