@@ -228,6 +228,55 @@
             gap: 10px;
         }
 
+        /* Image Upload Styles */
+        .image-upload-section {
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .image-preview {
+            margin-top: 10px;
+            max-width: 100%;
+        }
+
+        .image-preview img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .upload-btn {
+            padding: 8px 15px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .upload-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .upload-btn.camera {
+            background-color: #2196f3;
+            color: white;
+        }
+
+        .upload-btn.camera:hover {
+            background-color: #1976d2;
+        }
+
         /* Posts Grid */
         .posts-grid {
             display: flex;
@@ -320,6 +369,25 @@
             color: #555;
             line-height: 1.6;
             margin-bottom: 20px;
+        }
+
+        .post-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .post-image {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .post-image:hover {
+            transform: scale(1.02);
         }
 
         .post-stats {
@@ -441,86 +509,6 @@
             font-weight: 600;
         }
 
-        /* Comment styles */
-        .comment {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-
-        .comment-author {
-            display: flex;
-            gap: 12px;
-            align-items: flex-start;
-        }
-
-        .comment-avatar {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background-color: #2e7d32;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .comment-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .comment-avatar .avatar-initial {
-            font-size: 1rem;
-            color: white;
-            font-weight: 600;
-        }
-
-        .comment-info {
-            flex: 1;
-        }
-
-        .comment-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 4px;
-        }
-
-        .comment-author-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .comment-time {
-            color: #666;
-            font-size: 0.85rem;
-        }
-
-        .comment-content {
-            color: #444;
-            line-height: 1.5;
-        }
-
-        .expert-badge {
-            background-color: #ff9800;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .expert-badge i {
-            font-size: 0.7rem;
-        }
-
         /* Modal Styles */
         .modal {
             display: none;
@@ -639,6 +627,42 @@
             color: #ddd;
         }
 
+        /* Image Preview Modal */
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .image-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .image-modal-content img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+        }
+
+        .close-image-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+
         /* Responsive Design */
         @media (max-width: 768px) {
             .dashboard-container {
@@ -665,6 +689,10 @@
 
             .category-tabs {
                 overflow-x: auto;
+            }
+
+            .upload-options {
+                flex-direction: column;
             }
         }
     </style>
@@ -721,8 +749,27 @@
 
                 <!-- Create Post Section -->
                 <div class="create-post" id="createPostSection" style="display: none;">
+                    <input type="text" id="postTitleInput" class="post-input" placeholder="Title of your discussion">
                     <textarea class="post-input" id="postContentInput"
                         placeholder="What would you like to discuss?"></textarea>
+                    
+                    <!-- Image Upload Section -->
+                    <div class="image-upload-section" id="imageUploadSection">
+                        <div class="upload-options">
+                            <label class="upload-btn">
+                                <i class="fas fa-image"></i> Upload Image
+                                <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+                            </label>
+                            <button class="upload-btn camera" id="cameraBtn">
+                                <i class="fas fa-camera"></i> Take Photo
+                            </button>
+                            <button class="upload-btn" id="clearImagesBtn">
+                                <i class="fas fa-times"></i> Clear Images
+                            </button>
+                        </div>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                    
                     <div class="post-actions">
                         <div class="post-tags">
                             <select id="postCategorySelect" class="category-tab">
@@ -733,6 +780,9 @@
                             </select>
                             <input type="text" id="postTagsInput" placeholder="Add tags (comma separated)"
                                 style="padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+                            <button class="btn btn-secondary" id="toggleImageBtn">
+                                <i class="fas fa-image"></i> Add Images
+                            </button>
                         </div>
                         <div>
                             <button class="btn btn-secondary" id="cancelPostBtn">Cancel</button>
@@ -849,10 +899,39 @@
         </div>
     </div>
 
+    <!-- Image Preview Modal -->
+    <div class="modal image-modal" id="imagePreviewModal">
+        <button class="close-image-modal" id="closeImageModal">&times;</button>
+        <div class="image-modal-content">
+            <img id="fullSizeImage" src="" alt="Full size image">
+        </div>
+    </div>
+
+    <!-- Camera Modal -->
+    <div class="modal" id="cameraModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Take Photo</h2>
+                <button class="close-modal" id="closeCameraBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="cameraContainer">
+                    <video id="cameraView" autoplay style="width: 100%; border-radius: 8px;"></video>
+                </div>
+                <canvas id="cameraCanvas" style="display: none;"></canvas>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="retakeBtn">Retake</button>
+                <button class="btn btn-primary" id="captureBtn">Capture Photo</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
         import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp, arrayUnion, arrayRemove, Timestamp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { getStorage, ref, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -868,6 +947,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const storage = getStorage(app);
 
         // Global variables
         let currentUser = null;
@@ -878,19 +958,21 @@
         };
         let posts = [];
         let currentPostId = null;
+        let selectedImages = []; // Store images for new posts
+        let mediaStream = null; // For camera access
 
         // Check authentication state
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
-                window.currentUser = user; // Make available globally for sidebar
+                window.currentUser = user;
                 console.log('User signed in:', user.email);
 
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const userData = userDoc.data();
-                        window.userData = userData; // Make available globally for sidebar
+                        window.userData = userData;
                         updateUserProfile(user, userData);
                     }
 
@@ -933,18 +1015,12 @@
             }
         }
 
-        // Get user's profile data (name + avatar)
+        // Get user's profile data
         async function getUserProfile(userId) {
             try {
                 const userDoc = await getDoc(doc(db, "users", userId));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
-                    console.log('User profile data retrieved:', { 
-                        userId, 
-                        hasImageBase64: !!userData.imageBase64,
-                        imageBase64Length: userData.imageBase64 ? userData.imageBase64.length : 0,
-                        imageBase64Start: userData.imageBase64 ? userData.imageBase64.substring(0, 50) + '...' : 'none'
-                    });
                     
                     const fullName = userData.firstName && userData.lastName
                         ? `${userData.firstName} ${userData.lastName}`
@@ -957,11 +1033,37 @@
                         isExpert: userData.isExpert || false
                     };
                 }
-                console.log('No user document found for ID:', userId);
                 return null;
             } catch (error) {
                 console.error('Error getting user profile:', error);
                 return null;
+            }
+        }
+
+        // Convert File/Blob to Base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Upload image to Firebase Storage and return URL
+        async function uploadImageToStorage(imageBase64, postId) {
+            try {
+                const timestamp = Date.now();
+                const imageName = `forum_images/${postId || 'temp'}_${timestamp}.jpg`;
+                const storageRef = ref(storage, imageName);
+                
+                // Upload base64 string
+                const snapshot = await uploadString(storageRef, imageBase64, 'data_url');
+                const downloadURL = await getDownloadURL(snapshot.ref);
+                return downloadURL;
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                throw error;
             }
         }
 
@@ -976,13 +1078,10 @@
                 </div>
             `;
 
-                // SIMPLE server query (single orderBy only) to avoid composite index requirements
                 const postsRef = collection(db, "forum_posts");
-                // fetch the most recent 200 posts (adjust number if you need)
                 const q = query(postsRef, orderBy("createdAt", "desc"), limit(200));
                 const querySnapshot = await getDocs(q);
 
-                // turn snapshot into plain array with normalized dates
                 const allPosts = [];
                 querySnapshot.forEach((d) => {
                     const data = d.data() || {};
@@ -993,25 +1092,21 @@
                         createdAtDate = data.createdAt;
                     }
                     
-                    // Debug: Check avatar data
-                    console.log(`Post ${d.id} avatar data:`, {
-                        authorName: data.authorName,
-                        hasAuthorAvatar: !!data.authorAvatar,
-                        avatarType: data.authorAvatar ? (data.authorAvatar.startsWith('data:image') ? 'Base64' : 'URL') : 'None'
+                    allPosts.push({ 
+                        id: d.id, 
+                        createdAtDate, 
+                        ...data,
+                        images: data.images || [] // Ensure images array exists
                     });
-                    
-                    allPosts.push({ id: d.id, createdAtDate, ...data });
                 });
 
-                // CLIENT-SIDE: apply category and time filters and sorting to avoid composite index
+                // Apply filters client-side
                 let filtered = allPosts;
 
-                // category
                 if (currentFilters.category && currentFilters.category !== 'all') {
                     filtered = filtered.filter(p => (p.category || '').toLowerCase() === String(currentFilters.category).toLowerCase());
                 }
 
-                // time range
                 if (currentFilters.time && currentFilters.time !== 'all') {
                     const now = new Date();
                     let startDate = null;
@@ -1031,7 +1126,6 @@
                     }
                 }
 
-                // search text (if search input present)
                 const searchEl = document.getElementById('searchInput');
                 const searchTerm = searchEl && searchEl.value ? searchEl.value.trim().toLowerCase() : '';
                 if (searchTerm) {
@@ -1043,7 +1137,6 @@
                     });
                 }
 
-                // client-side sorting
                 switch (currentFilters.sort) {
                     case 'newest':
                         filtered.sort((a, b) => (b.createdAtDate || 0) - (a.createdAtDate || 0));
@@ -1058,11 +1151,9 @@
                         filtered.sort((a, b) => ((b.repliesCount || 0) - (a.repliesCount || 0)));
                         break;
                     default:
-                        // already ordered by createdAt desc from server, but ensure fallback
                         filtered.sort((a, b) => (b.createdAtDate || 0) - (a.createdAtDate || 0));
                 }
 
-                // set global posts and render
                 posts = filtered;
                 if (posts.length === 0) {
                     showNoPosts();
@@ -1099,6 +1190,7 @@
             const tags = post.tags || [];
             const likesCount = post.likes ? post.likes.length : 0;
             const repliesCount = post.replies ? post.replies.length : 0;
+            const images = post.images || [];
 
             let categoryTag = '';
             switch (post.category) {
@@ -1120,15 +1212,28 @@
             const isUpvoted = post.upvotes && post.upvotes.includes(currentUser.uid);
             const isDownvoted = post.downvotes && post.downvotes.includes(currentUser.uid);
 
-            // Create avatar HTML
             let avatarHtml = '';
             if (post.authorAvatar) {
-                console.log(`Creating avatar for post ${post.id}: Using image`);
                 avatarHtml = `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
-                                 onerror="console.error('Failed to load image for post ${post.id}'); this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
+                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
             } else {
-                console.log(`Creating avatar for post ${post.id}: Using initial`);
                 avatarHtml = `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+            }
+
+            // Create images HTML if there are images
+            let imagesHtml = '';
+            if (images.length > 0) {
+                imagesHtml = `<div class="post-images">`;
+                images.forEach((imageUrl, index) => {
+                    imagesHtml += `
+                        <img src="${imageUrl}" 
+                             alt="Post image ${index + 1}" 
+                             class="post-image"
+                             onclick="viewFullImage('${imageUrl}')"
+                             onerror="this.style.display='none'">
+                    `;
+                });
+                imagesHtml += `</div>`;
             }
 
             const postCard = document.createElement('div');
@@ -1154,8 +1259,10 @@
                 </div>
             </div>
             
-            <h3 class="post-title">${post.title}</h3>
+            <h3 class="post-title">${post.title || 'Untitled'}</h3>
             <div class="post-content">${post.content}</div>
+            
+            ${imagesHtml}
             
             <div class="post-stats">
                 <div class="stat">
@@ -1211,9 +1318,15 @@
         `;
 
             postsGrid.appendChild(postCard);
-
-            // Add event listeners for buttons
             attachPostEventListeners(postCard, post.id);
+        }
+
+        // Function to view full size image
+        window.viewFullImage = function(imageUrl) {
+            const modal = document.getElementById('imagePreviewModal');
+            const img = document.getElementById('fullSizeImage');
+            img.src = imageUrl;
+            modal.style.display = 'flex';
         }
 
         // Attach event listeners to post card buttons
@@ -1226,33 +1339,13 @@
             const deleteBtn = postCard.querySelector('.delete-btn');
             const viewBtn = postCard.querySelector('.view-btn');
 
-            if (likeBtn) {
-                likeBtn.addEventListener('click', () => toggleLike(postId));
-            }
-
-            if (upvoteBtn) {
-                upvoteBtn.addEventListener('click', () => toggleVote(postId, 'upvote'));
-            }
-
-            if (downvoteBtn) {
-                downvoteBtn.addEventListener('click', () => toggleVote(postId, 'downvote'));
-            }
-
-            if (replyBtn) {
-                replyBtn.addEventListener('click', () => showReplySection(postId));
-            }
-
-            if (editBtn) {
-                editBtn.addEventListener('click', () => openEditPostModal(postId));
-            }
-
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', () => deletePost(postId));
-            }
-
-            if (viewBtn) {
-                viewBtn.addEventListener('click', () => viewPostDetails(postId));
-            }
+            if (likeBtn) likeBtn.addEventListener('click', () => toggleLike(postId));
+            if (upvoteBtn) upvoteBtn.addEventListener('click', () => toggleVote(postId, 'upvote'));
+            if (downvoteBtn) downvoteBtn.addEventListener('click', () => toggleVote(postId, 'downvote'));
+            if (replyBtn) replyBtn.addEventListener('click', () => showReplySection(postId));
+            if (editBtn) editBtn.addEventListener('click', () => openEditPostModal(postId));
+            if (deleteBtn) deleteBtn.addEventListener('click', () => deletePost(postId));
+            if (viewBtn) viewBtn.addEventListener('click', () => viewPostDetails(postId));
         }
 
         // Toggle like on a post
@@ -1262,20 +1355,17 @@
                 const post = posts.find(p => p.id === postId);
 
                 if (post.likes && post.likes.includes(currentUser.uid)) {
-                    // Unlike
                     await updateDoc(postRef, {
                         likes: arrayRemove(currentUser.uid),
                         likesCount: (post.likesCount || 0) - 1
                     });
                 } else {
-                    // Like
                     await updateDoc(postRef, {
                         likes: arrayUnion(currentUser.uid),
                         likesCount: (post.likesCount || 0) + 1
                     });
                 }
 
-                // Reload posts
                 await loadPosts();
 
             } catch (error) {
@@ -1294,12 +1384,10 @@
                 const oppositeArray = oppositeVoteType + 's';
 
                 if (post[voteType + 's'] && post[voteType + 's'].includes(currentUser.uid)) {
-                    // Remove vote
                     await updateDoc(postRef, {
                         [voteType + 's']: arrayRemove(currentUser.uid)
                     });
                 } else {
-                    // Add vote and remove opposite vote if exists
                     const updates = {
                         [voteType + 's']: arrayUnion(currentUser.uid)
                     };
@@ -1311,7 +1399,6 @@
                     await updateDoc(postRef, updates);
                 }
 
-                // Reload posts
                 await loadPosts();
 
             } catch (error) {
@@ -1320,21 +1407,37 @@
             }
         }
 
-        // Create a new post
-        async function createPost(content, category, tags) {
+        // Create a new post with images
+        async function createPost(title, content, category, tags, images) {
             try {
                 if (!content.trim()) {
                     alert("Please enter some content for your discussion.");
                     return;
                 }
 
+                if (!title.trim()) {
+                    title = content.substring(0, 100) + (content.length > 100 ? '...' : '');
+                }
+
                 const userProfile = await getUserProfile(currentUser.uid);
 
+                // Upload images to storage and get URLs
+                const imageUrls = [];
+                for (const imageBase64 of images) {
+                    try {
+                        const imageUrl = await uploadImageToStorage(imageBase64);
+                        imageUrls.push(imageUrl);
+                    } catch (error) {
+                        console.error('Error uploading image:', error);
+                    }
+                }
+
                 const postData = {
-                    title: content.substring(0, 100) + (content.length > 100 ? '...' : ''),
+                    title: title,
                     content: content,
                     category: category,
                     tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+                    images: imageUrls, // Store image URLs
                     authorId: currentUser.uid,
                     authorName: userProfile?.fullName || currentUser.email.split('@')[0],
                     authorAvatar: userProfile?.profileImage || null,
@@ -1350,14 +1453,15 @@
 
                 await addDoc(collection(db, "forum_posts"), postData);
 
-                // Clear input and hide create post section
+                // Clear form and reset images
+                document.getElementById('postTitleInput').value = '';
                 document.getElementById('postContentInput').value = '';
                 document.getElementById('postTagsInput').value = '';
+                document.getElementById('imagePreview').innerHTML = '';
+                selectedImages = [];
                 document.getElementById('createPostSection').style.display = 'none';
 
-                // Reload posts
                 await loadPosts();
-
                 alert("Discussion posted successfully!");
 
             } catch (error) {
@@ -1379,12 +1483,8 @@
                     updatedAt: serverTimestamp()
                 });
 
-                // Close edit modal
                 closeModal('editPostModal');
-
-                // Reload posts
                 await loadPosts();
-
                 alert("Discussion updated successfully!");
 
             } catch (error) {
@@ -1401,10 +1501,7 @@
 
             try {
                 await deleteDoc(doc(db, "forum_posts", postId));
-
-                // Reload posts
                 await loadPosts();
-
                 alert("Discussion deleted successfully!");
 
             } catch (error) {
@@ -1416,8 +1513,6 @@
         // Show reply section for a post
         function showReplySection(postId) {
             const postCard = document.querySelector(`.post-card[data-id="${postId}"]`);
-
-            // Check if reply section already exists
             let replySection = postCard.querySelector('.replies-section');
 
             if (!replySection) {
@@ -1434,12 +1529,8 @@
             `;
 
                 postCard.appendChild(replySection);
-
-                // Add event listener for reply button
                 const submitBtn = replySection.querySelector('.submit-reply');
                 submitBtn.addEventListener('click', () => submitReply(postId));
-
-                // Load replies
                 loadReplies(postId);
             } else {
                 replySection.style.display = replySection.style.display === 'none' ? 'block' : 'none';
@@ -1459,7 +1550,6 @@
 
             try {
                 const userProfile = await getUserProfile(currentUser.uid);
-
                 const postRef = doc(db, "forum_posts", postId);
                 const post = posts.find(p => p.id === postId);
 
@@ -1472,16 +1562,12 @@
                     isExpert: userProfile?.isExpert || false
                 };
 
-                // Add reply to post
                 await updateDoc(postRef, {
                     replies: arrayUnion(replyData),
                     repliesCount: (post.repliesCount || 0) + 1
                 });
 
-                // Clear textarea
                 textarea.value = '';
-
-                // Reload replies
                 loadReplies(postId);
 
             } catch (error) {
@@ -1511,7 +1597,6 @@
                     replies.forEach(reply => {
                         const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
-                        // Create reply avatar HTML
                         let replyAvatarHtml = '';
                         if (reply.authorAvatar) {
                             replyAvatarHtml = `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
@@ -1557,13 +1642,29 @@
                     const post = postDoc.data();
                     const postDate = post.createdAt ? new Date(post.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
-                    // Create avatar HTML for modal
                     let modalAvatarHtml = '';
                     if (post.authorAvatar) {
                         modalAvatarHtml = `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
                                            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
                     } else {
                         modalAvatarHtml = `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
+                    }
+
+                    // Create images HTML for modal
+                    let imagesHtml = '';
+                    if (post.images && post.images.length > 0) {
+                        imagesHtml = `<div class="post-images" style="margin: 15px 0;">`;
+                        post.images.forEach((imageUrl, index) => {
+                            imagesHtml += `
+                                <img src="${imageUrl}" 
+                                     alt="Post image ${index + 1}" 
+                                     class="post-image"
+                                     onclick="viewFullImage('${imageUrl}')"
+                                     style="max-width: 150px; max-height: 150px; margin: 5px;"
+                                     onerror="this.style.display='none'">
+                            `;
+                        });
+                        imagesHtml += `</div>`;
                     }
 
                     const modalContent = document.getElementById('postDetailContent');
@@ -1589,10 +1690,12 @@
                             </div>
                         </div>
                         
-                        <h2>${post.title}</h2>
+                        <h2>${post.title || 'Untitled'}</h2>
                         <div class="post-content" style="margin: 20px 0; padding: 20px; background: #f9f9f9; border-radius: 8px;">
                             ${post.content}
                         </div>
+                        
+                        ${imagesHtml}
                         
                         <div class="post-tags" style="margin-bottom: 20px;">
                             ${(post.tags || []).map(tag => `<span class="category-tag tag-general">${tag}</span>`).join('')}
@@ -1618,14 +1721,10 @@
                     </div>
                 `;
 
-                    // Store current post ID globally for the reply function
-                    window.currentDetailPostId = postId;
+                window.currentDetailPostId = postId;
+                loadDetailReplies(postId);
+                openModal('postDetailModal');
 
-                    // Load replies
-                    loadDetailReplies(postId);
-
-                    // Show modal
-                    openModal('postDetailModal');
                 }
 
             } catch (error) {
@@ -1655,7 +1754,6 @@
                     replies.forEach(reply => {
                         const replyDate = reply.createdAt ? new Date(reply.createdAt.toDate()).toLocaleDateString() : 'Recent';
 
-                        // Create reply avatar HTML for detail view
                         let detailReplyAvatarHtml = '';
                         if (reply.authorAvatar) {
                             detailReplyAvatarHtml = `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
@@ -1703,7 +1801,6 @@
 
             try {
                 const userProfile = await getUserProfile(currentUser.uid);
-
                 const postRef = doc(db, "forum_posts", postId);
                 const post = posts.find(p => p.id === postId) || {};
 
@@ -1716,19 +1813,13 @@
                     isExpert: userProfile?.isExpert || false
                 };
 
-                // Add reply to post
                 await updateDoc(postRef, {
                     replies: arrayUnion(replyData),
                     repliesCount: (post.repliesCount || 0) + 1
                 });
 
-                // Clear textarea
                 textarea.value = '';
-
-                // Reload replies
                 loadDetailReplies(postId);
-
-                // Also reload main posts to update counts
                 await loadPosts();
 
             } catch (error) {
@@ -1761,6 +1852,112 @@
             }
         }
 
+        // Image handling functions
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type.match('image.*')) {
+                    alert('Please select only image files.');
+                    continue;
+                }
+
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    alert('Image size should be less than 5MB.');
+                    continue;
+                }
+
+                fileToBase64(file).then(base64 => {
+                    selectedImages.push(base64);
+                    updateImagePreview();
+                }).catch(error => {
+                    console.error('Error converting file:', error);
+                    alert('Error processing image.');
+                });
+            }
+        }
+
+        function updateImagePreview() {
+            const previewContainer = document.getElementById('imagePreview');
+            previewContainer.innerHTML = '';
+            
+            selectedImages.forEach((imageBase64, index) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.display = 'inline-block';
+                imgContainer.style.margin = '5px';
+                imgContainer.style.position = 'relative';
+                
+                const img = document.createElement('img');
+                img.src = imageBase64;
+                img.style.maxWidth = '100px';
+                img.style.maxHeight = '100px';
+                img.style.borderRadius = '5px';
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.innerHTML = '×';
+                removeBtn.style.position = 'absolute';
+                removeBtn.style.top = '0';
+                removeBtn.style.right = '0';
+                removeBtn.style.background = 'rgba(255, 0, 0, 0.7)';
+                removeBtn.style.color = 'white';
+                removeBtn.style.border = 'none';
+                removeBtn.style.borderRadius = '50%';
+                removeBtn.style.width = '20px';
+                removeBtn.style.height = '20px';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.onclick = () => removeImage(index);
+                
+                imgContainer.appendChild(img);
+                imgContainer.appendChild(removeBtn);
+                previewContainer.appendChild(imgContainer);
+            });
+        }
+
+        function removeImage(index) {
+            selectedImages.splice(index, 1);
+            updateImagePreview();
+        }
+
+        async function startCamera() {
+            try {
+                mediaStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                const video = document.getElementById('cameraView');
+                video.srcObject = mediaStream;
+                openModal('cameraModal');
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+                alert('Could not access camera. Please check permissions.');
+            }
+        }
+
+        function capturePhoto() {
+            const video = document.getElementById('cameraView');
+            const canvas = document.getElementById('cameraCanvas');
+            const context = canvas.getContext('2d');
+            
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const imageData = canvas.toDataURL('image/jpeg');
+            selectedImages.push(imageData);
+            updateImagePreview();
+            
+            stopCamera();
+            closeModal('cameraModal');
+        }
+
+        function stopCamera() {
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => track.stop());
+                mediaStream = null;
+            }
+        }
+
         // Show no posts message
         function showNoPosts() {
             const postsGrid = document.getElementById('postsGrid');
@@ -1777,7 +1974,7 @@
 
             document.getElementById('createFirstPostBtn').addEventListener('click', () => {
                 document.getElementById('createPostSection').style.display = 'block';
-                document.getElementById('postContentInput').focus();
+                document.getElementById('postTitleInput').focus();
             });
         }
 
@@ -1816,34 +2013,73 @@
                 const createPostSection = document.getElementById('createPostSection');
                 createPostSection.style.display = createPostSection.style.display === 'none' ? 'block' : 'none';
                 if (createPostSection.style.display === 'block') {
-                    document.getElementById('postContentInput').focus();
+                    document.getElementById('postTitleInput').focus();
                 }
             });
 
             // Cancel post button
             document.getElementById('cancelPostBtn').addEventListener('click', () => {
                 document.getElementById('createPostSection').style.display = 'none';
+                document.getElementById('postTitleInput').value = '';
                 document.getElementById('postContentInput').value = '';
                 document.getElementById('postTagsInput').value = '';
+                document.getElementById('imagePreview').innerHTML = '';
+                selectedImages = [];
+                document.getElementById('imageUploadSection').style.display = 'none';
             });
 
             // Submit post button
             document.getElementById('submitPostBtn').addEventListener('click', () => {
+                const title = document.getElementById('postTitleInput').value;
                 const content = document.getElementById('postContentInput').value;
                 const category = document.getElementById('postCategorySelect').value;
                 const tags = document.getElementById('postTagsInput').value;
-                createPost(content, category, tags);
+                createPost(title, content, category, tags, selectedImages);
+            });
+
+            // Toggle image upload section
+            document.getElementById('toggleImageBtn').addEventListener('click', () => {
+                const imageSection = document.getElementById('imageUploadSection');
+                imageSection.style.display = imageSection.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Image upload
+            document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+
+            // Camera button
+            document.getElementById('cameraBtn').addEventListener('click', startCamera);
+
+            // Clear images button
+            document.getElementById('clearImagesBtn').addEventListener('click', () => {
+                selectedImages = [];
+                document.getElementById('imagePreview').innerHTML = '';
+            });
+
+            // Capture photo
+            document.getElementById('captureBtn').addEventListener('click', capturePhoto);
+
+            // Retake photo
+            document.getElementById('retakeBtn').addEventListener('click', () => {
+                stopCamera();
+                startCamera();
+            });
+
+            // Close camera modal
+            document.getElementById('closeCameraBtn').addEventListener('click', () => {
+                stopCamera();
+                closeModal('cameraModal');
+            });
+
+            // Close image preview modal
+            document.getElementById('closeImageModal').addEventListener('click', () => {
+                closeModal('imagePreviewModal');
             });
 
             // Category tabs
             document.querySelectorAll('.category-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
-                    // Remove active class from all tabs
                     document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-                    // Add active class to clicked tab
                     tab.classList.add('active');
-
-                    // Update filter and reload posts
                     currentFilters.category = tab.dataset.category;
                     loadPosts();
                 });
@@ -1878,7 +2114,6 @@
                     time: 'all'
                 };
 
-                // Reset category tabs
                 document.querySelectorAll('.category-tab').forEach(tab => {
                     if (tab.dataset.category === 'all') {
                         tab.classList.add('active');
@@ -1901,24 +2136,6 @@
                 if (currentPostId) {
                     updatePost(currentPostId, title, content, category, tags);
                 }
-            });
-
-            // Search functionality
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                const postCards = document.querySelectorAll('.post-card');
-
-                postCards.forEach(card => {
-                    const title = card.querySelector('.post-title').textContent.toLowerCase();
-                    const content = card.querySelector('.post-content').textContent.toLowerCase();
-                    const author = card.querySelector('.author-info h4').textContent.toLowerCase();
-
-                    if (title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm)) {
-                        card.style.display = 'block';
-                    } else {
-                        card.style.display = 'none';
-                    }
-                });
             });
 
             // Logout functionality
