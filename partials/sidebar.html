@@ -268,6 +268,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const dialogOverlay = document.getElementById('logoutDialogOverlay');
     const cancelBtn = document.getElementById('cancelLogout');
     const confirmBtn = document.getElementById('confirmLogout');
+    const logoutBtn = document.getElementById('logoutBtn');
+    
+    // Check if elements exist
+    if (!dialogOverlay || !cancelBtn || !confirmBtn || !logoutBtn) {
+        console.error('One or more dialog elements not found!');
+        return;
+    }
     
     // Hide dialog when clicking outside
     dialogOverlay.addEventListener('click', function(event) {
@@ -277,15 +284,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Cancel button click
-    cancelBtn.addEventListener('click', hideLogoutDialog);
+    cancelBtn.addEventListener('click', function(event) {
+        event.stopPropagation();
+        hideLogoutDialog();
+    });
     
     // Confirm button click
-    confirmBtn.addEventListener('click', confirmLogout);
+    confirmBtn.addEventListener('click', function(event) {
+        event.stopPropagation();
+        confirmLogout();
+    });
     
-    // Add click event to logout link (removing inline onclick)
-    const logoutBtn = document.getElementById('logoutBtn');
-    logoutBtn.onclick = function(event) {
+    // Logout button click
+    logoutBtn.addEventListener('click', function(event) {
         showLogoutDialog(event);
-    };
+    });
+});
+
+// Add event listener for Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        const dialog = document.getElementById('logoutDialogOverlay');
+        if (dialog && dialog.style.display === 'block') {
+            hideLogoutDialog();
+        }
+    }
 });
 </script>
