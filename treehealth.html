@@ -2380,23 +2380,82 @@
         let editingTreatmentIndex = -1;
         
 
-        onAuthStateChanged(auth, (user) => {
-    if (user) {
-        currentUser = user;
-        window.currentUser = user; // Make available globally
-        
-        // Force sidebar update if it's already loaded
-        if (window.updateSidebarProfile) {
-            window.updateSidebarProfile();
+        // Check authentication state
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log('User is signed in:', user.email);
+            currentUser = user;
+            window.currentUser = user;
+            
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    userData = userDoc.data();
+                    window.userData = userData;
+                    console.log('🔍 User data from Firestore:', userData);
+                    updateUserProfile(user, userData);
+                } else {
+                    console.log('No user data found in Firestore');
+                    updateUserProfile(user, {});
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                updateUserProfile(user, {});
+            }
+        } else {
+            console.log('User is not signed in');
+            window.location.href = 'signin.html';
         }
+    });
+
+    function updateUserProfile(user, userData) {
+        console.log('🔄 Updating user profile with data:', userData);
         
-        console.log('User authenticated:', user.email);
-        loadAssessments();
-    } else {
-        console.log('User not authenticated');
-        window.location.href = 'signin.html';
+        const userNameElement = document.querySelector('.user-name');
+        const userRoleElement = document.querySelector('.user-role');
+        
+        const displayName = userData.firstName && userData.lastName 
+            ? `${userData.firstName} ${userData.lastName}`
+            : userData.username 
+            ? userData.username
+            : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+        
+        if (userNameElement) userNameElement.textContent = displayName;
+
+        if (userRoleElement) {
+            userRoleElement.textContent = userData.bio || 'Farmer';
+        }
+
+        updateProfilePicture(userData);
     }
-});
+
+    function updateProfilePicture(userData) {
+        const avatarElements = document.querySelectorAll('.user-avatar');
+        
+        let imageSource = 'images/user-avatar.jpg';
+        
+        if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
+            imageSource = userData.imageBase64.trim();
+            console.log('🎯 Using Base64 image from Firestore');
+        } else if (userData.picture && userData.picture.trim() !== '') {
+            imageSource = userData.picture.trim();
+            console.log('🎯 Using picture URL from Firestore');
+        } else if (userData.photoURL && userData.photoURL.trim() !== '') {
+            imageSource = userData.photoURL.trim();
+            console.log('🎯 Using photoURL from Firestore');
+        }
+
+        avatarElements.forEach(img => {
+            img.src = imageSource;
+            img.alt = 'User Avatar';
+            img.onerror = function() {
+                console.warn('⚠️ Failed to load user image, reverting to default.');
+                this.src = 'images/user-avatar.jpg';
+            };
+        });
+
+        console.log('🔄 Updated avatar images with source:', imageSource);
+    }
 
         // Enhanced treatment types with detailed information and suggestions
         const treatmentTypes = {
