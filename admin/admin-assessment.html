@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Assessment Dashboard</title>
+    <title>Admin Disease Assessment Dashboard</title>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -24,7 +24,7 @@
         }
         
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             padding: 20px;
         }
@@ -276,24 +276,57 @@
             text-transform: uppercase;
         }
         
-        .status-completed {
+        .status-good {
             background-color: #d5f4e6;
             color: #27ae60;
         }
         
-        .status-pending {
+        .status-fair {
             background-color: #fff4e6;
             color: #f39c12;
         }
         
-        .status-in-progress {
-            background-color: #e3f2fd;
-            color: #3498db;
+        .status-poor {
+            background-color: #ffeaea;
+            color: #e74c3c;
+        }
+        
+        .status-critical {
+            background-color: #2c3e50;
+            color: white;
+        }
+        
+        .health-status {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        
+        .health-excellent {
+            background-color: #d5f4e6;
+            color: #27ae60;
+        }
+        
+        .health-good {
+            background-color: #d5e8f4;
+            color: #2980b9;
+        }
+        
+        .health-fair {
+            background-color: #fff4e6;
+            color: #f39c12;
+        }
+        
+        .health-poor {
+            background-color: #ffeaea;
+            color: #e74c3c;
         }
         
         .action-btns {
             display: flex;
             gap: 8px;
+            flex-wrap: wrap;
         }
         
         .btn-action {
@@ -315,6 +348,18 @@
         .btn-delete {
             background-color: #e74c3c;
             color: white;
+        }
+        
+        .btn-treatment {
+            background-color: #9b59b6;
+            color: white;
+        }
+        
+        .treatment-cell {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         
         .footer {
@@ -351,6 +396,16 @@
             font-size: 60px;
             margin-bottom: 20px;
             color: #ddd;
+        }
+        
+        .disease-type {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: #e8f4fc;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #3498db;
+            margin: 2px;
         }
         
         @media (max-width: 768px) {
@@ -408,8 +463,8 @@
             <header>
                 <div class="header-top">
                     <div class="logo">
-                        <div class="logo-icon">📊</div>
-                        <h1>Assessment Dashboard</h1>
+                        <div class="logo-icon">🏥</div>
+                        <h1>Disease Assessment Dashboard</h1>
                     </div>
                     <div class="auth-section">
                         <div id="user-info">
@@ -418,7 +473,7 @@
                         </div>
                     </div>
                 </div>
-                <p>Manage and monitor all assessment data from Firebase</p>
+                <p>Monitor and manage disease assessment data from Firebase</p>
             </header>
             
             <!-- Statistics Cards -->
@@ -428,16 +483,16 @@
                     <div id="total-assessments" class="stat-value">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Completed</h3>
-                    <div id="completed-assessments" class="stat-value">0</div>
+                    <h3>Critical Cases</h3>
+                    <div id="critical-cases" class="stat-value">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>In Progress</h3>
-                    <div id="inprogress-assessments" class="stat-value">0</div>
+                    <h3>Avg. Health Status</h3>
+                    <div id="avg-health-status" class="stat-value">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Average Score</h3>
-                    <div id="average-score" class="stat-value">0</div>
+                    <h3>Patients Treated</h3>
+                    <div id="treated-patients" class="stat-value">0</div>
                 </div>
             </div>
             
@@ -445,44 +500,53 @@
             <div class="controls">
                 <div class="search-box">
                     <span class="search-icon">🔍</span>
-                    <input type="text" id="search-input" placeholder="Search assessments...">
+                    <input type="text" id="search-input" placeholder="Search disease, patient, or treatment...">
                 </div>
                 <div class="filters">
                     <select id="status-filter">
                         <option value="all">All Status</option>
-                        <option value="completed">Completed</option>
-                        <option value="pending">Pending</option>
-                        <option value="in-progress">In Progress</option>
+                        <option value="good">Good</option>
+                        <option value="fair">Fair</option>
+                        <option value="poor">Poor</option>
+                        <option value="critical">Critical</option>
+                    </select>
+                    <select id="health-filter">
+                        <option value="all">All Health Status</option>
+                        <option value="excellent">Excellent</option>
+                        <option value="good">Good</option>
+                        <option value="fair">Fair</option>
+                        <option value="poor">Poor</option>
                     </select>
                     <select id="sort-by">
                         <option value="newest">Newest First</option>
                         <option value="oldest">Oldest First</option>
-                        <option value="score-high">Score: High to Low</option>
-                        <option value="score-low">Score: Low to High</option>
+                        <option value="health-high">Health: High to Low</option>
+                        <option value="health-low">Health: Low to High</option>
                     </select>
                 </div>
             </div>
             
             <!-- Data Table -->
             <div class="table-container">
-                <div id="loading" class="loading">Loading assessment data from Firebase...</div>
+                <div id="loading" class="loading">Loading disease assessment data from Firebase...</div>
                 <div id="error-message" class="error" style="display: none;">
                     Error loading data. Please check your connection and try again.
                 </div>
                 <div id="empty-state" class="empty-state" style="display: none;">
-                    <div>📭</div>
-                    <h3>No assessments found</h3>
-                    <p>There are no assessments in the database yet.</p>
+                    <div>🏥</div>
+                    <h3>No disease assessments found</h3>
+                    <p>There are no disease assessments in the database yet.</p>
                 </div>
                 
                 <table id="assessments-table" style="display: none;">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Title</th>
-                            <th>User</th>
+                            <th>Disease Name</th>
+                            <th>Patient</th>
                             <th>Status</th>
-                            <th>Score</th>
+                            <th>Health Status</th>
+                            <th>Treatment</th>
                             <th>Date</th>
                             <th>Actions</th>
                         </tr>
@@ -494,7 +558,7 @@
             </div>
             
             <div class="footer">
-                <p>Assessment Dashboard • Data loaded from Firebase Firestore</p>
+                <p>Disease Assessment Dashboard • Data loaded from Firebase Firestore</p>
                 <p>Collection: <strong>assessments</strong> | Project: <strong>palmaegis-setup</strong></p>
             </div>
         </div>
@@ -529,11 +593,12 @@
         const assessmentsTable = document.getElementById('assessments-table');
         const searchInput = document.getElementById('search-input');
         const statusFilter = document.getElementById('status-filter');
+        const healthFilter = document.getElementById('health-filter');
         const sortBy = document.getElementById('sort-by');
         const totalAssessmentsEl = document.getElementById('total-assessments');
-        const completedAssessmentsEl = document.getElementById('completed-assessments');
-        const inprogressAssessmentsEl = document.getElementById('inprogress-assessments');
-        const averageScoreEl = document.getElementById('average-score');
+        const criticalCasesEl = document.getElementById('critical-cases');
+        const avgHealthStatusEl = document.getElementById('avg-health-status');
+        const treatedPatientsEl = document.getElementById('treated-patients');
         
         // Assessment data storage
         let allAssessments = [];
@@ -608,7 +673,7 @@
                 // If no assessments exist, create some sample data for demonstration
                 if (allAssessments.length === 0) {
                     console.log("No assessments found, creating sample data for demo");
-                    await createSampleAssessments();
+                    await createSampleDiseaseAssessments();
                     // Reload after creating sample data
                     return loadAssessments();
                 }
@@ -621,6 +686,110 @@
                 errorMessage.style.display = 'block';
                 assessmentsTable.style.display = 'none';
             }
+        }
+        
+        // Create sample disease assessments for demonstration
+        async function createSampleDiseaseAssessments() {
+            const sampleAssessments = [
+                {
+                    diseaseName: "Diabetes Type 2",
+                    patientId: "P001",
+                    patientName: "John Smith",
+                    age: 52,
+                    gender: "Male",
+                    status: "fair",
+                    healthStatus: 65,
+                    treatment: "Metformin 500mg twice daily, Dietary control, Regular exercise",
+                    date: new Date(2023, 9, 15).toISOString(),
+                    symptoms: ["Increased thirst", "Frequent urination", "Fatigue"],
+                    doctor: "Dr. Sarah Johnson"
+                },
+                {
+                    diseaseName: "Hypertension",
+                    patientId: "P002",
+                    patientName: "Maria Garcia",
+                    age: 48,
+                    gender: "Female",
+                    status: "good",
+                    healthStatus: 82,
+                    treatment: "Lisinopril 10mg daily, Low sodium diet, Stress management",
+                    date: new Date(2023, 9, 18).toISOString(),
+                    symptoms: ["Headaches", "Dizziness", "Shortness of breath"],
+                    doctor: "Dr. Robert Chen"
+                },
+                {
+                    diseaseName: "COVID-19",
+                    patientId: "P003", 
+                    patientName: "David Wilson",
+                    age: 35,
+                    gender: "Male",
+                    status: "critical",
+                    healthStatus: 40,
+                    treatment: "Remdesivir IV, Dexamethasone, Oxygen therapy, Monitoring",
+                    date: new Date(2023, 9, 10).toISOString(),
+                    symptoms: ["Fever", "Cough", "Loss of taste", "Difficulty breathing"],
+                    doctor: "Dr. Amanda Lee"
+                },
+                {
+                    diseaseName: "Asthma",
+                    patientId: "P004",
+                    patientName: "Sarah Williams",
+                    age: 29,
+                    gender: "Female",
+                    status: "good",
+                    healthStatus: 78,
+                    treatment: "Albuterol inhaler as needed, Fluticasone daily, Avoid triggers",
+                    date: new Date(2023, 9, 20).toISOString(),
+                    symptoms: ["Wheezing", "Chest tightness", "Shortness of breath"],
+                    doctor: "Dr. Michael Brown"
+                },
+                {
+                    diseaseName: "Coronary Artery Disease",
+                    patientId: "P005",
+                    patientName: "James Wilson",
+                    age: 65,
+                    gender: "Male",
+                    status: "poor",
+                    healthStatus: 55,
+                    treatment: "Atorvastatin 40mg daily, Aspirin 81mg daily, Cardiac rehabilitation",
+                    date: new Date(2023, 9, 12).toISOString(),
+                    symptoms: ["Chest pain", "Fatigue", "Shortness of breath"],
+                    doctor: "Dr. Susan Miller"
+                },
+                {
+                    diseaseName: "Rheumatoid Arthritis",
+                    patientId: "P006",
+                    patientName: "Linda Martinez",
+                    age: 58,
+                    gender: "Female",
+                    status: "fair",
+                    healthStatus: 60,
+                    treatment: "Methotrexate weekly, Physical therapy, NSAIDs for pain",
+                    date: new Date(2023, 9, 22).toISOString(),
+                    symptoms: ["Joint pain", "Swelling", "Morning stiffness"],
+                    doctor: "Dr. Thomas Wilson"
+                },
+                {
+                    diseaseName: "Chronic Kidney Disease",
+                    patientId: "P007",
+                    patientName: "Robert Johnson",
+                    age: 70,
+                    gender: "Male",
+                    status: "critical",
+                    healthStatus: 35,
+                    treatment: "Dialysis three times weekly, Erythropoietin injections, Fluid restriction",
+                    date: new Date(2023, 9, 5).toISOString(),
+                    symptoms: ["Fatigue", "Swelling", "Nausea", "Reduced urine output"],
+                    doctor: "Dr. Jennifer Davis"
+                }
+            ];
+            
+            // Add sample assessments to Firestore
+            for (const assessment of sampleAssessments) {
+                await db.collection('assessments').add(assessment);
+            }
+            
+            console.log("Sample disease assessments created");
         }
         
         // Update dashboard with assessment data
@@ -655,9 +824,10 @@
             const searchTerm = searchInput.value.toLowerCase();
             if (searchTerm) {
                 filteredAssessments = filteredAssessments.filter(assessment => 
-                    assessment.title.toLowerCase().includes(searchTerm) ||
-                    assessment.userName.toLowerCase().includes(searchTerm) ||
-                    assessment.id.toLowerCase().includes(searchTerm)
+                    assessment.diseaseName.toLowerCase().includes(searchTerm) ||
+                    assessment.patientName.toLowerCase().includes(searchTerm) ||
+                    (assessment.treatment && assessment.treatment.toLowerCase().includes(searchTerm)) ||
+                    (assessment.doctor && assessment.doctor.toLowerCase().includes(searchTerm))
                 );
             }
             
@@ -669,6 +839,19 @@
                 );
             }
             
+            // Apply health status filter
+            const healthFilterValue = healthFilter.value;
+            if (healthFilterValue !== 'all') {
+                filteredAssessments = filteredAssessments.filter(assessment => {
+                    const healthStatus = assessment.healthStatus;
+                    if (healthFilterValue === 'excellent') return healthStatus >= 80;
+                    if (healthFilterValue === 'good') return healthStatus >= 65 && healthStatus < 80;
+                    if (healthFilterValue === 'fair') return healthStatus >= 50 && healthStatus < 65;
+                    if (healthFilterValue === 'poor') return healthStatus < 50;
+                    return true;
+                });
+            }
+            
             // Apply sorting
             const sortByValue = sortBy.value;
             filteredAssessments.sort((a, b) => {
@@ -677,10 +860,10 @@
                         return new Date(b.date) - new Date(a.date);
                     case 'oldest':
                         return new Date(a.date) - new Date(b.date);
-                    case 'score-high':
-                        return b.score - a.score;
-                    case 'score-low':
-                        return a.score - b.score;
+                    case 'health-high':
+                        return b.healthStatus - a.healthStatus;
+                    case 'health-low':
+                        return a.healthStatus - b.healthStatus;
                     default:
                         return 0;
                 }
@@ -690,21 +873,33 @@
         // Update statistics cards
         function updateStatistics() {
             const total = allAssessments.length;
-            const completed = allAssessments.filter(a => a.status === 'completed').length;
-            const inProgress = allAssessments.filter(a => a.status === 'in-progress').length;
+            const critical = allAssessments.filter(a => a.status === 'critical').length;
+            const treated = allAssessments.filter(a => a.treatment && a.treatment.trim() !== '').length;
             
-            // Calculate average score (only for completed assessments)
-            const completedScores = allAssessments
-                .filter(a => a.status === 'completed' && a.score)
-                .map(a => a.score);
-            const averageScore = completedScores.length > 0 
-                ? Math.round(completedScores.reduce((sum, score) => sum + score, 0) / completedScores.length)
-                : 0;
+            // Calculate average health status
+            const totalHealth = allAssessments.reduce((sum, a) => sum + (a.healthStatus || 0), 0);
+            const avgHealth = total > 0 ? Math.round(totalHealth / total) : 0;
             
             totalAssessmentsEl.textContent = total;
-            completedAssessmentsEl.textContent = completed;
-            inprogressAssessmentsEl.textContent = inProgress;
-            averageScoreEl.textContent = averageScore;
+            criticalCasesEl.textContent = critical;
+            avgHealthStatusEl.textContent = avgHealth;
+            treatedPatientsEl.textContent = treated;
+        }
+        
+        // Get health status class based on score
+        function getHealthStatusClass(healthScore) {
+            if (healthScore >= 80) return 'health-excellent';
+            if (healthScore >= 65) return 'health-good';
+            if (healthScore >= 50) return 'health-fair';
+            return 'health-poor';
+        }
+        
+        // Get health status text based on score
+        function getHealthStatusText(healthScore) {
+            if (healthScore >= 80) return 'Excellent';
+            if (healthScore >= 65) return 'Good';
+            if (healthScore >= 50) return 'Fair';
+            return 'Poor';
         }
         
         // Render assessments table
@@ -726,32 +921,40 @@
                 let statusClass = '';
                 let statusText = assessment.status || 'pending';
                 
-                if (statusText === 'completed') {
-                    statusClass = 'status-completed';
-                } else if (statusText === 'in-progress') {
-                    statusClass = 'status-in-progress';
-                } else {
-                    statusClass = 'status-pending';
+                if (statusText === 'good') {
+                    statusClass = 'status-good';
+                } else if (statusText === 'fair') {
+                    statusClass = 'status-fair';
+                } else if (statusText === 'poor') {
+                    statusClass = 'status-poor';
+                } else if (statusText === 'critical') {
+                    statusClass = 'status-critical';
                 }
                 
-                // Format score display
-                const scoreDisplay = assessment.status === 'completed' 
-                    ? `${assessment.score}%` 
-                    : assessment.status === 'in-progress' 
-                        ? `${assessment.score}% (in progress)` 
-                        : 'Not taken';
+                // Get health status class and text
+                const healthScore = assessment.healthStatus || 0;
+                const healthClass = getHealthStatusClass(healthScore);
+                const healthText = getHealthStatusText(healthScore);
+                
+                // Format treatment (truncate if too long)
+                let treatmentText = assessment.treatment || 'No treatment assigned';
+                if (treatmentText.length > 60) {
+                    treatmentText = treatmentText.substring(0, 57) + '...';
+                }
                 
                 row.innerHTML = `
-                    <td>${assessment.id || assessment.firestoreId.substring(0, 8)}</td>
-                    <td><strong>${assessment.title || 'Untitled Assessment'}</strong></td>
-                    <td>${assessment.userName || assessment.userId || 'Unknown User'}</td>
+                    <td>${assessment.patientId || assessment.firestoreId.substring(0, 8)}</td>
+                    <td><strong>${assessment.diseaseName || 'Unknown Disease'}</strong></td>
+                    <td>${assessment.patientName || 'Unknown Patient'} (${assessment.age || 'N/A'})</td>
                     <td><span class="status ${statusClass}">${statusText}</span></td>
-                    <td>${scoreDisplay}</td>
+                    <td><span class="health-status ${healthClass}">${healthText} (${healthScore})</span></td>
+                    <td class="treatment-cell" title="${assessment.treatment || ''}">${treatmentText}</td>
                     <td>${formattedDate}</td>
                     <td>
                         <div class="action-btns">
                             <button class="btn btn-action btn-view" onclick="viewAssessment('${assessment.firestoreId}')">View</button>
                             <button class="btn btn-action btn-edit" onclick="editAssessment('${assessment.firestoreId}')">Edit</button>
+                            <button class="btn btn-action btn-treatment" onclick="viewTreatment('${assessment.firestoreId}')">Treatment</button>
                             <button class="btn btn-action btn-delete" onclick="deleteAssessment('${assessment.firestoreId}')">Delete</button>
                         </div>
                     </td>
@@ -765,21 +968,54 @@
         function viewAssessment(id) {
             const assessment = allAssessments.find(a => a.firestoreId === id);
             if (assessment) {
-                alert(`Assessment Details:\n\nTitle: ${assessment.title}\nUser: ${assessment.userName}\nStatus: ${assessment.status}\nScore: ${assessment.score}%\nDate: ${new Date(assessment.date).toLocaleDateString()}\nID: ${id}`);
+                const symptoms = assessment.symptoms ? assessment.symptoms.join(', ') : 'Not specified';
+                alert(`Disease Assessment Details:\n\nDisease: ${assessment.diseaseName}\nPatient: ${assessment.patientName} (Age: ${assessment.age || 'N/A'}, Gender: ${assessment.gender || 'N/A'})\nStatus: ${assessment.status}\nHealth Status: ${assessment.healthStatus} (${getHealthStatusText(assessment.healthStatus)})\nSymptoms: ${symptoms}\nTreatment: ${assessment.treatment || 'Not assigned'}\nDoctor: ${assessment.doctor || 'Not assigned'}\nDate: ${new Date(assessment.date).toLocaleDateString()}\nID: ${id}`);
+            }
+        }
+        
+        // View treatment details
+        function viewTreatment(id) {
+            const assessment = allAssessments.find(a => a.firestoreId === id);
+            if (assessment) {
+                alert(`Treatment Plan for ${assessment.patientName}:\n\nDisease: ${assessment.diseaseName}\n\nCurrent Treatment:\n${assessment.treatment || 'No treatment assigned'}\n\nPrescribed by: ${assessment.doctor || 'Not specified'}`);
             }
         }
         
         // Edit assessment
         function editAssessment(id) {
-            alert(`Edit functionality would open for assessment ID: ${id}\n\nIn a real application, this would open a form to edit the assessment details.`);
+            const assessment = allAssessments.find(a => a.firestoreId === id);
+            if (assessment) {
+                const newTreatment = prompt(`Edit treatment for ${assessment.patientName} (${assessment.diseaseName}):`, assessment.treatment || '');
+                if (newTreatment !== null) {
+                    // Update in Firebase
+                    updateTreatment(id, newTreatment);
+                }
+            }
+        }
+        
+        // Update treatment in Firebase
+        async function updateTreatment(id, newTreatment) {
+            try {
+                await db.collection('assessments').doc(id).update({
+                    treatment: newTreatment,
+                    lastUpdated: new Date().toISOString()
+                });
+                
+                alert('Treatment updated successfully!');
+                // Reload data
+                loadAssessments();
+            } catch (error) {
+                console.error("Error updating treatment:", error);
+                alert('Error updating treatment. Please try again.');
+            }
         }
         
         // Delete assessment with confirmation
         async function deleteAssessment(id) {
-            if (confirm('Are you sure you want to delete this assessment? This action cannot be undone.')) {
+            if (confirm('Are you sure you want to delete this disease assessment? This action cannot be undone.')) {
                 try {
                     await db.collection('assessments').doc(id).delete();
-                    alert('Assessment deleted successfully!');
+                    alert('Disease assessment deleted successfully!');
                     // Reload data after deletion
                     loadAssessments();
                 } catch (error) {
@@ -792,13 +1028,12 @@
         // Event listeners for filters and search
         searchInput.addEventListener('input', updateDashboard);
         statusFilter.addEventListener('change', updateDashboard);
+        healthFilter.addEventListener('change', updateDashboard);
         sortBy.addEventListener('change', updateDashboard);
         
         // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
-            // Try auto-login for demo purposes
-            // In a real app, you would check for existing session
-            console.log("Assessment Dashboard initialized");
+            console.log("Disease Assessment Dashboard initialized");
             console.log("Firebase project: palmaegis-setup");
             console.log("Collection: assessments");
         });
