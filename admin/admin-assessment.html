@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Assessment Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            padding: 0 20px 30px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+
+        .logo h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-menu li {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-menu li:hover, .nav-menu li.active {
+            background: rgba(255,255,255,0.1);
+            border-left: 4px solid #4CAF50;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .header h1 {
+            color: #2a5298;
+            font-size: 28px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: #2a5298;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Stats Cards */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card h3 {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2a5298;
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            color: #333;
+        }
+
+        .search-box {
+            padding: 8px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            width: 300px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status.in-progress {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .action-btn {
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .action-btn.view {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .action-btn.delete {
+            background: #f44336;
+            color: white;
+        }
+
+        .action-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-body {
+            padding: 20px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .assessment-details p {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .search-box {
+                width: 100%;
+                margin-top: 10px;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <h2>Admin Dashboard</h2>
+                <p>Assessment Management</p>
+            </div>
+            <ul class="nav-menu">
+                <li class="active">
+                    <span>📊</span>
+                    <span>Assessments</span>
+                </li>
+                <li>
+                    <span>👥</span>
+                    <span>Users</span>
+                </li>
+                <li>
+                    <span>📈</span>
+                    <span>Analytics</span>
+                </li>
+                <li>
+                    <span>⚙️</span>
+                    <span>Settings</span>
+                </li>
+                <li id="logoutBtn">
+                    <span>🚪</span>
+                    <span>Logout</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1>Assessment Dashboard</h1>
+                <div class="user-info">
+                    <div class="user-avatar">A</div>
+                    <span>Admin User</span>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-container" id="statsContainer">
+                <!-- Stats will be loaded here -->
+                <div class="loading">Loading statistics...</div>
+            </div>
+
+            <!-- Assessments Table -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h2>All Assessments</h2>
+                    <input type="text" class="search-box" placeholder="Search assessments..." id="searchInput">
+                </div>
+                
+                <div id="assessmentsTable">
+                    <div class="loading">Loading assessments...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assessment Details Modal -->
+        <div class="modal" id="assessmentModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Assessment Details</h2>
+                    <button class="close-btn" id="closeModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="assessment-details" id="assessmentDetails">
+                        <!-- Details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Initialize Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.appspot.com",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // DOM Elements
+        const assessmentsTable = document.getElementById('assessmentsTable');
+        const statsContainer = document.getElementById('statsContainer');
+        const searchInput = document.getElementById('searchInput');
+        const assessmentModal = document.getElementById('assessmentModal');
+        const assessmentDetails = document.getElementById('assessmentDetails');
+        const closeModal = document.getElementById('closeModal');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        // Assessment Data
+        let assessments = [];
+        let filteredAssessments = [];
+
+        // Initialize Dashboard
+        async function initDashboard() {
+            try {
+                // Check authentication
+                auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        // User is signed in, load data
+                        await loadAssessments();
+                        setupEventListeners();
+                    } else {
+                        // No user is signed in, redirect to login
+                        window.location.href = 'login.html';
+                    }
+                });
+            } catch (error) {
+                console.error('Initialization error:', error);
+                showError('Failed to initialize dashboard');
+            }
+        }
+
+        // Load assessments from Firestore
+        async function loadAssessments() {
+            try {
+                showLoading();
+                
+                const snapshot = await db.collection('assessments').get();
+                assessments = [];
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    assessments.push({
+                        id: doc.id,
+                        ...data,
+                        createdAt: data.createdAt?.toDate() || new Date(),
+                        updatedAt: data.updatedAt?.toDate() || new Date()
+                    });
+                });
+                
+                // Sort by date (newest first)
+                assessments.sort((a, b) => b.createdAt - a.createdAt);
+                
+                renderAssessments();
+                updateStatistics();
+                
+            } catch (error) {
+                console.error('Error loading assessments:', error);
+                showError('Failed to load assessments. Please try again.');
+            }
+        }
+
+        // Render assessments table
+        function renderAssessments(data = assessments) {
+            filteredAssessments = data;
+            
+            if (data.length === 0) {
+                assessmentsTable.innerHTML = `
+                    <div class="loading" style="color: #666; padding: 40px;">
+                        No assessments found.
+                    </div>
+                `;
+                return;
+            }
+            
+            const tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Candidate</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(assessment => {
+                            // Escape special characters to prevent XSS
+                            const title = escapeHtml(assessment.title || 'Untitled Assessment');
+                            const candidate = escapeHtml(assessment.candidateName || assessment.candidateEmail || 'N/A');
+                            const status = escapeHtml(assessment.status || 'pending');
+                            const score = assessment.score || assessment.totalScore || 'N/A';
+                            const date = formatDate(assessment.createdAt);
+                            const id = assessment.id;
+                            
+                            return `
+                                <tr>
+                                    <td><strong>${title}</strong></td>
+                                    <td>${candidate}</td>
+                                    <td><span class="status ${getStatusClass(status)}">${status}</span></td>
+                                    <td><strong>${score}</strong></td>
+                                    <td>${date}</td>
+                                    <td>
+                                        <button class="action-btn view" onclick="viewAssessment('${id}')">View</button>
+                                        <button class="action-btn delete" onclick="deleteAssessment('${id}')">Delete</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            assessmentsTable.innerHTML = tableHTML;
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const totalAssessments = assessments.length;
+            const completedAssessments = assessments.filter(a => a.status === 'completed').length;
+            const averageScore = calculateAverageScore();
+            
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <h3>Total Assessments</h3>
+                    <div class="stat-value">${totalAssessments}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Completed</h3>
+                    <div class="stat-value">${completedAssessments}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>In Progress</h3>
+                    <div class="stat-value">${assessments.filter(a => a.status === 'in-progress').length}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Score</h3>
+                    <div class="stat-value">${averageScore}%</div>
+                </div>
+            `;
+        }
+
+        // Calculate average score
+        function calculateAverageScore() {
+            const scoredAssessments = assessments.filter(a => 
+                a.score !== undefined && a.score !== null && a.status === 'completed'
+            );
+            
+            if (scoredAssessments.length === 0) return 0;
+            
+            const total = scoredAssessments.reduce((sum, a) => sum + (parseFloat(a.score) || 0), 0);
+            return Math.round(total / scoredAssessments.length);
+        }
+
+        // View assessment details
+        async function viewAssessment(assessmentId) {
+            try {
+                const assessment = assessments.find(a => a.id === assessmentId);
+                if (!assessment) return;
+                
+                // Load detailed data if needed
+                const doc = await db.collection('assessments').doc(assessmentId).get();
+                const detailedData = doc.data();
+                
+                // Escape HTML to prevent XSS
+                const title = escapeHtml(assessment.title || 'Untitled Assessment');
+                const candidateName = escapeHtml(assessment.candidateName || 'N/A');
+                const candidateEmail = escapeHtml(assessment.candidateEmail || 'N/A');
+                const status = escapeHtml(assessment.status || 'pending');
+                const score = assessment.score || assessment.totalScore || 'N/A';
+                const createdAt = formatDate(assessment.createdAt);
+                const updatedAt = formatDate(assessment.updatedAt);
+                
+                let responsesHTML = '';
+                if (detailedData.responses) {
+                    responsesHTML = `
+                        <h4 style="margin-top: 20px; color: #2a5298;">Responses</h4>
+                        <div style="max-height: 300px; overflow-y: auto; margin-top: 10px;">
+                            ${Object.entries(detailedData.responses).map(([question, answer]) => {
+                                const safeQuestion = escapeHtml(question);
+                                let safeAnswer;
+                                if (typeof answer === 'object') {
+                                    safeAnswer = escapeHtml(JSON.stringify(answer));
+                                } else {
+                                    safeAnswer = escapeHtml(String(answer));
+                                }
+                                return `
+                                    <div style="margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                                        <strong>${safeQuestion}:</strong><br>
+                                        <span>${safeAnswer}</span>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
+                
+                let answersHTML = '';
+                if (detailedData.answers) {
+                    const safeAnswers = escapeHtml(JSON.stringify(detailedData.answers, null, 2));
+                    answersHTML = `
+                        <h4 style="margin-top: 20px; color: #2a5298;">Answers</h4>
+                        <pre style="background: #f8f9fa; padding: 15px; border-radius: 5px; max-height: 200px; overflow-y: auto;">
+${safeAnswers}
+                        </pre>
+                    `;
+                }
+                
+                assessmentDetails.innerHTML = `
+                    <h3>${title}</h3>
+                    <p><span class="detail-label">ID:</span> ${assessment.id}</p>
+                    <p><span class="detail-label">Candidate:</span> ${candidateName}</p>
+                    <p><span class="detail-label">Email:</span> ${candidateEmail}</p>
+                    <p><span class="detail-label">Status:</span> <span class="status ${getStatusClass(status)}">${status}</span></p>
+                    <p><span class="detail-label">Score:</span> <strong>${score}</strong></p>
+                    <p><span class="detail-label">Created:</span> ${createdAt}</p>
+                    <p><span class="detail-label">Last Updated:</span> ${updatedAt}</p>
+                    ${responsesHTML}
+                    ${answersHTML}
+                `;
+                
+                assessmentModal.style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error viewing assessment:', error);
+                showError('Failed to load assessment details');
+            }
+        }
+
+        // Delete assessment
+        async function deleteAssessment(assessmentId) {
+            if (!confirm('Are you sure you want to delete this assessment? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                await db.collection('assessments').doc(assessmentId).delete();
+                assessments = assessments.filter(a => a.id !== assessmentId);
+                renderAssessments();
+                updateStatistics();
+                showMessage('Assessment deleted successfully!', 'success');
+            } catch (error) {
+                console.error('Error deleting assessment:', error);
+                showError('Failed to delete assessment');
+            }
+        }
+
+        // Search assessments
+        function searchAssessments(searchTerm) {
+            if (!searchTerm) {
+                renderAssessments(assessments);
+                return;
+            }
+            
+            const term = searchTerm.toLowerCase();
+            const filtered = assessments.filter(assessment => {
+                const title = assessment.title ? assessment.title.toLowerCase() : '';
+                const candidateName = assessment.candidateName ? assessment.candidateName.toLowerCase() : '';
+                const candidateEmail = assessment.candidateEmail ? assessment.candidateEmail.toLowerCase() : '';
+                const status = assessment.status ? assessment.status.toLowerCase() : '';
+                
+                return title.includes(term) || 
+                       candidateName.includes(term) || 
+                       candidateEmail.includes(term) || 
+                       status.includes(term);
+            });
+            
+            renderAssessments(filtered);
+        }
+
+        // Helper functions
+        function getStatusClass(status) {
+            if (!status) return 'pending';
+            const statusMap = {
+                'completed': 'completed',
+                'done': 'completed',
+                'submitted': 'completed',
+                'pending': 'pending',
+                'in-progress': 'in-progress',
+                'started': 'in-progress'
+            };
+            return statusMap[status.toLowerCase()] || 'pending';
+        }
+
+        function formatDate(date) {
+            if (!date) return 'N/A';
+            const d = new Date(date);
+            return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showLoading() {
+            assessmentsTable.innerHTML = `
+                <div class="loading">
+                    <div>Loading assessments...</div>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            assessmentsTable.prepend(errorDiv);
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showMessage(message, type = 'info') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type === 'success' ? 'success' : 'info';
+            messageDiv.textContent = message;
+            messageDiv.style.cssText = `
+                background: ${type === 'success' ? '#d4edda' : '#d1ecf1'};
+                color: ${type === 'success' ? '#155724' : '#0c5460'};
+                padding: 15px;
+                border-radius: 5px;
+                margin: 10px 0;
+            `;
+            
+            document.querySelector('.main-content').prepend(messageDiv);
+            setTimeout(() => messageDiv.remove(), 3000);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Search input
+            searchInput.addEventListener('input', (e) => {
+                searchAssessments(e.target.value);
+            });
+            
+            // Close modal
+            closeModal.addEventListener('click', () => {
+                assessmentModal.style.display = 'none';
+            });
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === assessmentModal) {
+                    assessmentModal.style.display = 'none';
+                }
+            });
+            
+            // Logout
+            logoutBtn.addEventListener('click', async () => {
+                try {
+                    await auth.signOut();
+                    window.location.href = 'login.html';
+                } catch (error) {
+                    console.error('Logout error:', error);
+                }
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Escape to close modal
+                if (e.key === 'Escape' && assessmentModal.style.display === 'block') {
+                    assessmentModal.style.display = 'none';
+                }
+                
+                // Ctrl/Cmd + F to focus search
+                if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                    e.preventDefault();
+                    searchInput.focus();
+                }
+            });
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>
