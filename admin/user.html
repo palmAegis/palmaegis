@@ -36,7 +36,6 @@
     .main-content {
       flex: 1;
       padding: 28px;
-      margin-left: 256px; /* Default sidebar width */
       width: calc(100% - 256px);
       transition: margin-left 0.3s ease, width 0.3s ease;
     }
@@ -360,7 +359,6 @@
   
   <!-- Main Content -->
   <div class="main-content">
-    <div class="container">
       <header>
         <div class="brand">
           <div style="width: 48px; height: 48px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
@@ -371,12 +369,6 @@
             <p class="lead">Manage all users registered on the platform</p>
           </div>
         </div>
-
-        <a href="admindashboard.html">
-          <button class="btn" id="btnBackToDashboard">
-            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
-          </button>
-        </a>
       </header>
 
       <section class="card">
@@ -422,7 +414,6 @@
       <div class="info-text">
         <p><strong>Note:</strong> This admin interface uses the Firestore collection: <strong>users</strong>. You can search, filter, and manage user accounts from this panel.</p>
       </div>
-    </div>
   </div>
 
   <!-- Firebase SDKs (compat) -->
