@@ -10,7 +10,7 @@
 
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{
       --bg:#f6f8fb;
@@ -22,17 +22,26 @@
       --shadow: 0 8px 20px rgba(22,27,34,0.06);
       font-family: "Inter",system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;
     }
+    
     *{box-sizing:border-box}
+    
     body{
       margin:0;
       background: linear-gradient(180deg,#f6f8fb 0%,#eef4ff 100%);
       color:#19202b;
-      padding:28px;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 28px;
+      margin-left: 256px; /* Sidebar width */
+      width: calc(100% - 256px);
     }
 
     .container{
-      max-width:1200px;
-      margin:0 auto;
+      max-width: 100%;
     }
 
     header{
@@ -40,80 +49,297 @@
       justify-content:space-between;
       align-items:center;
       gap:16px;
-      margin-bottom:18px;
+      margin-bottom:28px;
     }
+    
     .brand{
       display:flex;
-      gap:12px;
+      gap:16px;
       align-items:center;
     }
-    .logo{
-      width:48px;height:48px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;box-shadow:var(--shadow);
+    
+    .logo-img{
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
     }
-    h1{font-size:20px;margin:0}
-    p.lead{margin:0;color:var(--muted);font-size:13px}
+    
+    h1{
+      font-size:24px;
+      margin:0;
+      font-weight: 700;
+      color: #1f2937;
+    }
+    
+    p.lead{
+      margin:0;
+      color:var(--muted);
+      font-size:14px;
+    }
 
     .card{
-      background:var(--card);border-radius:12px;padding:18px;box-shadow:var(--shadow);
+      background:var(--card);
+      border-radius:12px;
+      padding:24px;
+      box-shadow:var(--shadow);
+      margin-bottom: 24px;
     }
 
     .topbar{
       display:flex;
-      gap:12px;
+      gap:16px;
       align-items:center;
-      margin-bottom:14px;
+      margin-bottom:20px;
       justify-content:space-between;
+      flex-wrap: wrap;
     }
 
-    .controls{display:flex;gap:12px;align-items:center}
+    .controls{
+      display:flex;
+      gap:16px;
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    
     .search input{
-      padding:10px 12px;border-radius:10px;border:1px solid #e6ecff;background:#fbfdff;min-width:220px;outline:none;
+      padding:10px 16px;
+      border-radius:10px;
+      border:1px solid #e5e7eb;
+      background:#f9fafb;
+      min-width:280px;
+      outline:none;
+      font-size: 14px;
+      transition: border-color 0.2s;
     }
+    
+    .search input:focus {
+      border-color: var(--accent);
+      background: white;
+    }
+    
     button.btn{
-      padding:10px 14px;border-radius:10px;border:0;cursor:pointer;background:var(--accent);color:#fff;font-weight:600;box-shadow:0 6px 18px rgba(43,140,255,0.18);
+      padding:10px 20px;
+      border-radius:10px;
+      border:0;
+      cursor:pointer;
+      background:var(--accent);
+      color:#fff;
+      font-weight:600;
+      font-size: 14px;
+      transition: all 0.2s;
+      box-shadow:0 4px 12px rgba(9, 121, 105, 0.2);
     }
-    button.ghost{background:transparent;color:var(--accent);border:1px solid var(--glass);padding:8px 12px}
-    button.danger{background:var(--danger);color:#fff;padding:8px 12px;border-radius:8px;border:0;cursor:pointer;}
+    
+    button.btn:hover {
+      background: #075e54;
+      transform: translateY(-1px);
+      box-shadow:0 6px 16px rgba(9, 121, 105, 0.25);
+    }
+    
+    button.ghost{
+      background:transparent;
+      color:var(--accent);
+      border:1px solid var(--glass);
+      padding:10px 16px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    
+    button.ghost:hover {
+      background: rgba(9, 121, 105, 0.05);
+      border-color: var(--accent);
+    }
+    
+    button.danger{
+      background:var(--danger);
+      color:#fff;
+      padding:8px 12px;
+      border-radius:8px;
+      border:0;
+      cursor:pointer;
+      transition: all 0.2s;
+    }
+    
+    button.danger:hover {
+      background: #e04a59;
+      transform: translateY(-1px);
+    }
 
     /* Table */
-    .table-wrap{overflow:auto;border-radius:10px;}
+    .table-wrap{
+      overflow:auto;
+      border-radius:10px;
+      border: 1px solid #e5e7eb;
+    }
+    
     table{
-      width:100%;border-collapse:collapse;font-size:14px;
+      width:100%;
+      border-collapse:collapse;
+      font-size:14px;
+      min-width: 800px;
     }
-    thead tr{background:linear-gradient(90deg,#f7fbff,#ffffff)}
-    thead th{padding:12px 14px;text-align:left;color:#6b7280;font-weight:600;font-size:13px;white-space:nowrap}
-    tbody td{padding:12px 14px;border-top:1px solid #f1f4fa;background:transparent;vertical-align:middle}
-    tbody tr:hover td{background:rgba(43,140,255,0.03)}
-
-    .pill{font-size:12px;padding:6px 8px;border-radius:999px;display:inline-block}
-    .role-admin{background:rgba(255,210,85,0.15);color:#b57f00}
-    .role-user{background:rgba(43,140,255,0.08);color:var(--accent)}
-
-    .action-btns button{margin-right:6px}
-
-    /* Modal */
-    .modal-backdrop{position:fixed;inset:0;background:rgba(9,14,25,0.45);display:none;align-items:center;justify-content:center;z-index:80;padding:20px}
-    .modal{background:var(--card);padding:18px;border-radius:12px;max-width:520px;width:100%;box-shadow:var(--shadow);transform:translateY(6px)}
-    .modal h3{margin:0 0 8px 0}
-    .form-row{display:flex;gap:10px;margin-bottom:10px}
-    .form-row .col{flex:1}
-    .form-row input, .form-row select{
-      width:100%;padding:10px;border-radius:8px;border:1px solid #eef2ff;background:#fbfdff;outline:none
+    
+    thead tr{
+      background: linear-gradient(90deg,#f7fbff,#ffffff);
+      border-bottom: 2px solid #e5e7eb;
     }
-    .modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+    
+    thead th{
+      padding:14px 16px;
+      text-align:left;
+      color:#6b7280;
+      font-weight:600;
+      font-size:13px;
+      white-space:nowrap;
+    }
+    
+    tbody td{
+      padding:14px 16px;
+      border-bottom:1px solid #f1f4fa;
+      background:transparent;
+      vertical-align:middle;
+    }
+    
+    tbody tr:hover td{
+      background:rgba(9, 121, 105, 0.03);
+    }
+    
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .pill{
+      font-size:12px;
+      padding:6px 12px;
+      border-radius:999px;
+      display:inline-block;
+      font-weight: 500;
+    }
+    
+    .role-admin{
+      background:rgba(255,210,85,0.15);
+      color:#b57f00;
+    }
+    
+    .role-user{
+      background:rgba(43,140,255,0.08);
+      color:var(--accent);
+    }
+
+    .action-btns {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .action-btns button {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+    }
 
     /* Loading state */
-    .loading{display:flex;justify-content:center;align-items:center;padding:40px;color:var(--muted)}
-    .loading i{margin-right:10px}
+    .loading{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:40px;
+      color:var(--muted);
+      font-size: 14px;
+    }
+    
+    .loading i{
+      margin-right:12px;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
-    /* small screens */
-    @media (max-width:680px){
-      .form-row{flex-direction:column}
-      thead th:nth-child(1),tbody td:nth-child(1){display:none}
+    /* Info text */
+    .info-text {
+      padding: 16px;
+      background: #f8fafc;
+      border-radius: 8px;
+      border-left: 4px solid var(--accent);
+      margin-top: 20px;
+    }
+    
+    .info-text strong {
+      color: var(--accent);
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .main-content {
+        margin-left: 0;
+        width: 100%;
+      }
+      
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      
+      .controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .search input {
+        min-width: 200px;
+        flex: 1;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        padding: 16px;
+      }
+      
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+      
+      .brand {
+        width: 100%;
+      }
+      
+      .search input {
+        min-width: 100%;
+      }
+      
+      table {
+        font-size: 13px;
+      }
+      
+      thead th, tbody td {
+        padding: 12px 8px;
+      }
     }
 
     /* tiny helper */
-    .muted{color:var(--muted);font-size:13px}
+    .muted{
+      color:var(--muted);
+      font-size:13px;
+    }
+    
+    .result-count {
+      font-weight: 600;
+      color: var(--accent);
+      font-size: 14px;
+      min-width: 80px;
+      text-align: right;
+    }
   </style>
   <script>
     // Load sidebar on page load
@@ -136,111 +362,84 @@
           });
         })
         .catch(error => console.error('Error loading sidebar:', error));
+        
+      // Load users
+      if (typeof loadUsers === 'function') {
+        loadUsers();
+      }
     });
   </script>
 </head>
 <body>
-   <!-- Sidebar Container -->
+  <!-- Sidebar Container -->
   <div id="sidebar-container"></div>
-    <header>
-      <div class="brand">
-        <img src="../images/logo.png" alt="Palm Aegis Logo" class="w-24 mb-3">
-        <div>
-          <h1>PalmAegis — User Management</h1>
-          <p class="lead">Manage users</p>
+  
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="container">
+      <header>
+        <div class="brand">
+          <div style="width: 48px; height: 48px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-users text-white text-xl"></i>
+          </div>
+          <div>
+            <h1>User Management</h1>
+            <p class="lead">Manage all users registered on the platform</p>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <!-- Add User Button -->
-        <!-- <button class="btn" id="btnAddUser"><i class="fa-solid fa-user-plus"></i>&nbsp;Add User</button> -->
-        
-        <!-- Back to Dashboard Button -->
         <a href="admindashboard.html">
-          <button class="btn" id="btnBackToDashboard" style="margin-left: 10px;">
-            <i class=""></i>&nbsp;Back to Dashboard
+          <button class="btn" id="btnBackToDashboard">
+            <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
           </button>
         </a>
-      </div>
-    </header>
+      </header>
 
-    <section class="card">
-      <div class="topbar">
-        <div class="controls">
-          <div class="search">
-            <input type="search" id="searchInput" placeholder="Search first name or email..." />
+      <section class="card">
+        <div class="topbar">
+          <div class="controls">
+            <div class="search">
+              <input type="search" id="searchInput" placeholder="Search by name or email..." />
+            </div>
+            <div class="result-count" id="resultCount">0 users</div>
           </div>
-          <div class="muted" id="resultCount">—</div>
-        </div>
 
-        <div>
-          <button class="ghost" id="refreshBtn"><i class="fa-solid fa-arrows-rotate"></i>&nbsp; Refresh</button>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th style="width:60px">ID</th>
-              <th>First Name</th>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Created</th>
-              <th style="width:160px">Actions</th>
-            </tr>
-          </thead>
-          <tbody id="usersTableBody">
-            <!-- rows injected here -->
-            <tr id="loadingRow">
-              <td colspan="6" class="loading">
-                <i class="fa-solid fa-spinner fa-spin"></i> Loading users...
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <p class="muted" style="margin-top:12px">Note: This admin UI uses Cloud Firestore collection: <strong>users</strong>.</p>
-  </div>
-
-  <!-- Modal (Add / Edit) -->
-  <!-- <div id="modalBackdrop" class="modal-backdrop" role="dialog" aria-hidden="true">
-    <div class="modal" role="document">
-      <h3 id="modalTitle">Add user</h3>
-      <div>
-        <div class="form-row">
-          <div class="col">
-            <label class="muted">First name</label>
-            <input id="inputFirstName" type="text" placeholder="e.g. Ahmad" />
-          </div>
-          <div class="col">
-            <label class="muted">Email</label>
-            <input id="inputEmail" type="email" placeholder="e.g. hazim@example.com" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="col">
-            <label class="muted">Role</label>
-            <select id="inputRole">
-              <option value="user">user</option>
-              <option value="admin">admin</option>
-            </select>
-          </div>
-          <div class="col">
-            <label class="muted">Created at (read-only)</label>
-            <input id="inputCreatedAt" disabled placeholder="auto" />
+          <div>
+            <button class="ghost" id="refreshBtn">
+              <i class="fa-solid fa-arrows-rotate mr-2"></i> Refresh
+            </button>
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button class="ghost" id="cancelModal">Cancel</button>
-          <button class="btn" id="saveUserBtn">Save</button>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:60px">ID</th>
+                <th>First Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Created</th>
+                <th style="width:120px">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- rows injected here -->
+              <tr id="loadingRow">
+                <td colspan="6" class="loading">
+                  <i class="fa-solid fa-spinner"></i> Loading users...
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </section>
+
+      <div class="info-text">
+        <p><strong>Note:</strong> This admin interface uses the Firestore collection: <strong>users</strong>. You can search, filter, and manage user accounts from this panel.</p>
       </div>
     </div>
-  </div> -->
+  </div>
 
   <!-- Firebase SDKs (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -266,19 +465,9 @@
     const searchInput = document.getElementById('searchInput');
     const resultCount = document.getElementById('resultCount');
     const refreshBtn = document.getElementById('refreshBtn');
-    const btnAddUser = document.getElementById('btnAddUser');
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const modalTitle = document.getElementById('modalTitle');
-    const inputFirstName = document.getElementById('inputFirstName');
-    const inputEmail = document.getElementById('inputEmail');
-    const inputRole = document.getElementById('inputRole');
-    const inputCreatedAt = document.getElementById('inputCreatedAt');
-    const cancelModal = document.getElementById('cancelModal');
-    const saveUserBtn = document.getElementById('saveUserBtn');
 
     // Global variables
     let users = [];
-    let currentEditingUserId = null;
 
     // Format date for display
     function formatDate(timestamp) {
@@ -300,6 +489,25 @@
       });
     }
 
+    // Format time for display
+    function formatTime(timestamp) {
+      if (!timestamp) return '';
+      
+      let date;
+      if (timestamp.toDate) {
+        date = timestamp.toDate();
+      } else if (timestamp instanceof Date) {
+        date = timestamp;
+      } else {
+        date = new Date(timestamp);
+      }
+      
+      return date.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
     // Load all users from Firestore
     async function loadUsers() {
       try {
@@ -307,7 +515,7 @@
         usersTableBody.innerHTML = `
           <tr id="loadingRow">
             <td colspan="6" class="loading">
-              <i class="fa-solid fa-spinner fa-spin"></i> Loading users...
+              <i class="fa-solid fa-spinner"></i> Loading users...
             </td>
           </tr>
         `;
@@ -350,41 +558,45 @@
       if (usersToRender.length === 0) {
         usersTableBody.innerHTML = `
           <tr>
-            <td colspan="6" style="text-align: center; color: var(--muted); padding: 20px;">
-              <i class="fa-solid fa-user-slash"></i> No users found
+            <td colspan="6" style="text-align: center; color: var(--muted); padding: 40px;">
+              <i class="fa-solid fa-user-slash fa-2x mb-3"></i>
+              <div>No users found</div>
             </td>
           </tr>
         `;
         return;
       }
 
-      usersTableBody.innerHTML = usersToRender.map(user => `
+      usersTableBody.innerHTML = usersToRender.map((user, index) => `
         <tr>
           <td class="muted">${user.id.substring(0, 6)}...</td>
-          <td>${user.firstName || '—'}</td>
-          <td>${user.email || '—'}</td>
+          <td>
+            <div class="font-medium">${user.firstName || '—'}</div>
+            <div class="text-xs text-gray-500">${user.lastName || ''}</div>
+          </td>
+          <td>
+            <div>${user.email || '—'}</div>
+            <div class="text-xs text-gray-500">${user.phone || ''}</div>
+          </td>
           <td>
             <span class="pill ${user.role === 'admin' ? 'role-admin' : 'role-user'}">
+              <i class="fas fa-${user.role === 'admin' ? 'user-shield' : 'user'} mr-1"></i>
               ${user.role || 'user'}
             </span>
           </td>
-          <td class="muted">${formatDate(user.createdAt)}</td>
+          <td>
+            <div class="text-sm">${formatDate(user.createdAt)}</div>
+            <div class="text-xs text-gray-500">${formatTime(user.createdAt)}</div>
+          </td>
           <td class="action-btns">
-            <button class="danger delete-user" data-userid="${user.id}">
+            <button class="danger delete-user" data-userid="${user.id}" title="Delete User">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
         </tr>
       `).join('');
 
-      // Add event listeners to edit and delete buttons
-      document.querySelectorAll('.edit-user').forEach(button => {
-        button.addEventListener('click', (e) => {
-          const userId = e.currentTarget.getAttribute('data-userid');
-          editUser(userId);
-        });
-      });
-
+      // Add event listeners to delete buttons
       document.querySelectorAll('.delete-user').forEach(button => {
         button.addEventListener('click', (e) => {
           const userId = e.currentTarget.getAttribute('data-userid');
@@ -410,85 +622,13 @@
       
       const filteredUsers = users.filter(user => 
         (user.firstName && user.firstName.toLowerCase().includes(searchTerm)) ||
-        (user.email && user.email.toLowerCase().includes(searchTerm))
+        (user.email && user.email.toLowerCase().includes(searchTerm)) ||
+        (user.lastName && user.lastName.toLowerCase().includes(searchTerm)) ||
+        (user.phone && user.phone.toLowerCase().includes(searchTerm))
       );
       
       renderUsers(filteredUsers);
       updateResultCount(filteredUsers.length);
-    }
-
-    // Open modal for adding a new user
-    function openAddUserModal() {
-      modalTitle.textContent = 'Add User';
-      inputFirstName.value = '';
-      inputEmail.value = '';
-      inputRole.value = 'user';
-      inputCreatedAt.value = '';
-      currentEditingUserId = null;
-      modalBackdrop.style.display = 'flex';
-    }
-
-    // Open modal for editing an existing user
-    async function editUser(userId) {
-      const user = users.find(u => u.id === userId);
-      
-      if (!user) {
-        alert('User not found');
-        return;
-      }
-      
-      modalTitle.textContent = 'Edit User';
-      inputFirstName.value = user.firstName || '';
-      inputEmail.value = user.email || '';
-      inputRole.value = user.role || 'user';
-      inputCreatedAt.value = formatDate(user.createdAt);
-      currentEditingUserId = userId;
-      modalBackdrop.style.display = 'flex';
-    }
-
-    // Save user (add new or update existing)
-    async function saveUser() {
-      const firstName = inputFirstName.value.trim();
-      const email = inputEmail.value.trim();
-      const role = inputRole.value;
-      
-      // Basic validation
-      if (!firstName || !email) {
-        alert('Please fill in all required fields');
-        return;
-      }
-      
-      if (!validateEmail(email)) {
-        alert('Please enter a valid email address');
-        return;
-      }
-      
-      try {
-        if (currentEditingUserId) {
-          // Update existing user
-          await db.collection('users').doc(currentEditingUserId).update({
-            firstName,
-            email,
-            role,
-            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        } else {
-          // Add new user
-          await db.collection('users').add({
-            firstName,
-            email,
-            role,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        }
-        
-        // Close modal and refresh user list
-        modalBackdrop.style.display = 'none';
-        await loadUsers();
-      } catch (error) {
-        console.error('Error saving user:', error);
-        alert('Error saving user: ' + error.message);
-      }
     }
 
     // Delete user with confirmation
@@ -500,23 +640,86 @@
         return;
       }
       
-      if (!confirm(`Are you sure you want to delete user "${user.firstName || user.email}"?`)) {
+      const userName = user.firstName || user.email || 'this user';
+      
+      if (!confirm(`Are you sure you want to delete "${userName}"?\n\nThis action cannot be undone.`)) {
         return;
       }
       
       try {
-        await db.collection('users').doc(userId).delete();
-        await loadUsers();
+        // Show deleting state
+        const deleteBtn = document.querySelector(`button[data-userid="${userId}"]`);
+        if (deleteBtn) {
+          const originalHtml = deleteBtn.innerHTML;
+          deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+          deleteBtn.disabled = true;
+          
+          await db.collection('users').doc(userId).delete();
+          await loadUsers();
+          
+          // Show success message
+          showToast(`User "${userName}" deleted successfully`, 'success');
+        }
       } catch (error) {
         console.error('Error deleting user:', error);
-        alert('Error deleting user: ' + error.message);
+        showToast(`Error deleting user: ${error.message}`, 'error');
       }
     }
 
-    // Email validation helper
-    function validateEmail(email) {
-      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      return re.test(email);
+    // Show toast notification
+    function showToast(message, type = 'info') {
+      // Remove existing toast
+      const existingToast = document.querySelector('.toast-notification');
+      if (existingToast) {
+        existingToast.remove();
+      }
+      
+      const toast = document.createElement('div');
+      toast.className = `toast-notification ${type}`;
+      toast.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+        ${message}
+      `;
+      
+      Object.assign(toast.style, {
+        position: 'fixed',
+        top: '20px',
+        right: '20px',
+        padding: '12px 20px',
+        borderRadius: '8px',
+        background: type === 'success' ? '#10b981' : '#ef4444',
+        color: 'white',
+        display: 'flex',
+        alignItems: 'center',
+        zIndex: '1000',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        animation: 'slideIn 0.3s ease'
+      });
+      
+      document.body.appendChild(toast);
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+      
+      // Add CSS for animations
+      if (!document.querySelector('#toast-styles')) {
+        const style = document.createElement('style');
+        style.id = 'toast-styles';
+        style.textContent = `
+          @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+          @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+          }
+        `;
+        document.head.appendChild(style);
+      }
     }
 
     // Event listeners
@@ -530,20 +733,23 @@
       // Refresh button
       refreshBtn.addEventListener('click', loadUsers);
       
-      // Add user button
-      btnAddUser.addEventListener('click', openAddUserModal);
-      
-      // Modal controls
-      cancelModal.addEventListener('click', () => {
-        modalBackdrop.style.display = 'none';
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'r') {
+          e.preventDefault();
+          loadUsers();
+        }
+        if (e.key === 'Escape') {
+          searchInput.value = '';
+          filterUsers();
+        }
       });
       
-      saveUserBtn.addEventListener('click', saveUser);
-      
-      // Close modal when clicking outside
-      modalBackdrop.addEventListener('click', (e) => {
-        if (e.target === modalBackdrop) {
-          modalBackdrop.style.display = 'none';
+      // Focus search input on Ctrl+F
+      document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'f') {
+          e.preventDefault();
+          searchInput.focus();
         }
       });
     });
