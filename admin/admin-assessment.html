@@ -623,69 +623,6 @@
             }
         }
         
-        // Create sample assessments for demonstration
-        async function createSampleAssessments() {
-            const sampleAssessments = [
-                {
-                    title: "JavaScript Fundamentals Assessment",
-                    userId: "user_001",
-                    userName: "Alex Johnson",
-                    status: "completed",
-                    score: 85,
-                    totalQuestions: 20,
-                    date: new Date(2023, 9, 15).toISOString(),
-                    topics: ["Variables", "Functions", "Loops"]
-                },
-                {
-                    title: "React.js Proficiency Test",
-                    userId: "user_002",
-                    userName: "Maria Garcia",
-                    status: "in-progress",
-                    score: 60,
-                    totalQuestions: 15,
-                    date: new Date(2023, 9, 18).toISOString(),
-                    topics: ["Components", "State", "Hooks"]
-                },
-                {
-                    title: "Database Design Exam",
-                    userId: "user_003", 
-                    userName: "David Chen",
-                    status: "pending",
-                    score: 0,
-                    totalQuestions: 25,
-                    date: new Date(2023, 9, 10).toISOString(),
-                    topics: ["Normalization", "SQL", "Indexes"]
-                },
-                {
-                    title: "UI/UX Principles Quiz",
-                    userId: "user_004",
-                    userName: "Sarah Williams",
-                    status: "completed",
-                    score: 92,
-                    totalQuestions: 18,
-                    date: new Date(2023, 9, 20).toISOString(),
-                    topics: ["Wireframing", "Color Theory", "Typography"]
-                },
-                {
-                    title: "Cloud Architecture Assessment",
-                    userId: "user_005",
-                    userName: "James Wilson",
-                    status: "completed",
-                    score: 78,
-                    totalQuestions: 22,
-                    date: new Date(2023, 9, 12).toISOString(),
-                    topics: ["AWS", "Microservices", "Scalability"]
-                }
-            ];
-            
-            // Add sample assessments to Firestore
-            for (const assessment of sampleAssessments) {
-                await db.collection('assessments').add(assessment);
-            }
-            
-            console.log("Sample assessments created");
-        }
-        
         // Update dashboard with assessment data
         function updateDashboard() {
             // Apply filters and sorting
