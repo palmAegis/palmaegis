@@ -485,60 +485,73 @@
         }
 
         // Render assessments table
-        function renderAssessments(data = assessments) {
-            filteredAssessments = data;
-            
-            if (data.length === 0) {
-                assessmentsTable.innerHTML = `
-                    <div class="loading" style="color: #666; padding: 40px;">
-                        No assessments found.
-                    </div>
-                `;
-                return;
-            }
-            
-            const tableHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Candidate</th>
-                            <th>Status</th>
-                            <th>Score</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${data.map(assessment => {
-                            // Escape special characters to prevent XSS
-                            const title = escapeHtml(assessment.title || 'Untitled Assessment');
-                            const candidate = escapeHtml(assessment.candidateName || assessment.candidateEmail || 'N/A');
-                            const status = escapeHtml(assessment.status || 'pending');
-                            const score = assessment.score || assessment.totalScore || 'N/A';
-                            const date = formatDate(assessment.createdAt);
-                            const id = assessment.id;
-                            
-                            return `
-                                <tr>
-                                    <td><strong>${title}</strong></td>
-                                    <td>${candidate}</td>
-                                    <td><span class="status ${getStatusClass(status)}">${status}</span></td>
-                                    <td><strong>${score}</strong></td>
-                                    <td>${date}</td>
-                                    <td>
-                                        <button class="action-btn view" onclick="viewAssessment('${id}')">View</button>
-                                        <button class="action-btn delete" onclick="deleteAssessment('${id}')">Delete</button>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            `;
-            
-            assessmentsTable.innerHTML = tableHTML;
-        }
+        // Replace the renderAssessments function with this simpler version:
+function renderAssessments(data = assessments) {
+    filteredAssessments = data;
+    
+    if (data.length === 0) {
+        assessmentsTable.innerHTML = `
+            <div class="loading" style="color: #666; padding: 40px;">
+                No assessments found.
+            </div>
+        `;
+        return;
+    }
+    
+    let tableHTML = `
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Candidate</th>
+                    <th>Status</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>`;
+    
+    data.forEach(assessment => {
+        const title = assessment.title || 'Untitled Assessment';
+        const candidate = assessment.candidateName || assessment.candidateEmail || 'N/A';
+        const status = assessment.status || 'pending';
+        const score = assessment.score || assessment.totalScore || 'N/A';
+        const date = formatDate(assessment.createdAt);
+        const id = assessment.id;
+        
+        tableHTML += `
+            <tr>
+                <td><strong>${title}</strong></td>
+                <td>${candidate}</td>
+                <td><span class="status ${getStatusClass(status)}">${status}</span></td>
+                <td><strong>${score}</strong></td>
+                <td>${date}</td>
+                <td>
+                    <button class="action-btn view" data-id="${id}">View</button>
+                    <button class="action-btn delete" data-id="${id}">Delete</button>
+                </td>
+            </tr>`;
+    });
+    
+    tableHTML += `</tbody></table>`;
+    assessmentsTable.innerHTML = tableHTML;
+    
+    // Add event listeners to buttons
+    assessmentsTable.querySelectorAll('.action-btn.view').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            viewAssessment(id);
+        });
+    });
+    
+    assessmentsTable.querySelectorAll('.action-btn.delete').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const id = btn.getAttribute('data-id');
+            deleteAssessment(id);
+        });
+    });
+}
 
         // Update statistics
         function updateStatistics() {
