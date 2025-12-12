@@ -944,8 +944,7 @@
                 
                 row.innerHTML = `
                     <td>${assessment.patientId || assessment.firestoreId.substring(0, 8)}</td>
-                    <td><strong>${assessment.diseaseName || 'Unknown Disease'}</strong></td>
-                    <td>${assessment.patientName || 'Unknown Patient'} (${assessment.age || 'N/A'})</td>
+                    <td><strong>${assessment.disease || 'Unknown Disease'}</strong></td>
                     <td><span class="status ${statusClass}">${statusText}</span></td>
                     <td><span class="health-status ${healthClass}">${healthText} (${healthScore})</span></td>
                     <td class="treatment-cell" title="${assessment.treatment || ''}">${treatmentText}</td>
