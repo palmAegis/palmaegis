@@ -340,6 +340,16 @@
       min-width: 80px;
       text-align: right;
     }
+    .main-content {
+  flex: 1;
+  padding: 28px;
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+/* For pages that don't use .main-content class, adjust as needed */
+main.flex-1 {
+  transition: margin-left 0.3s ease, width 0.3s ease;
+}
   </style>
   <script>
     // Load sidebar on page load
@@ -368,6 +378,35 @@
         loadUsers();
       }
     });
+    // Add this to your main content pages (dashboard.html, user.html, etc.)
+document.addEventListener('DOMContentLoaded', function() {
+  // Function to adjust main content based on sidebar state
+  function adjustMainContent() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('.main-content');
+    
+    if (sidebar && mainContent) {
+      if (sidebar.classList.contains('sidebar-collapsed')) {
+        mainContent.style.marginLeft = '80px';
+        mainContent.style.width = 'calc(100% - 80px)';
+      } else {
+        mainContent.style.marginLeft = '256px';
+        mainContent.style.width = 'calc(100% - 256px)';
+      }
+    }
+  }
+  
+  // Adjust on load
+  adjustMainContent();
+  
+  // Adjust when sidebar is toggled
+  window.addEventListener('sidebarToggled', adjustMainContent);
+  
+  // Adjust on window resize
+  window.addEventListener('resize', function() {
+    setTimeout(adjustMainContent, 100);
+  });
+});
   </script>
 </head>
 <body>
