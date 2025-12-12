@@ -36,8 +36,9 @@
     .main-content {
       flex: 1;
       padding: 28px;
-      margin-left: 256px; /* Sidebar width */
+      margin-left: 256px; /* Default sidebar width */
       width: calc(100% - 256px);
+      transition: margin-left 0.3s ease, width 0.3s ease;
     }
 
     .container{
@@ -278,8 +279,8 @@
     /* Responsive */
     @media (max-width: 1024px) {
       .main-content {
-        margin-left: 0;
-        width: 100%;
+        margin-left: 0 !important;
+        width: 100% !important;
       }
       
       .topbar {
@@ -340,74 +341,18 @@
       min-width: 80px;
       text-align: right;
     }
-    .main-content {
-  flex: 1;
-  padding: 28px;
-  transition: margin-left 0.3s ease, width 0.3s ease;
-}
 
-/* For pages that don't use .main-content class, adjust as needed */
-main.flex-1 {
-  transition: margin-left 0.3s ease, width 0.3s ease;
-}
-  </style>
-  <script>
-    // Load sidebar on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      // Load sidebar
-      fetch('sidebaradmin.html')
-        .then(response => response.text())
-        .then(data => {
-          document.getElementById('sidebar-container').innerHTML = data;
-          
-          // Highlight current page in sidebar
-          const currentPage = window.location.pathname.split('/').pop();
-          const navLinks = document.querySelectorAll('aside nav a');
-          navLinks.forEach(link => {
-            const linkPage = link.getAttribute('href');
-            if (linkPage === currentPage) {
-              link.classList.add('bg-green-600');
-              link.classList.remove('hover:bg-green-600');
-            }
-          });
-        })
-        .catch(error => console.error('Error loading sidebar:', error));
-        
-      // Load users
-      if (typeof loadUsers === 'function') {
-        loadUsers();
-      }
-    });
-    // Add this to your main content pages (dashboard.html, user.html, etc.)
-document.addEventListener('DOMContentLoaded', function() {
-  // Function to adjust main content based on sidebar state
-  function adjustMainContent() {
-    const sidebar = document.getElementById('sidebar');
-    const mainContent = document.querySelector('.main-content');
-    
-    if (sidebar && mainContent) {
-      if (sidebar.classList.contains('sidebar-collapsed')) {
-        mainContent.style.marginLeft = '80px';
-        mainContent.style.width = 'calc(100% - 80px)';
-      } else {
-        mainContent.style.marginLeft = '256px';
-        mainContent.style.width = 'calc(100% - 256px)';
-      }
+    /* Toast styles */
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
     }
-  }
-  
-  // Adjust on load
-  adjustMainContent();
-  
-  // Adjust when sidebar is toggled
-  window.addEventListener('sidebarToggled', adjustMainContent);
-  
-  // Adjust on window resize
-  window.addEventListener('resize', function() {
-    setTimeout(adjustMainContent, 100);
-  });
-});
-  </script>
+    
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  </style>
 </head>
 <body>
   <!-- Sidebar Container -->
@@ -485,291 +430,324 @@ document.addEventListener('DOMContentLoaded', function() {
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // ==== Firebase Configuration ====
-    const firebaseConfig = {
-      apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-      authDomain: "palmaegis-setup.firebaseapp.com",
-      projectId: "palmaegis-setup",
-      storageBucket: "palmaegis-setup.appspot.com",
-      messagingSenderId: "445887502374",
-      appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-    };
+    // Load sidebar and initialize everything
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load sidebar
+      fetch('sidebaradmin.html')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('sidebar-container').innerHTML = data;
+          
+          // Highlight current page in sidebar
+          const currentPage = window.location.pathname.split('/').pop();
+          const navLinks = document.querySelectorAll('aside nav a');
+          navLinks.forEach(link => {
+            const linkPage = link.getAttribute('href');
+            if (linkPage === currentPage) {
+              link.classList.add('bg-green-600');
+              link.classList.remove('hover:bg-green-600');
+            }
+          });
+          
+          // Now adjust main content after sidebar loads
+          adjustMainContent();
+          
+          // Listen for sidebar toggle events
+          window.addEventListener('sidebarToggled', adjustMainContent);
+        })
+        .catch(error => console.error('Error loading sidebar:', error));
+        
+      // Initialize Firebase and load users
+      initializeFirebase();
+    });
 
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // DOM elements
-    const usersTableBody = document.getElementById('usersTableBody');
-    const searchInput = document.getElementById('searchInput');
-    const resultCount = document.getElementById('resultCount');
-    const refreshBtn = document.getElementById('refreshBtn');
-
-    // Global variables
-    let users = [];
-
-    // Format date for display
-    function formatDate(timestamp) {
-      if (!timestamp) return '—';
+    // Function to adjust main content based on sidebar state
+    function adjustMainContent() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.querySelector('.main-content');
       
-      let date;
-      if (timestamp.toDate) {
-        date = timestamp.toDate();
-      } else if (timestamp instanceof Date) {
-        date = timestamp;
-      } else {
-        date = new Date(timestamp);
+      if (sidebar && mainContent) {
+        // Give a small delay to ensure DOM is updated
+        setTimeout(() => {
+          if (sidebar.classList.contains('sidebar-collapsed')) {
+            mainContent.style.marginLeft = '80px';
+            mainContent.style.width = 'calc(100% - 80px)';
+          } else {
+            mainContent.style.marginLeft = '256px';
+            mainContent.style.width = 'calc(100% - 256px)';
+          }
+        }, 50);
       }
-      
-      return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
     }
 
-    // Format time for display
-    function formatTime(timestamp) {
-      if (!timestamp) return '';
-      
-      let date;
-      if (timestamp.toDate) {
-        date = timestamp.toDate();
-      } else if (timestamp instanceof Date) {
-        date = timestamp;
-      } else {
-        date = new Date(timestamp);
-      }
-      
-      return date.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    }
+    // Adjust on window resize
+    window.addEventListener('resize', function() {
+      setTimeout(adjustMainContent, 100);
+    });
 
-    // Load all users from Firestore
-    async function loadUsers() {
-      try {
-        // Show loading state
-        usersTableBody.innerHTML = `
-          <tr id="loadingRow">
-            <td colspan="6" class="loading">
-              <i class="fa-solid fa-spinner"></i> Loading users...
+    // ==================== FIREBASE INITIALIZATION ====================
+    function initializeFirebase() {
+      // Firebase Configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+        authDomain: "palmaegis-setup.firebaseapp.com",
+        projectId: "palmaegis-setup",
+        storageBucket: "palmaegis-setup.appspot.com",
+        messagingSenderId: "445887502374",
+        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+      };
+
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // DOM elements
+      const usersTableBody = document.getElementById('usersTableBody');
+      const searchInput = document.getElementById('searchInput');
+      const resultCount = document.getElementById('resultCount');
+      const refreshBtn = document.getElementById('refreshBtn');
+
+      // Global variables
+      let users = [];
+
+      // Format date for display
+      function formatDate(timestamp) {
+        if (!timestamp) return '—';
+        
+        let date;
+        if (timestamp.toDate) {
+          date = timestamp.toDate();
+        } else if (timestamp instanceof Date) {
+          date = timestamp;
+        } else {
+          date = new Date(timestamp);
+        }
+        
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      }
+
+      // Format time for display
+      function formatTime(timestamp) {
+        if (!timestamp) return '';
+        
+        let date;
+        if (timestamp.toDate) {
+          date = timestamp.toDate();
+        } else if (timestamp instanceof Date) {
+          date = timestamp;
+        } else {
+          date = new Date(timestamp);
+        }
+        
+        return date.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+
+      // Load all users from Firestore
+      async function loadUsers() {
+        try {
+          // Show loading state
+          usersTableBody.innerHTML = `
+            <tr id="loadingRow">
+              <td colspan="6" class="loading">
+                <i class="fa-solid fa-spinner"></i> Loading users...
+              </td>
+            </tr>
+          `;
+
+          const querySnapshot = await db.collection('users').get();
+          users = [];
+          
+          querySnapshot.forEach((doc) => {
+            const userData = doc.data();
+            users.push({
+              id: doc.id,
+              ...userData
+            });
+          });
+
+          // Sort users by creation date (newest first)
+          users.sort((a, b) => {
+            const dateA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt)) : new Date(0);
+            const dateB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)) : new Date(0);
+            return dateB - dateA;
+          });
+
+          renderUsers(users);
+          updateResultCount(users.length);
+        } catch (error) {
+          console.error('Error loading users:', error);
+          usersTableBody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--danger); padding: 20px;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Error loading users: ${error.message}
+              </td>
+            </tr>
+          `;
+          updateResultCount(0);
+        }
+      }
+
+      // Render users to the table
+      function renderUsers(usersToRender) {
+        if (usersToRender.length === 0) {
+          usersTableBody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; color: var(--muted); padding: 40px;">
+                <i class="fa-solid fa-user-slash fa-2x mb-3"></i>
+                <div>No users found</div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
+
+        usersTableBody.innerHTML = usersToRender.map((user, index) => `
+          <tr>
+            <td class="muted">${user.id.substring(0, 6)}...</td>
+            <td>
+              <div class="font-medium">${user.firstName || '—'}</div>
+              <div class="text-xs text-gray-500">${user.lastName || ''}</div>
+            </td>
+            <td>
+              <div>${user.email || '—'}</div>
+              <div class="text-xs text-gray-500">${user.phone || ''}</div>
+            </td>
+            <td>
+              <span class="pill ${user.role === 'admin' ? 'role-admin' : 'role-user'}">
+                <i class="fas fa-${user.role === 'admin' ? 'user-shield' : 'user'} mr-1"></i>
+                ${user.role || 'user'}
+              </span>
+            </td>
+            <td>
+              <div class="text-sm">${formatDate(user.createdAt)}</div>
+              <div class="text-xs text-gray-500">${formatTime(user.createdAt)}</div>
+            </td>
+            <td class="action-btns">
+              <button class="danger delete-user" data-userid="${user.id}" title="Delete User">
+                <i class="fa-solid fa-trash"></i>
+              </button>
             </td>
           </tr>
-        `;
+        `).join('');
 
-        const querySnapshot = await db.collection('users').get();
-        users = [];
-        
-        querySnapshot.forEach((doc) => {
-          const userData = doc.data();
-          users.push({
-            id: doc.id,
-            ...userData
+        // Add event listeners to delete buttons
+        document.querySelectorAll('.delete-user').forEach(button => {
+          button.addEventListener('click', (e) => {
+            const userId = e.currentTarget.getAttribute('data-userid');
+            deleteUser(userId);
           });
         });
-
-        // Sort users by creation date (newest first)
-        users.sort((a, b) => {
-          const dateA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate() : new Date(a.createdAt)) : new Date(0);
-          const dateB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate() : new Date(b.createdAt)) : new Date(0);
-          return dateB - dateA;
-        });
-
-        renderUsers(users);
-        updateResultCount(users.length);
-      } catch (error) {
-        console.error('Error loading users:', error);
-        usersTableBody.innerHTML = `
-          <tr>
-            <td colspan="6" style="text-align: center; color: var(--danger); padding: 20px;">
-              <i class="fa-solid fa-triangle-exclamation"></i> Error loading users: ${error.message}
-            </td>
-          </tr>
-        `;
-        updateResultCount(0);
-      }
-    }
-
-    // Render users to the table
-    function renderUsers(usersToRender) {
-      if (usersToRender.length === 0) {
-        usersTableBody.innerHTML = `
-          <tr>
-            <td colspan="6" style="text-align: center; color: var(--muted); padding: 40px;">
-              <i class="fa-solid fa-user-slash fa-2x mb-3"></i>
-              <div>No users found</div>
-            </td>
-          </tr>
-        `;
-        return;
       }
 
-      usersTableBody.innerHTML = usersToRender.map((user, index) => `
-        <tr>
-          <td class="muted">${user.id.substring(0, 6)}...</td>
-          <td>
-            <div class="font-medium">${user.firstName || '—'}</div>
-            <div class="text-xs text-gray-500">${user.lastName || ''}</div>
-          </td>
-          <td>
-            <div>${user.email || '—'}</div>
-            <div class="text-xs text-gray-500">${user.phone || ''}</div>
-          </td>
-          <td>
-            <span class="pill ${user.role === 'admin' ? 'role-admin' : 'role-user'}">
-              <i class="fas fa-${user.role === 'admin' ? 'user-shield' : 'user'} mr-1"></i>
-              ${user.role || 'user'}
-            </span>
-          </td>
-          <td>
-            <div class="text-sm">${formatDate(user.createdAt)}</div>
-            <div class="text-xs text-gray-500">${formatTime(user.createdAt)}</div>
-          </td>
-          <td class="action-btns">
-            <button class="danger delete-user" data-userid="${user.id}" title="Delete User">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
-        </tr>
-      `).join('');
-
-      // Add event listeners to delete buttons
-      document.querySelectorAll('.delete-user').forEach(button => {
-        button.addEventListener('click', (e) => {
-          const userId = e.currentTarget.getAttribute('data-userid');
-          deleteUser(userId);
-        });
-      });
-    }
-
-    // Update result count display
-    function updateResultCount(count) {
-      resultCount.textContent = `${count} user${count !== 1 ? 's' : ''}`;
-    }
-
-    // Filter users based on search input
-    function filterUsers() {
-      const searchTerm = searchInput.value.toLowerCase().trim();
-      
-      if (!searchTerm) {
-        renderUsers(users);
-        updateResultCount(users.length);
-        return;
+      // Update result count display
+      function updateResultCount(count) {
+        resultCount.textContent = `${count} user${count !== 1 ? 's' : ''}`;
       }
-      
-      const filteredUsers = users.filter(user => 
-        (user.firstName && user.firstName.toLowerCase().includes(searchTerm)) ||
-        (user.email && user.email.toLowerCase().includes(searchTerm)) ||
-        (user.lastName && user.lastName.toLowerCase().includes(searchTerm)) ||
-        (user.phone && user.phone.toLowerCase().includes(searchTerm))
-      );
-      
-      renderUsers(filteredUsers);
-      updateResultCount(filteredUsers.length);
-    }
 
-    // Delete user with confirmation
-    async function deleteUser(userId) {
-      const user = users.find(u => u.id === userId);
-      
-      if (!user) {
-        alert('User not found');
-        return;
-      }
-      
-      const userName = user.firstName || user.email || 'this user';
-      
-      if (!confirm(`Are you sure you want to delete "${userName}"?\n\nThis action cannot be undone.`)) {
-        return;
-      }
-      
-      try {
-        // Show deleting state
-        const deleteBtn = document.querySelector(`button[data-userid="${userId}"]`);
-        if (deleteBtn) {
-          const originalHtml = deleteBtn.innerHTML;
-          deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-          deleteBtn.disabled = true;
-          
-          await db.collection('users').doc(userId).delete();
-          await loadUsers();
-          
-          // Show success message
-          showToast(`User "${userName}" deleted successfully`, 'success');
+      // Filter users based on search input
+      function filterUsers() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        
+        if (!searchTerm) {
+          renderUsers(users);
+          updateResultCount(users.length);
+          return;
         }
-      } catch (error) {
-        console.error('Error deleting user:', error);
-        showToast(`Error deleting user: ${error.message}`, 'error');
+        
+        const filteredUsers = users.filter(user => 
+          (user.firstName && user.firstName.toLowerCase().includes(searchTerm)) ||
+          (user.email && user.email.toLowerCase().includes(searchTerm)) ||
+          (user.lastName && user.lastName.toLowerCase().includes(searchTerm)) ||
+          (user.phone && user.phone.toLowerCase().includes(searchTerm))
+        );
+        
+        renderUsers(filteredUsers);
+        updateResultCount(filteredUsers.length);
       }
-    }
 
-    // Show toast notification
-    function showToast(message, type = 'info') {
-      // Remove existing toast
-      const existingToast = document.querySelector('.toast-notification');
-      if (existingToast) {
-        existingToast.remove();
+      // Delete user with confirmation
+      async function deleteUser(userId) {
+        const user = users.find(u => u.id === userId);
+        
+        if (!user) {
+          alert('User not found');
+          return;
+        }
+        
+        const userName = user.firstName || user.email || 'this user';
+        
+        if (!confirm(`Are you sure you want to delete "${userName}"?\n\nThis action cannot be undone.`)) {
+          return;
+        }
+        
+        try {
+          // Show deleting state
+          const deleteBtn = document.querySelector(`button[data-userid="${userId}"]`);
+          if (deleteBtn) {
+            const originalHtml = deleteBtn.innerHTML;
+            deleteBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            deleteBtn.disabled = true;
+            
+            await db.collection('users').doc(userId).delete();
+            await loadUsers();
+            
+            // Show success message
+            showToast(`User "${userName}" deleted successfully`, 'success');
+          }
+        } catch (error) {
+          console.error('Error deleting user:', error);
+          showToast(`Error deleting user: ${error.message}`, 'error');
+        }
       }
-      
-      const toast = document.createElement('div');
-      toast.className = `toast-notification ${type}`;
-      toast.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
-        ${message}
-      `;
-      
-      Object.assign(toast.style, {
-        position: 'fixed',
-        top: '20px',
-        right: '20px',
-        padding: '12px 20px',
-        borderRadius: '8px',
-        background: type === 'success' ? '#10b981' : '#ef4444',
-        color: 'white',
-        display: 'flex',
-        alignItems: 'center',
-        zIndex: '1000',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-        animation: 'slideIn 0.3s ease'
-      });
-      
-      document.body.appendChild(toast);
-      
-      // Auto remove after 3 seconds
-      setTimeout(() => {
-        toast.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-      }, 3000);
-      
-      // Add CSS for animations
-      if (!document.querySelector('#toast-styles')) {
-        const style = document.createElement('style');
-        style.id = 'toast-styles';
-        style.textContent = `
-          @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-          }
-          @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-          }
+
+      // Show toast notification
+      function showToast(message, type = 'info') {
+        // Remove existing toast
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+          existingToast.remove();
+        }
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-notification ${type}`;
+        toast.innerHTML = `
+          <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} mr-2"></i>
+          ${message}
         `;
-        document.head.appendChild(style);
+        
+        Object.assign(toast.style, {
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          background: type === 'success' ? '#10b981' : '#ef4444',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          zIndex: '1000',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          animation: 'slideIn 0.3s ease'
+        });
+        
+        document.body.appendChild(toast);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+          toast.style.animation = 'slideOut 0.3s ease';
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
       }
-    }
 
-    // Event listeners
-    document.addEventListener('DOMContentLoaded', () => {
-      // Load users on page load
-      loadUsers();
-      
-      // Search functionality
+      // Event listeners for user management
       searchInput.addEventListener('input', filterUsers);
-      
-      // Refresh button
       refreshBtn.addEventListener('click', loadUsers);
       
       // Keyboard shortcuts
@@ -791,7 +769,10 @@ document.addEventListener('DOMContentLoaded', function() {
           searchInput.focus();
         }
       });
-    });
+
+      // Initial load of users
+      loadUsers();
+    }
   </script>
 </body>
 </html>
