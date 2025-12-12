@@ -1,0 +1,57 @@
+<!-- sidebaradmin.html -->
+<aside class="w-64 bg-gradient-to-b from-green-700 to-green-800 text-white flex flex-col p-4 shadow-lg">
+  <div class="flex flex-col items-center text-center mt-6">
+    <img src="../images/logo.png" alt="Palm Aegis Logo" class="w-24 mb-3">
+    <h2 class="text-2xl font-bold">Palm Admin</h2>
+  </div>
+
+  <nav class="mt-10 flex-1">
+    <ul class="space-y-2">
+      <li>
+        <a href="../admin/admindashboard.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+          <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="user.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+          <i class="fas fa-users mr-3"></i> Users
+        </a>
+      </li>
+      <li>
+        <a href="admintreehealth.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+          <i class="fas fa-leaf mr-3"></i> Tree Health
+        </a>
+      </li>
+      <li>
+        <a href="treatment_admin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+          <i class="fas fa-pills mr-3"></i> Treatment
+        </a>
+      </li>
+      <li>
+        <a href="farmdataadmin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+          <i class="fas fa-database mr-3"></i> Farm Data
+        </a>
+      </li>
+      <li>
+        <a href="report.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+          <i class="fas fa-file-alt mr-3"></i> Reports
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="border-t border-green-600 pt-4">
+    <div class="flex items-center mb-4">
+      <div class="bg-green-600 p-3 rounded-full">
+        <i class="fas fa-user-shield text-white"></i>
+      </div>
+      <div class="ml-3">
+        <h4 id="admin-name" class="text-sm font-semibold">Admin User</h4>
+        <p id="admin-email" class="text-xs text-green-200">admin@gmail.com</p>
+      </div>
+    </div>
+    <a href="../index.html" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded-lg font-medium flex items-center justify-center transition">
+      <i class="fas fa-sign-out-alt mr-2"></i> Logout
+    </a>
+  </div>
+</aside>
