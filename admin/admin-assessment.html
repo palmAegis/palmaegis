@@ -358,447 +358,686 @@
     </div>
 
     <script>
-        // Firebase initialization
-        function initializeFirebase() {
-            // Firebase Configuration
-            const firebaseConfig = {
-                apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-                authDomain: "palmaegis-setup.firebaseapp.com",
-                projectId: "palmaegis-setup",
-                storageBucket: "palmaegis-setup.appspot.com",
-                messagingSenderId: "445887502374",
-                appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-            };
+    // Firebase initialization
+    function initializeFirebase() {
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.appspot.com",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
 
-            // Initialize Firebase
+        // Initialize Firebase only once
+        if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
-            
-            // Initialize Firestore and Auth
-            window.db = firebase.firestore();
-            window.auth = firebase.auth();
-            
-            console.log("Firebase initialized successfully");
-            
-            // Load assessments after Firebase is initialized
-            loadAssessments();
+        } else {
+            firebase.app();
         }
+        
+        // Initialize Firestore and Auth
+        window.db = firebase.firestore();
+        window.auth = firebase.auth();
+        
+        console.log("Firebase initialized successfully");
+        
+        // Check authentication state
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                console.log("User signed in:", user.email);
+                // Load assessments after user is authenticated
+                loadAssessments();
+                
+                // Add user info to dashboard
+                updateUserInfo(user);
+            } else {
+                console.log("No user signed in");
+                // Show login prompt or redirect
+                showNotification("Please sign in to manage assessments", "info");
+                
+                // For demo purposes, create sample data
+                createSampleAssessments();
+            }
+        });
+    }
 
-        // DOM Elements
-        let assessments = [];
-        let questionsCount = 0;
+    // DOM Elements and global variables
+    let assessments = [];
+    let questionsCount = 0;
+    let currentUser = null;
 
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load sidebar
-            fetch('sidebaradmin.html')
-                .then(response => response.text())
-                .then(data => {
-                    document.getElementById('sidebar-container').innerHTML = data;
-                    
-                    // Highlight current page in sidebar
-                    const currentPage = window.location.pathname.split('/').pop();
-                    const navLinks = document.querySelectorAll('aside nav a');
-                    navLinks.forEach(link => {
-                        const linkPage = link.getAttribute('href');
-                        if (linkPage === currentPage) {
-                            link.classList.add('bg-green-600');
-                            link.classList.remove('hover:bg-green-600');
-                        }
-                    });
-                    
-                    // Now adjust main content after sidebar loads
-                    adjustMainContent();
-                    
-                    // Listen for sidebar toggle events
-                    window.addEventListener('sidebarToggled', adjustMainContent);
-                })
-                .catch(error => console.error('Error loading sidebar:', error));
-            
-            // Initialize Firebase
-            initializeFirebase();
-            
-            // Initialize dashboard functionality
-            initDashboard();
+    // Main initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        // Load sidebar
+        fetch('sidebaradmin.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('sidebar-container').innerHTML = data;
+                
+                // Highlight current page in sidebar
+                const currentPage = window.location.pathname.split('/').pop();
+                const navLinks = document.querySelectorAll('aside nav a');
+                navLinks.forEach(link => {
+                    const linkPage = link.getAttribute('href');
+                    if (linkPage === currentPage) {
+                        link.classList.add('bg-green-600');
+                        link.classList.remove('hover:bg-green-600');
+                    }
+                });
+                
+                // Now adjust main content after sidebar loads
+                adjustMainContent();
+                
+                // Listen for sidebar toggle events
+                window.addEventListener('sidebarToggled', adjustMainContent);
+                
+                // Add logout event listener if logout button exists
+                const logoutBtn = document.getElementById('logout-btn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', handleLogout);
+                }
+                
+                // Now initialize Firebase
+                initializeFirebase();
+                
+                // Initialize dashboard functionality
+                initDashboard();
+            })
+            .catch(error => {
+                console.error('Error loading sidebar:', error);
+                // Initialize Firebase even if sidebar fails
+                initializeFirebase();
+                initDashboard();
+            });
+    });
+
+    // Function to adjust main content based on sidebar state
+    function adjustMainContent() {
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.querySelector('.main-content');
+        
+        if (sidebar && mainContent) {
+            // Give a small delay to ensure DOM is updated
+            setTimeout(() => {
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    mainContent.style.marginLeft = '80px';
+                    mainContent.style.width = 'calc(100% - 80px)';
+                } else {
+                    mainContent.style.marginLeft = '256px';
+                    mainContent.style.width = 'calc(100% - 256px)';
+                }
+            }, 50);
+        }
+    }
+
+    // Initialize dashboard functionality
+    function initDashboard() {
+        // Tab switching
+        document.querySelectorAll('.tab-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                
+                // Update active tab button
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('text-green-600', 'border-green-600');
+                });
+                this.classList.add('text-green-600', 'border-green-600');
+                
+                // Show selected tab content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(tabId).classList.remove('hidden');
+                
+                // Load specific assessments if needed
+                if (tabId === 'active-assessments-tab') {
+                    loadActiveAssessments();
+                } else if (tabId === 'draft-assessments') {
+                    loadDraftAssessments();
+                }
+            });
         });
 
-        // Function to adjust main content based on sidebar state
-        function adjustMainContent() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.querySelector('.main-content');
-            
-            if (sidebar && mainContent) {
-                setTimeout(() => {
-                    if (sidebar.classList.contains('sidebar-collapsed')) {
-                        mainContent.style.marginLeft = '80px';
-                        mainContent.style.width = 'calc(100% - 80px)';
-                    } else {
-                        mainContent.style.marginLeft = '256px';
-                        mainContent.style.width = 'calc(100% - 256px)';
+        // Set first tab as active
+        document.querySelector('.tab-btn').click();
+
+        // Modal handling
+        document.getElementById('create-assessment-btn').addEventListener('click', () => openAssessmentModal());
+        document.getElementById('close-modal').addEventListener('click', () => closeAssessmentModal());
+        document.getElementById('cancel-modal').addEventListener('click', () => closeAssessmentModal());
+        
+        // Add question button
+        document.getElementById('add-question').addEventListener('click', addQuestionField);
+        
+        // Form submission
+        document.getElementById('assessment-form').addEventListener('submit', handleAssessmentSubmit);
+        
+        // Save draft button
+        document.getElementById('save-draft').addEventListener('click', () => saveAssessmentAsDraft());
+        
+        // Search functionality
+        document.getElementById('search-assessments').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            filterAssessments(searchTerm);
+        });
+        
+        // Close modal on outside click
+        document.getElementById('assessment-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeAssessmentModal();
+        });
+        
+        // Filter and sort buttons (placeholder functionality)
+        document.getElementById('filter-btn').addEventListener('click', () => {
+            showNotification("Filter functionality coming soon", "info");
+        });
+        
+        document.getElementById('sort-btn').addEventListener('click', () => {
+            showNotification("Sort functionality coming soon", "info");
+        });
+    }
+
+    // ==================== FIREBASE FUNCTIONS ====================
+    
+    // Load assessments from Firebase
+    function loadAssessments() {
+        showLoading(true);
+        
+        // Check if Firestore is initialized
+        if (!window.db) {
+            console.error("Firestore not initialized");
+            showLoading(false);
+            return;
+        }
+        
+        // Get current user
+        const user = auth.currentUser;
+        
+        // If no user is logged in, show sample data for demo
+        if (!user) {
+            console.log("No user logged in, showing sample data");
+            createSampleAssessments();
+            showLoading(false);
+            return;
+        }
+        
+        currentUser = user;
+        
+        // Listen for real-time updates from assessments collection
+        // Only load assessments created by the current user
+        window.db.collection('assessments')
+            .where('createdBy', '==', user.uid)
+            .orderBy('updatedAt', 'desc')
+            .onSnapshot((querySnapshot) => {
+                assessments = [];
+                querySnapshot.forEach((doc) => {
+                    const assessment = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                    
+                    // Convert Firestore timestamps to Date objects if needed
+                    if (assessment.createdAt && assessment.createdAt.toDate) {
+                        assessment.createdAt = assessment.createdAt.toDate();
                     }
-                }, 50);
-            }
-        }
-
-        // Initialize dashboard functionality
-        function initDashboard() {
-            // Tab switching
-            document.querySelectorAll('.tab-btn').forEach(button => {
-                button.addEventListener('click', function() {
-                    const tabId = this.getAttribute('data-tab');
-                    
-                    // Update active tab button
-                    document.querySelectorAll('.tab-btn').forEach(btn => {
-                        btn.classList.remove('text-green-600', 'border-green-600');
-                    });
-                    this.classList.add('text-green-600', 'border-green-600');
-                    
-                    // Show selected tab content
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.add('hidden');
-                    });
-                    document.getElementById(tabId).classList.remove('hidden');
-                    
-                    // Load specific assessments if needed
-                    if (tabId === 'active-assessments-tab') {
-                        loadActiveAssessments();
-                    } else if (tabId === 'draft-assessments') {
-                        loadDraftAssessments();
+                    if (assessment.updatedAt && assessment.updatedAt.toDate) {
+                        assessment.updatedAt = assessment.updatedAt.toDate();
                     }
-                });
-            });
-
-            // Set first tab as active
-            document.querySelector('.tab-btn').click();
-
-            // Modal handling
-            document.getElementById('create-assessment-btn').addEventListener('click', () => openAssessmentModal());
-            document.getElementById('close-modal').addEventListener('click', () => closeAssessmentModal());
-            document.getElementById('cancel-modal').addEventListener('click', () => closeAssessmentModal());
-            
-            // Add question button
-            document.getElementById('add-question').addEventListener('click', addQuestionField);
-            
-            // Form submission
-            document.getElementById('assessment-form').addEventListener('submit', handleAssessmentSubmit);
-            
-            // Save draft button
-            document.getElementById('save-draft').addEventListener('click', () => saveAssessmentAsDraft());
-            
-            // Search functionality
-            document.getElementById('search-assessments').addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                filterAssessments(searchTerm);
-            });
-            
-            // Close modal on outside click
-            document.getElementById('assessment-modal').addEventListener('click', function(e) {
-                if (e.target === this) closeAssessmentModal();
-            });
-        }
-
-        // Firebase Functions
-        function loadAssessments() {
-            showLoading(true);
-            
-            // Check if Firestore is initialized
-            if (!window.db) {
-                console.error("Firestore not initialized");
-                showLoading(false);
-                return;
-            }
-            
-            // Get assessments from Firestore
-            window.db.collection('assessments').get()
-                .then((querySnapshot) => {
-                    assessments = [];
-                    querySnapshot.forEach((doc) => {
-                        const assessment = {
-                            id: doc.id,
-                            ...doc.data()
-                        };
-                        assessments.push(assessment);
-                    });
                     
-                    renderAssessments(assessments);
-                    updateStats();
-                    showLoading(false);
-                })
-                .catch((error) => {
-                    console.error("Error loading assessments: ", error);
-                    showLoading(false);
-                    
-                    // For demo purposes, create sample data if Firestore fails
-                    createSampleAssessments();
+                    assessments.push(assessment);
                 });
-        }
-        
-        function loadActiveAssessments() {
-            const activeAssessments = assessments.filter(a => a.status === 'active');
-            renderAssessments(activeAssessments, 'active-assessments-container');
-        }
-        
-        function loadDraftAssessments() {
-            const draftAssessments = assessments.filter(a => a.status === 'draft');
-            renderAssessments(draftAssessments, 'draft-assessments-container');
-        }
-        
-        function saveAssessmentToFirestore(assessmentData, isDraft = false) {
-            showLoading(true);
-            
-            // Set status based on draft flag
-            assessmentData.status = isDraft ? 'draft' : 'active';
-            
-            // Set timestamps
-            const now = new Date().toISOString();
-            assessmentData.createdAt = assessmentData.createdAt || now;
-            assessmentData.updatedAt = now;
-            
-            // If we have an ID, update the existing assessment
-            if (assessmentData.id) {
-                const id = assessmentData.id;
-                delete assessmentData.id;
                 
-                return window.db.collection('assessments').doc(id).update(assessmentData)
-                    .then(() => {
-                        console.log("Assessment updated successfully");
-                        loadAssessments();
-                        closeAssessmentModal();
-                        showLoading(false);
-                        showNotification('Assessment updated successfully!', 'success');
-                        return id;
-                    })
-                    .catch((error) => {
-                        console.error("Error updating assessment: ", error);
-                        showLoading(false);
-                        showNotification('Error updating assessment. Please try again.', 'error');
-                    });
-            } 
-            // Otherwise, create a new assessment
-            else {
-                delete assessmentData.id;
+                console.log(`Loaded ${assessments.length} assessments from Firebase`);
                 
-                return window.db.collection('assessments').add(assessmentData)
-                    .then((docRef) => {
-                        console.log("Assessment created with ID: ", docRef.id);
-                        loadAssessments();
-                        closeAssessmentModal();
-                        showLoading(false);
-                        showNotification('Assessment created successfully!', 'success');
-                        return docRef.id;
-                    })
-                    .catch((error) => {
-                        console.error("Error creating assessment: ", error);
-                        showLoading(false);
-                        showNotification('Error creating assessment. Please try again.', 'error');
-                    });
-            }
-        }
-        
-        function deleteAssessmentFromFirestore(assessmentId) {
-            if (!confirm("Are you sure you want to delete this assessment? This action cannot be undone.")) {
-                return;
-            }
-            
-            showLoading(true);
-            
-            window.db.collection('assessments').doc(assessmentId).delete()
-                .then(() => {
-                    console.log("Assessment deleted successfully");
-                    loadAssessments();
-                    showLoading(false);
-                    showNotification('Assessment deleted successfully!', 'success');
-                })
-                .catch((error) => {
-                    console.error("Error deleting assessment: ", error);
-                    showLoading(false);
-                    showNotification('Error deleting assessment. Please try again.', 'error');
-                });
-        }
-
-        // UI Functions
-        function renderAssessments(assessmentsArray, containerId = 'assessments-container') {
-            const container = document.getElementById(containerId);
-            
-            if (!assessmentsArray || assessmentsArray.length === 0) {
-                container.innerHTML = `
-                    <div class="col-span-full text-center py-12">
-                        <i class="fas fa-clipboard-list text-gray-300 text-5xl mb-4"></i>
-                        <p class="text-gray-500">No assessments found.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            assessmentsArray.forEach(assessment => {
-                const card = createAssessmentCard(assessment);
-                container.appendChild(card);
-            });
-        }
-        
-        function createAssessmentCard(assessment) {
-            const card = document.createElement('div');
-            card.className = 'assessment-card bg-white rounded-xl shadow p-5';
-            
-            // Determine status badge
-            let statusBadge = '';
-            if (assessment.status === 'active') {
-                statusBadge = '<span class="status-badge status-active">Active</span>';
-            } else if (assessment.status === 'draft') {
-                statusBadge = '<span class="status-badge status-draft">Draft</span>';
-            } else {
-                statusBadge = '<span class="status-badge status-completed">Completed</span>';
-            }
-            
-            // Format dates
-            const startDate = assessment.startDate ? new Date(assessment.startDate).toLocaleDateString() : 'Not set';
-            const endDate = assessment.endDate ? new Date(assessment.endDate).toLocaleDateString() : 'Not set';
-            
-            // Calculate completion percentage
-            const completion = assessment.completionRate || 0;
-            
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h4 class="font-bold text-lg text-gray-800">${assessment.title || 'Untitled Assessment'}</h4>
-                        <p class="text-gray-600 text-sm mt-1">${assessment.category || 'General'}</p>
-                    </div>
-                    ${statusBadge}
-                </div>
-                
-                <p class="text-gray-600 text-sm mb-4 line-clamp-2">${assessment.description || 'No description provided.'}</p>
-                
-                <div class="mb-4">
-                    <div class="flex justify-between text-sm text-gray-600 mb-1">
-                        <span>Completion</span>
-                        <span>${completion}%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${completion}%"></div>
-                    </div>
-                </div>
-                
-                <div class="flex justify-between text-sm text-gray-600 mb-6">
-                    <div>
-                        <i class="far fa-calendar mr-1"></i>
-                        <span>${startDate} - ${endDate}</span>
-                    </div>
-                    <div>
-                        <i class="fas fa-users mr-1"></i>
-                        <span>${assessment.participants || 0}</span>
-                    </div>
-                </div>
-                
-                <div class="flex justify-between">
-                    <button class="edit-assessment text-green-600 hover:text-green-800 text-sm font-medium" data-id="${assessment.id}">
-                        <i class="fas fa-edit mr-1"></i> Edit
-                    </button>
-                    <button class="view-results text-blue-600 hover:text-blue-800 text-sm font-medium" data-id="${assessment.id}">
-                        <i class="fas fa-chart-bar mr-1"></i> Results
-                    </button>
-                    <button class="delete-assessment text-red-600 hover:text-red-800 text-sm font-medium" data-id="${assessment.id}">
-                        <i class="fas fa-trash mr-1"></i> Delete
-                    </button>
-                </div>
-            `;
-            
-            // Add event listeners to buttons
-            card.querySelector('.edit-assessment').addEventListener('click', () => editAssessment(assessment.id));
-            card.querySelector('.delete-assessment').addEventListener('click', () => deleteAssessmentFromFirestore(assessment.id));
-            card.querySelector('.view-results').addEventListener('click', () => viewResults(assessment.id));
-            
-            return card;
-        }
-        
-        function updateStats() {
-            // Update dashboard stats
-            document.getElementById('total-assessments').textContent = assessments.length;
-            
-            const activeCount = assessments.filter(a => a.status === 'active').length;
-            document.getElementById('active-assessments').textContent = activeCount;
-            
-            // Calculate average completion
-            const totalCompletion = assessments.reduce((sum, a) => sum + (a.completionRate || 0), 0);
-            const avgCompletion = assessments.length > 0 ? Math.round(totalCompletion / assessments.length) : 0;
-            document.getElementById('avg-completion').textContent = `${avgCompletion}%`;
-            document.getElementById('completion-bar').style.width = `${avgCompletion}%`;
-            
-            // Calculate total participants
-            const totalParticipants = assessments.reduce((sum, a) => sum + (a.participants || 0), 0);
-            document.getElementById('total-participants').textContent = totalParticipants;
-        }
-        
-        function filterAssessments(searchTerm) {
-            if (!searchTerm) {
+                // Update UI
                 renderAssessments(assessments);
-                return;
+                updateStats();
+                showLoading(false);
+                
+            }, (error) => {
+                console.error("Error loading assessments: ", error);
+                showNotification("Error loading assessments. Please try again.", "error");
+                showLoading(false);
+                
+                // For demo purposes, create sample data if Firestore fails
+                createSampleAssessments();
+            });
+    }
+    
+    // Save assessment to Firebase
+    async function saveAssessmentToFirestore(assessmentData, isDraft = false) {
+        showLoading(true);
+        
+        try {
+            // Validate required fields
+            if (!assessmentData.title || assessmentData.title.trim() === '') {
+                throw new Error("Assessment title is required");
             }
             
-            const filtered = assessments.filter(assessment => {
-                return (
-                    (assessment.title && assessment.title.toLowerCase().includes(searchTerm)) ||
-                    (assessment.description && assessment.description.toLowerCase().includes(searchTerm)) ||
-                    (assessment.category && assessment.category.toLowerCase().includes(searchTerm))
-                );
-            });
+            // Get current user
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("You must be logged in to save assessments");
+            }
             
-            renderAssessments(filtered);
-        }
-        
-        function openAssessmentModal(assessmentId = null) {
-            const modal = document.getElementById('assessment-modal');
-            const title = document.getElementById('modal-title');
-            const form = document.getElementById('assessment-form');
+            // Prepare assessment data
+            const now = firebase.firestore.FieldValue.serverTimestamp();
+            const assessmentId = assessmentData.id;
+            
+            const assessmentToSave = {
+                title: assessmentData.title.trim(),
+                category: assessmentData.category || 'General',
+                description: assessmentData.description || '',
+                startDate: assessmentData.startDate || null,
+                endDate: assessmentData.endDate || null,
+                timeLimit: parseInt(assessmentData.timeLimit) || 0,
+                questions: assessmentData.questions || [],
+                status: isDraft ? 'draft' : 'active',
+                participants: parseInt(assessmentData.participants) || 0,
+                completionRate: parseInt(assessmentData.completionRate) || 0,
+                createdBy: user.uid,
+                updatedAt: now
+            };
+            
+            // Add createdAt only for new assessments
+            if (!assessmentId) {
+                assessmentToSave.createdAt = now;
+            }
+            
+            let savedAssessmentId;
             
             if (assessmentId) {
-                // Edit mode
-                title.textContent = 'Edit Assessment';
-                const assessment = assessments.find(a => a.id === assessmentId);
-                if (assessment) {
-                    populateAssessmentForm(assessment);
-                }
+                // Update existing assessment
+                await window.db.collection('assessments').doc(assessmentId).update(assessmentToSave);
+                savedAssessmentId = assessmentId;
+                console.log("Assessment updated successfully:", assessmentId);
+                showNotification('Assessment updated successfully!', 'success');
             } else {
-                // Create mode
-                title.textContent = 'Create New Assessment';
-                form.reset();
-                document.getElementById('assessment-id').value = '';
-                
-                // Clear questions container
-                document.getElementById('questions-container').innerHTML = `
-                    <div class="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg">
-                        <i class="fas fa-question-circle text-gray-300 text-3xl mb-2"></i>
-                        <p class="text-gray-500">No questions added yet</p>
-                    </div>
-                `;
-                questionsCount = 0;
+                // Create new assessment
+                const docRef = await window.db.collection('assessments').add(assessmentToSave);
+                savedAssessmentId = docRef.id;
+                console.log("Assessment created with ID: ", savedAssessmentId);
+                showNotification('Assessment created successfully!', 'success');
             }
             
-            modal.classList.remove('hidden');
-        }
-        
-        function closeAssessmentModal() {
-            document.getElementById('assessment-modal').classList.add('hidden');
-        }
-        
-        function populateAssessmentForm(assessment) {
-            document.getElementById('assessment-id').value = assessment.id;
-            document.getElementById('assessment-title').value = assessment.title || '';
-            document.getElementById('assessment-category').value = assessment.category || 'General';
-            document.getElementById('assessment-description').value = assessment.description || '';
-            document.getElementById('start-date').value = assessment.startDate || '';
-            document.getElementById('end-date').value = assessment.endDate || '';
-            document.getElementById('time-limit').value = assessment.timeLimit || '';
+            // Close modal
+            closeAssessmentModal();
             
-            // Populate questions
-            const questionsContainer = document.getElementById('questions-container');
-            questionsContainer.innerHTML = '';
+            return savedAssessmentId;
+            
+        } catch (error) {
+            console.error("Error saving assessment: ", error);
+            showNotification(`Error: ${error.message}`, 'error');
+            return null;
+        } finally {
+            showLoading(false);
+        }
+    }
+    
+    // Delete assessment from Firebase
+    async function deleteAssessmentFromFirestore(assessmentId) {
+        if (!confirm("Are you sure you want to delete this assessment? This action cannot be undone.")) {
+            return;
+        }
+        
+        showLoading(true);
+        
+        try {
+            // Get current user
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("You must be logged in to delete assessments");
+            }
+            
+            // Optional: Verify the assessment belongs to the current user
+            // For security, this should also be enforced in Firestore rules
+            const assessmentDoc = await window.db.collection('assessments').doc(assessmentId).get();
+            if (assessmentDoc.exists) {
+                const assessmentData = assessmentDoc.data();
+                if (assessmentData.createdBy !== user.uid) {
+                    throw new Error("You don't have permission to delete this assessment");
+                }
+            }
+            
+            // Delete the assessment
+            await window.db.collection('assessments').doc(assessmentId).delete();
+            
+            console.log("Assessment deleted successfully:", assessmentId);
+            showNotification('Assessment deleted successfully!', 'success');
+            
+            // Remove from local array for immediate UI update
+            assessments = assessments.filter(a => a.id !== assessmentId);
+            
+            // Update UI
+            renderAssessments(assessments);
+            updateStats();
+            
+        } catch (error) {
+            console.error("Error deleting assessment: ", error);
+            showNotification(`Error: ${error.message}`, 'error');
+        } finally {
+            showLoading(false);
+        }
+    }
+    
+    // Load active assessments
+    function loadActiveAssessments() {
+        const activeAssessments = assessments.filter(a => a.status === 'active');
+        renderAssessments(activeAssessments, 'active-assessments-container');
+    }
+    
+    // Load draft assessments
+    function loadDraftAssessments() {
+        const draftAssessments = assessments.filter(a => a.status === 'draft');
+        renderAssessments(draftAssessments, 'draft-assessments-container');
+    }
+    
+    // Update user info in UI
+    function updateUserInfo(user) {
+        // You can update the UI with user information if needed
+        console.log("User info updated:", user.email);
+    }
+    
+    // Handle logout
+    async function handleLogout() {
+        try {
+            await auth.signOut();
+            showNotification("Logged out successfully", "success");
+            // Clear local data
+            assessments = [];
+            currentUser = null;
+            // Update UI
+            renderAssessments([]);
+            updateStats();
+        } catch (error) {
+            console.error("Logout error:", error);
+            showNotification("Error logging out", "error");
+        }
+    }
+
+    // ==================== UI FUNCTIONS ====================
+    
+    // Render assessments to the UI
+    function renderAssessments(assessmentsArray, containerId = 'assessments-container') {
+        const container = document.getElementById(containerId);
+        
+        if (!assessmentsArray || assessmentsArray.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <i class="fas fa-clipboard-list text-gray-300 text-5xl mb-4"></i>
+                    <p class="text-gray-500">No assessments found. Create your first assessment!</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = '';
+        
+        assessmentsArray.forEach(assessment => {
+            const card = createAssessmentCard(assessment);
+            container.appendChild(card);
+        });
+    }
+    
+    // Create assessment card element
+    function createAssessmentCard(assessment) {
+        const card = document.createElement('div');
+        card.className = 'assessment-card bg-white rounded-xl shadow p-5';
+        
+        // Determine status badge
+        let statusBadge = '';
+        if (assessment.status === 'active') {
+            statusBadge = '<span class="status-badge status-active">Active</span>';
+        } else if (assessment.status === 'draft') {
+            statusBadge = '<span class="status-badge status-draft">Draft</span>';
+        } else if (assessment.status === 'completed') {
+            statusBadge = '<span class="status-badge status-completed">Completed</span>';
+        } else {
+            statusBadge = '<span class="status-badge status-draft">Unknown</span>';
+        }
+        
+        // Format dates
+        const startDate = assessment.startDate ? 
+            (assessment.startDate.toDate ? assessment.startDate.toDate() : new Date(assessment.startDate)).toLocaleDateString() : 
+            'Not set';
+        const endDate = assessment.endDate ? 
+            (assessment.endDate.toDate ? assessment.endDate.toDate() : new Date(assessment.endDate)).toLocaleDateString() : 
+            'Not set';
+        
+        // Calculate completion percentage
+        const completion = assessment.completionRate || 0;
+        
+        // Count questions
+        const questionCount = assessment.questions ? assessment.questions.length : 0;
+        
+        card.innerHTML = `
+            <div class="flex justify-between items-start mb-4">
+                <div>
+                    <h4 class="font-bold text-lg text-gray-800">${assessment.title || 'Untitled Assessment'}</h4>
+                    <p class="text-gray-600 text-sm mt-1">${assessment.category || 'General'}</p>
+                </div>
+                ${statusBadge}
+            </div>
+            
+            <p class="text-gray-600 text-sm mb-4 line-clamp-2">${assessment.description || 'No description provided.'}</p>
+            
+            <div class="mb-4">
+                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Completion</span>
+                    <span>${completion}%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${completion}%"></div>
+                </div>
+            </div>
+            
+            <div class="flex justify-between text-sm text-gray-600 mb-6">
+                <div>
+                    <i class="far fa-calendar mr-1"></i>
+                    <span>${startDate} - ${endDate}</span>
+                </div>
+                <div>
+                    <i class="fas fa-question-circle mr-1"></i>
+                    <span>${questionCount} questions</span>
+                </div>
+                <div>
+                    <i class="fas fa-users mr-1"></i>
+                    <span>${assessment.participants || 0}</span>
+                </div>
+            </div>
+            
+            <div class="flex justify-between">
+                <button class="edit-assessment text-green-600 hover:text-green-800 text-sm font-medium" data-id="${assessment.id}">
+                    <i class="fas fa-edit mr-1"></i> Edit
+                </button>
+                <button class="view-results text-blue-600 hover:text-blue-800 text-sm font-medium" data-id="${assessment.id}">
+                    <i class="fas fa-chart-bar mr-1"></i> Results
+                </button>
+                <button class="delete-assessment text-red-600 hover:text-red-800 text-sm font-medium" data-id="${assessment.id}">
+                    <i class="fas fa-trash mr-1"></i> Delete
+                </button>
+            </div>
+        `;
+        
+        // Add event listeners to buttons
+        card.querySelector('.edit-assessment').addEventListener('click', () => editAssessment(assessment.id));
+        card.querySelector('.delete-assessment').addEventListener('click', () => deleteAssessmentFromFirestore(assessment.id));
+        card.querySelector('.view-results').addEventListener('click', () => viewResults(assessment.id));
+        
+        return card;
+    }
+    
+    // Update dashboard statistics
+    function updateStats() {
+        // Update dashboard stats
+        document.getElementById('total-assessments').textContent = assessments.length;
+        
+        const activeCount = assessments.filter(a => a.status === 'active').length;
+        document.getElementById('active-assessments').textContent = activeCount;
+        
+        // Calculate average completion
+        const totalCompletion = assessments.reduce((sum, a) => sum + (a.completionRate || 0), 0);
+        const avgCompletion = assessments.length > 0 ? Math.round(totalCompletion / assessments.length) : 0;
+        document.getElementById('avg-completion').textContent = `${avgCompletion}%`;
+        document.getElementById('completion-bar').style.width = `${avgCompletion}%`;
+        
+        // Calculate total participants
+        const totalParticipants = assessments.reduce((sum, a) => sum + (a.participants || 0), 0);
+        document.getElementById('total-participants').textContent = totalParticipants;
+    }
+    
+    // Filter assessments by search term
+    function filterAssessments(searchTerm) {
+        if (!searchTerm) {
+            renderAssessments(assessments);
+            return;
+        }
+        
+        const filtered = assessments.filter(assessment => {
+            return (
+                (assessment.title && assessment.title.toLowerCase().includes(searchTerm)) ||
+                (assessment.description && assessment.description.toLowerCase().includes(searchTerm)) ||
+                (assessment.category && assessment.category.toLowerCase().includes(searchTerm))
+            );
+        });
+        
+        renderAssessments(filtered);
+    }
+    
+    // Open assessment modal for creating/editing
+    function openAssessmentModal(assessmentId = null) {
+        const modal = document.getElementById('assessment-modal');
+        const title = document.getElementById('modal-title');
+        const form = document.getElementById('assessment-form');
+        
+        if (assessmentId) {
+            // Edit mode
+            title.textContent = 'Edit Assessment';
+            const assessment = assessments.find(a => a.id === assessmentId);
+            if (assessment) {
+                populateAssessmentForm(assessment);
+            }
+        } else {
+            // Create mode
+            title.textContent = 'Create New Assessment';
+            form.reset();
+            document.getElementById('assessment-id').value = '';
+            
+            // Set default dates (today for start, 30 days from now for end)
+            const today = new Date().toISOString().split('T')[0];
+            const futureDate = new Date();
+            futureDate.setDate(futureDate.getDate() + 30);
+            const futureDateStr = futureDate.toISOString().split('T')[0];
+            
+            document.getElementById('start-date').value = today;
+            document.getElementById('end-date').value = futureDateStr;
+            
+            // Clear questions container
+            document.getElementById('questions-container').innerHTML = `
+                <div class="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg">
+                    <i class="fas fa-question-circle text-gray-300 text-3xl mb-2"></i>
+                    <p class="text-gray-500">No questions added yet</p>
+                </div>
+            `;
             questionsCount = 0;
+        }
+        
+        modal.classList.remove('hidden');
+    }
+    
+    // Close assessment modal
+    function closeAssessmentModal() {
+        document.getElementById('assessment-modal').classList.add('hidden');
+    }
+    
+    // Populate form with assessment data
+    function populateAssessmentForm(assessment) {
+        document.getElementById('assessment-id').value = assessment.id;
+        document.getElementById('assessment-title').value = assessment.title || '';
+        document.getElementById('assessment-category').value = assessment.category || 'General';
+        document.getElementById('assessment-description').value = assessment.description || '';
+        document.getElementById('start-date').value = assessment.startDate || '';
+        document.getElementById('end-date').value = assessment.endDate || '';
+        document.getElementById('time-limit').value = assessment.timeLimit || '';
+        
+        // Populate questions
+        const questionsContainer = document.getElementById('questions-container');
+        questionsContainer.innerHTML = '';
+        questionsCount = 0;
+        
+        if (assessment.questions && assessment.questions.length > 0) {
+            assessment.questions.forEach((question, index) => {
+                addQuestionField(question, index);
+            });
+        } else {
+            questionsContainer.innerHTML = `
+                <div class="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg">
+                    <i class="fas fa-question-circle text-gray-300 text-3xl mb-2"></i>
+                    <p class="text-gray-500">No questions added yet</p>
+                </div>
+            `;
+        }
+    }
+    
+    // Add question field to form
+    function addQuestionField(questionData = null, index = null) {
+        const questionsContainer = document.getElementById('questions-container');
+        
+        // Remove the placeholder if it exists
+        if (questionsContainer.querySelector('.text-center.border-dashed')) {
+            questionsContainer.innerHTML = '';
+        }
+        
+        questionsCount++;
+        const questionId = index !== null ? index + 1 : questionsCount;
+        
+        const questionElement = document.createElement('div');
+        questionElement.className = 'question-item bg-gray-50 p-4 rounded-lg';
+        questionElement.innerHTML = `
+            <div class="flex justify-between items-start mb-3">
+                <span class="font-medium text-gray-700">Question ${questionId}</span>
+                <button type="button" class="remove-question text-red-500 hover:text-red-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="mb-3">
+                <input type="text" class="question-text w-full px-3 py-2 border rounded-lg" 
+                       placeholder="Enter your question" 
+                       value="${questionData ? questionData.text : ''}" required>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-3">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Type</label>
+                    <select class="question-type w-full px-3 py-2 border rounded-lg">
+                        <option value="multiple-choice" ${questionData && questionData.type === 'multiple-choice' ? 'selected' : ''}>Multiple Choice</option>
+                        <option value="true-false" ${questionData && questionData.type === 'true-false' ? 'selected' : ''}>True/False</option>
+                        <option value="short-answer" ${questionData && questionData.type === 'short-answer' ? 'selected' : ''}>Short Answer</option>
+                        <option value="essay" ${questionData && questionData.type === 'essay' ? 'selected' : ''}>Essay</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Points</label>
+                    <input type="number" class="question-points w-full px-3 py-2 border rounded-lg" 
+                           placeholder="10" min="1" 
+                           value="${questionData ? questionData.points : 10}">
+                </div>
+            </div>
+            <div class="options-container ${questionData && questionData.type === 'multiple-choice' ? '' : 'hidden'}">
+                <label class="block text-sm text-gray-600 mb-2">Options (one per line)</label>
+                <textarea class="question-options w-full px-3 py-2 border rounded-lg" rows="3" 
+                          placeholder="Option A\nOption B\nOption C\nOption D">${questionData && questionData.options ? questionData.options.join('\n') : ''}</textarea>
+            </div>
+        `;
+        
+        questionsContainer.appendChild(questionElement);
+        
+        // Add event listener to remove button
+        questionElement.querySelector('.remove-question').addEventListener('click', function() {
+            questionElement.remove();
             
-            if (assessment.questions && assessment.questions.length > 0) {
-                assessment.questions.forEach((question, index) => {
-                    addQuestionField(question, index);
-                });
-            } else {
+            // If no questions left, show placeholder
+            if (questionsContainer.children.length === 0) {
                 questionsContainer.innerHTML = `
                     <div class="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg">
                         <i class="fas fa-question-circle text-gray-300 text-3xl mb-2"></i>
@@ -806,282 +1045,253 @@
                     </div>
                 `;
             }
-        }
+        });
         
-        function addQuestionField(questionData = null, index = null) {
-            const questionsContainer = document.getElementById('questions-container');
-            
-            // Remove the placeholder if it exists
-            if (questionsContainer.querySelector('.text-center.border-dashed')) {
-                questionsContainer.innerHTML = '';
-            }
-            
-            questionsCount++;
-            const questionId = index !== null ? index : questionsCount;
-            
-            const questionElement = document.createElement('div');
-            questionElement.className = 'question-item bg-gray-50 p-4 rounded-lg';
-            questionElement.innerHTML = `
-                <div class="flex justify-between items-start mb-3">
-                    <span class="font-medium text-gray-700">Question ${questionId}</span>
-                    <button type="button" class="remove-question text-red-500 hover:text-red-700">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="mb-3">
-                    <input type="text" class="question-text w-full px-3 py-2 border rounded-lg" 
-                           placeholder="Enter your question" 
-                           value="${questionData ? questionData.text : ''}" required>
-                </div>
-                <div class="grid grid-cols-2 gap-3 mb-3">
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">Type</label>
-                        <select class="question-type w-full px-3 py-2 border rounded-lg">
-                            <option value="multiple-choice" ${questionData && questionData.type === 'multiple-choice' ? 'selected' : ''}>Multiple Choice</option>
-                            <option value="true-false" ${questionData && questionData.type === 'true-false' ? 'selected' : ''}>True/False</option>
-                            <option value="short-answer" ${questionData && questionData.type === 'short-answer' ? 'selected' : ''}>Short Answer</option>
-                            <option value="essay" ${questionData && questionData.type === 'essay' ? 'selected' : ''}>Essay</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">Points</label>
-                        <input type="number" class="question-points w-full px-3 py-2 border rounded-lg" 
-                               placeholder="10" min="1" 
-                               value="${questionData ? questionData.points : 10}">
-                    </div>
-                </div>
-                <div class="options-container ${questionData && questionData.type === 'multiple-choice' ? '' : 'hidden'}">
-                    <label class="block text-sm text-gray-600 mb-2">Options (one per line)</label>
-                    <textarea class="question-options w-full px-3 py-2 border rounded-lg" rows="3" 
-                              placeholder="Option A\nOption B\nOption C\nOption D">${questionData && questionData.options ? questionData.options.join('\n') : ''}</textarea>
-                </div>
-            `;
-            
-            questionsContainer.appendChild(questionElement);
-            
-            // Add event listener to remove button
-            questionElement.querySelector('.remove-question').addEventListener('click', function() {
-                questionElement.remove();
-                
-                // If no questions left, show placeholder
-                if (questionsContainer.children.length === 0) {
-                    questionsContainer.innerHTML = `
-                        <div class="text-center py-6 border-2 border-dashed border-gray-300 rounded-lg">
-                            <i class="fas fa-question-circle text-gray-300 text-3xl mb-2"></i>
-                            <p class="text-gray-500">No questions added yet</p>
-                        </div>
-                    `;
-                }
-            });
-            
-            // Add event listener to question type to show/hide options
-            const typeSelect = questionElement.querySelector('.question-type');
-            const optionsContainer = questionElement.querySelector('.options-container');
-            
-            typeSelect.addEventListener('change', function() {
-                if (this.value === 'multiple-choice') {
-                    optionsContainer.classList.remove('hidden');
-                } else {
-                    optionsContainer.classList.add('hidden');
-                }
-            });
-        }
+        // Add event listener to question type to show/hide options
+        const typeSelect = questionElement.querySelector('.question-type');
+        const optionsContainer = questionElement.querySelector('.options-container');
         
-        function handleAssessmentSubmit(e) {
-            e.preventDefault();
-            
-            // Collect form data
-            const assessmentData = {
-                id: document.getElementById('assessment-id').value,
-                title: document.getElementById('assessment-title').value,
-                category: document.getElementById('assessment-category').value,
-                description: document.getElementById('assessment-description').value,
-                startDate: document.getElementById('start-date').value,
-                endDate: document.getElementById('end-date').value,
-                timeLimit: parseInt(document.getElementById('time-limit').value) || 0,
-                questions: collectQuestionsData(),
-                participants: 0,
-                completionRate: 0
-            };
-            
-            // Save to Firebase
-            saveAssessmentToFirestore(assessmentData, false);
-        }
-        
-        function saveAssessmentAsDraft() {
-            // Collect form data
-            const assessmentData = {
-                id: document.getElementById('assessment-id').value,
-                title: document.getElementById('assessment-title').value,
-                category: document.getElementById('assessment-category').value,
-                description: document.getElementById('assessment-description').value,
-                startDate: document.getElementById('start-date').value,
-                endDate: document.getElementById('end-date').value,
-                timeLimit: parseInt(document.getElementById('time-limit').value) || 0,
-                questions: collectQuestionsData(),
-                participants: 0,
-                completionRate: 0
-            };
-            
-            // Save as draft to Firebase
-            saveAssessmentToFirestore(assessmentData, true);
-        }
-        
-        function collectQuestionsData() {
-            const questions = [];
-            const questionElements = document.querySelectorAll('.question-item');
-            
-            questionElements.forEach((element, index) => {
-                const questionText = element.querySelector('.question-text').value;
-                const questionType = element.querySelector('.question-type').value;
-                const questionPoints = parseInt(element.querySelector('.question-points').value) || 10;
-                
-                if (questionText.trim() !== '') {
-                    const question = {
-                        text: questionText,
-                        type: questionType,
-                        points: questionPoints
-                    };
-                    
-                    if (questionType === 'multiple-choice') {
-                        const optionsText = element.querySelector('.question-options').value;
-                        question.options = optionsText.split('\n').filter(opt => opt.trim() !== '');
-                    }
-                    
-                    questions.push(question);
-                }
-            });
-            
-            return questions;
-        }
-        
-        function editAssessment(assessmentId) {
-            openAssessmentModal(assessmentId);
-        }
-        
-        function viewResults(assessmentId) {
-            showNotification('Results view would open here. Assessment ID: ' + assessmentId, 'info');
-            // In a full implementation, this would open a results dashboard for the assessment
-        }
-        
-        function showLoading(show) {
-            const spinner = document.getElementById('loading-spinner');
-            if (show) {
-                spinner.classList.remove('hidden');
+        typeSelect.addEventListener('change', function() {
+            if (this.value === 'multiple-choice') {
+                optionsContainer.classList.remove('hidden');
             } else {
-                spinner.classList.add('hidden');
+                optionsContainer.classList.add('hidden');
             }
+        });
+    }
+    
+    // Handle form submission
+    function handleAssessmentSubmit(e) {
+        e.preventDefault();
+        
+        // Collect form data
+        const assessmentData = {
+            id: document.getElementById('assessment-id').value,
+            title: document.getElementById('assessment-title').value,
+            category: document.getElementById('assessment-category').value,
+            description: document.getElementById('assessment-description').value,
+            startDate: document.getElementById('start-date').value,
+            endDate: document.getElementById('end-date').value,
+            timeLimit: parseInt(document.getElementById('time-limit').value) || 0,
+            questions: collectQuestionsData(),
+            participants: 0,
+            completionRate: 0
+        };
+        
+        // Save to Firebase
+        saveAssessmentToFirestore(assessmentData, false);
+    }
+    
+    // Save assessment as draft
+    function saveAssessmentAsDraft() {
+        // Collect form data
+        const assessmentData = {
+            id: document.getElementById('assessment-id').value,
+            title: document.getElementById('assessment-title').value,
+            category: document.getElementById('assessment-category').value,
+            description: document.getElementById('assessment-description').value,
+            startDate: document.getElementById('start-date').value,
+            endDate: document.getElementById('end-date').value,
+            timeLimit: parseInt(document.getElementById('time-limit').value) || 0,
+            questions: collectQuestionsData(),
+            participants: 0,
+            completionRate: 0
+        };
+        
+        // If title is empty, provide a default
+        if (!assessmentData.title || assessmentData.title.trim() === '') {
+            assessmentData.title = "Untitled Assessment (Draft)";
         }
         
-        function showNotification(message, type = 'info') {
-            // Create notification element
-            const notification = document.createElement('div');
-            notification.className = `fixed top-6 right-6 z-50 px-6 py-4 rounded-lg shadow-lg text-white font-medium transform translate-x-full transition-transform duration-300`;
-            
-            if (type === 'success') {
-                notification.classList.add('bg-green-600');
-            } else if (type === 'error') {
-                notification.classList.add('bg-red-600');
-            } else {
-                notification.classList.add('bg-blue-600');
-            }
-            
-            notification.innerHTML = `
-                <div class="flex items-center">
-                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'} mr-3"></i>
-                    <span>${message}</span>
-                </div>
-            `;
-            
-            document.body.appendChild(notification);
-            
-            // Animate in
-            setTimeout(() => {
-                notification.classList.remove('translate-x-full');
-            }, 10);
-            
-            // Remove after 5 seconds
-            setTimeout(() => {
-                notification.classList.add('translate-x-full');
-                setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 5000);
-        }
+        // Save as draft to Firebase
+        saveAssessmentToFirestore(assessmentData, true);
+    }
+    
+    // Collect questions data from form
+    function collectQuestionsData() {
+        const questions = [];
+        const questionElements = document.querySelectorAll('.question-item');
         
-        // Sample data for demo purposes
-        function createSampleAssessments() {
-            console.log("Creating sample assessments for demo");
+        questionElements.forEach((element, index) => {
+            const questionText = element.querySelector('.question-text').value;
+            const questionType = element.querySelector('.question-type').value;
+            const questionPoints = parseInt(element.querySelector('.question-points').value) || 10;
             
-            assessments = [
-                {
-                    id: '1',
-                    title: 'JavaScript Fundamentals',
-                    category: 'Technical',
-                    description: 'Test your knowledge of JavaScript basics including variables, functions, and control structures.',
-                    status: 'active',
-                    startDate: '2023-10-01',
-                    endDate: '2023-12-31',
-                    timeLimit: 60,
-                    questions: [
-                        { text: 'What is the result of typeof null?', type: 'multiple-choice', points: 10, options: ['object', 'null', 'undefined', 'string'] },
-                        { text: 'JavaScript is a case-sensitive language.', type: 'true-false', points: 5 }
-                    ],
-                    participants: 42,
-                    completionRate: 78
-                },
-                {
-                    id: '2',
-                    title: 'Team Collaboration Skills',
-                    category: 'Behavioral',
-                    description: 'Assess your ability to work effectively in a team environment.',
-                    status: 'draft',
-                    startDate: '',
-                    endDate: '',
-                    timeLimit: 45,
-                    questions: [
-                        { text: 'Describe a time when you had to resolve a conflict within your team.', type: 'essay', points: 20 }
-                    ],
-                    participants: 0,
-                    completionRate: 0
-                },
-                {
-                    id: '3',
-                    title: 'Project Management Principles',
-                    category: 'Skills',
-                    description: 'Evaluate your understanding of key project management concepts and methodologies.',
-                    status: 'active',
-                    startDate: '2023-11-01',
-                    endDate: '2024-01-15',
-                    timeLimit: 90,
-                    questions: [
-                        { text: 'What does PMBOK stand for?', type: 'short-answer', points: 10 },
-                        { text: 'Which methodology is known for its iterative approach?', type: 'multiple-choice', points: 15, options: ['Waterfall', 'Agile', 'Prince2', 'Six Sigma'] }
-                    ],
-                    participants: 28,
-                    completionRate: 65
-                },
-                {
-                    id: '4',
-                    title: 'Customer Service Excellence',
-                    category: 'General',
-                    description: 'Measure your skills in handling customer interactions and resolving issues.',
-                    status: 'completed',
-                    startDate: '2023-09-01',
-                    endDate: '2023-10-31',
-                    timeLimit: 30,
-                    questions: [
-                        { text: 'What is the first step in handling a customer complaint?', type: 'multiple-choice', points: 10, options: ['Listen actively', 'Offer a solution', 'Apologize', 'Escalate to supervisor'] }
-                    ],
-                    participants: 56,
-                    completionRate: 92
+            if (questionText.trim() !== '') {
+                const question = {
+                    text: questionText,
+                    type: questionType,
+                    points: questionPoints
+                };
+                
+                if (questionType === 'multiple-choice') {
+                    const optionsText = element.querySelector('.question-options').value;
+                    question.options = optionsText.split('\n').filter(opt => opt.trim() !== '');
                 }
-            ];
-            
-            renderAssessments(assessments);
-            updateStats();
-            showLoading(false);
+                
+                questions.push(question);
+            }
+        });
+        
+        return questions;
+    }
+    
+    // Edit assessment
+    function editAssessment(assessmentId) {
+        openAssessmentModal(assessmentId);
+    }
+    
+    // View results (placeholder)
+    function viewResults(assessmentId) {
+        showNotification('Results view would open here. Assessment ID: ' + assessmentId, 'info');
+        // In a full implementation, this would open a results dashboard for the assessment
+    }
+    
+    // Show/hide loading spinner
+    function showLoading(show) {
+        const spinner = document.getElementById('loading-spinner');
+        if (show) {
+            spinner.classList.remove('hidden');
+        } else {
+            spinner.classList.add('hidden');
         }
-    </script>
+    }
+    
+    // Show notification
+    function showNotification(message, type = 'info') {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `fixed top-6 right-6 z-50 px-6 py-4 rounded-lg shadow-lg text-white font-medium transform translate-x-full transition-transform duration-300`;
+        
+        if (type === 'success') {
+            notification.classList.add('bg-green-600');
+        } else if (type === 'error') {
+            notification.classList.add('bg-red-600');
+        } else if (type === 'warning') {
+            notification.classList.add('bg-yellow-600');
+        } else {
+            notification.classList.add('bg-blue-600');
+        }
+        
+        const icon = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        }[type] || 'info-circle';
+        
+        notification.innerHTML = `
+            <div class="flex items-center">
+                <i class="fas fa-${icon} mr-3"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 10);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 5000);
+    }
+    
+    // ==================== SAMPLE DATA FOR DEMO ====================
+    
+    // Create sample assessments for demo purposes
+    function createSampleAssessments() {
+        console.log("Creating sample assessments for demo");
+        
+        assessments = [
+            {
+                id: '1',
+                title: 'JavaScript Fundamentals',
+                category: 'Technical',
+                description: 'Test your knowledge of JavaScript basics including variables, functions, and control structures.',
+                status: 'active',
+                startDate: '2023-10-01',
+                endDate: '2023-12-31',
+                timeLimit: 60,
+                questions: [
+                    { text: 'What is the result of typeof null?', type: 'multiple-choice', points: 10, options: ['object', 'null', 'undefined', 'string'] },
+                    { text: 'JavaScript is a case-sensitive language.', type: 'true-false', points: 5 }
+                ],
+                participants: 42,
+                completionRate: 78,
+                createdBy: 'demo-user',
+                createdAt: new Date('2023-09-15'),
+                updatedAt: new Date('2023-09-20')
+            },
+            {
+                id: '2',
+                title: 'Team Collaboration Skills',
+                category: 'Behavioral',
+                description: 'Assess your ability to work effectively in a team environment.',
+                status: 'draft',
+                startDate: '',
+                endDate: '',
+                timeLimit: 45,
+                questions: [
+                    { text: 'Describe a time when you had to resolve a conflict within your team.', type: 'essay', points: 20 }
+                ],
+                participants: 0,
+                completionRate: 0,
+                createdBy: 'demo-user',
+                createdAt: new Date('2023-10-05'),
+                updatedAt: new Date('2023-10-05')
+            },
+            {
+                id: '3',
+                title: 'Project Management Principles',
+                category: 'Skills',
+                description: 'Evaluate your understanding of key project management concepts and methodologies.',
+                status: 'active',
+                startDate: '2023-11-01',
+                endDate: '2024-01-15',
+                timeLimit: 90,
+                questions: [
+                    { text: 'What does PMBOK stand for?', type: 'short-answer', points: 10 },
+                    { text: 'Which methodology is known for its iterative approach?', type: 'multiple-choice', points: 15, options: ['Waterfall', 'Agile', 'Prince2', 'Six Sigma'] }
+                ],
+                participants: 28,
+                completionRate: 65,
+                createdBy: 'demo-user',
+                createdAt: new Date('2023-10-10'),
+                updatedAt: new Date('2023-10-12')
+            },
+            {
+                id: '4',
+                title: 'Customer Service Excellence',
+                category: 'General',
+                description: 'Measure your skills in handling customer interactions and resolving issues.',
+                status: 'completed',
+                startDate: '2023-09-01',
+                endDate: '2023-10-31',
+                timeLimit: 30,
+                questions: [
+                    { text: 'What is the first step in handling a customer complaint?', type: 'multiple-choice', points: 10, options: ['Listen actively', 'Offer a solution', 'Apologize', 'Escalate to supervisor'] }
+                ],
+                participants: 56,
+                completionRate: 92,
+                createdBy: 'demo-user',
+                createdAt: new Date('2023-08-20'),
+                updatedAt: new Date('2023-11-01')
+            }
+        ];
+        
+        renderAssessments(assessments);
+        updateStats();
+        showLoading(false);
+    }
+</script>
 </body>
 </html>
