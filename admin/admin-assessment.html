@@ -145,6 +145,15 @@
             background-color: #d68910;
         }
         
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
         /* Stats Cards */
         .stats-cards {
             display: grid;
@@ -207,6 +216,10 @@
             background-color: #9b59b6;
         }
         
+        .icon-red {
+            background-color: #e74c3c;
+        }
+        
         .card-value {
             font-size: 1.8rem;
             font-weight: 700;
@@ -262,22 +275,28 @@
             font-size: 0.95rem;
         }
         
-        /* Table */
+        /* Assessments Table */
         .table-container {
             background-color: white;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             margin-bottom: 30px;
+            max-height: 600px;
+            overflow-y: auto;
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 1200px;
         }
         
         thead {
             background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         
         th {
@@ -289,12 +308,14 @@
             font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            white-space: nowrap;
         }
         
         td {
             padding: 15px;
             border-bottom: 1px solid #eaeaea;
             color: #555;
+            vertical-align: top;
         }
         
         tbody tr:hover {
@@ -306,6 +327,9 @@
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            min-width: 100px;
         }
         
         .status-pending {
@@ -318,9 +342,29 @@
             color: #155724;
         }
         
-        .status-in-progress {
+        .status-inprogress {
             background-color: #d1ecf1;
             color: #0c5460;
+        }
+        
+        .health-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block;
+            text-align: center;
+            min-width: 100px;
+        }
+        
+        .health-status-healthy {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .health-status-not-healthy {
+            background-color: #f8d7da;
+            color: #721c24;
         }
         
         .action-buttons {
@@ -399,7 +443,7 @@
             color: #bdc3c7;
         }
         
-        /* Modal */
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -411,14 +455,18 @@
             z-index: 1000;
             align-items: center;
             justify-content: center;
+            overflow-y: auto;
+            padding: 20px;
         }
         
         .modal-content {
             background-color: white;
             border-radius: 8px;
             width: 90%;
-            max-width: 500px;
-            overflow: hidden;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
         }
         
         .modal-header {
@@ -428,6 +476,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
         
         .modal-header h3 {
@@ -446,23 +497,113 @@
             padding: 20px;
         }
         
-        .form-group {
+        .assessment-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .detail-group {
             margin-bottom: 15px;
         }
         
-        .form-group label {
+        .detail-group label {
             display: block;
-            margin-bottom: 5px;
             font-weight: 600;
             color: #555;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
         }
         
-        .form-control {
-            width: 100%;
+        .detail-value {
             padding: 10px;
-            border: 1px solid #ddd;
+            background-color: #f8f9fa;
             border-radius: 5px;
-            font-size: 1rem;
+            border: 1px solid #eaeaea;
+            word-break: break-word;
+        }
+        
+        .detail-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 5px;
+            display: block;
+            margin: 10px auto;
+            border: 1px solid #ddd;
+        }
+        
+        .detail-section {
+            margin-bottom: 30px;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .detail-section-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #eaeaea;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .detail-section-body {
+            padding: 15px;
+        }
+        
+        .detection-item, .treatment-item {
+            padding: 15px;
+            border: 1px solid #eaeaea;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+        }
+        
+        .detection-item:last-child, .treatment-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .detection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        
+        .detection-property {
+            margin-bottom: 5px;
+        }
+        
+        .detection-property label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .detection-property span {
+            display: block;
+            font-size: 0.95rem;
+        }
+        
+        .treatment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .treatment-property {
+            margin-bottom: 5px;
+        }
+        
+        .treatment-property label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+        
+        .treatment-property span {
+            display: block;
+            font-size: 0.95rem;
         }
         
         .modal-footer {
@@ -471,9 +612,33 @@
             display: flex;
             justify-content: flex-end;
             gap: 10px;
+            border-top: 1px solid #eaeaea;
+            position: sticky;
+            bottom: 0;
+        }
+        
+        /* Pagination Info */
+        .pagination-info {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            padding: 10px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         }
         
         /* Responsive */
+        @media (max-width: 1200px) {
+            .assessment-detail-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+        
         @media (max-width: 992px) {
             .container {
                 flex-direction: column;
@@ -491,6 +656,10 @@
             
             .nav-links li {
                 white-space: nowrap;
+            }
+            
+            .treatment-grid {
+                grid-template-columns: 1fr;
             }
         }
         
@@ -510,9 +679,23 @@
                 padding: 10px 5px;
             }
             
-            .action-buttons {
-                flex-direction: column;
+            .detection-grid {
+                grid-template-columns: 1fr;
             }
+        }
+        
+        /* Image Preview */
+        .image-preview-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -541,8 +724,8 @@
                     <button class="btn btn-primary" id="refreshBtn">
                         <i class="fas fa-sync-alt"></i> Refresh Data
                     </button>
-                    <button class="btn btn-success" id="addAssessmentBtn">
-                        <i class="fas fa-plus"></i> Add Assessment
+                    <button class="btn btn-success" id="exportBtn">
+                        <i class="fas fa-download"></i> Export Data
                     </button>
                 </div>
             </div>
@@ -557,40 +740,40 @@
                         </div>
                     </div>
                     <div class="card-value" id="totalAssessments">0</div>
-                    <div class="card-change">All time assessments</div>
+                    <div class="card-change">All assessments</div>
                 </div>
                 
                 <div class="card">
                     <div class="card-header">
-                        <span class="card-title">Completed</span>
+                        <span class="card-title">Healthy Plants</span>
                         <div class="card-icon icon-green">
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-leaf"></i>
                         </div>
                     </div>
-                    <div class="card-value" id="completedAssessments">0</div>
-                    <div class="card-change">Successfully finished</div>
+                    <div class="card-value" id="healthyAssessments">0</div>
+                    <div class="card-change">Healthy status</div>
                 </div>
                 
                 <div class="card">
                     <div class="card-header">
-                        <span class="card-title">In Progress</span>
-                        <div class="card-icon icon-orange">
-                            <i class="fas fa-spinner"></i>
+                        <span class="card-title">Not Healthy</span>
+                        <div class="card-icon icon-red">
+                            <i class="fas fa-bug"></i>
                         </div>
                     </div>
-                    <div class="card-value" id="inProgressAssessments">0</div>
-                    <div class="card-change">Currently active</div>
+                    <div class="card-value" id="notHealthyAssessments">0</div>
+                    <div class="card-change">Requires treatment</div>
                 </div>
                 
                 <div class="card">
                     <div class="card-header">
-                        <span class="card-title">Pending</span>
+                        <span class="card-title">Detections</span>
                         <div class="card-icon icon-purple">
-                            <i class="fas fa-clock"></i>
+                            <i class="fas fa-search"></i>
                         </div>
                     </div>
-                    <div class="card-value" id="pendingAssessments">0</div>
-                    <div class="card-change">Not yet started</div>
+                    <div class="card-value" id="totalDetections">0</div>
+                    <div class="card-change">Total detections found</div>
                 </div>
             </div>
             
@@ -599,16 +782,22 @@
                 <h3><i class="fas fa-filter"></i> Filter Assessments</h3>
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label for="searchInput">Search by Title or User</label>
+                        <label for="searchInput">Search by ID, Location or User</label>
                         <input type="text" id="searchInput" class="filter-input" placeholder="Enter keywords...">
                     </div>
                     <div class="filter-group">
-                        <label for="statusFilter">Status</label>
-                        <select id="statusFilter" class="filter-input">
+                        <label for="healthFilter">Health Status</label>
+                        <select id="healthFilter" class="filter-input">
                             <option value="all">All Statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
+                            <option value="Healthy">Healthy</option>
+                            <option value="Not Healthy">Not Healthy</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="diseaseFilter">Disease</label>
+                        <select id="diseaseFilter" class="filter-input">
+                            <option value="all">All Diseases</option>
+                            <option value="black spot">Black Spot</option>
                         </select>
                     </div>
                     <div class="filter-group">
@@ -624,6 +813,9 @@
                         <button class="btn btn-primary" id="applyFiltersBtn">
                             <i class="fas fa-filter"></i> Apply Filters
                         </button>
+                        <button class="btn btn-warning" id="clearFiltersBtn" style="margin-top: 5px;">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </button>
                     </div>
                 </div>
             </div>
@@ -638,19 +830,21 @@
                 <div id="emptyState" class="empty-state" style="display: none;">
                     <i class="fas fa-clipboard-list"></i>
                     <h3>No Assessments Found</h3>
-                    <p>There are no assessment records to display. Try adding a new assessment or adjust your filters.</p>
+                    <p>There are no assessment records to display. Try adjusting your filters.</p>
                 </div>
                 
                 <table id="assessmentsTable" style="display: none;">
                     <thead>
                         <tr>
                             <th>ID</th>
-                            <th>Title</th>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Disease</th>
+                            <th>Health Status</th>
+                            <th>Detection Count</th>
+                            <th>Confidence Threshold</th>
                             <th>User</th>
-                            <th>Status</th>
-                            <th>Score</th>
-                            <th>Date Created</th>
-                            <th>Last Updated</th>
+                            <th>Next Assessment</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -661,50 +855,125 @@
             </div>
             
             <!-- Pagination Info -->
-            <div style="text-align: center; color: #7f8c8d; margin-bottom: 30px;">
+            <div class="pagination-info">
                 Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> assessments
             </div>
         </div>
     </div>
     
-    <!-- Add/Edit Assessment Modal -->
-    <div id="assessmentModal" class="modal">
+    <!-- Assessment Detail Modal -->
+    <div id="assessmentDetailModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="modalTitle">Add New Assessment</h3>
-                <button class="close-modal" id="closeModalBtn">&times;</button>
+                <h3 id="modalTitle">Assessment Details</h3>
+                <button class="close-modal" id="closeDetailModalBtn">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="assessmentForm">
-                    <div class="form-group">
-                        <label for="assessmentTitle">Assessment Title *</label>
-                        <input type="text" id="assessmentTitle" class="form-control" required>
+                <div id="detailLoading" class="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Loading assessment details...</p>
+                </div>
+                
+                <div id="detailContent" style="display: none;">
+                    <!-- Basic Information -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <i class="fas fa-info-circle"></i> Basic Information
+                        </div>
+                        <div class="detail-section-body">
+                            <div class="assessment-detail-grid">
+                                <div class="detail-group">
+                                    <label>Assessment ID</label>
+                                    <div class="detail-value" id="detailId">-</div>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Date & Time</label>
+                                    <div class="detail-value">
+                                        <span id="detailDate">-</span> at <span id="detailTime">-</span>
+                                    </div>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Location</label>
+                                    <div class="detail-value" id="detailLocation">-</div>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Disease Detected</label>
+                                    <div class="detail-value" id="detailDisease">-</div>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Health Status</label>
+                                    <div class="detail-value">
+                                        <span id="detailHealthStatus" class="health-status">-</span>
+                                    </div>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Detection Count</label>
+                                    <div class="detail-value" id="detailDetectionCount">0</div>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Confidence Threshold</label>
+                                    <div class="detail-value" id="detailConfidenceThreshold">0</div>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Next Assessment</label>
+                                    <div class="detail-value" id="detailNextAssessment">-</div>
+                                </div>
+                                <div class="detail-group">
+                                    <label>Created By</label>
+                                    <div class="detail-value">
+                                        <span id="detailUserName">-</span> (<span id="detailUserEmail">-</span>)
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div class="image-preview-container">
+                                <label>Captured Image</label>
+                                <img id="detailImage" class="image-preview" alt="Assessment Image">
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="assessmentUser">User Email *</label>
-                        <input type="email" id="assessmentUser" class="form-control" required>
+                    
+                    <!-- Treatment Information -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <i class="fas fa-prescription-bottle-medical"></i> Treatment Information
+                        </div>
+                        <div class="detail-section-body">
+                            <div class="detail-group">
+                                <label>Recommended Treatment</label>
+                                <div class="detail-value" id="detailTreatment">-</div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="assessmentStatus">Status</label>
-                        <select id="assessmentStatus" class="form-control">
-                            <option value="pending">Pending</option>
-                            <option value="in-progress">In Progress</option>
-                            <option value="completed">Completed</option>
-                        </select>
+                    
+                    <!-- Detections Section -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <i class="fas fa-search"></i> Detections (<span id="detailDetectionCountHeader">0</span>)
+                        </div>
+                        <div class="detail-section-body">
+                            <div id="detectionsList">
+                                <!-- Detections will be populated here -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="assessmentScore">Score (0-100)</label>
-                        <input type="number" id="assessmentScore" class="form-control" min="0" max="100">
+                    
+                    <!-- Treatment Plans Section -->
+                    <div class="detail-section">
+                        <div class="detail-section-header">
+                            <i class="fas fa-calendar-check"></i> Treatment Plans (<span id="detailTreatmentCount">0</span>)
+                        </div>
+                        <div class="detail-section-body">
+                            <div id="treatmentsList">
+                                <!-- Treatments will be populated here -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="assessmentDescription">Description</label>
-                        <textarea id="assessmentDescription" class="form-control" rows="3"></textarea>
-                    </div>
-                </form>
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-warning" id="cancelModalBtn">Cancel</button>
-                <button class="btn btn-success" id="saveAssessmentBtn">Save Assessment</button>
+                <button class="btn btn-warning" id="closeDetailBtn">Close</button>
             </div>
         </div>
     </div>
@@ -727,7 +996,6 @@
         // Global variables
         let assessments = [];
         let filteredAssessments = [];
-        let currentEditingId = null;
         
         // DOM Elements
         const assessmentsTable = document.getElementById('assessmentsTable');
@@ -735,29 +1003,50 @@
         const loadingState = document.getElementById('loadingState');
         const emptyState = document.getElementById('emptyState');
         const totalAssessmentsEl = document.getElementById('totalAssessments');
-        const completedAssessmentsEl = document.getElementById('completedAssessments');
-        const inProgressAssessmentsEl = document.getElementById('inProgressAssessments');
-        const pendingAssessmentsEl = document.getElementById('pendingAssessments');
+        const healthyAssessmentsEl = document.getElementById('healthyAssessments');
+        const notHealthyAssessmentsEl = document.getElementById('notHealthyAssessments');
+        const totalDetectionsEl = document.getElementById('totalDetections');
         const showingCountEl = document.getElementById('showingCount');
         const totalCountEl = document.getElementById('totalCount');
         
         // Filter elements
         const searchInput = document.getElementById('searchInput');
-        const statusFilter = document.getElementById('statusFilter');
+        const healthFilter = document.getElementById('healthFilter');
+        const diseaseFilter = document.getElementById('diseaseFilter');
         const dateFilter = document.getElementById('dateFilter');
         const applyFiltersBtn = document.getElementById('applyFiltersBtn');
+        const clearFiltersBtn = document.getElementById('clearFiltersBtn');
         
         // Button elements
         const refreshBtn = document.getElementById('refreshBtn');
-        const addAssessmentBtn = document.getElementById('addAssessmentBtn');
+        const exportBtn = document.getElementById('exportBtn');
         
         // Modal elements
-        const assessmentModal = document.getElementById('assessmentModal');
+        const assessmentDetailModal = document.getElementById('assessmentDetailModal');
         const modalTitle = document.getElementById('modalTitle');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const cancelModalBtn = document.getElementById('cancelModalBtn');
-        const saveAssessmentBtn = document.getElementById('saveAssessmentBtn');
-        const assessmentForm = document.getElementById('assessmentForm');
+        const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
+        const closeDetailBtn = document.getElementById('closeDetailBtn');
+        const detailContent = document.getElementById('detailContent');
+        const detailLoading = document.getElementById('detailLoading');
+        
+        // Detail elements
+        const detailId = document.getElementById('detailId');
+        const detailDate = document.getElementById('detailDate');
+        const detailTime = document.getElementById('detailTime');
+        const detailLocation = document.getElementById('detailLocation');
+        const detailDisease = document.getElementById('detailDisease');
+        const detailHealthStatus = document.getElementById('detailHealthStatus');
+        const detailDetectionCount = document.getElementById('detailDetectionCount');
+        const detailConfidenceThreshold = document.getElementById('detailConfidenceThreshold');
+        const detailNextAssessment = document.getElementById('detailNextAssessment');
+        const detailUserName = document.getElementById('detailUserName');
+        const detailUserEmail = document.getElementById('detailUserEmail');
+        const detailImage = document.getElementById('detailImage');
+        const detailTreatment = document.getElementById('detailTreatment');
+        const detectionsList = document.getElementById('detectionsList');
+        const treatmentsList = document.getElementById('treatmentsList');
+        const detailDetectionCountHeader = document.getElementById('detailDetectionCountHeader');
+        const detailTreatmentCount = document.getElementById('detailTreatmentCount');
         
         // Initialize the app
         document.addEventListener('DOMContentLoaded', function() {
@@ -765,24 +1054,24 @@
             
             // Event listeners for buttons
             refreshBtn.addEventListener('click', loadAssessments);
-            addAssessmentBtn.addEventListener('click', openAddModal);
+            exportBtn.addEventListener('click', exportData);
             applyFiltersBtn.addEventListener('click', applyFilters);
+            clearFiltersBtn.addEventListener('click', clearFilters);
             
             // Modal event listeners
-            closeModalBtn.addEventListener('click', closeModal);
-            cancelModalBtn.addEventListener('click', closeModal);
-            saveAssessmentBtn.addEventListener('click', saveAssessment);
+            closeDetailModalBtn.addEventListener('click', closeDetailModal);
+            closeDetailBtn.addEventListener('click', closeDetailModal);
+            
+            // Close modal when clicking outside
+            window.addEventListener('click', function(e) {
+                if (e.target === assessmentDetailModal) {
+                    closeDetailModal();
+                }
+            });
             
             // Real-time filter updates
             searchInput.addEventListener('keyup', function(e) {
                 if (e.key === 'Enter') applyFilters();
-            });
-            
-            // Close modal when clicking outside
-            window.addEventListener('click', function(e) {
-                if (e.target === assessmentModal) {
-                    closeModal();
-                }
             });
         });
         
@@ -818,7 +1107,8 @@
         // Apply filters to assessments
         function applyFilters() {
             const searchTerm = searchInput.value.toLowerCase();
-            const statusFilterValue = statusFilter.value;
+            const healthFilterValue = healthFilter.value;
+            const diseaseFilterValue = diseaseFilter.value;
             const dateFilterValue = dateFilter.value;
             
             // Start with all assessments
@@ -828,18 +1118,25 @@
             if (searchTerm) {
                 filteredAssessments = filteredAssessments.filter(assessment => {
                     return (
-                        assessment.title?.toLowerCase().includes(searchTerm) ||
-                        assessment.user?.toLowerCase().includes(searchTerm) ||
-                        assessment.userEmail?.toLowerCase().includes(searchTerm) ||
-                        assessment.description?.toLowerCase().includes(searchTerm)
+                        assessment.assessmentId?.toLowerCase().includes(searchTerm) ||
+                        assessment.location?.toLowerCase().includes(searchTerm) ||
+                        assessment.userName?.toLowerCase().includes(searchTerm) ||
+                        assessment.userEmail?.toLowerCase().includes(searchTerm)
                     );
                 });
             }
             
-            // Apply status filter
-            if (statusFilterValue !== 'all') {
+            // Apply health status filter
+            if (healthFilterValue !== 'all') {
                 filteredAssessments = filteredAssessments.filter(assessment => 
-                    assessment.status === statusFilterValue
+                    assessment.healthStatus === healthFilterValue
+                );
+            }
+            
+            // Apply disease filter
+            if (diseaseFilterValue !== 'all') {
+                filteredAssessments = filteredAssessments.filter(assessment => 
+                    assessment.disease === diseaseFilterValue
                 );
             }
             
@@ -857,7 +1154,7 @@
                 }
                 
                 filteredAssessments = filteredAssessments.filter(assessment => {
-                    const createdDate = assessment.createdAt?.toDate ? assessment.createdAt.toDate() : new Date(assessment.createdAt);
+                    const createdDate = assessment.createdAt ? new Date(assessment.createdAt) : new Date(assessment.timestamp);
                     return createdDate >= startDate;
                 });
             }
@@ -865,6 +1162,15 @@
             // Update display
             displayAssessments();
             updateCounts();
+        }
+        
+        // Clear all filters
+        function clearFilters() {
+            searchInput.value = '';
+            healthFilter.value = 'all';
+            diseaseFilter.value = 'all';
+            dateFilter.value = 'all';
+            applyFilters();
         }
         
         // Display assessments in the table
@@ -878,8 +1184,8 @@
             
             // Sort by date (newest first)
             filteredAssessments.sort((a, b) => {
-                const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.createdAt || 0);
-                const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.createdAt || 0);
+                const dateA = a.createdAt ? new Date(a.createdAt) : new Date(a.timestamp || 0);
+                const dateB = b.createdAt ? new Date(b.createdAt) : new Date(b.timestamp || 0);
                 return dateB - dateA;
             });
             
@@ -888,41 +1194,54 @@
                 const row = document.createElement('tr');
                 
                 // Format dates
-                const createdDate = assessment.createdAt?.toDate ? 
-                    assessment.createdAt.toDate() : new Date(assessment.createdAt || Date.now());
-                const updatedDate = assessment.updatedAt?.toDate ? 
-                    assessment.updatedAt.toDate() : new Date(assessment.updatedAt || Date.now());
-                
-                const createdDateStr = createdDate.toLocaleDateString('en-US', { 
+                const createdDate = assessment.createdAt ? new Date(assessment.createdAt) : new Date(assessment.timestamp || Date.now());
+                const dateStr = createdDate.toLocaleDateString('en-US', { 
                     year: 'numeric', month: 'short', day: 'numeric' 
                 });
-                const updatedDateStr = updatedDate.toLocaleDateString('en-US', { 
-                    year: 'numeric', month: 'short', day: 'numeric' 
+                const timeStr = assessment.time || createdDate.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', minute: '2-digit' 
                 });
                 
-                // Status badge
-                let statusClass = 'status-pending';
-                if (assessment.status === 'completed') statusClass = 'status-completed';
-                if (assessment.status === 'in-progress') statusClass = 'status-in-progress';
+                // Health status badge
+                let healthStatusClass = 'health-status-healthy';
+                let healthStatusText = assessment.healthStatus || 'Healthy';
+                if (assessment.healthStatus === 'Not Healthy') {
+                    healthStatusClass = 'health-status-not-healthy';
+                }
                 
-                // Score display
-                const score = assessment.score || assessment.score === 0 ? assessment.score : 'N/A';
+                // Detection count
+                const detectionCount = assessment.detectionCount || (assessment.detections ? assessment.detections.length : 0);
+                
+                // Confidence threshold
+                const confidenceThreshold = assessment.confidenceThreshold || 0.5;
+                
+                // User info
+                const userName = assessment.userName || assessment.userEmail || 'Unknown User';
+                
+                // Next assessment date
+                const nextAssessment = assessment.nextAssessment || 'Not set';
                 
                 row.innerHTML = `
-                    <td>${assessment.id.substring(0, 8)}...</td>
-                    <td><strong>${assessment.title || 'Untitled Assessment'}</strong></td>
-                    <td>${assessment.userEmail || assessment.user || 'Unknown User'}</td>
-                    <td><span class="status ${statusClass}">${assessment.status || 'pending'}</span></td>
-                    <td>${score}</td>
-                    <td>${createdDateStr}</td>
-                    <td>${updatedDateStr}</td>
+                    <td><strong>${assessment.assessmentId || assessment.id.substring(0, 12)}</strong></td>
+                    <td>
+                        <div>${dateStr}</div>
+                        <small>${timeStr}</small>
+                    </td>
+                    <td>
+                        <div class="detail-value" style="font-size: 0.9rem; padding: 5px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${assessment.location || 'No location'}
+                        </div>
+                    </td>
+                    <td>${assessment.disease || 'None detected'}</td>
+                    <td><span class="health-status ${healthStatusClass}">${healthStatusText}</span></td>
+                    <td><strong>${detectionCount}</strong></td>
+                    <td>${(confidenceThreshold * 100).toFixed(1)}%</td>
+                    <td>${userName}</td>
+                    <td>${nextAssessment}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn action-btn-view" onclick="viewAssessment('${assessment.id}')" title="View">
+                            <button class="action-btn action-btn-view" onclick="viewAssessmentDetails('${assessment.id}')" title="View Details">
                                 <i class="fas fa-eye"></i>
-                            </button>
-                            <button class="action-btn action-btn-edit" onclick="editAssessment('${assessment.id}')" title="Edit">
-                                <i class="fas fa-edit"></i>
                             </button>
                             <button class="action-btn action-btn-delete" onclick="deleteAssessment('${assessment.id}')" title="Delete">
                                 <i class="fas fa-trash"></i>
@@ -942,13 +1261,18 @@
         function updateStats() {
             totalAssessmentsEl.textContent = assessments.length;
             
-            const completed = assessments.filter(a => a.status === 'completed').length;
-            const inProgress = assessments.filter(a => a.status === 'in-progress').length;
-            const pending = assessments.filter(a => a.status === 'pending' || !a.status).length;
+            const healthy = assessments.filter(a => a.healthStatus === 'Healthy' || !a.healthStatus).length;
+            const notHealthy = assessments.filter(a => a.healthStatus === 'Not Healthy').length;
             
-            completedAssessmentsEl.textContent = completed;
-            inProgressAssessmentsEl.textContent = inProgress;
-            pendingAssessmentsEl.textContent = pending;
+            // Calculate total detections
+            let totalDetections = 0;
+            assessments.forEach(assessment => {
+                totalDetections += assessment.detectionCount || (assessment.detections ? assessment.detections.length : 0);
+            });
+            
+            healthyAssessmentsEl.textContent = healthy;
+            notHealthyAssessmentsEl.textContent = notHealthy;
+            totalDetectionsEl.textContent = totalDetections;
         }
         
         // Update counts display
@@ -957,40 +1281,179 @@
             totalCountEl.textContent = assessments.length;
         }
         
-        // Open modal to add new assessment
-        function openAddModal() {
-            currentEditingId = null;
-            modalTitle.textContent = 'Add New Assessment';
-            assessmentForm.reset();
-            assessmentModal.style.display = 'flex';
-        }
-        
-        // Open modal to edit assessment
-        function editAssessment(id) {
+        // View assessment details
+        async function viewAssessmentDetails(id) {
             const assessment = assessments.find(a => a.id === id);
             if (!assessment) return;
             
-            currentEditingId = id;
-            modalTitle.textContent = 'Edit Assessment';
+            showDetailLoading();
+            openDetailModal();
             
-            // Fill form with assessment data
-            document.getElementById('assessmentTitle').value = assessment.title || '';
-            document.getElementById('assessmentUser').value = assessment.userEmail || assessment.user || '';
-            document.getElementById('assessmentStatus').value = assessment.status || 'pending';
-            document.getElementById('assessmentScore').value = assessment.score || '';
-            document.getElementById('assessmentDescription').value = assessment.description || '';
+            // Set basic information
+            detailId.textContent = assessment.assessmentId || assessment.id;
+            detailDate.textContent = assessment.date || 
+                (assessment.createdAt ? new Date(assessment.createdAt).toLocaleDateString('en-US') : 'Unknown');
+            detailTime.textContent = assessment.time || 
+                (assessment.createdAt ? new Date(assessment.createdAt).toLocaleTimeString('en-US') : 'Unknown');
+            detailLocation.textContent = assessment.location || 'Not specified';
+            detailDisease.textContent = assessment.disease || 'None detected';
             
-            assessmentModal.style.display = 'flex';
+            // Health status
+            const healthStatus = assessment.healthStatus || 'Healthy';
+            detailHealthStatus.textContent = healthStatus;
+            detailHealthStatus.className = 'health-status ' + 
+                (healthStatus === 'Healthy' ? 'health-status-healthy' : 'health-status-not-healthy');
+            
+            // Detection info
+            const detectionCount = assessment.detectionCount || (assessment.detections ? assessment.detections.length : 0);
+            detailDetectionCount.textContent = detectionCount;
+            detailDetectionCountHeader.textContent = detectionCount;
+            
+            // Confidence threshold
+            detailConfidenceThreshold.textContent = (assessment.confidenceThreshold * 100).toFixed(1) + '%';
+            
+            // Next assessment
+            detailNextAssessment.textContent = assessment.nextAssessment || 'Not set';
+            
+            // User info
+            detailUserName.textContent = assessment.userName || 'Unknown';
+            detailUserEmail.textContent = assessment.userEmail || 'Unknown';
+            
+            // Treatment
+            detailTreatment.textContent = assessment.treatment || 'No treatment recommended';
+            
+            // Image
+            if (assessment.image && assessment.image.startsWith('data:image')) {
+                detailImage.src = assessment.image;
+                detailImage.style.display = 'block';
+            } else {
+                detailImage.style.display = 'none';
+            }
+            
+            // Display detections
+            displayDetections(assessment.detections || []);
+            
+            // Display treatments
+            displayTreatments(assessment.treatments || []);
+            
+            hideDetailLoading();
         }
         
-        // View assessment (placeholder for now)
-        function viewAssessment(id) {
-            alert(`Viewing assessment ${id}. This would typically open a detailed view.`);
+        // Display detections in detail modal
+        function displayDetections(detections) {
+            detectionsList.innerHTML = '';
+            
+            if (detections.length === 0) {
+                detectionsList.innerHTML = '<div class="detail-value">No detections found</div>';
+                return;
+            }
+            
+            detections.forEach((detection, index) => {
+                const detectionItem = document.createElement('div');
+                detectionItem.className = 'detection-item';
+                
+                detectionItem.innerHTML = `
+                    <div class="detection-grid">
+                        <div class="detection-property">
+                            <label>Detection ID:</label>
+                            <span>${detection.detection_id || `Detection ${index + 1}`}</span>
+                        </div>
+                        <div class="detection-property">
+                            <label>Class:</label>
+                            <span>${detection.class || 'Unknown'}</span>
+                        </div>
+                        <div class="detection-property">
+                            <label>Confidence:</label>
+                            <span>${(detection.confidence * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="detection-property">
+                            <label>Model:</label>
+                            <span>${detection.modelName || detection.model || 'Unknown'}</span>
+                        </div>
+                        <div class="detection-property">
+                            <label>Position (x, y):</label>
+                            <span>${detection.x ? detection.x.toFixed(1) : '0'}, ${detection.y ? detection.y.toFixed(1) : '0'}</span>
+                        </div>
+                        <div class="detection-property">
+                            <label>Size (w x h):</label>
+                            <span>${detection.width ? detection.width.toFixed(1) : '0'} × ${detection.height ? detection.height.toFixed(1) : '0'}</span>
+                        </div>
+                    </div>
+                `;
+                
+                detectionsList.appendChild(detectionItem);
+            });
+        }
+        
+        // Display treatments in detail modal
+        function displayTreatments(treatments) {
+            treatmentsList.innerHTML = '';
+            detailTreatmentCount.textContent = treatments.length;
+            
+            if (treatments.length === 0) {
+                treatmentsList.innerHTML = '<div class="detail-value">No treatment plans found</div>';
+                return;
+            }
+            
+            treatments.forEach((treatment, index) => {
+                const treatmentItem = document.createElement('div');
+                treatmentItem.className = 'treatment-item';
+                
+                // Status badge
+                let statusClass = 'status-pending';
+                let statusText = treatment.status || 'pending';
+                if (statusText === 'inprogress') {
+                    statusClass = 'status-inprogress';
+                    statusText = 'In Progress';
+                } else if (statusText === 'completed') {
+                    statusClass = 'status-completed';
+                    statusText = 'Completed';
+                }
+                
+                treatmentItem.innerHTML = `
+                    <div class="treatment-grid">
+                        <div class="treatment-property">
+                            <label>Type:</label>
+                            <span>${treatment.type || 'Unknown'}</span>
+                        </div>
+                        <div class="treatment-property">
+                            <label>Status:</label>
+                            <span class="status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="treatment-property">
+                            <label>Duration:</label>
+                            <span>${treatment.duration || '0'} ${treatment.durationUnit || 'days'}</span>
+                        </div>
+                        <div class="treatment-property">
+                            <label>Start Date:</label>
+                            <span>${treatment.startDate || 'Not set'}</span>
+                        </div>
+                        <div class="treatment-property">
+                            <label>End Date:</label>
+                            <span>${treatment.endDate || treatment.plannedEndDate || 'Not set'}</span>
+                        </div>
+                        <div class="treatment-property">
+                            <label>Reassessment:</label>
+                            <span>${treatment.reassessmentDate || 'Not set'}</span>
+                        </div>
+                        <div class="treatment-property">
+                            <label>Assigned To:</label>
+                            <span>${treatment.createdByName || treatment.userName || 'Unknown'}</span>
+                        </div>
+                    </div>
+                    <div class="treatment-property" style="margin-top: 10px;">
+                        <label>Notes:</label>
+                        <span>${treatment.notes || 'No notes'}</span>
+                    </div>
+                `;
+                
+                treatmentsList.appendChild(treatmentItem);
+            });
         }
         
         // Delete assessment
         async function deleteAssessment(id) {
-            if (!confirm('Are you sure you want to delete this assessment?')) return;
+            if (!confirm('Are you sure you want to delete this assessment? This action cannot be undone.')) return;
             
             try {
                 await db.collection('assessments').doc(id).delete();
@@ -1002,51 +1465,82 @@
             }
         }
         
-        // Save assessment (add or update)
-        async function saveAssessment() {
-            // Validate form
-            if (!assessmentForm.checkValidity()) {
-                alert('Please fill in all required fields (marked with *)');
+        // Export data as CSV
+        function exportData() {
+            if (filteredAssessments.length === 0) {
+                alert('No data to export.');
                 return;
             }
             
-            // Collect form data
-            const assessmentData = {
-                title: document.getElementById('assessmentTitle').value,
-                userEmail: document.getElementById('assessmentUser').value,
-                status: document.getElementById('assessmentStatus').value,
-                score: parseInt(document.getElementById('assessmentScore').value) || null,
-                description: document.getElementById('assessmentDescription').value,
-                updatedAt: new Date()
-            };
+            // Define CSV headers
+            const headers = [
+                'Assessment ID',
+                'Date',
+                'Time',
+                'Location',
+                'Disease',
+                'Health Status',
+                'Detection Count',
+                'Confidence Threshold',
+                'User Name',
+                'User Email',
+                'Next Assessment',
+                'Treatment'
+            ];
             
-            // If creating new, add createdAt
-            if (!currentEditingId) {
-                assessmentData.createdAt = new Date();
-            }
+            // Create CSV content
+            let csvContent = headers.join(',') + '\n';
             
-            try {
-                if (currentEditingId) {
-                    // Update existing assessment
-                    await db.collection('assessments').doc(currentEditingId).update(assessmentData);
-                } else {
-                    // Add new assessment
-                    await db.collection('assessments').add(assessmentData);
-                }
-                
-                alert(`Assessment ${currentEditingId ? 'updated' : 'added'} successfully!`);
-                closeModal();
-                loadAssessments(); // Reload data
-            } catch (error) {
-                console.error('Error saving assessment:', error);
-                alert(`Failed to ${currentEditingId ? 'update' : 'add'} assessment. Check console for details.`);
-            }
+            filteredAssessments.forEach(assessment => {
+                const row = [
+                    `"${assessment.assessmentId || assessment.id}"`,
+                    `"${assessment.date || ''}"`,
+                    `"${assessment.time || ''}"`,
+                    `"${assessment.location || ''}"`,
+                    `"${assessment.disease || ''}"`,
+                    `"${assessment.healthStatus || ''}"`,
+                    assessment.detectionCount || (assessment.detections ? assessment.detections.length : 0),
+                    assessment.confidenceThreshold || 0.5,
+                    `"${assessment.userName || ''}"`,
+                    `"${assessment.userEmail || ''}"`,
+                    `"${assessment.nextAssessment || ''}"`,
+                    `"${(assessment.treatment || '').replace(/"/g, '""')}"`
+                ];
+                csvContent += row.join(',') + '\n';
+            });
+            
+            // Create download link
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `assessments_${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
         
-        // Close modal
-        function closeModal() {
-            assessmentModal.style.display = 'none';
-            assessmentForm.reset();
+        // Open detail modal
+        function openDetailModal() {
+            assessmentDetailModal.style.display = 'flex';
+        }
+        
+        // Close detail modal
+        function closeDetailModal() {
+            assessmentDetailModal.style.display = 'none';
+        }
+        
+        // Show loading state for details
+        function showDetailLoading() {
+            detailLoading.style.display = 'block';
+            detailContent.style.display = 'none';
+        }
+        
+        // Hide loading state for details
+        function hideDetailLoading() {
+            detailLoading.style.display = 'none';
+            detailContent.style.display = 'block';
         }
         
         // Show loading state
@@ -1066,66 +1560,14 @@
             assessmentsTable.style.display = 'none';
             emptyState.style.display = 'block';
         }
-        
-        // Generate sample data (for testing if no data exists)
-        async function generateSampleData() {
-            const sampleAssessments = [
-                {
-                    title: "JavaScript Fundamentals Assessment",
-                    userEmail: "alex.johnson@example.com",
-                    status: "completed",
-                    score: 92,
-                    description: "Test on basic JavaScript concepts and syntax",
-                    createdAt: new Date(2023, 6, 15),
-                    updatedAt: new Date(2023, 6, 15)
-                },
-                {
-                    title: "React Advanced Patterns",
-                    userEmail: "sarah.miller@example.com",
-                    status: "in-progress",
-                    score: 65,
-                    description: "Assessment on React hooks and advanced patterns",
-                    createdAt: new Date(2023, 6, 20),
-                    updatedAt: new Date(2023, 6, 22)
-                },
-                {
-                    title: "Database Design Principles",
-                    userEmail: "michael.chen@example.com",
-                    status: "pending",
-                    description: "Assessment on relational database design and normalization",
-                    createdAt: new Date(2023, 6, 10),
-                    updatedAt: new Date(2023, 6, 10)
-                },
-                {
-                    title: "Cloud Architecture Certification",
-                    userEmail: "jessica.williams@example.com",
-                    status: "completed",
-                    score: 88,
-                    description: "Advanced cloud architecture patterns and best practices",
-                    createdAt: new Date(2023, 5, 28),
-                    updatedAt: new Date(2023, 6, 5)
-                },
-                {
-                    title: "Security Fundamentals",
-                    userEmail: "david.smith@example.com",
-                    status: "in-progress",
-                    score: 74,
-                    description: "Basic security principles and practices",
-                    createdAt: new Date(2023, 6, 18),
-                    updatedAt: new Date(2023, 6, 21)
-                }
-            ];
             
             try {
-                for (const assessment of sampleAssessments) {
-                    await db.collection('assessments').add(assessment);
-                }
+                await db.collection('assessments').add(sampleAssessment);
                 console.log('Sample data generated successfully');
                 loadAssessments();
             } catch (error) {
                 console.error('Error generating sample data:', error);
             }
-        }
         
         // Uncomment the line below to generate sample data on first load
         // generateSampleData();
