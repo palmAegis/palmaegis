@@ -3,1039 +3,1198 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Disease Assessment Dashboard</title>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <title>Admin Dashboard | Palm Aegis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
+    <link rel="shortcut icon" href="images/logo1.png">
+    <meta name="theme-color" content="#2e7d32">
+    
+    <!-- Add DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
     
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Admin Dashboard Styles */
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+
+    .stat-icon.total { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .stat-icon.healthy { background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%); }
+    .stat-icon.disease { background: linear-gradient(135deg, #f44336 0%, #FF9800 100%); }
+    .stat-icon.users { background: linear-gradient(135deg, #2196F3 0%, #03A9F4 100%); }
+
+    .stat-content h3 {
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 0 0 5px 0;
+    }
+
+    .stat-content .count {
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        color: #333;
+    }
+
+    .stat-content .trend {
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+    .trend.positive { color: #4CAF50; }
+    .trend.negative { color: #f44336; }
+
+    .dashboard-controls {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .filter-label {
+        font-size: 12px;
+        color: #666;
+        font-weight: 600;
+    }
+
+    .filter-select, .filter-input {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        min-width: 180px;
+    }
+
+    .filter-select:focus, .filter-input:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+    }
+
+    .refresh-btn, .export-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        background: #4CAF50;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.3s;
+    }
+
+    .refresh-btn:hover, .export-btn:hover {
+        background: #45a049;
+    }
+
+    .export-btn {
+        background: #2196F3;
+    }
+
+    .export-btn:hover {
+        background: #1976D2;
+    }
+
+    .data-table-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+
+    /* DataTable custom styles */
+    table.dataTable {
+        border-collapse: collapse !important;
+        width: 100% !important;
+    }
+
+    table.dataTable thead th {
+        background: #f8f9fa;
+        border-bottom: 2px solid #dee2e6 !important;
+        font-weight: 600;
+        color: #333;
+        padding: 12px 10px !important;
+    }
+
+    table.dataTable tbody td {
+        padding: 12px 10px !important;
+        border-bottom: 1px solid #eee !important;
+        vertical-align: middle;
+    }
+
+    table.dataTable tbody tr:hover {
+        background-color: #f8f9fa !important;
+    }
+
+    .status-badge {
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-healthy {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .status-disease {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .disease-tag {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        margin: 2px;
+    }
+
+    .disease-ganoderma {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+    }
+
+    .disease-blackspot {
+        background: #ffebee;
+        color: #c62828;
+        border: 1px solid #ffcdd2;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .user-avatar-small {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .action-btn {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 4px;
+        background: #f8f9fa;
+        color: #666;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .action-btn:hover {
+        background: #e9ecef;
+        color: #333;
+    }
+
+    .action-btn.view { color: #2196F3; }
+    .action-btn.edit { color: #4CAF50; }
+    .action-btn.delete { color: #f44336; }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 10px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        color: #666;
+        cursor: pointer;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+    }
+
+    .modal-close:hover {
+        background: #f8f9fa;
+        color: #333;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .modal-section {
+        margin-bottom: 25px;
+    }
+
+    .modal-section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        padding-bottom: 5px;
+        border-bottom: 2px solid #4CAF50;
+        display: inline-block;
+    }
+
+    .modal-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .modal-info-item {
+        margin-bottom: 15px;
+    }
+
+    .modal-info-label {
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+    }
+
+    .modal-info-value {
+        font-size: 15px;
+        color: #333;
+        font-weight: 500;
+    }
+
+    .image-preview-container {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        background: #f8f9fa;
+        text-align: center;
+    }
+
+    .assessment-image {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 4px;
+    }
+
+    .detections-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .detection-item {
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .detection-class {
+        font-weight: 600;
+        color: #333;
+    }
+
+    .detection-confidence {
+        color: #666;
+        font-size: 11px;
+        margin-left: 5px;
+    }
+
+    .treatment-text {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 15px;
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    /* Chart Container */
+    .chart-container {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .chart-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 15px;
+    }
+
+    .chart-wrapper {
+        height: 300px;
+        position: relative;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .dashboard-stats {
+            grid-template-columns: 1fr;
         }
         
-        body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
+        .dashboard-controls {
+            flex-direction: column;
+            align-items: stretch;
         }
         
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        header {
-            background: linear-gradient(135deg, #2c3e50 0%, #4a6491 100%);
-            color: white;
-            padding: 25px 30px;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-        
-        .header-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        
-        h1 {
-            font-size: 28px;
-            font-weight: 600;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo-icon {
-            font-size: 32px;
-        }
-        
-        .auth-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        #user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        #user-email {
-            font-weight: 500;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            font-size: 15px;
-        }
-        
-        .btn-primary {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: #2980b9;
-        }
-        
-        .btn-logout {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .btn-logout:hover {
-            background-color: #c0392b;
-        }
-        
-        .login-form {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            max-width: 400px;
-            margin: 50px auto;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-        }
-        
-        .login-form h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-            text-align: center;
-        }
-        
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #555;
-        }
-        
-        .form-control {
+        .filter-group {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border 0.3s;
         }
         
-        .form-control:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        
-        .dashboard {
-            display: none;
-        }
-        
-        .stats-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background-color: white;
-            padding: 25px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            transition: transform 0.3s ease;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .stat-card h3 {
-            font-size: 14px;
-            color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-        }
-        
-        .stat-value {
-            font-size: 36px;
-            font-weight: 700;
-            color: #2c3e50;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-        }
-        
-        .search-box {
-            position: relative;
-            width: 300px;
-        }
-        
-        .search-box input {
+        .filter-select, .filter-input {
             width: 100%;
-            padding: 12px 15px 12px 45px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 16px;
         }
         
-        .search-icon {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #7f8c8d;
-        }
-        
-        .filters {
-            display: flex;
-            gap: 15px;
-        }
-        
-        select {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            background-color: white;
-            font-size: 15px;
-        }
-        
-        .table-container {
-            background-color: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
+        .data-table-container {
+            padding: 10px;
             overflow-x: auto;
         }
         
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .modal-content {
+            width: 95%;
         }
         
-        thead {
-            background-color: #2c3e50;
-            color: white;
+        .modal-grid {
+            grid-template-columns: 1fr;
         }
-        
-        th {
-            padding: 18px 15px;
-            text-align: left;
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-        }
-        
-        tbody tr {
-            border-bottom: 1px solid #f1f1f1;
-            transition: background-color 0.2s;
-        }
-        
-        tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-        
-        td {
-            padding: 16px 15px;
-        }
-        
-        .status {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        
-        .status-good {
-            background-color: #d5f4e6;
-            color: #27ae60;
-        }
-        
-        .status-fair {
-            background-color: #fff4e6;
-            color: #f39c12;
-        }
-        
-        .status-poor {
-            background-color: #ffeaea;
-            color: #e74c3c;
-        }
-        
-        .status-critical {
-            background-color: #2c3e50;
-            color: white;
-        }
-        
-        .health-status {
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        
-        .health-excellent {
-            background-color: #d5f4e6;
-            color: #27ae60;
-        }
-        
-        .health-good {
-            background-color: #d5e8f4;
-            color: #2980b9;
-        }
-        
-        .health-fair {
-            background-color: #fff4e6;
-            color: #f39c12;
-        }
-        
-        .health-poor {
-            background-color: #ffeaea;
-            color: #e74c3c;
-        }
-        
-        .action-btns {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        
-        .btn-action {
-            padding: 6px 12px;
-            font-size: 13px;
-            border-radius: 4px;
-        }
-        
-        .btn-view {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        .btn-edit {
-            background-color: #2ecc71;
-            color: white;
-        }
-        
-        .btn-delete {
-            background-color: #e74c3c;
-            color: white;
-        }
-        
-        .btn-treatment {
-            background-color: #9b59b6;
-            color: white;
-        }
-        
-        .treatment-cell {
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        
-        .footer {
-            text-align: center;
-            padding: 20px;
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-top: 30px;
-        }
-        
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 18px;
-            color: #7f8c8d;
-        }
-        
-        .error {
-            background-color: #ffeaea;
-            color: #e74c3c;
+    }
+
+    @media (max-width: 480px) {
+        .stat-card {
             padding: 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            display: none;
         }
         
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #7f8c8d;
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            font-size: 20px;
         }
         
-        .empty-state i {
-            font-size: 60px;
-            margin-bottom: 20px;
-            color: #ddd;
+        .stat-content .count {
+            font-size: 24px;
         }
         
-        .disease-type {
-            display: inline-block;
-            padding: 4px 8px;
-            background-color: #e8f4fc;
-            border-radius: 4px;
-            font-size: 12px;
-            color: #3498db;
-            margin: 2px;
+        .action-buttons {
+            flex-direction: column;
         }
         
-        @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
-            }
-            
-            .search-box {
-                width: 100%;
-            }
-            
-            .filters {
-                width: 100%;
-                justify-content: space-between;
-            }
-            
-            th, td {
-                padding: 12px 10px;
-                font-size: 14px;
-            }
-            
-            .action-btns {
-                flex-direction: column;
-                gap: 5px;
-            }
+        .action-btn {
+            width: 100%;
         }
-    </style>
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <!-- Login Form (Initially Visible) -->
-        <div id="login-section" class="login-form">
-            <h2>Admin Login</h2>
-            <div id="login-error" class="error" style="display: none;">
-                Invalid email or password. Please try again.
+    <div class="dashboard-container">
+        <div id="sidebarPlaceholder"></div>
+        <script src="js/sidebar-loader.js"></script>
+
+        <main class="main-content">
+            <div class="top-header">
+                <div class="header-left">
+                    <h1><i class="fas fa-chart-line"></i> Admin Dashboard</h1>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" class="form-control" placeholder="admin@example.com" value="admin@example.com">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" class="form-control" placeholder="Enter your password" value="admin123">
-            </div>
-            <button id="login-btn" class="btn btn-primary" style="width: 100%;">Login as Admin</button>
-            <div style="margin-top: 20px; font-size: 14px; color: #7f8c8d; text-align: center;">
-                <p>Use any email/password for demo (Firebase Auth is in test mode)</p>
-            </div>
-        </div>
-        
-        <!-- Dashboard (Initially Hidden) -->
-        <div id="dashboard" class="dashboard">
-            <header>
-                <div class="header-top">
-                    <div class="logo">
-                        <div class="logo-icon">🏥</div>
-                        <h1>Disease Assessment Dashboard</h1>
+
+            <div class="container">
+                <!-- Statistics Cards -->
+                <div class="dashboard-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon total">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Total Assessments</h3>
+                            <p class="count" id="totalAssessments">0</p>
+                            <p class="trend positive" id="assessmentsTrend">
+                                <i class="fas fa-arrow-up"></i> Loading...
+                            </p>
+                        </div>
                     </div>
-                    <div class="auth-section">
-                        <div id="user-info">
-                            <span id="user-email">admin@example.com</span>
-                            <button id="logout-btn" class="btn btn-logout">Logout</button>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon healthy">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Healthy Plants</h3>
+                            <p class="count" id="healthyPlants">0</p>
+                            <p class="trend positive" id="healthyTrend">
+                                <i class="fas fa-arrow-up"></i> Loading...
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon disease">
+                            <i class="fas fa-bug"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Disease Cases</h3>
+                            <p class="count" id="diseaseCases">0</p>
+                            <p class="trend negative" id="diseaseTrend">
+                                <i class="fas fa-arrow-up"></i> Loading...
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon users">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Active Users</h3>
+                            <p class="count" id="activeUsers">0</p>
+                            <p class="trend positive" id="usersTrend">
+                                <i class="fas fa-arrow-up"></i> Loading...
+                            </p>
                         </div>
                     </div>
                 </div>
-                <p>Monitor and manage disease assessment data from Firebase</p>
-            </header>
-            
-            <!-- Statistics Cards -->
-            <div class="stats-container">
-                <div class="stat-card">
-                    <h3>Total Assessments</h3>
-                    <div id="total-assessments" class="stat-value">0</div>
+
+                <!-- Controls -->
+                <div class="dashboard-controls">
+                    <div class="filter-group">
+                        <label class="filter-label">Filter by Status</label>
+                        <select class="filter-select" id="statusFilter">
+                            <option value="">All Status</option>
+                            <option value="Healthy">Healthy</option>
+                            <option value="Not Healthy">Not Healthy</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Filter by Disease</label>
+                        <select class="filter-select" id="diseaseFilter">
+                            <option value="">All Diseases</option>
+                            <option value="ganoderma">Ganoderma</option>
+                            <option value="blackspot">Blackspot</option>
+                            <option value="healthy">No Disease</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Date Range</label>
+                        <input type="date" class="filter-input" id="dateFrom">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">to</label>
+                        <input type="date" class="filter-input" id="dateTo">
+                    </div>
+                    
+                    <button class="refresh-btn" onclick="loadAssessments()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    
+                    <button class="export-btn" onclick="exportData()">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
                 </div>
-                <div class="stat-card">
-                    <h3>Critical Cases</h3>
-                    <div id="critical-cases" class="stat-value">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Avg. Health Status</h3>
-                    <div id="avg-health-status" class="stat-value">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Patients Treated</h3>
-                    <div id="treated-patients" class="stat-value">0</div>
+
+                <!-- Assessments Table -->
+                <div class="data-table-container">
+                    <table id="assessmentsTable" class="display responsive" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Date & Time</th>
+                                <th>User</th>
+                                <th>Location</th>
+                                <th>Disease</th>
+                                <th>Status</th>
+                                <th>Detections</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be populated by JavaScript -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            
-            <!-- Controls -->
-            <div class="controls">
-                <div class="search-box">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="search-input" placeholder="Search disease, patient, or treatment...">
-                </div>
-                <div class="filters">
-                    <select id="status-filter">
-                        <option value="all">All Status</option>
-                        <option value="good">Good</option>
-                        <option value="fair">Fair</option>
-                        <option value="poor">Poor</option>
-                        <option value="critical">Critical</option>
-                    </select>
-                    <select id="health-filter">
-                        <option value="all">All Health Status</option>
-                        <option value="excellent">Excellent</option>
-                        <option value="good">Good</option>
-                        <option value="fair">Fair</option>
-                        <option value="poor">Poor</option>
-                    </select>
-                    <select id="sort-by">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="health-high">Health: High to Low</option>
-                        <option value="health-low">Health: Low to High</option>
-                    </select>
-                </div>
+        </main>
+    </div>
+
+    <!-- Assessment Detail Modal -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Assessment Details</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
             </div>
-            
-            <!-- Data Table -->
-            <div class="table-container">
-                <div id="loading" class="loading">Loading disease assessment data from Firebase...</div>
-                <div id="error-message" class="error" style="display: none;">
-                    Error loading data. Please check your connection and try again.
-                </div>
-                <div id="empty-state" class="empty-state" style="display: none;">
-                    <div>🏥</div>
-                    <h3>No disease assessments found</h3>
-                    <p>There are no disease assessments in the database yet.</p>
+            <div class="modal-body">
+                <div class="modal-grid">
+                    <div class="modal-section">
+                        <h3 class="modal-section-title">Basic Information</h3>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">Assessment ID</div>
+                            <div class="modal-info-value" id="modalId"></div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">Date & Time</div>
+                            <div class="modal-info-value" id="modalDateTime"></div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">Location</div>
+                            <div class="modal-info-value" id="modalLocation"></div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">Health Status</div>
+                            <div id="modalHealthStatus"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-section">
+                        <h3 class="modal-section-title">User Information</h3>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">User Name</div>
+                            <div class="modal-info-value" id="modalUserName"></div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">User Email</div>
+                            <div class="modal-info-value" id="modalUserEmail"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-section">
+                        <h3 class="modal-section-title">Disease Information</h3>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">Detected Disease</div>
+                            <div class="modal-info-value" id="modalDisease"></div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">Detection Count</div>
+                            <div class="modal-info-value" id="modalDetectionCount"></div>
+                        </div>
+                        <div class="modal-info-item">
+                            <div class="modal-info-label">Confidence Threshold</div>
+                            <div class="modal-info-value" id="modalConfidence"></div>
+                        </div>
+                    </div>
                 </div>
                 
-                <table id="assessments-table" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Disease Name</th>
-                            <th>Patient</th>
-                            <th>Status</th>
-                            <th>Health Status</th>
-                            <th>Treatment</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="assessments-body">
-                        <!-- Data will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="footer">
-                <p>Disease Assessment Dashboard • Data loaded from Firebase Firestore</p>
-                <p>Collection: <strong>assessments</strong> | Project: <strong>palmaegis-setup</strong></p>
+                <div class="modal-section">
+                    <h3 class="modal-section-title">Detections</h3>
+                    <div class="detections-list" id="modalDetectionsList">
+                        <!-- Detections will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="modal-section">
+                    <h3 class="modal-section-title">Captured Image</h3>
+                    <div class="image-preview-container">
+                        <img id="modalImage" class="assessment-image" src="" alt="Assessment Image">
+                    </div>
+                </div>
+                
+                <div class="modal-section">
+                    <h3 class="modal-section-title">Treatment Recommendations</h3>
+                    <div class="treatment-text" id="modalTreatment"></div>
+                </div>
+                
+                <div class="modal-section">
+                    <h3 class="modal-section-title">Next Assessment</h3>
+                    <div class="modal-info-value" id="modalNextAssessment"></div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-            authDomain: "palmaegis-setup.firebaseapp.com",
-            projectId: "palmaegis-setup",
-            storageBucket: "palmaegis-setup.appspot.com",
-            messagingSenderId: "445887502374",
-            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-        };
+    <!-- Add required libraries -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+    import { getFirestore, collection, getDocs, query, orderBy, where } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        
-        // DOM elements
-        const loginSection = document.getElementById('login-section');
-        const dashboard = document.getElementById('dashboard');
-        const loginBtn = document.getElementById('login-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const loginError = document.getElementById('login-error');
-        const assessmentsBody = document.getElementById('assessments-body');
-        const loadingElement = document.getElementById('loading');
-        const errorMessage = document.getElementById('error-message');
-        const emptyState = document.getElementById('empty-state');
-        const assessmentsTable = document.getElementById('assessments-table');
-        const searchInput = document.getElementById('search-input');
-        const statusFilter = document.getElementById('status-filter');
-        const healthFilter = document.getElementById('health-filter');
-        const sortBy = document.getElementById('sort-by');
-        const totalAssessmentsEl = document.getElementById('total-assessments');
-        const criticalCasesEl = document.getElementById('critical-cases');
-        const avgHealthStatusEl = document.getElementById('avg-health-status');
-        const treatedPatientsEl = document.getElementById('treated-patients');
-        
-        // Assessment data storage
-        let allAssessments = [];
-        let filteredAssessments = [];
-        
-        // Login function
-        loginBtn.addEventListener('click', async () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            if (!email || !password) {
-                loginError.textContent = "Please enter both email and password";
-                loginError.style.display = 'block';
-                return;
-            }
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+        authDomain: "palmaegis-setup.firebaseapp.com",
+        projectId: "palmaegis-setup",
+        storageBucket: "palmaegis-setup.firebasestorage.app",
+        messagingSenderId: "445887502374",
+        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+    };
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Global variables
+    let currentUser = null;
+    let userData = null;
+    let dataTable = null;
+    let allAssessments = [];
+    let allUsers = [];
+
+    // Check authentication and authorization
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log('User is signed in:', user.email);
+            currentUser = user;
             
             try {
-                // Firebase authentication
-                await auth.signInWithEmailAndPassword(email, password);
-                // Success - handled by auth state listener
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    userData = userDoc.data();
+                    
+                    // Check if user is admin
+                    if (userData.role !== 'admin') {
+                        alert('Access denied. Admin privileges required.');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    
+                    updateUserProfile(user, userData);
+                    initializeDashboard();
+                }
             } catch (error) {
-                console.error("Login error:", error);
-                loginError.textContent = error.message || "Login failed. Please try again.";
-                loginError.style.display = 'block';
+                console.error('Error loading user data:', error);
             }
-        });
+        } else {
+            window.location.href = 'signin.html';
+        }
+    });
+
+    function updateUserProfile(user, userData) {
+        const userNameElement = document.querySelector('.user-name');
+        const userRoleElement = document.querySelector('.user-role');
         
-        // Logout function
-        logoutBtn.addEventListener('click', () => {
-            auth.signOut();
-        });
+        if (userNameElement) {
+            userNameElement.textContent = userData.firstName && userData.lastName 
+                ? `${userData.firstName} ${userData.lastName}`
+                : user.email.split('@')[0];
+        }
         
-        // Authentication state listener
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                // User is signed in
-                document.getElementById('user-email').textContent = user.email;
-                loginSection.style.display = 'none';
-                dashboard.style.display = 'block';
-                loginError.style.display = 'none';
-                
-                // Load assessment data
-                loadAssessments();
-            } else {
-                // User is signed out
-                dashboard.style.display = 'none';
-                loginSection.style.display = 'block';
-                allAssessments = [];
-                filteredAssessments = [];
-            }
-        });
+        if (userRoleElement) {
+            userRoleElement.textContent = 'Admin';
+        }
         
-        // Load assessments from Firestore
-        async function loadAssessments() {
-            try {
-                loadingElement.style.display = 'block';
-                errorMessage.style.display = 'none';
-                emptyState.style.display = 'none';
-                assessmentsTable.style.display = 'none';
-                
-                // Get assessments collection from Firestore
-                const querySnapshot = await db.collection('assessments').get();
-                
-                allAssessments = [];
-                querySnapshot.forEach(doc => {
-                    const assessment = doc.data();
-                    assessment.id = doc.id;
-                    assessment.firestoreId = doc.id;
-                    allAssessments.push(assessment);
+        updateProfilePicture(userData);
+    }
+
+    function updateProfilePicture(userData) {
+        const avatarElements = document.querySelectorAll('.user-avatar');
+        let imageSource = 'images/user-avatar.jpg';
+        
+        if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
+            imageSource = userData.imageBase64.trim();
+        } else if (userData.picture && userData.picture.trim() !== '') {
+            imageSource = userData.picture.trim();
+        } else if (userData.photoURL && userData.photoURL.trim() !== '') {
+            imageSource = userData.photoURL.trim();
+        }
+
+        avatarElements.forEach(img => {
+            img.src = imageSource;
+            img.alt = 'Admin Avatar';
+            img.onerror = function() {
+                this.src = 'images/user-avatar.jpg';
+            };
+        });
+    }
+
+    // Initialize dashboard
+    async function initializeDashboard() {
+        await loadAllUsers();
+        await loadAssessments();
+        initializeDataTable();
+        initializeFilters();
+    }
+
+    // Load all users
+    async function loadAllUsers() {
+        try {
+            const usersSnapshot = await getDocs(collection(db, "users"));
+            allUsers = [];
+            usersSnapshot.forEach(doc => {
+                allUsers.push({
+                    id: doc.id,
+                    ...doc.data()
                 });
-                
-                // If no assessments exist, create some sample data for demonstration
-                if (allAssessments.length === 0) {
-                    console.log("No assessments found, creating sample data for demo");
-                    await createSampleDiseaseAssessments();
-                    // Reload after creating sample data
-                    return loadAssessments();
-                }
-                
-                updateDashboard();
-                
-            } catch (error) {
-                console.error("Error loading assessments:", error);
-                loadingElement.style.display = 'none';
-                errorMessage.style.display = 'block';
-                assessmentsTable.style.display = 'none';
-            }
+            });
+            console.log('Loaded users:', allUsers.length);
+        } catch (error) {
+            console.error('Error loading users:', error);
         }
-        
-        // Create sample disease assessments for demonstration
-        async function createSampleDiseaseAssessments() {
-            const sampleAssessments = [
-                {
-                    diseaseName: "Diabetes Type 2",
-                    patientId: "P001",
-                    patientName: "John Smith",
-                    age: 52,
-                    gender: "Male",
-                    status: "fair",
-                    healthStatus: 65,
-                    treatment: "Metformin 500mg twice daily, Dietary control, Regular exercise",
-                    date: new Date(2023, 9, 15).toISOString(),
-                    symptoms: ["Increased thirst", "Frequent urination", "Fatigue"],
-                    doctor: "Dr. Sarah Johnson"
-                },
-                {
-                    diseaseName: "Hypertension",
-                    patientId: "P002",
-                    patientName: "Maria Garcia",
-                    age: 48,
-                    gender: "Female",
-                    status: "good",
-                    healthStatus: 82,
-                    treatment: "Lisinopril 10mg daily, Low sodium diet, Stress management",
-                    date: new Date(2023, 9, 18).toISOString(),
-                    symptoms: ["Headaches", "Dizziness", "Shortness of breath"],
-                    doctor: "Dr. Robert Chen"
-                },
-                {
-                    diseaseName: "COVID-19",
-                    patientId: "P003", 
-                    patientName: "David Wilson",
-                    age: 35,
-                    gender: "Male",
-                    status: "critical",
-                    healthStatus: 40,
-                    treatment: "Remdesivir IV, Dexamethasone, Oxygen therapy, Monitoring",
-                    date: new Date(2023, 9, 10).toISOString(),
-                    symptoms: ["Fever", "Cough", "Loss of taste", "Difficulty breathing"],
-                    doctor: "Dr. Amanda Lee"
-                },
-                {
-                    diseaseName: "Asthma",
-                    patientId: "P004",
-                    patientName: "Sarah Williams",
-                    age: 29,
-                    gender: "Female",
-                    status: "good",
-                    healthStatus: 78,
-                    treatment: "Albuterol inhaler as needed, Fluticasone daily, Avoid triggers",
-                    date: new Date(2023, 9, 20).toISOString(),
-                    symptoms: ["Wheezing", "Chest tightness", "Shortness of breath"],
-                    doctor: "Dr. Michael Brown"
-                },
-                {
-                    diseaseName: "Coronary Artery Disease",
-                    patientId: "P005",
-                    patientName: "James Wilson",
-                    age: 65,
-                    gender: "Male",
-                    status: "poor",
-                    healthStatus: 55,
-                    treatment: "Atorvastatin 40mg daily, Aspirin 81mg daily, Cardiac rehabilitation",
-                    date: new Date(2023, 9, 12).toISOString(),
-                    symptoms: ["Chest pain", "Fatigue", "Shortness of breath"],
-                    doctor: "Dr. Susan Miller"
-                },
-                {
-                    diseaseName: "Rheumatoid Arthritis",
-                    patientId: "P006",
-                    patientName: "Linda Martinez",
-                    age: 58,
-                    gender: "Female",
-                    status: "fair",
-                    healthStatus: 60,
-                    treatment: "Methotrexate weekly, Physical therapy, NSAIDs for pain",
-                    date: new Date(2023, 9, 22).toISOString(),
-                    symptoms: ["Joint pain", "Swelling", "Morning stiffness"],
-                    doctor: "Dr. Thomas Wilson"
-                },
-                {
-                    diseaseName: "Chronic Kidney Disease",
-                    patientId: "P007",
-                    patientName: "Robert Johnson",
-                    age: 70,
-                    gender: "Male",
-                    status: "critical",
-                    healthStatus: 35,
-                    treatment: "Dialysis three times weekly, Erythropoietin injections, Fluid restriction",
-                    date: new Date(2023, 9, 5).toISOString(),
-                    symptoms: ["Fatigue", "Swelling", "Nausea", "Reduced urine output"],
-                    doctor: "Dr. Jennifer Davis"
-                }
-            ];
+    }
+
+    // Load assessments from Firebase
+    async function loadAssessments() {
+        try {
+            const assessmentsRef = collection(db, "assessments");
+            const q = query(assessmentsRef, orderBy("timestamp", "desc"));
+            const querySnapshot = await getDocs(q);
             
-            // Add sample assessments to Firestore
-            for (const assessment of sampleAssessments) {
-                await db.collection('assessments').add(assessment);
-            }
-            
-            console.log("Sample disease assessments created");
-        }
-        
-        // Update dashboard with assessment data
-        function updateDashboard() {
-            // Apply filters and sorting
-            filterAndSortAssessments();
-            
-            // Update statistics
+            allAssessments = [];
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                allAssessments.push({
+                    id: doc.id,
+                    ...data
+                });
+            });
+
+            console.log('Loaded assessments:', allAssessments.length);
             updateStatistics();
             
-            // Render table
-            renderAssessmentsTable();
-            
-            // Hide loading, show table
-            loadingElement.style.display = 'none';
-            
-            if (filteredAssessments.length === 0) {
-                emptyState.style.display = 'block';
-                assessmentsTable.style.display = 'none';
-            } else {
-                emptyState.style.display = 'none';
-                assessmentsTable.style.display = 'table';
+            if (dataTable) {
+                updateDataTable();
             }
+            
+        } catch (error) {
+            console.error('Error loading assessments:', error);
+            alert('Error loading data: ' + error.message);
         }
-        
-        // Filter and sort assessments based on user selection
-        function filterAndSortAssessments() {
-            // Start with all assessments
-            filteredAssessments = [...allAssessments];
-            
-            // Apply search filter
-            const searchTerm = searchInput.value.toLowerCase();
-            if (searchTerm) {
-                filteredAssessments = filteredAssessments.filter(assessment => 
-                    assessment.diseaseName.toLowerCase().includes(searchTerm) ||
-                    assessment.patientName.toLowerCase().includes(searchTerm) ||
-                    (assessment.treatment && assessment.treatment.toLowerCase().includes(searchTerm)) ||
-                    (assessment.doctor && assessment.doctor.toLowerCase().includes(searchTerm))
-                );
-            }
-            
-            // Apply status filter
-            const statusFilterValue = statusFilter.value;
-            if (statusFilterValue !== 'all') {
-                filteredAssessments = filteredAssessments.filter(assessment => 
-                    assessment.status === statusFilterValue
-                );
-            }
-            
-            // Apply health status filter
-            const healthFilterValue = healthFilter.value;
-            if (healthFilterValue !== 'all') {
-                filteredAssessments = filteredAssessments.filter(assessment => {
-                    const healthStatus = assessment.healthStatus;
-                    if (healthFilterValue === 'excellent') return healthStatus >= 80;
-                    if (healthFilterValue === 'good') return healthStatus >= 65 && healthStatus < 80;
-                    if (healthFilterValue === 'fair') return healthStatus >= 50 && healthStatus < 65;
-                    if (healthFilterValue === 'poor') return healthStatus < 50;
-                    return true;
-                });
-            }
-            
-            // Apply sorting
-            const sortByValue = sortBy.value;
-            filteredAssessments.sort((a, b) => {
-                switch(sortByValue) {
-                    case 'newest':
-                        return new Date(b.date) - new Date(a.date);
-                    case 'oldest':
-                        return new Date(a.date) - new Date(b.date);
-                    case 'health-high':
-                        return b.healthStatus - a.healthStatus;
-                    case 'health-low':
-                        return a.healthStatus - b.healthStatus;
-                    default:
-                        return 0;
+    }
+
+    // Update statistics
+    function updateStatistics() {
+        const total = allAssessments.length;
+        const healthy = allAssessments.filter(a => a.healthStatus === 'Healthy').length;
+        const disease = allAssessments.filter(a => a.healthStatus === 'Not Healthy').length;
+        const uniqueUsers = [...new Set(allAssessments.map(a => a.userId))].length;
+
+        document.getElementById('totalAssessments').textContent = total;
+        document.getElementById('healthyPlants').textContent = healthy;
+        document.getElementById('diseaseCases').textContent = disease;
+        document.getElementById('activeUsers').textContent = uniqueUsers;
+
+        // Calculate trends (simplified - could be improved with historical data)
+        document.getElementById('assessmentsTrend').innerHTML = 
+            `<i class="fas fa-arrow-up"></i> ${total} total records`;
+        document.getElementById('healthyTrend').innerHTML = 
+            `<i class="fas fa-check-circle"></i> ${healthy} healthy`;
+        document.getElementById('diseaseTrend').innerHTML = 
+            `<i class="fas fa-exclamation-triangle"></i> ${disease} infected`;
+        document.getElementById('usersTrend').innerHTML = 
+            `<i class="fas fa-users"></i> ${uniqueUsers} users`;
+    }
+
+    // Initialize DataTable
+    function initializeDataTable() {
+        dataTable = $('#assessmentsTable').DataTable({
+            data: allAssessments,
+            columns: [
+                {
+                    data: 'assessmentId',
+                    render: function(data, type, row) {
+                        return `<span style="font-family: monospace; font-size: 12px;">${data}</span>`;
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data, type, row) {
+                        const date = new Date(data.timestamp?.toDate?.() || data.createdAt || Date.now());
+                        return `
+                            <div>
+                                <div style="font-weight: 600;">${date.toLocaleDateString()}</div>
+                                <div style="font-size: 12px; color: #666;">${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data, type, row) {
+                        const user = allUsers.find(u => u.id === data.userId);
+                        return `
+                            <div class="user-info">
+                                <img src="${user?.imageBase64 || user?.picture || user?.photoURL || 'images/user-avatar.jpg'}" 
+                                     class="user-avatar-small"
+                                     onerror="this.src='images/user-avatar.jpg'">
+                                <div>
+                                    <div style="font-weight: 600;">${data.userName || user?.email?.split('@')[0] || 'Unknown'}</div>
+                                    <div style="font-size: 11px; color: #666;">${data.userEmail || user?.email || ''}</div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                },
+                {
+                    data: 'location',
+                    render: function(data, type, row) {
+                        return `<span title="${data}">${data.length > 30 ? data.substring(0, 30) + '...' : data}</span>`;
+                    }
+                },
+                {
+                    data: 'disease',
+                    render: function(data, type, row) {
+                        if (!data || data === 'No disease detected') {
+                            return `<span class="disease-tag" style="background: #e8f5e9; color: #2e7d32;">Healthy</span>`;
+                        }
+                        
+                        const diseases = data.split(',').map(d => d.trim());
+                        return diseases.map(disease => {
+                            let tagClass = 'disease-tag';
+                            if (disease.toLowerCase().includes('ganoderma')) {
+                                tagClass += ' disease-ganoderma';
+                            } else if (disease.toLowerCase().includes('blackspot')) {
+                                tagClass += ' disease-blackspot';
+                            }
+                            return `<span class="${tagClass}">${disease}</span>`;
+                        }).join(' ');
+                    }
+                },
+                {
+                    data: 'healthStatus',
+                    render: function(data, type, row) {
+                        const statusClass = data === 'Healthy' ? 'status-healthy' : 'status-disease';
+                        return `<span class="status-badge ${statusClass}">${data}</span>`;
+                    }
+                },
+                {
+                    data: 'detectionCount',
+                    render: function(data, type, row) {
+                        return `<span style="font-weight: 600; color: ${data > 0 ? '#c62828' : '#2e7d32'}">${data}</span>`;
+                    }
+                },
+                {
+                    data: null,
+                    render: function(data, type, row) {
+                        return `
+                            <div class="action-buttons">
+                                <button class="action-btn view" onclick="viewAssessment('${row.id}')" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="deleteAssessment('${row.id}', '${row.assessmentId}')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        `;
+                    },
+                    orderable: false
                 }
-            });
-        }
-        
-        // Update statistics cards
-        function updateStatistics() {
-            const total = allAssessments.length;
-            const critical = allAssessments.filter(a => a.status === 'critical').length;
-            const treated = allAssessments.filter(a => a.treatment && a.treatment.trim() !== '').length;
-            
-            // Calculate average health status
-            const totalHealth = allAssessments.reduce((sum, a) => sum + (a.healthStatus || 0), 0);
-            const avgHealth = total > 0 ? Math.round(totalHealth / total) : 0;
-            
-            totalAssessmentsEl.textContent = total;
-            criticalCasesEl.textContent = critical;
-            avgHealthStatusEl.textContent = avgHealth;
-            treatedPatientsEl.textContent = treated;
-        }
-        
-        // Get health status class based on score
-        function getHealthStatusClass(healthScore) {
-            if (healthScore >= 80) return 'health-excellent';
-            if (healthScore >= 65) return 'health-good';
-            if (healthScore >= 50) return 'health-fair';
-            return 'health-poor';
-        }
-        
-        // Get health status text based on score
-        function getHealthStatusText(healthScore) {
-            if (healthScore >= 80) return 'Excellent';
-            if (healthScore >= 65) return 'Good';
-            if (healthScore >= 50) return 'Fair';
-            return 'Poor';
-        }
-        
-        // Render assessments table
-        function renderAssessmentsTable() {
-            assessmentsBody.innerHTML = '';
-            
-            filteredAssessments.forEach(assessment => {
-                const row = document.createElement('tr');
-                
-                // Format date
-                const date = new Date(assessment.date);
-                const formattedDate = date.toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                });
-                
-                // Determine status class and text
-                let statusClass = '';
-                let statusText = assessment.status || 'pending';
-                
-                if (statusText === 'good') {
-                    statusClass = 'status-good';
-                } else if (statusText === 'fair') {
-                    statusClass = 'status-fair';
-                } else if (statusText === 'poor') {
-                    statusClass = 'status-poor';
-                } else if (statusText === 'critical') {
-                    statusClass = 'status-critical';
-                }
-                
-                // Get health status class and text
-                const healthScore = assessment.healthStatus || 0;
-                const healthClass = getHealthStatusClass(healthScore);
-                const healthText = getHealthStatusText(healthScore);
-                
-                // Format treatment (truncate if too long)
-                let treatmentText = assessment.treatment || 'No treatment assigned';
-                if (treatmentText.length > 60) {
-                    treatmentText = treatmentText.substring(0, 57) + '...';
-                }
-                
-                row.innerHTML = `
-                    <td>${assessment.patientId || assessment.firestoreId.substring(0, 8)}</td>
-                    <td><strong>${assessment.disease || 'Unknown Disease'}</strong></td>
-                    <td><span class="status ${statusClass}">${statusText}</span></td>
-                    <td><span class="health-status ${healthClass}">${healthText} (${healthScore})</span></td>
-                    <td class="treatment-cell" title="${assessment.treatment || ''}">${treatmentText}</td>
-                    <td>${formattedDate}</td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="btn btn-action btn-view" onclick="viewAssessment('${assessment.firestoreId}')">View</button>
-                            <button class="btn btn-action btn-edit" onclick="editAssessment('${assessment.firestoreId}')">Edit</button>
-                            <button class="btn btn-action btn-treatment" onclick="viewTreatment('${assessment.firestoreId}')">Treatment</button>
-                            <button class="btn btn-action btn-delete" onclick="deleteAssessment('${assessment.firestoreId}')">Delete</button>
-                        </div>
-                    </td>
-                `;
-                
-                assessmentsBody.appendChild(row);
-            });
-        }
-        
-        // View assessment details
-        function viewAssessment(id) {
-            const assessment = allAssessments.find(a => a.firestoreId === id);
-            if (assessment) {
-                const symptoms = assessment.symptoms ? assessment.symptoms.join(', ') : 'Not specified';
-                alert(`Disease Assessment Details:\n\nDisease: ${assessment.diseaseName}\nPatient: ${assessment.patientName} (Age: ${assessment.age || 'N/A'}, Gender: ${assessment.gender || 'N/A'})\nStatus: ${assessment.status}\nHealth Status: ${assessment.healthStatus} (${getHealthStatusText(assessment.healthStatus)})\nSymptoms: ${symptoms}\nTreatment: ${assessment.treatment || 'Not assigned'}\nDoctor: ${assessment.doctor || 'Not assigned'}\nDate: ${new Date(assessment.date).toLocaleDateString()}\nID: ${id}`);
-            }
-        }
-        
-        // View treatment details
-        function viewTreatment(id) {
-            const assessment = allAssessments.find(a => a.firestoreId === id);
-            if (assessment) {
-                alert(`Treatment Plan for ${assessment.patientName}:\n\nDisease: ${assessment.diseaseName}\n\nCurrent Treatment:\n${assessment.treatment || 'No treatment assigned'}\n\nPrescribed by: ${assessment.doctor || 'Not specified'}`);
-            }
-        }
-        
-        // Edit assessment
-        function editAssessment(id) {
-            const assessment = allAssessments.find(a => a.firestoreId === id);
-            if (assessment) {
-                const newTreatment = prompt(`Edit treatment for ${assessment.patientName} (${assessment.diseaseName}):`, assessment.treatment || '');
-                if (newTreatment !== null) {
-                    // Update in Firebase
-                    updateTreatment(id, newTreatment);
+            ],
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            order: [[1, 'desc']],
+            language: {
+                search: "Search:",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                paginate: {
+                    first: "First",
+                    last: "Last",
+                    next: "Next",
+                    previous: "Previous"
                 }
             }
-        }
-        
-        // Update treatment in Firebase
-        async function updateTreatment(id, newTreatment) {
-            try {
-                await db.collection('assessments').doc(id).update({
-                    treatment: newTreatment,
-                    lastUpdated: new Date().toISOString()
-                });
-                
-                alert('Treatment updated successfully!');
-                // Reload data
-                loadAssessments();
-            } catch (error) {
-                console.error("Error updating treatment:", error);
-                alert('Error updating treatment. Please try again.');
-            }
-        }
-        
-        // Delete assessment with confirmation
-        async function deleteAssessment(id) {
-            if (confirm('Are you sure you want to delete this disease assessment? This action cannot be undone.')) {
-                try {
-                    await db.collection('assessments').doc(id).delete();
-                    alert('Disease assessment deleted successfully!');
-                    // Reload data after deletion
-                    loadAssessments();
-                } catch (error) {
-                    console.error("Error deleting assessment:", error);
-                    alert('Error deleting assessment. Please try again.');
-                }
-            }
-        }
-        
-        // Event listeners for filters and search
-        searchInput.addEventListener('input', updateDashboard);
-        statusFilter.addEventListener('change', updateDashboard);
-        healthFilter.addEventListener('change', updateDashboard);
-        sortBy.addEventListener('change', updateDashboard);
-        
-        // Initialize the app
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Disease Assessment Dashboard initialized");
-            console.log("Firebase project: palmaegis-setup");
-            console.log("Collection: assessments");
         });
-    </script>
+    }
+
+    // Update DataTable with filtered data
+    function updateDataTable() {
+        const filteredData = filterAssessments();
+        dataTable.clear();
+        dataTable.rows.add(filteredData);
+        dataTable.draw();
+    }
+
+    // Filter assessments based on selected filters
+    function filterAssessments() {
+        let filtered = [...allAssessments];
+        
+        const statusFilter = document.getElementById('statusFilter').value;
+        const diseaseFilter = document.getElementById('diseaseFilter').value;
+        const dateFrom = document.getElementById('dateFrom').value;
+        const dateTo = document.getElementById('dateTo').value;
+        
+        if (statusFilter) {
+            filtered = filtered.filter(a => a.healthStatus === statusFilter);
+        }
+        
+        if (diseaseFilter) {
+            if (diseaseFilter === 'healthy') {
+                filtered = filtered.filter(a => !a.disease || a.disease === 'No disease detected');
+            } else {
+                filtered = filtered.filter(a => a.disease && a.disease.toLowerCase().includes(diseaseFilter));
+            }
+        }
+        
+        if (dateFrom) {
+            const fromDate = new Date(dateFrom);
+            filtered = filtered.filter(a => {
+                const assessmentDate = new Date(a.timestamp?.toDate?.() || a.createdAt || Date.now());
+                return assessmentDate >= fromDate;
+            });
+        }
+        
+        if (dateTo) {
+            const toDate = new Date(dateTo);
+            toDate.setHours(23, 59, 59, 999);
+            filtered = filtered.filter(a => {
+                const assessmentDate = new Date(a.timestamp?.toDate?.() || a.createdAt || Date.now());
+                return assessmentDate <= toDate;
+            });
+        }
+        
+        return filtered;
+    }
+
+    // Initialize filters
+    function initializeFilters() {
+        document.getElementById('statusFilter').addEventListener('change', updateDataTable);
+        document.getElementById('diseaseFilter').addEventListener('change', updateDataTable);
+        document.getElementById('dateFrom').addEventListener('change', updateDataTable);
+        document.getElementById('dateTo').addEventListener('change', updateDataTable);
+        
+        // Set default dates (last 30 days)
+        const today = new Date();
+        const lastMonth = new Date();
+        lastMonth.setDate(today.getDate() - 30);
+        
+        document.getElementById('dateFrom').value = lastMonth.toISOString().split('T')[0];
+        document.getElementById('dateTo').value = today.toISOString().split('T')[0];
+    }
+
+    // View assessment details
+    function viewAssessment(assessmentId) {
+        const assessment = allAssessments.find(a => a.id === assessmentId);
+        if (!assessment) return;
+        
+        // Fill modal with data
+        document.getElementById('modalId').textContent = assessment.assessmentId;
+        
+        const date = new Date(assessment.timestamp?.toDate?.() || assessment.createdAt || Date.now());
+        document.getElementById('modalDateTime').textContent = 
+            `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+        
+        document.getElementById('modalLocation').textContent = assessment.location;
+        
+        // Health status
+        const statusClass = assessment.healthStatus === 'Healthy' ? 'status-healthy' : 'status-disease';
+        document.getElementById('modalHealthStatus').innerHTML = 
+            `<span class="status-badge ${statusClass}">${assessment.healthStatus}</span>`;
+        
+        // User info
+        const user = allUsers.find(u => u.id === assessment.userId);
+        document.getElementById('modalUserName').textContent = 
+            assessment.userName || user?.email?.split('@')[0] || 'Unknown';
+        document.getElementById('modalUserEmail').textContent = 
+            assessment.userEmail || user?.email || 'N/A';
+        
+        // Disease info
+        document.getElementById('modalDisease').textContent = 
+            assessment.disease || 'No disease detected';
+        document.getElementById('modalDetectionCount').textContent = 
+            assessment.detectionCount || 0;
+        document.getElementById('modalConfidence').textContent = 
+            `${Math.round((assessment.confidenceThreshold || 0.5) * 100)}%`;
+        
+        // Detections list
+        const detectionsList = document.getElementById('modalDetectionsList');
+        if (assessment.detections && assessment.detections.length > 0) {
+            detectionsList.innerHTML = assessment.detections.map(det => `
+                <div class="detection-item">
+                    <span class="detection-class">${det.class} (${det.model})</span>
+                    <span class="detection-confidence">${Math.round(det.confidence * 100)}% confidence</span>
+                </div>
+            `).join('');
+        } else {
+            detectionsList.innerHTML = '<div class="detection-item">No detections found</div>';
+        }
+        
+        // Image
+        document.getElementById('modalImage').src = assessment.image || '';
+        
+        // Treatment
+        document.getElementById('modalTreatment').textContent = 
+            assessment.treatment || 'No treatment recommendations available.';
+        
+        // Next assessment
+        document.getElementById('modalNextAssessment').textContent = 
+            assessment.nextAssessment || 'Not scheduled';
+        
+        // Show modal
+        document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    // Close modal
+    function closeModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+
+    // Delete assessment
+    async function deleteAssessment(assessmentId, assessmentDisplayId) {
+        if (!confirm(`Are you sure you want to delete assessment ${assessmentDisplayId}?`)) {
+            return;
+        }
+        
+        try {
+            // Note: You'll need to import deleteDoc from firebase/firestore
+            import { deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+            
+            await deleteDoc(doc(db, "assessments", assessmentId));
+            alert('Assessment deleted successfully!');
+            await loadAssessments(); // Reload data
+        } catch (error) {
+            console.error('Error deleting assessment:', error);
+            alert('Error deleting assessment: ' + error.message);
+        }
+    }
+
+    // Export data
+    function exportData() {
+        // Trigger DataTables export
+        if (dataTable) {
+            dataTable.button('.buttons-excel').trigger();
+        }
+    }
+
+    // Add logout functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                signOut(auth).then(() => {
+                    window.location.href = 'signin.html';
+                });
+            });
+        }
+    });
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+        const modal = document.getElementById('detailModal');
+        if (event.target === modal) {
+            closeModal();
+        }
+    };
+
+    // Make functions globally available
+    window.viewAssessment = viewAssessment;
+    window.closeModal = closeModal;
+    window.deleteAssessment = deleteAssessment;
+    window.loadAssessments = loadAssessments;
+    window.exportData = exportData;
+</script>
 </body>
 </html>
