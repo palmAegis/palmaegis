@@ -1141,24 +1141,21 @@
         document.getElementById('detailModal').style.display = 'none';
     }
 
-    // Delete assessment
-    async function deleteAssessment(assessmentId, assessmentDisplayId) {
-        if (!confirm(`Are you sure you want to delete assessment ${assessmentDisplayId}?`)) {
-            return;
-        }
-        
-        try {
-            // Note: You'll need to import deleteDoc from firebase/firestore
-            import { deleteDoc, doc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-            
-            await deleteDoc(doc(db, "assessments", assessmentId));
-            alert('Assessment deleted successfully!');
-            await loadAssessments(); // Reload data
-        } catch (error) {
-            console.error('Error deleting assessment:', error);
-            alert('Error deleting assessment: ' + error.message);
-        }
+// Then the delete function becomes simpler:
+async function deleteAssessment(assessmentId, assessmentDisplayId) {
+    if (!confirm(`Are you sure you want to delete assessment ${assessmentDisplayId}?`)) {
+        return;
     }
+
+    try {
+        await deleteDoc(doc(db, "assessments", assessmentId));
+        alert('Assessment deleted successfully!');
+        await loadAssessments(); // Reload data
+    } catch (error) {
+        console.error('Error deleting assessment:', error);
+        alert('Error deleting assessment: ' + error.message);
+    }
+}
 
     // Export data
     function exportData() {
