@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Tree Health Assessments | Palm Aegis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
     
     <style>
@@ -30,6 +31,7 @@
         body {
             background: #f5f5f5;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .admin-container {
@@ -37,107 +39,18 @@
             min-height: 100vh;
         }
 
-        /* Sidebar Styles */
-        .admin-sidebar {
-            width: 250px;
-            background: var(--primary-color);
-            color: white;
-            padding: 20px 0;
-            position: fixed;
-            height: 100vh;
-            overflow-y: auto;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-        }
-
-        .sidebar-header {
-            padding: 0 20px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            margin-bottom: 20px;
-        }
-
-        .sidebar-header h2 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.3rem;
-        }
-
-        .sidebar-header h2 i {
-            color: #ffd700;
-        }
-
-        .admin-nav ul {
-            list-style: none;
-        }
-
-        .admin-nav li {
-            margin-bottom: 5px;
-        }
-
-        .admin-nav a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 20px;
-            color: rgba(255,255,255,0.9);
-            text-decoration: none;
-            transition: all 0.3s;
-            border-left: 3px solid transparent;
-        }
-
-        .admin-nav a:hover {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border-left-color: white;
-        }
-
-        .admin-nav a.active {
-            background: rgba(255,255,255,0.15);
-            color: white;
-            border-left-color: #ffd700;
-        }
-
-        .admin-nav a i {
-            width: 20px;
-            text-align: center;
-        }
-
-        .user-info {
-            padding: 20px;
-            margin-top: auto;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: white;
-            color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        .user-details h4 {
-            font-size: 0.9rem;
-            margin-bottom: 2px;
-        }
-
-        .user-details p {
-            font-size: 0.8rem;
-            opacity: 0.8;
-        }
-
         /* Main Content Styles */
         .admin-main {
             flex: 1;
-            margin-left: 250px;
+            margin-left: 260px;
             padding: 20px;
+            transition: margin-left 0.3s ease;
+            width: calc(100% - 260px);
+        }
+
+        .admin-main.sidebar-collapsed {
+            margin-left: 80px;
+            width: calc(100% - 80px);
         }
 
         .admin-header {
@@ -667,24 +580,27 @@
 
         /* Responsive Design */
         @media (max-width: 1024px) {
-            .admin-sidebar {
-                width: 200px;
-            }
             .admin-main {
-                margin-left: 200px;
+                margin-left: 260px;
+                width: calc(100% - 260px);
+            }
+            
+            .admin-main.sidebar-collapsed {
+                margin-left: 80px;
+                width: calc(100% - 80px);
             }
         }
 
         @media (max-width: 768px) {
-            .admin-sidebar {
-                width: 100%;
-                position: relative;
-                height: auto;
-                margin-bottom: 20px;
-            }
-            
             .admin-main {
                 margin-left: 0;
+                width: 100%;
+                padding: 15px;
+            }
+            
+            .admin-main.sidebar-collapsed {
+                margin-left: 0;
+                width: 100%;
             }
             
             .admin-header {
@@ -703,12 +619,6 @@
             .stats-grid {
                 grid-template-columns: 1fr;
             }
-        }
-
-        @media (max-width: 480px) {
-            .admin-main {
-                padding: 15px;
-            }
             
             .table-header {
                 flex-direction: column;
@@ -721,15 +631,29 @@
                 justify-content: center;
             }
         }
+
+        @media (max-width: 480px) {
+            .admin-main {
+                padding: 10px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-value {
+                font-size: 24px;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="admin-container">
         <!-- Sidebar Container -->
-          <div id="sidebar-container"></div>
+        <div id="sidebar-container"></div>
 
         <!-- Main Content -->
-        <main class="admin-main">
+        <main class="admin-main" id="adminMain">
             <div class="admin-header">
                 <div class="header-left">
                     <h1>Tree Health Assessments</h1>
@@ -874,63 +798,9 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, collection, getDocs, query, orderBy, getDoc, doc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, query, orderBy, getDoc, doc, deleteDoc, where } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-        // Load sidebar and initialize everything
-    document.addEventListener('DOMContentLoaded', function() {
-      // Load sidebar
-      fetch('sidebaradmin.html')
-        .then(response => response.text())
-        .then(data => {
-          document.getElementById('sidebar-container').innerHTML = data;
-          
-          // Highlight current page in sidebar
-          const currentPage = window.location.pathname.split('/').pop();
-          const navLinks = document.querySelectorAll('aside nav a');
-          navLinks.forEach(link => {
-            const linkPage = link.getAttribute('href');
-            if (linkPage === currentPage) {
-              link.classList.add('bg-green-600');
-              link.classList.remove('hover:bg-green-600');
-            }
-          });
-          
-          // Now adjust main content after sidebar loads
-          adjustMainContent();
-          
-          // Listen for sidebar toggle events
-          window.addEventListener('sidebarToggled', adjustMainContent);
-        })
-        .catch(error => console.error('Error loading sidebar:', error));
-        
-      // Initialize Firebase and load users
-      initializeFirebase();
-    });
-
-    // Function to adjust main content based on sidebar state
-    function adjustMainContent() {
-      const sidebar = document.getElementById('sidebar');
-      const mainContent = document.querySelector('.main-content');
-      
-      if (sidebar && mainContent) {
-        // Give a small delay to ensure DOM is updated
-        setTimeout(() => {
-          if (sidebar.classList.contains('sidebar-collapsed')) {
-            mainContent.style.marginLeft = '80px';
-            mainContent.style.width = 'calc(100% - 80px)';
-          } else {
-            mainContent.style.marginLeft = '256px';
-            mainContent.style.width = 'calc(100% - 256px)';
-          }
-        }, 50);
-      }
-    }
-
-    // Adjust on window resize
-    window.addEventListener('resize', function() {
-      setTimeout(adjustMainContent, 100);
-    });
-        // Firebase configuration - using your existing configuration
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
             authDomain: "palmaegis-setup.firebaseapp.com",
@@ -948,43 +818,229 @@
         // Global variables
         let allAssessments = [];
         let filteredAssessments = [];
-        let allUsers = new Map(); // Store user data by userId
+        let allUsers = new Map();
         let currentPage = 1;
         const itemsPerPage = 15;
         let currentAdmin = null;
 
-        // Check authentication and load admin data
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentAdmin = user;
-                
-                // Load admin profile
-                try {
-                    const adminDoc = await getDoc(doc(db, "users", user.uid));
-                    if (adminDoc.exists()) {
-                        const adminData = adminDoc.data();
-                        document.getElementById('adminName').textContent = 
-                            `${adminData.firstName || ''} ${adminData.lastName || ''}`.trim() || 
-                            adminData.username || 
-                            user.email.split('@')[0];
-                        
-                        // Set avatar initial
-                        const avatarElement = document.getElementById('adminAvatar');
-                        const adminName = document.getElementById('adminName').textContent;
-                        avatarElement.textContent = adminName.charAt(0).toUpperCase();
+        // Load sidebar and initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load sidebar
+            fetch('sidebaradmin.html')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to load sidebar');
                     }
-                } catch (error) {
-                    console.error('Error loading admin data:', error);
-                }
-                
-                // Load all assessments
-                loadAllAssessments();
-                loadAllUsers();
-            } else {
-                // Redirect to signin if not authenticated
-                window.location.href = 'signin.html';
-            }
+                    return response.text();
+                })
+                .then(data => {
+                    document.getElementById('sidebar-container').innerHTML = data;
+                    
+                    // Initialize sidebar functionality
+                    initSidebar();
+                    
+                    // Adjust main content based on sidebar state
+                    adjustMainContent();
+                    
+                    // Listen for sidebar toggle events
+                    document.addEventListener('sidebarToggled', adjustMainContent);
+                    
+                    // Initialize Firebase and load data
+                    initializeFirebase();
+                })
+                .catch(error => {
+                    console.error('Error loading sidebar:', error);
+                    // Create a simple fallback sidebar
+                    createFallbackSidebar();
+                    initializeFirebase();
+                });
+            
+            // Adjust on window resize
+            window.addEventListener('resize', adjustMainContent);
         });
+
+        // Create fallback sidebar if main sidebar fails to load
+        function createFallbackSidebar() {
+            const sidebarHTML = `
+                <aside class="sidebar" id="sidebar">
+                    <div class="sidebar-header">
+                        <div class="logo">
+                            <img src="images/logo1.png" alt="Palm Aegis Logo">
+                            <h2>Admin Panel</h2>
+                        </div>
+                        <button class="toggle-btn" id="sidebarToggle">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                    </div>
+                    <nav>
+                        <a href="admin-dashboard.html" class="active">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Assessments</span>
+                        </a>
+                        <a href="admin-users.html">
+                            <i class="fas fa-users"></i>
+                            <span>Users</span>
+                        </a>
+                        <a href="admin-reports.html">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Reports</span>
+                        </a>
+                        <a href="admin-settings.html">
+                            <i class="fas fa-cog"></i>
+                            <span>Settings</span>
+                        </a>
+                    </nav>
+                    <div class="user-info">
+                        <div class="user-avatar" id="adminAvatar">
+                            A
+                        </div>
+                        <div class="user-details">
+                            <h4 id="adminName">Admin</h4>
+                            <p>Administrator</p>
+                        </div>
+                    </div>
+                </aside>
+            `;
+            document.getElementById('sidebar-container').innerHTML = sidebarHTML;
+            initSidebar();
+        }
+
+        // Initialize sidebar functionality
+        function initSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebarToggle');
+            
+            if (toggleBtn && sidebar) {
+                toggleBtn.addEventListener('click', function() {
+                    sidebar.classList.toggle('sidebar-collapsed');
+                    
+                    // Dispatch custom event for other components
+                    const event = new CustomEvent('sidebarToggled');
+                    document.dispatchEvent(event);
+                });
+            }
+            
+            // Highlight current page in sidebar
+            highlightCurrentPage();
+        }
+
+        // Highlight current page in sidebar navigation
+        function highlightCurrentPage() {
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('#sidebar nav a');
+            
+            navLinks.forEach(link => {
+                const linkPage = link.getAttribute('href');
+                if (linkPage === currentPage) {
+                    link.classList.add('active');
+                } else {
+                    link.classList.remove('active');
+                }
+            });
+        }
+
+        // Adjust main content based on sidebar state
+        function adjustMainContent() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('adminMain');
+            
+            if (sidebar && mainContent) {
+                if (sidebar.classList.contains('sidebar-collapsed')) {
+                    mainContent.classList.add('sidebar-collapsed');
+                } else {
+                    mainContent.classList.remove('sidebar-collapsed');
+                }
+            }
+        }
+
+        // Initialize Firebase and check authentication
+        function initializeFirebase() {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    currentAdmin = user;
+                    console.log('Admin authenticated:', user.email);
+                    
+                    try {
+                        // Load admin profile
+                        const adminDoc = await getDoc(doc(db, "users", user.uid));
+                        if (adminDoc.exists()) {
+                            const adminData = adminDoc.data();
+                            updateAdminProfile(adminData, user);
+                        }
+                        
+                        // Check if user is admin
+                        const isAdmin = await checkAdminStatus(user.uid);
+                        if (!isAdmin) {
+                            console.warn('User is not an admin, redirecting...');
+                            window.location.href = 'treehealth.html';
+                            return;
+                        }
+                        
+                        // Load all data
+                        await loadAllAssessments();
+                        await loadAllUsers();
+                        
+                    } catch (error) {
+                        console.error('Error during admin initialization:', error);
+                        showErrorState('Error loading admin data');
+                    }
+                } else {
+                    // Redirect to signin if not authenticated
+                    console.log('User not authenticated, redirecting to signin');
+                    window.location.href = 'signin.html';
+                }
+            });
+        }
+
+        // Check if user has admin role
+        async function checkAdminStatus(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", userId));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    // Check for admin role or specific admin field
+                    return userData.role === 'admin' || userData.isAdmin === true || 
+                           userData.email === 'admin@example.com'; // Add your admin emails here
+                }
+                return false;
+            } catch (error) {
+                console.error('Error checking admin status:', error);
+                return false;
+            }
+        }
+
+        // Update admin profile display
+        function updateAdminProfile(adminData, user) {
+            const adminName = document.getElementById('adminName');
+            const adminAvatar = document.getElementById('adminAvatar');
+            
+            if (adminName) {
+                const displayName = adminData.firstName && adminData.lastName 
+                    ? `${adminData.firstName} ${adminData.lastName}`
+                    : adminData.username 
+                    ? adminData.username
+                    : user.email.split('@')[0] || 'Admin';
+                
+                adminName.textContent = displayName;
+            }
+            
+            if (adminAvatar) {
+                const name = adminName ? adminName.textContent : 'A';
+                adminAvatar.textContent = name.charAt(0).toUpperCase();
+                
+                // Add profile picture if available
+                if (adminData.imageBase64) {
+                    adminAvatar.innerHTML = '';
+                    const img = document.createElement('img');
+                    img.src = adminData.imageBase64;
+                    img.alt = 'Admin Avatar';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.borderRadius = '50%';
+                    adminAvatar.appendChild(img);
+                }
+            }
+        }
 
         // Load all assessments from all users
         async function loadAllAssessments() {
@@ -1015,22 +1071,26 @@
                         dateObj = new Date();
                     }
                     
-                    // Track user for user filter
+                    // Store user info for filter
                     if (data.userId && !usersMap.has(data.userId)) {
                         usersMap.set(data.userId, {
                             id: data.userId,
-                            name: data.userName || 'Unknown User'
+                            name: data.userName || 'Unknown User',
+                            email: data.userEmail || ''
                         });
                     }
                     
                     allAssessments.push({
                         id: docSnapshot.id,
                         ...data,
-                        dateObj: dateObj
+                        dateObj: dateObj,
+                        userId: data.userId || 'unknown',
+                        userName: data.userName || 'Unknown User',
+                        userEmail: data.userEmail || ''
                     });
                 }
                 
-                console.log(`Loaded ${allAssessments.length} assessments from database`);
+                console.log(`Loaded ${allAssessments.length} assessments`);
                 
                 // Update user filter dropdown
                 updateUserFilter(usersMap);
@@ -1068,6 +1128,9 @@
                 
                 console.log(`Loaded ${allUsers.size} users`);
                 
+                // Update user filter with all users
+                updateUserFilter(allUsers);
+                
             } catch (error) {
                 console.error('Error loading users:', error);
             }
@@ -1076,18 +1139,26 @@
         // Update user filter dropdown
         function updateUserFilter(usersMap) {
             const userFilter = document.getElementById('userFilter');
-            const currentOptions = userFilter.innerHTML;
+            if (!userFilter) return;
             
-            // Keep the "All Users" option
+            // Save current selection
+            const currentSelection = userFilter.value;
+            
+            // Clear and rebuild options
             userFilter.innerHTML = '<option value="">All Users</option>';
             
             // Add users from the map
             usersMap.forEach((user) => {
                 const option = document.createElement('option');
                 option.value = user.id;
-                option.textContent = user.name;
+                option.textContent = `${user.name}${user.email ? ` (${user.email})` : ''}`;
                 userFilter.appendChild(option);
             });
+            
+            // Restore selection if still valid
+            if (currentSelection && usersMap.has(currentSelection)) {
+                userFilter.value = currentSelection;
+            }
         }
 
         // Update statistics
@@ -1106,8 +1177,8 @@
             // Calculate disease percentage
             const diseasePercentage = total > 0 ? Math.round((diseaseCount / total) * 100) : 0;
             
-            // Get unique users
-            const uniqueUsers = new Set(allAssessments.map(a => a.userId).filter(id => id));
+            // Get unique users from assessments
+            const uniqueUsers = new Set(allAssessments.map(a => a.userId).filter(id => id && id !== 'unknown'));
             
             // Update DOM elements
             document.getElementById('totalAssessments').textContent = total;
@@ -1172,7 +1243,7 @@
             
             // Calculate pagination
             const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredAssessments.length);
             const pageAssessments = filteredAssessments.slice(startIndex, endIndex);
             
             // Render table rows
@@ -1191,6 +1262,7 @@
                 
                 // Get user info
                 let userName = assessment.userName || 'Unknown User';
+                let userEmail = assessment.userEmail || '';
                 let userInitial = userName.charAt(0).toUpperCase();
                 
                 // Create disease tags
@@ -1226,7 +1298,7 @@
                                 <div class="user-avatar-small">${userInitial}</div>
                                 <div>
                                     <div style="font-weight: 500;">${userName}</div>
-                                    <small style="color: #666; font-size: 12px;">${assessment.userEmail || ''}</small>
+                                    ${userEmail ? `<small style="color: #666; font-size: 12px;">${userEmail}</small>` : ''}
                                 </div>
                             </div>
                         </td>
@@ -1268,9 +1340,9 @@
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
             
-            pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-            prevBtn.disabled = currentPage === 1;
-            nextBtn.disabled = currentPage === totalPages || totalPages === 0;
+            if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+            if (prevBtn) prevBtn.disabled = currentPage === 1;
+            if (nextBtn) nextBtn.disabled = currentPage === totalPages || totalPages === 0;
         }
 
         // Change page
@@ -1309,6 +1381,8 @@
                 if (assessment.userId && allUsers.has(assessment.userId)) {
                     const user = allUsers.get(assessment.userId);
                     userDetails = `${user.name} (${user.email || 'No email'})`;
+                } else {
+                    userDetails = `${assessment.userName || 'Unknown User'} ${assessment.userEmail ? `(${assessment.userEmail})` : ''}`;
                 }
                 
                 modalBody.innerHTML = `
@@ -1349,18 +1423,17 @@
                             <div class="detail-label">Confidence Threshold</div>
                             <div class="detail-value">${assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) : 0}%</div>
                         </div>
-                    </div>
-                    
-                    ${assessment.image ? `
-                    <div style="margin-top: 20px;">
-                        <div class="detail-label">Captured Image</div>
-                        <div style="text-align: center; margin-top: 10px;">
-                            <img src="${assessment.image}" 
-                                 alt="Assessment Image" 
-                                 style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+                        ${assessment.image ? `
+                        <div class="detail-item" style="grid-column: 1 / -1;">
+                            <div class="detail-label">Captured Image</div>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <img src="${assessment.image}" 
+                                     alt="Assessment Image" 
+                                     style="max-width: 100%; max-height: 300px; border-radius: 8px;">
+                            </div>
                         </div>
+                        ` : ''}
                     </div>
-                    ` : ''}
                     
                     ${assessment.detections && assessment.detections.length > 0 ? `
                     <div style="margin-top: 20px;">
@@ -1462,26 +1535,35 @@
 
         // Show loading state
         function showLoadingState() {
-            document.getElementById('tableBody').innerHTML = `
-                <tr>
-                    <td colspan="9" class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading assessments...</p>
-                    </td>
-                </tr>
-            `;
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading assessments...</p>
+                        </td>
+                    </tr>
+                `;
+            }
         }
 
         // Show error state
         function showErrorState(message) {
-            document.getElementById('tableBody').innerHTML = `
-                <tr>
-                    <td colspan="9" class="no-data">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>${message}</p>
-                    </td>
-                </tr>
-            `;
+            const tableBody = document.getElementById('tableBody');
+            if (tableBody) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>${message}</p>
+                            <button class="refresh-btn" onclick="loadAllAssessments()" style="margin-top: 15px;">
+                                <i class="fas fa-redo"></i> Retry
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
         }
 
         // Close modal
@@ -1489,29 +1571,44 @@
             document.getElementById('detailModal').style.display = 'none';
         }
 
-        // Event listeners
-        document.getElementById('searchInput').addEventListener('input', () => {
-            filterAssessments();
-            renderTable();
-        });
-
-        document.getElementById('statusFilter').addEventListener('change', () => {
-            filterAssessments();
-            renderTable();
-        });
-
-        document.getElementById('userFilter').addEventListener('change', () => {
-            filterAssessments();
-            renderTable();
-        });
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('detailModal');
-            if (event.target === modal) {
-                closeModal();
+        // Initialize event listeners
+        function initEventListeners() {
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.getElementById('statusFilter');
+            const userFilter = document.getElementById('userFilter');
+            
+            if (searchInput) {
+                searchInput.addEventListener('input', () => {
+                    filterAssessments();
+                    renderTable();
+                });
             }
-        };
+            
+            if (statusFilter) {
+                statusFilter.addEventListener('change', () => {
+                    filterAssessments();
+                    renderTable();
+                });
+            }
+            
+            if (userFilter) {
+                userFilter.addEventListener('change', () => {
+                    filterAssessments();
+                    renderTable();
+                });
+            }
+            
+            // Close modal when clicking outside
+            window.onclick = function(event) {
+                const modal = document.getElementById('detailModal');
+                if (event.target === modal) {
+                    closeModal();
+                }
+            };
+        }
+
+        // Initialize all event listeners
+        initEventListeners();
 
         // Make functions globally available
         window.loadAllAssessments = loadAllAssessments;
