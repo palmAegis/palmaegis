@@ -7,7 +7,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="../admin/css/admin.css">
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -19,66 +18,67 @@
 
 <body class="bg-gray-50 font-[Inter] flex min-h-screen">
 
-  <!-- Sidebar -->
-  <aside class="w-64 bg-gradient-to-b from-green-700 to-green-800 text-white flex flex-col p-4 shadow-lg">
-    <div class="flex flex-col items-center text-center mt-6">
-      <img src="../images/logo.png" alt="Palm Aegis Logo" class="w-24 mb-3">
-      <h2 class="text-2xl font-bold">Palm Admin</h2>
-    </div>
+  <!-- Sidebar Container -->
+  <div id="sidebar-container"></div>
+  <script>
+    // Load sidebar and initialize everything
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load sidebar
+      fetch('sidebaradmin.html')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('sidebar-container').innerHTML = data;
+          
+          // Highlight current page in sidebar
+          const currentPage = window.location.pathname.split('/').pop();
+          const navLinks = document.querySelectorAll('aside nav a');
+          navLinks.forEach(link => {
+            const linkPage = link.getAttribute('href');
+            if (linkPage === currentPage) {
+              link.classList.add('bg-green-600');
+              link.classList.remove('hover:bg-green-600');
+            }
+          });
+          
+          // Now adjust main content after sidebar loads
+          adjustMainContent();
+          
+          // Listen for sidebar toggle events
+          window.addEventListener('sidebarToggled', adjustMainContent);
+        })
+        .catch(error => console.error('Error loading sidebar:', error));
+        
+      // Initialize Firebase and load users
+      initializeFirebase();
+    });
 
-    <nav class="mt-10 flex-1">
-      <ul class="space-y-2">
-        <li>
-          <a href="#" onclick="showAdminTab('dashboard-tab', this)" class="flex items-center px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 transition">
-            <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
-          </a>
-        </li>
-        <li>
-          <a href="user.html" onclick="showAdminTab('users-tab', this)" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
-            <i class="fas fa-users mr-3"></i> Users
-          </a>
-        </li>
-        <li>
-          <a href="admintreehealth.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
-            <i class="fas fa-leaf mr-3"></i> Tree Health
-          </a>
-        </li>
-        <li>
-          <a href="treatment_admin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
-            <i class="fas fa-pills mr-3"></i> Treatment
-          </a>
-        </li>
-        <li>
-          <a href="farmdataadmin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
-            <i class="fas fa-database mr-3"></i> Farm Data
-          </a>
-        </li>
-        <li>
-          <a href="report.html" onclick="showAdminTab('reports-tab', this)" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
-            <i class="fas fa-file-alt mr-3"></i> Reports
-          </a>
-        </li>
-      </ul>
-    </nav>
+    // Function to adjust main content based on sidebar state
+    function adjustMainContent() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.querySelector('.main-content');
+      
+      if (sidebar && mainContent) {
+        // Give a small delay to ensure DOM is updated
+        setTimeout(() => {
+          if (sidebar.classList.contains('sidebar-collapsed')) {
+            mainContent.style.marginLeft = '80px';
+            mainContent.style.width = 'calc(100% - 80px)';
+          } else {
+            mainContent.style.marginLeft = '256px';
+            mainContent.style.width = 'calc(100% - 256px)';
+          }
+        }, 50);
+      }
+    }
 
-    <div class="border-t border-green-600 pt-4">
-      <div class="flex items-center mb-4">
-        <div class="bg-green-600 p-3 rounded-full">
-          <i class="fas fa-user-shield text-white"></i>
-        </div>
-        <div class="ml-3">
-          <h4 id="admin-name" class="text-sm font-semibold">Admin User</h4>
-          <p id="admin-email" class="text-xs text-green-200">admin@gmail.com</p>
-        </div>
-      </div>
-      <a href="../index.html" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded-lg font-medium flex items-center justify-center transition">
-        <i class="fas fa-sign-out-alt mr-2"></i> Logout
-      </a>
-    </div>
-  </aside>
+    // Adjust on window resize
+    window.addEventListener('resize', function() {
+      setTimeout(adjustMainContent, 100);
+    });
+  </script>
 
   <!-- Main Content -->
-  <main class="flex-1 p-8 overflow-y-auto">
+  <main class="main-content">
     <!-- Header -->
     <header class="flex justify-between items-center mb-8">
       <div>
