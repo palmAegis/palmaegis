@@ -824,135 +824,59 @@
         let currentAdmin = null;
 
         // Load sidebar and initialize everything
-        document.addEventListener('DOMContentLoaded', function() {
-            // Load sidebar
-            fetch('sidebaradmin.html')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to load sidebar');
-                    }
-                    return response.text();
-                })
-                .then(data => {
-                    document.getElementById('sidebar-container').innerHTML = data;
-                    
-                    // Initialize sidebar functionality
-                    initSidebar();
-                    
-                    // Adjust main content based on sidebar state
-                    adjustMainContent();
-                    
-                    // Listen for sidebar toggle events
-                    document.addEventListener('sidebarToggled', adjustMainContent);
-                    
-                    // Initialize Firebase and load data
-                    initializeFirebase();
-                })
-                .catch(error => {
-                    console.error('Error loading sidebar:', error);
-                    // Create a simple fallback sidebar
-                    createFallbackSidebar();
-                    initializeFirebase();
-                });
-            
-            // Adjust on window resize
-            window.addEventListener('resize', adjustMainContent);
-        });
-
-        // Create fallback sidebar if main sidebar fails to load
-        function createFallbackSidebar() {
-            const sidebarHTML = `
-                <aside class="sidebar" id="sidebar">
-                    <div class="sidebar-header">
-                        <div class="logo">
-                            <img src="images/logo1.png" alt="Palm Aegis Logo">
-                            <h2>Admin Panel</h2>
-                        </div>
-                        <button class="toggle-btn" id="sidebarToggle">
-                            <i class="fas fa-bars"></i>
-                        </button>
-                    </div>
-                    <nav>
-                        <a href="admin-dashboard.html" class="active">
-                            <i class="fas fa-clipboard-list"></i>
-                            <span>Assessments</span>
-                        </a>
-                        <a href="admin-users.html">
-                            <i class="fas fa-users"></i>
-                            <span>Users</span>
-                        </a>
-                        <a href="admin-reports.html">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Reports</span>
-                        </a>
-                        <a href="admin-settings.html">
-                            <i class="fas fa-cog"></i>
-                            <span>Settings</span>
-                        </a>
-                    </nav>
-                    <div class="user-info">
-                        <div class="user-avatar" id="adminAvatar">
-                            A
-                        </div>
-                        <div class="user-details">
-                            <h4 id="adminName">Admin</h4>
-                            <p>Administrator</p>
-                        </div>
-                    </div>
-                </aside>
-            `;
-            document.getElementById('sidebar-container').innerHTML = sidebarHTML;
-            initSidebar();
-        }
-
-        // Initialize sidebar functionality
-        function initSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('sidebarToggle');
-            
-            if (toggleBtn && sidebar) {
-                toggleBtn.addEventListener('click', function() {
-                    sidebar.classList.toggle('sidebar-collapsed');
-                    
-                    // Dispatch custom event for other components
-                    const event = new CustomEvent('sidebarToggled');
-                    document.dispatchEvent(event);
-                });
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load sidebar
+      fetch('sidebaradmin.html')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('sidebar-container').innerHTML = data;
+          
+          // Highlight current page in sidebar
+          const currentPage = window.location.pathname.split('/').pop();
+          const navLinks = document.querySelectorAll('aside nav a');
+          navLinks.forEach(link => {
+            const linkPage = link.getAttribute('href');
+            if (linkPage === currentPage) {
+              link.classList.add('bg-green-600');
+              link.classList.remove('hover:bg-green-600');
             }
-            
-            // Highlight current page in sidebar
-            highlightCurrentPage();
-        }
+          });
+          
+          // Now adjust main content after sidebar loads
+          adjustMainContent();
+          
+          // Listen for sidebar toggle events
+          window.addEventListener('sidebarToggled', adjustMainContent);
+        })
+        .catch(error => console.error('Error loading sidebar:', error));
+        
+      // Initialize Firebase and load users
+      initializeFirebase();
+    });
 
-        // Highlight current page in sidebar navigation
-        function highlightCurrentPage() {
-            const currentPage = window.location.pathname.split('/').pop();
-            const navLinks = document.querySelectorAll('#sidebar nav a');
-            
-            navLinks.forEach(link => {
-                const linkPage = link.getAttribute('href');
-                if (linkPage === currentPage) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
-                }
-            });
-        }
+    // Function to adjust main content based on sidebar state
+    function adjustMainContent() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.querySelector('.main-content');
+      
+      if (sidebar && mainContent) {
+        // Give a small delay to ensure DOM is updated
+        setTimeout(() => {
+          if (sidebar.classList.contains('sidebar-collapsed')) {
+            mainContent.style.marginLeft = '80px';
+            mainContent.style.width = 'calc(100% - 80px)';
+          } else {
+            mainContent.style.marginLeft = '256px';
+            mainContent.style.width = 'calc(100% - 256px)';
+          }
+        }, 50);
+      }
+    }
 
-        // Adjust main content based on sidebar state
-        function adjustMainContent() {
-            const sidebar = document.getElementById('sidebar');
-            const mainContent = document.getElementById('adminMain');
-            
-            if (sidebar && mainContent) {
-                if (sidebar.classList.contains('sidebar-collapsed')) {
-                    mainContent.classList.add('sidebar-collapsed');
-                } else {
-                    mainContent.classList.remove('sidebar-collapsed');
-                }
-            }
-        }
-
+    // Adjust on window resize
+    window.addEventListener('resize', function() {
+      setTimeout(adjustMainContent, 100);
+    });
         // Initialize Firebase and check authentication
         function initializeFirebase() {
             onAuthStateChanged(auth, async (user) => {
