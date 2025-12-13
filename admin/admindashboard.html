@@ -15,39 +15,70 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="../admin/js/admin.js"></script>
-  
-  <script>
-    // Load sidebar on page load
-    document.addEventListener('DOMContentLoaded', function() {
-      // Load sidebar
-      fetch('sidebaradmin.html')
-        .then(response => response.text())
-        .then(data => {
-          document.getElementById('admin-sidebar').innerHTML = data;
-          
-          // Highlight current page in sidebar
-          const currentPage = window.location.pathname.split('/').pop();
-          const navLinks = document.querySelectorAll('aside nav a');
-          navLinks.forEach(link => {
-            const linkPage = link.getAttribute('href');
-            if (linkPage === currentPage) {
-              link.classList.add('bg-green-600');
-              link.classList.remove('hover:bg-green-600');
-            }
-          });
-        })
-        .catch(error => console.error('Error loading sidebar:', error));
-    });
-  </script>
 </head>
 
 <body class="bg-gray-50 font-[Inter] flex min-h-screen">
-  
-  <!-- Sidebar Container -->
-  <div id="admin-sidebar"></div>
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gradient-to-b from-green-700 to-green-800 text-white flex flex-col p-4 shadow-lg">
+    <div class="flex flex-col items-center text-center mt-6">
+      <img src="../images/logo.png" alt="Palm Aegis Logo" class="w-24 mb-3">
+      <h2 class="text-2xl font-bold">Palm Admin</h2>
+    </div>
+
+    <nav class="mt-10 flex-1">
+      <ul class="space-y-2">
+        <li>
+          <a href="#" onclick="showAdminTab('dashboard-tab', this)" class="flex items-center px-4 py-2 rounded-lg bg-green-600 hover:bg-green-500 transition">
+            <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="user.html" onclick="showAdminTab('users-tab', this)" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-users mr-3"></i> Users
+          </a>
+        </li>
+        <li>
+          <a href="admintreehealth.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-leaf mr-3"></i> Tree Health
+          </a>
+        </li>
+        <li>
+          <a href="treatment_admin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-pills mr-3"></i> Treatment
+          </a>
+        </li>
+        <li>
+          <a href="farmdataadmin.html" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-database mr-3"></i> Farm Data
+          </a>
+        </li>
+        <li>
+          <a href="report.html" onclick="showAdminTab('reports-tab', this)" class="flex items-center px-4 py-2 rounded-lg hover:bg-green-600 transition">
+            <i class="fas fa-file-alt mr-3"></i> Reports
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="border-t border-green-600 pt-4">
+      <div class="flex items-center mb-4">
+        <div class="bg-green-600 p-3 rounded-full">
+          <i class="fas fa-user-shield text-white"></i>
+        </div>
+        <div class="ml-3">
+          <h4 id="admin-name" class="text-sm font-semibold">Admin User</h4>
+          <p id="admin-email" class="text-xs text-green-200">admin@gmail.com</p>
+        </div>
+      </div>
+      <a href="../index.html" class="w-full bg-red-600 hover:bg-red-500 py-2 rounded-lg font-medium flex items-center justify-center transition">
+        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+      </a>
+    </div>
+  </aside>
 
   <!-- Main Content -->
-  <div class="main-content">
+  <main class="flex-1 p-8 overflow-y-auto">
     <!-- Header -->
     <header class="flex justify-between items-center mb-8">
       <div>
@@ -108,7 +139,6 @@
       </div>
       <div id="active-users-list" class="text-gray-600">Click refresh to load users...</div>
     </section>
-    
     <!-- Last Login Users Chart -->
     <section class="bg-white rounded-xl shadow p-6 mb-10">
       <h3 class="text-xl font-semibold text-gray-800 mb-4">Last Login Users (Last 7 Days)</h3>
@@ -137,30 +167,10 @@
         </button>
       </div>
     </section>
-  </div>
+  </main>
 
   <script>
-    // Set current date
     document.getElementById("current-date").innerText = new Date().toLocaleDateString();
-    
-    // Function to highlight active page in sidebar
-    function highlightActivePage() {
-      const currentPage = window.location.pathname.split('/').pop();
-      const navLinks = document.querySelectorAll('aside nav a');
-      
-      navLinks.forEach(link => {
-        link.classList.remove('bg-green-600');
-        const linkPage = link.getAttribute('href');
-        if (linkPage === currentPage || 
-            (currentPage === '' && linkPage === 'dashboard.html')) {
-          link.classList.add('bg-green-600');
-          link.classList.remove('hover:bg-green-600');
-        }
-      });
-    }
-    
-    // Call this function after sidebar loads
-    setTimeout(highlightActivePage, 100);
   </script>
 </body>
 </html>
