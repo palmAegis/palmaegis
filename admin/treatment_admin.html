@@ -380,6 +380,64 @@
     </style>
 </head>
 <body>
+      <!-- Sidebar Container -->
+  <div id="sidebar-container"></div>
+  <script>
+    // Load sidebar and initialize everything
+    document.addEventListener('DOMContentLoaded', function() {
+      // Load sidebar
+      fetch('sidebaradmin.html')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('sidebar-container').innerHTML = data;
+          
+          // Highlight current page in sidebar
+          const currentPage = window.location.pathname.split('/').pop();
+          const navLinks = document.querySelectorAll('aside nav a');
+          navLinks.forEach(link => {
+            const linkPage = link.getAttribute('href');
+            if (linkPage === currentPage) {
+              link.classList.add('bg-green-600');
+              link.classList.remove('hover:bg-green-600');
+            }
+          });
+          
+          // Now adjust main content after sidebar loads
+          adjustMainContent();
+          
+          // Listen for sidebar toggle events
+          window.addEventListener('sidebarToggled', adjustMainContent);
+        })
+        .catch(error => console.error('Error loading sidebar:', error));
+        
+      // Initialize Firebase and load users
+      initializeFirebase();
+    });
+
+    // Function to adjust main content based on sidebar state
+    function adjustMainContent() {
+      const sidebar = document.getElementById('sidebar');
+      const mainContent = document.querySelector('.main-content');
+      
+      if (sidebar && mainContent) {
+        // Give a small delay to ensure DOM is updated
+        setTimeout(() => {
+          if (sidebar.classList.contains('sidebar-collapsed')) {
+            mainContent.style.marginLeft = '80px';
+            mainContent.style.width = 'calc(100% - 80px)';
+          } else {
+            mainContent.style.marginLeft = '256px';
+            mainContent.style.width = 'calc(100% - 256px)';
+          }
+        }, 50);
+      }
+    }
+
+    // Adjust on window resize
+    window.addEventListener('resize', function() {
+      setTimeout(adjustMainContent, 100);
+    });
+  </script>
     <header>
         <div class="container">
             <h1></i>Palm Aegis Treatment Admin</h1>
