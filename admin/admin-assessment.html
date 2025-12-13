@@ -181,11 +181,63 @@
     });
   });
 
-  function viewRec(id) {
-    db.collection('assessments').doc(id).get().then(d => {
-      alert(JSON.stringify(d.data(), null, 2));
-    });
+  // ===== View Assessment (Modal Version) =====
+async function viewRec(assessmentId) {
+  try {
+    const doc = await db.collection('assessments').doc(assessmentId).get();
+    if (!doc.exists) return alert('Assessment not found');
+
+    const assessment = doc.data();
+
+    // handle date
+    let formattedDateTime = 'N/A';
+    if (assessment.dateTime) {
+      formattedDateTime = assessment.dateTime;
+    } else if (assessment.createdAt?.toDate) {
+      formattedDateTime = assessment.createdAt.toDate().toLocaleString();
+    }
+
+    // disease tags
+    let diseaseTags = 'None detected';
+    if (assessment.disease && assessment.disease !== 'No disease detected') {
+      diseaseTags = assessment.disease.split(',').map(d =>
+        `<span class="badge" style="background:#e74c3c">${d.trim()}</span>`
+      ).join(' ');
+    }
+
+    // detections
+    let detectionDetails = '<p>No detection data available</p>';
+    if (Array.isArray(assessment.detections) && assessment.detections.length) {
+      detectionDetails = assessment.detections.map(det => {
+        const conf = Math.round((det.confidence || 0) * 100);
+        return `
+          <div style="border-left:4px solid #2e8b57;padding:10px;margin-bottom:10px">
+            <strong>${det.class || 'Unknown'}</strong><br>
+            Model: ${det.model || '-'}<br>
+            Confidence: ${conf}%
+          </div>`;
+      }).join('');
+    }
+
+    document.getElementById('modalBody').innerHTML = `
+      <h3>Assessment Details</h3>
+      <p><strong>ID:</strong> ${assessmentId}</p>
+      <p><strong>Date:</strong> ${formattedDateTime}</p>
+      <p><strong>Location:</strong> ${assessment.location || '-'}</p>
+      <p><strong>Diseases:</strong> ${diseaseTags}</p>
+      <p><strong>Health:</strong> ${assessment.healthStatus || '-'}</p>
+      <p><strong>Treatment:</strong> ${assessment.treatmentStatus || '-'}</p>
+      <hr>
+      <h4>Detections</h4>
+      ${detectionDetails}
+    `;
+
+    document.getElementById('detailModal').style.display = 'flex';
+  } catch (err) {
+    console.error(err);
+    alert('Failed to load assessment');
   }
+}
 
   function setTreatment(id) {
     db.collection('assessments').doc(id).update({ treatmentStatus: 'In Treatment' });
