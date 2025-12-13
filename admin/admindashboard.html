@@ -23,7 +23,7 @@
       fetch('sidebaradmin.html')
         .then(response => response.text())
         .then(data => {
-          document.getElementById('sidebar-container').innerHTML = data;
+          document.getElementById('admin-sidebar').innerHTML = data;
           
           // Highlight current page in sidebar
           const currentPage = window.location.pathname.split('/').pop();
@@ -44,7 +44,7 @@
 <body class="bg-gray-50 font-[Inter] flex min-h-screen">
   
   <!-- Sidebar Container -->
-  <div id="sidebar-container"></div>
+  <div id="admin-sidebar"></div>
 
   <!-- Main Content -->
   <div class="main-content">
@@ -137,7 +137,7 @@
         </button>
       </div>
     </section>
-  </main>
+  </div>
 
   <script>
     // Set current date
