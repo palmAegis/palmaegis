@@ -625,21 +625,21 @@
     </div>
 
     <script>
-        // Replace your entire JavaScript with this:
-document.addEventListener('DOMContentLoaded', function() {
-    // Set active navigation item based on current page
-    const currentPage = window.location.pathname.split('/').pop();
-    const navLinks = document.querySelectorAll('.nav-item a');
-    
-    navLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        if (href && currentPage.includes(href.split('/').pop())) {
-            link.classList.add('active');
-        } else {
-            link.classList.remove('active');
-        }
-    });
-    
+    // Replace your entire JavaScript with this:
+        document.addEventListener('DOMContentLoaded', function() {
+        // Set active navigation item based on current page
+        const currentPage = window.location.pathname.split('/').pop();
+        const navLinks = document.querySelectorAll('.nav-item a');
+        
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && currentPage.includes(href.split('/').pop())) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+        
     // Simulate admin data
     document.getElementById('admin-name').textContent = 'Admin User';
     document.getElementById('admin-email').textContent = 'admin@gmail.com';

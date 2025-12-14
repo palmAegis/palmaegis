@@ -1057,53 +1057,53 @@
         let currentAdmin = null;
 
         // Load sidebar and initialize everything
-    document.addEventListener('DOMContentLoaded', function() {
-      // Load sidebar
-      fetch('sidebaradmin.html')
-        .then(response => response.text())
-        .then(data => {
-          document.getElementById('sidebar-container').innerHTML = data;
-          
-          // Highlight current page in sidebar
-          const currentPage = window.location.pathname.split('/').pop();
-          const navLinks = document.querySelectorAll('aside nav a');
-          navLinks.forEach(link => {
-            const linkPage = link.getAttribute('href');
-            if (linkPage === currentPage) {
-              link.classList.add('bg-green-600');
-              link.classList.remove('hover:bg-green-600');
-            }
-          });
-          
-          // Now adjust main content after sidebar loads
-          adjustMainContent();
-          
-          // Listen for sidebar toggle events
-          window.addEventListener('sidebarToggled', adjustMainContent);
-        })
-        .catch(error => console.error('Error loading sidebar:', error));
-        
-      // Initialize Firebase and load users
-      initializeFirebase();
-    });
+        document.addEventListener('DOMContentLoaded', function() {
+        // Load sidebar
+        fetch('sidebaradmin.html')
+            .then(response => response.text())
+            .then(data => {
+            document.getElementById('sidebar-container').innerHTML = data;
+            
+            // Highlight current page in sidebar
+            const currentPage = window.location.pathname.split('/').pop();
+            const navLinks = document.querySelectorAll('aside nav a');
+            navLinks.forEach(link => {
+                const linkPage = link.getAttribute('href');
+                if (linkPage === currentPage) {
+                link.classList.add('bg-green-600');
+                link.classList.remove('hover:bg-green-600');
+                }
+            });
+            
+            // Now adjust main content after sidebar loads
+            adjustMainContent();
+            
+            // Listen for sidebar toggle events
+            window.addEventListener('sidebarToggled', adjustMainContent);
+            })
+            .catch(error => console.error('Error loading sidebar:', error));
+            
+        // Initialize Firebase and load users
+        initializeFirebase();
+        });
 
     // Function to adjust main content based on sidebar state
-// Function to adjust main content based on sidebar state
-function adjustMainContent() {
-    const sidebar = document.querySelector('#sidebar-container aside');
-    const mainContent = document.getElementById('adminMain');
-    
-    if (sidebar && mainContent) {
-        setTimeout(() => {
-            const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
-            const sidebarWidth = isCollapsed ? 80 : 260;
-            
-            mainContent.style.marginLeft = `${sidebarWidth}px`;
-            mainContent.style.width = `calc(100% - ${sidebarWidth}px)`;
-            mainContent.style.maxWidth = `calc(100vw - ${sidebarWidth}px)`;
-        }, 50);
+    // Function to adjust main content based on sidebar state
+    function adjustMainContent() {
+        const sidebar = document.querySelector('#sidebar-container aside');
+        const mainContent = document.getElementById('adminMain');
+        
+        if (sidebar && mainContent) {
+            setTimeout(() => {
+                const isCollapsed = sidebar.classList.contains('sidebar-collapsed');
+                const sidebarWidth = isCollapsed ? 80 : 260;
+                
+                mainContent.style.marginLeft = `${sidebarWidth}px`;
+                mainContent.style.width = `calc(100% - ${sidebarWidth}px)`;
+                mainContent.style.maxWidth = `calc(100vw - ${sidebarWidth}px)`;
+            }, 50);
+        }
     }
-}
 
     // Adjust on window resize
     window.addEventListener('resize', function() {
