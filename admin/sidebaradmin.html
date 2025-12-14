@@ -7,21 +7,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Reset and base styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
+        /* --- RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { display: flex; min-height: 100vh; background-color: #f5f7fa; }
         
-        body {
-            display: flex;
-            min-height: 100vh;
-            background-color: #f5f7fa;
-        }
-        
-        /* Sidebar Styles */
+        /* --- SIDEBAR (FIXED POSITION) --- */
         .admin-sidebar {
             width: 16rem;
             background: linear-gradient(to bottom, #15803d, #166534);
@@ -29,170 +19,64 @@
             display: flex;
             flex-direction: column;
             padding: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            /* KEY FIX: Use dvh for mobile browsers and allow scrolling */
-            height: 100vh;
-            height: 100dvh; 
+            
+            /* CRITICAL FIXES FOR SCROLLING & POSITIONING */
             position: fixed;
             left: 0;
             top: 0;
-            z-index: 50;
-            /* KEY FIX: Allow scrolling if content is too tall */
-            overflow-y: auto;
+            height: 100vh;      /* Fallback */
+            height: 100dvh;     /* Mobile Real Height */
+            overflow-y: auto;   /* Allows scrolling if content is tall */
+            z-index: 1000;      /* Force on top of page content */
         }
         
+        /* Logo Section */
         .logo-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-bottom: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            flex-shrink: 0; /* Prevents logo from shrinking */
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+            margin-top: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+        .logo-section img { width: 5.5rem; height: 5.5rem; object-fit: contain; margin-bottom: 0.75rem; }
+        .logo-section h2 { 
+            font-size: 1.5rem; font-weight: 700; 
+            background: linear-gradient(to right, #ffffff, #d1fae5); -webkit-background-clip: text; color: transparent; 
         }
         
-        .logo-section img {
-            width: 5.5rem;
-            height: 5.5rem;
-            object-fit: contain;
-            margin-bottom: 0.75rem;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
-            transition: transform 0.3s ease;
-        }
-        
-        .logo-section img:hover {
-            transform: scale(1.05);
-        }
-        
-        .logo-section h2 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            background: linear-gradient(to right, #ffffff, #d1fae5);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        
-        /* Navigation Styles */
-        .sidebar-nav {
-            margin-top: 2rem;
-            flex: 1;
-            /* KEY FIX: Ensure nav doesn't overflow improperly */
-            min-height: min-content; 
-        }
-        
-        .nav-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-            list-style: none;
-        }
+        /* Navigation */
+        .sidebar-nav { margin-top: 2rem; flex: 1; }
+        .nav-list { display: flex; flex-direction: column; gap: 0.5rem; list-style: none; }
         
         .nav-item a {
-            display: flex;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            border-radius: 0.75rem;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: white;
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
+            display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 0.75rem;
+            text-decoration: none; color: white; font-weight: 500; transition: all 0.3s ease;
         }
+        .nav-item a:hover { background-color: rgba(22, 163, 74, 0.7); transform: translateX(5px); }
+        .nav-item a.active { background-color: #16a34a; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .nav-icon { margin-right: 0.75rem; width: 24px; text-align: center; font-size: 1.1rem; }
         
-        .nav-item a::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            background-color: #86efac;
-            transform: scaleY(0);
-            transition: transform 0.2s ease;
-        }
-        
-        .nav-item a:hover {
-            background-color: rgba(22, 163, 74, 0.7);
-            transform: translateX(5px);
-        }
-        
-        .nav-item a:hover::before {
-            transform: scaleY(1);
-        }
-        
-        .nav-item a.active {
-            background-color: #16a34a;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-        
-        .nav-item a.active::before {
-            transform: scaleY(1);
-        }
-        
-        .nav-icon {
-            margin-right: 0.75rem;
-            font-size: 1.1rem;
-            width: 24px;
-            text-align: center;
-        }
-        
-        /* Admin Profile Section */
+        /* Profile & Logout Section */
         .admin-profile-section {
             border-top: 1px solid rgba(22, 163, 74, 0.5);
             padding-top: 1rem;
             margin-top: auto;
-            flex-shrink: 0; /* Prevents getting crushed */
+            flex-shrink: 0;
+            /* Extra space at bottom to ensure it doesn't touch the edge */
+            margin-bottom: 1rem; 
         }
         
         .profile-info {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding: 0.5rem;
-            border-radius: 0.75rem;
-            background-color: rgba(255, 255, 255, 0.05);
+            display: flex; align-items: center; margin-bottom: 1.5rem; padding: 0.5rem;
+            border-radius: 0.75rem; background-color: rgba(255, 255, 255, 0.05);
         }
-        
         .profile-icon {
-            background: linear-gradient(135deg, #16a34a, #22c55e);
-            padding: 0.75rem;
-            border-radius: 9999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            background: #22c55e; padding: 0.75rem; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
         }
+        .profile-details { margin-left: 0.75rem; overflow: hidden; }
+        .profile-details h4 { font-size: 0.875rem; font-weight: 600; }
+        .profile-details p { font-size: 0.75rem; color: #bbf7d0; }
         
-        .profile-icon i {
-            font-size: 1.25rem;
-        }
-        
-        .profile-details {
-            margin-left: 0.75rem;
-            overflow: hidden;
-        }
-        
-        .profile-details h4 {
-            font-size: 0.875rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .profile-details p {
-            font-size: 0.75rem;
-            color: #bbf7d0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        /* Logout Button */
+        /* --- LOGOUT BUTTON (Tap Target Fix) --- */
         .logout-btn {
             width: 100%;
             background: linear-gradient(to right, #dc2626, #ef4444);
@@ -200,378 +84,140 @@
             padding: 0.75rem;
             border-radius: 0.75rem;
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            transition: all 0.3s ease;
+            display: flex; align-items: center; justify-content: center;
             border: none;
             cursor: pointer;
-            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.2);
             font-size: 1rem;
-            /* KEY FIX: Minimum height for easy tapping */
-            min-height: 50px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            /* Make it tall enough to tap easily */
+            min-height: 50px; 
         }
+        .logout-btn:active { transform: scale(0.98); }
         
-        .logout-btn:hover {
-            background: linear-gradient(to right, #b91c1c, #dc2626);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px -1px rgba(220, 38, 38, 0.3);
-        }
-        
-        .logout-btn i {
-            margin-right: 0.5rem;
-            font-size: 1rem;
-        }
-        
-        /* Logout Dialog Styles */
+        /* --- MAIN CONTENT SPACER --- */
+        .main-content { margin-left: 16rem; padding: 2rem; flex: 1; }
+
+        /* --- LOGOUT MODAL --- */
         .logout-dialog-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            display: none; /* Hidden by default */
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            z-index: 9999; /* Highest priority */
+            align-items: center; justify-content: center;
         }
-        
-        .logout-dialog-overlay.active {
-            opacity: 1;
-        }
-        
         .logout-dialog {
-            background: white;
-            border-radius: 1rem;
-            padding: 2rem;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            transform: translateY(20px);
-            transition: transform 0.3s ease;
+            background: white; border-radius: 1rem; padding: 2rem; width: 90%; max-width: 400px;
+            text-align: center; box-shadow: 0 20px 25px rgba(0,0,0,0.2);
         }
+        .dialog-icon i { font-size: 3rem; color: #ef4444; margin-bottom: 1rem; }
+        .dialog-actions { display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem; }
+        .dialog-btn { padding: 0.75rem 1.5rem; border-radius: 0.5rem; border: none; font-weight: 600; cursor: pointer; }
+        .btn-cancel { background: #f3f4f6; color: #374151; }
+        .btn-confirm { background: #dc2626; color: white; }
 
-        .logout-dialog-overlay.active .logout-dialog {
-            transform: translateY(0);
-        }
-        
-        .dialog-icon {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .dialog-icon i {
-            font-size: 3rem;
-            color: #ef4444;
-            background: linear-gradient(135deg, #fee2e2, #fecaca);
-            padding: 1rem;
-            border-radius: 50%;
-        }
-        
-        .dialog-content {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .dialog-content h3 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-        }
-        
-        .dialog-content p {
-            color: #6b7280;
-            line-height: 1.5;
-        }
-        
-        .dialog-actions {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-        }
-        
-        .dialog-btn {
-            padding: 0.75rem 2rem;
-            border-radius: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: none;
-            font-size: 0.95rem;
-            min-width: 120px;
-        }
-        
-        .dialog-btn-cancel {
-            background-color: #f3f4f6;
-            color: #374151;
-        }
-        
-        .dialog-btn-cancel:hover {
-            background-color: #e5e7eb;
-            transform: translateY(-2px);
-        }
-        
-        .dialog-btn-confirm {
-            background: linear-gradient(to right, #dc2626, #ef4444);
-            color: white;
-        }
-        
-        .dialog-btn-confirm:hover {
-            background: linear-gradient(to right, #b91c1c, #dc2626);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
-        }
-        
-        /* Main Content Area */
-        .main-content {
-            flex: 1;
-            margin-left: 16rem;
-            padding: 2rem;
-            background-color: #f9fafb;
-            min-height: 100vh;
-        }
-
-        /* Responsive Design */
+        /* --- MOBILE RESPONSIVE FIXES --- */
         @media (max-width: 768px) {
             .admin-sidebar {
                 width: 5rem;
                 padding: 1rem 0.5rem;
-                /* KEY FIX: Extra padding at bottom so button isn't covered by mobile nav bars */
-                padding-bottom: 5rem; 
+                /* THIS IS THE KEY FIX: huge bottom padding so button scrolls up above phone bars */
+                padding-bottom: 120px !important; 
             }
             
-            .logo-section h2, 
-            .nav-item span:not(.nav-icon),
-            .profile-details,
-            .logout-btn span {
-                display: none;
-            }
+            .logo-section h2, .nav-item span, .profile-details, .logout-btn span { display: none; }
+            .logo-section img { width: 3.5rem; height: 3.5rem; }
+            .nav-item a, .profile-info, .logout-btn { justify-content: center; }
+            .nav-icon, .logout-btn i { margin: 0; font-size: 1.25rem; }
             
-            .logo-section img {
-                width: 3.5rem;
-                height: 3.5rem;
-            }
+            .main-content { margin-left: 5rem; }
             
-            .nav-item a {
-                justify-content: center;
-                padding: 0.75rem;
-            }
-            
-            .nav-icon {
-                margin-right: 0;
-                font-size: 1.25rem;
-            }
-            
-            .profile-info {
-                justify-content: center;
-                padding: 0.5rem;
-            }
-            
-            .logout-btn {
-                padding: 0.75rem;
-                justify-content: center;
-                margin-top: 1rem;
-            }
-            
-            .logout-btn i {
-                margin-right: 0;
-                font-size: 1.25rem;
-            }
-            
-            .main-content {
-                margin-left: 5rem;
-                padding: 1rem;
-            }
-            
-            .dialog-actions {
-                flex-direction: column;
-            }
-            
-            .dialog-btn {
-                width: 100%;
-                min-height: 44px;
-            }
+            /* Make button larger on mobile */
+            .logout-btn { padding: 1rem; margin-top: 0.5rem; }
         }
     </style>
 </head>
 <body>
+
     <aside class="admin-sidebar">
         <div class="logo-section">
-            <img src="../images/Palm.png" alt="Palm Aegis Logo" class="w-24 mb-3">
+            <img src="../images/Palm.png" alt="Palm Aegis Logo">
             <h2>Palm Admin</h2>
         </div>
 
         <nav class="sidebar-nav">
             <ul class="nav-list">
-                <li class="nav-item">
-                    <a href="admindashboard.html">
-                        <i class="fas fa-tachometer-alt nav-icon"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="user.html">
-                        <i class="fas fa-users nav-icon"></i>
-                        <span>Users</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="admin-assessment.html">
-                        <i class="fas fa-leaf nav-icon"></i>
-                        <span>Assessments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="treatment_admin.html">
-                        <i class="fas fa-pills nav-icon"></i>
-                        <span>Treatment</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="farmdataadmin.html">
-                        <i class="fas fa-database nav-icon"></i>
-                        <span>Farm Data</span>
-                    </a>
-                </li>
+                <li class="nav-item"><a href="admindashboard.html"><i class="fas fa-tachometer-alt nav-icon"></i><span>Dashboard</span></a></li>
+                <li class="nav-item"><a href="user.html"><i class="fas fa-users nav-icon"></i><span>Users</span></a></li>
+                <li class="nav-item"><a href="admin-assessment.html"><i class="fas fa-leaf nav-icon"></i><span>Assessments</span></a></li>
+                <li class="nav-item"><a href="treatment_admin.html"><i class="fas fa-pills nav-icon"></i><span>Treatment</span></a></li>
+                <li class="nav-item"><a href="farmdataadmin.html"><i class="fas fa-database nav-icon"></i><span>Farm Data</span></a></li>
             </ul>
         </nav>
 
         <div class="admin-profile-section">
             <div class="profile-info">
-                <div class="profile-icon">
-                    <i class="fas fa-user-shield"></i>
-                </div>
+                <div class="profile-icon"><i class="fas fa-user-shield"></i></div>
                 <div class="profile-details">
-                    <h4 id="admin-name">Admin User</h4>
-                    <p id="admin-email">admin@gmail.com</p>
+                    <h4>Admin User</h4>
+                    <p>admin@gmail.com</p>
                 </div>
             </div>
-            <button class="logout-btn" id="logoutButton" type="button">
+            
+            <button class="logout-btn" type="button" onclick="openModal()">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </button>
         </div>
     </aside>
 
-    <div class="main-content">
-        </div>
+    <div class="main-content"></div>
 
     <div class="logout-dialog-overlay" id="logoutDialogOverlay">
         <div class="logout-dialog">
-            <div class="dialog-icon">
-                <i class="fas fa-sign-out-alt"></i>
-            </div>
-            <div class="dialog-content">
-                <h3>Confirm Logout</h3>
-                <p>Are you sure you want to log out? You will need to log in again to access the admin panel.</p>
-            </div>
+            <div class="dialog-icon"><i class="fas fa-sign-out-alt"></i></div>
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to log out?</p>
             <div class="dialog-actions">
-                <button class="dialog-btn dialog-btn-cancel" id="cancelLogout">
-                    <i class="fas fa-times"></i>
-                    Cancel
-                </button>
-                <button class="dialog-btn dialog-btn-confirm" id="confirmLogout">
-                    <i class="fas fa-check"></i>
-                    Yes, Logout
-                </button>
+                <button class="dialog-btn btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="dialog-btn btn-confirm" onclick="confirmLogout(this)">Yes, Logout</button>
             </div>
         </div>
     </div>
 
     <script>
+        // 1. OPEN MODAL
+        function openModal() {
+            document.getElementById('logoutDialogOverlay').style.display = 'flex';
+            document.body.style.overflow = 'hidden'; // Stop scrolling
+        }
+
+        // 2. CLOSE MODAL
+        function closeModal() {
+            document.getElementById('logoutDialogOverlay').style.display = 'none';
+            document.body.style.overflow = 'auto'; // Resume scrolling
+        }
+
+        // 3. DO LOGOUT
+        function confirmLogout(btn) {
+            btn.innerHTML = 'Logging out...';
+            btn.disabled = true;
+            
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            setTimeout(() => {
+                window.location.href = "../index.html";
+            }, 1000);
+        }
+
+        // 4. SET ACTIVE LINK
         document.addEventListener('DOMContentLoaded', function() {
-            // 1. Navigation Active State
             const currentPage = window.location.pathname.split('/').pop();
             const navLinks = document.querySelectorAll('.nav-item a');
-            
             navLinks.forEach(link => {
                 const href = link.getAttribute('href');
                 if (href && (currentPage.includes(href.split('/').pop()) || currentPage === href)) {
                     link.classList.add('active');
-                }
-            });
-            
-            // 2. Elements
-            const logoutButton = document.getElementById('logoutButton');
-            const logoutDialogOverlay = document.getElementById('logoutDialogOverlay');
-            const cancelLogout = document.getElementById('cancelLogout');
-            const confirmLogout = document.getElementById('confirmLogout');
-            
-            // 3. Open Dialog Function
-            function openDialog(e) {
-                if(e) e.preventDefault();
-                logoutDialogOverlay.style.display = 'flex'; // Ensure it's visible before animating
-                // Small delay to allow CSS transition to catch the display change
-                requestAnimationFrame(() => {
-                    logoutDialogOverlay.classList.add('active');
-                });
-                document.body.style.overflow = 'hidden'; // Stop background scrolling
-            }
-            
-            // 4. Close Dialog Function
-            function closeDialog(e) {
-                if(e) e.preventDefault();
-                logoutDialogOverlay.classList.remove('active');
-                
-                // Wait for animation to finish (0.3s) before setting display:none
-                setTimeout(() => {
-                    logoutDialogOverlay.style.display = 'none';
-                    document.body.style.overflow = 'auto';
-                }, 300);
-            }
-            
-            // 5. Event Listeners
-            if (logoutButton) {
-                logoutButton.addEventListener('click', openDialog);
-                // We don't need touchstart if click is handled correctly, 
-                // but if you have specific mobile issues, you can uncomment below:
-                // logoutButton.addEventListener('touchstart', openDialog, {passive: false});
-            }
-            
-            if (cancelLogout) {
-                cancelLogout.addEventListener('click', closeDialog);
-            }
-            
-            // Close if clicking outside
-            if (logoutDialogOverlay) {
-                logoutDialogOverlay.addEventListener('click', function(e) {
-                    if (e.target === logoutDialogOverlay) {
-                        closeDialog(e);
-                    }
-                });
-            }
-            
-            // 6. Handle Actual Logout
-            if (confirmLogout) {
-                confirmLogout.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Visual feedback
-                    const btn = this;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-                    btn.disabled = true;
-                    
-                    // Clear data
-                    localStorage.clear();
-                    sessionStorage.clear();
-                    
-                    // Redirect after 1 second
-                    setTimeout(() => {
-                        window.location.href = "../index.html";
-                    }, 1000);
-                });
-            }
-            
-            // 7. ESC key support
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && logoutDialogOverlay.classList.contains('active')) {
-                    closeDialog();
                 }
             });
         });
