@@ -625,126 +625,126 @@
     </div>
 
     <script>
-        // JavaScript for interactive functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set active navigation item based on current page
-            const currentPage = window.location.pathname.split('/').pop();
-            const navLinks = document.querySelectorAll('.nav-item a');
-            
-            navLinks.forEach(link => {
-                const href = link.getAttribute('href');
-                if (href && currentPage.includes(href.split('/').pop())) {
-                    link.classList.add('active');
-                } else {
-                    link.classList.remove('active');
-                }
-            });
-            
-            // Simulate admin data (in real app, this would come from backend)
-            document.getElementById('admin-name').textContent = 'Admin User';
-            document.getElementById('admin-email').textContent = 'admin@gmail.com';
-            
-            // Logout functionality
-            const logoutButton = document.getElementById('logoutButton');
-            const logoutDialog = document.getElementById('logoutDialog');
-            const cancelLogout = document.getElementById('cancelLogout');
-            const confirmLogout = document.getElementById('confirmLogout');
-            
-            // Show logout dialog when logout button is clicked
-            logoutButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                logoutDialog.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Prevent scrolling
-            });
-            
-            // Add touch event for mobile
-            logoutButton.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                logoutDialog.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }, { passive: false });
-            
-            // Hide dialog when cancel is clicked
-            cancelLogout.addEventListener('click', function() {
-                logoutDialog.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            });
-            
-            // Add touch event for cancel on mobile
-            cancelLogout.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                logoutDialog.classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }, { passive: false });
-            
-            // Handle logout confirmation
-            confirmLogout.addEventListener('click', function() {
-                handleLogout();
-            });
-            
-            // Add touch event for confirm on mobile
-            confirmLogout.addEventListener('touchstart', function(e) {
-                e.preventDefault();
-                handleLogout();
-            }, { passive: false });
-            
-            // Logout function
-            function handleLogout() {
-                // Show loading state
-                const originalText = confirmLogout.innerHTML;
-                confirmLogout.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
-                confirmLogout.disabled = true;
-                
-                // Clear any stored data
-                localStorage.clear();
-                sessionStorage.clear();
-                
-                // Simulate logout process
-                setTimeout(() => {
-                    // Redirect to index.html
-                    window.location.href = "../index.html";
-                }, 1000);
-            }
-            
-            // Close dialog when clicking outside
-            logoutDialog.addEventListener('click', function(e) {
-                if (e.target === logoutDialog) {
-                    logoutDialog.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            });
-            
-            // Add touch event for outside click on mobile
-            logoutDialog.addEventListener('touchstart', function(e) {
-                if (e.target === logoutDialog) {
-                    e.preventDefault();
-                    logoutDialog.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            }, { passive: false });
-            
-            // Close dialog with ESC key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape' && logoutDialog.classList.contains('active')) {
-                    logoutDialog.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            });
+        // Replace your entire JavaScript with this:
+document.addEventListener('DOMContentLoaded', function() {
+    // Set active navigation item based on current page
+    const currentPage = window.location.pathname.split('/').pop();
+    const navLinks = document.querySelectorAll('.nav-item a');
+    
+    navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && currentPage.includes(href.split('/').pop())) {
+            link.classList.add('active');
+        } else {
+            link.classList.remove('active');
+        }
+    });
+    
+    // Simulate admin data
+    document.getElementById('admin-name').textContent = 'Admin User';
+    document.getElementById('admin-email').textContent = 'admin@gmail.com';
+    
+    // Logout functionality
+    const logoutButton = document.getElementById('logoutButton');
+    const logoutDialogOverlay = document.getElementById('logoutDialogOverlay');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const confirmLogout = document.getElementById('confirmLogout');
+    
+    // Show logout dialog when logout button is clicked
+    logoutButton.addEventListener('click', function(e) {
+        e.preventDefault();
+        logoutDialogOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+    
+    // Add touch event for mobile
+    logoutButton.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        logoutDialogOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }, { passive: false });
+    
+    // Hide dialog when cancel is clicked
+    cancelLogout.addEventListener('click', function() {
+        logoutDialogOverlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    });
+    
+    // Add touch event for cancel on mobile
+    cancelLogout.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        logoutDialogOverlay.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }, { passive: false });
+    
+    // Handle logout confirmation
+    confirmLogout.addEventListener('click', function() {
+        handleLogout();
+    });
+    
+    // Add touch event for confirm on mobile
+    confirmLogout.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleLogout();
+    }, { passive: false });
+    
+    // Logout function
+    function handleLogout() {
+        // Show loading state
+        const originalText = confirmLogout.innerHTML;
+        confirmLogout.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+        confirmLogout.disabled = true;
+        
+        // Clear any stored data
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // Simulate logout process
+        setTimeout(() => {
+            // Redirect to index.html - adjust path as needed
+            window.location.href = "../index.html";
+        }, 1000);
+    }
+    
+    // Close dialog when clicking outside
+    logoutDialogOverlay.addEventListener('click', function(e) {
+        if (e.target === logoutDialogOverlay) {
+            logoutDialogOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // Add touch event for outside click on mobile
+    logoutDialogOverlay.addEventListener('touchstart', function(e) {
+        if (e.target === logoutDialogOverlay) {
+            e.preventDefault();
+            logoutDialogOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    }, { passive: false });
+    
+    // Close dialog with ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && logoutDialogOverlay.classList.contains('active')) {
+            logoutDialogOverlay.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+    });
+    
+    // Add hover effects for navigation items
+    const navItems = document.querySelectorAll('.nav-item a');
+    navItems.forEach(item => {
+        item.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateX(5px)';
         });
         
-        // Add hover effects for navigation items
-        const navItems = document.querySelectorAll('.nav-item a');
-        navItems.forEach(item => {
-            item.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateX(5px)';
-            });
-            
-            item.addEventListener('mouseleave', function() {
-                if (!this.classList.contains('active')) {
-                    this.style.transform = 'translateX(0)';
-                }
-            });
+        item.addEventListener('mouseleave', function() {
+            if (!this.classList.contains('active')) {
+                this.style.transform = 'translateX(0)';
+            }
         });
+    });
+});
     </script>
 </body>
 </html>
