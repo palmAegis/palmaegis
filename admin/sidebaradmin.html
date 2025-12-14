@@ -213,6 +213,121 @@
             font-size: 1rem;
         }
         
+        /* Logout Dialog Styles */
+        .logout-dialog-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logout-dialog-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .logout-dialog {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            animation: slideUp 0.3s ease;
+        }
+        
+        .dialog-icon {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .dialog-icon i {
+            font-size: 3rem;
+            color: #ef4444;
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            padding: 1rem;
+            border-radius: 50%;
+        }
+        
+        .dialog-content {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .dialog-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dialog-content p {
+            color: #6b7280;
+            line-height: 1.5;
+        }
+        
+        .dialog-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+        
+        .dialog-btn {
+            padding: 0.75rem 2rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 0.95rem;
+            min-width: 120px;
+        }
+        
+        .dialog-btn-cancel {
+            background-color: #f3f4f6;
+            color: #374151;
+        }
+        
+        .dialog-btn-cancel:hover {
+            background-color: #e5e7eb;
+            transform: translateY(-2px);
+        }
+        
+        .dialog-btn-confirm {
+            background: linear-gradient(to right, #dc2626, #ef4444);
+            color: white;
+        }
+        
+        .dialog-btn-confirm:hover {
+            background: linear-gradient(to right, #b91c1c, #dc2626);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(220, 38, 38, 0.3);
+        }
+        
+        /* Animation for dialog */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(20px); 
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0); 
+            }
+        }
+        
         /* Main Content Area */
         .main-content {
             flex: 1;
@@ -370,6 +485,20 @@
             .content-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .logout-dialog {
+                width: 95%;
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            
+            .dialog-actions {
+                flex-direction: column;
+            }
+            
+            .dialog-btn {
+                width: 100%;
+            }
         }
         
         /* Animation for sidebar items */
@@ -450,12 +579,34 @@
                     <p id="admin-email">admin@gmail.com</p>
                 </div>
             </div>
-            <a href="../index.html" class="logout-btn">
+            <button class="logout-btn" id="logoutButton">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
-            </a>
+            </button>
         </div>
     </aside>
+
+    <!-- Logout Confirmation Dialog -->
+    <div class="logout-dialog-overlay" id="logoutDialog">
+        <div class="logout-dialog">
+            <div class="dialog-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <div class="dialog-content">
+                <h3>Confirm Logout</h3>
+                <p>Are you sure you want to log out of your admin account? You will need to log in again to access the admin panel.</p>
+            </div>
+            <div class="dialog-actions">
+                <button class="dialog-btn dialog-btn-cancel" id="cancelLogout">
+                    Cancel
+                </button>
+                <button class="dialog-btn dialog-btn-confirm" id="confirmLogout">
+                    Yes, Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // JavaScript for interactive functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -483,18 +634,58 @@
             // Simulate admin data (in real app, this would come from backend)
             document.getElementById('admin-name').textContent = 'Admin User';
             document.getElementById('admin-email').textContent = 'admin@gmail.com';
+            
+            // Logout functionality
+            const logoutButton = document.getElementById('logoutButton');
+            const logoutDialog = document.getElementById('logoutDialog');
+            const cancelLogout = document.getElementById('cancelLogout');
+            const confirmLogout = document.getElementById('confirmLogout');
+            
+            // Show logout dialog when logout button is clicked
+            logoutButton.addEventListener('click', function() {
+                logoutDialog.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+            });
+            
+            // Hide dialog when cancel is clicked
+            cancelLogout.addEventListener('click', function() {
+                logoutDialog.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            });
+            
+            // Handle logout confirmation
+            confirmLogout.addEventListener('click', function() {
+                // Show loading state
+                confirmLogout.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+                confirmLogout.disabled = true;
+                
+                // Clear any stored data
+                localStorage.clear();
+                sessionStorage.clear();
+                
+                // Simulate logout process
+                setTimeout(() => {
+                    // Redirect to index.html
+                    window.location.href = "../index.html";
+                }, 1000);
+            });
+            
+            // Close dialog when clicking outside
+            logoutDialog.addEventListener('click', function(e) {
+                if (e.target === logoutDialog) {
+                    logoutDialog.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
+            
+            // Close dialog with ESC key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && logoutDialog.classList.contains('active')) {
+                    logoutDialog.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            });
         });
-        
-        function handleLogout() {
-    if (confirm('Are you sure you want to log out?')) {
-        // Clear any stored data
-        localStorage.clear();
-        
-        // Navigate to index.html
-        // Try going to root first
-        window.location.href = "/index.html";
-    }
-}
         
         // Add hover effects for navigation items
         const navItems = document.querySelectorAll('.nav-item a');
