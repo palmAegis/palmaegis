@@ -450,10 +450,10 @@
                     <p id="admin-email">admin@gmail.com</p>
                 </div>
             </div>
-            <button class="logout-btn" onclick="handleLogout()">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Logout</span>
-            </button>
+            <a href="../index.html" class="logout-btn">
+    <i class="fas fa-sign-out-alt"></i>
+    <span>Logout</span>
+</a>
         </div>
     </aside>
     <script>
@@ -486,10 +486,15 @@
         });
         
         function handleLogout() {
-            if (confirm('Are you sure you want to log out?')) {
-                window.location.href = "index.html";
-            }
-        }
+    if (confirm('Are you sure you want to log out?')) {
+        // Clear any stored data
+        localStorage.clear();
+        
+        // Navigate to index.html
+        // Try going to root first
+        window.location.href = "/index.html";
+    }
+}
         
         // Add hover effects for navigation items
         const navItems = document.querySelectorAll('.nav-item a');
