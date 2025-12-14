@@ -601,8 +601,8 @@
         </div>
     </aside>
 
-    <!-- Logout Confirmation Dialog -->
-    <div class="logout-dialog-overlay" id="logoutDialog">
+    <!-- Change this part in your HTML -->
+    <div class="logout-dialog-overlay" id="logoutDialogOverlay">
         <div class="logout-dialog">
             <div class="dialog-icon">
                 <i class="fas fa-sign-out-alt"></i>
@@ -612,11 +612,11 @@
                 <p>Are you sure you want to log out of your admin account? You will need to log in again to access the admin panel.</p>
             </div>
             <div class="dialog-actions">
-                <button class="dialog-btn cancel-btn" id="cancelLogout" onclick="document.getElementById('logoutDialogOverlay').style.display='none'; document.body.style.overflow='auto';">
+                <button class="dialog-btn dialog-btn-cancel" id="cancelLogout">
                     <i class="fas fa-times"></i>
                     Cancel
                 </button>
-                    <button class="dialog-btn confirm-btn" id="confirmLogout" onclick="window.location.href='index.html';">
+                <button class="dialog-btn dialog-btn-confirm" id="confirmLogout">
                     <i class="fas fa-check"></i>
                     Yes, Logout
                 </button>
