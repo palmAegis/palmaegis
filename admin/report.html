@@ -257,7 +257,7 @@
           </div>
           <i class="fas fa-camera text-2xl text-blue-600"></i>
         </div>
-        <button onclick="exportCollection('scans')" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
+        <button onclick="exportCollection('assessments')" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded-lg transition flex items-center justify-center">
           <i class="fas fa-download mr-2"></i> Export
         </button>
         <p class="text-xs text-gray-500 mt-2">All data included</p>
@@ -512,7 +512,7 @@
         document.getElementById('users-count').textContent = allData.users.length;
 
         // Load scans
-        const scansSnapshot = await db.collection('scans').get();
+        const scansSnapshot = await db.collection('assessments').get();
         allData.scans = scansSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         document.getElementById('scans-count').textContent = allData.scans.length;
 
