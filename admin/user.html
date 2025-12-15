@@ -10,6 +10,10 @@
 
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Chart.js for charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root{
@@ -275,6 +279,100 @@
       color: var(--accent);
     }
 
+    /* Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .stat-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 8px;
+    }
+    
+    .stat-label {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    
+    .stat-change {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .stat-change.positive {
+      color: #10b981;
+    }
+    
+    .stat-change.negative {
+      color: #ef4444;
+    }
+    
+    .stat-change i {
+      margin-right: 4px;
+    }
+
+    /* Chart Container */
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: 20px;
+    }
+    
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    
+    .chart-title {
+      font-weight: 600;
+      color: #1f2937;
+      font-size: 16px;
+    }
+    
+    .time-filter {
+      display: flex;
+      gap: 8px;
+    }
+    
+    .time-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #e5e7eb;
+      background: #f9fafb;
+      color: #6b7280;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .time-btn:hover {
+      background: #f3f4f6;
+    }
+    
+    .time-btn.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
     /* Responsive */
     @media (max-width: 1024px) {
       .main-content {
@@ -296,6 +394,10 @@
       .search input {
         min-width: 200px;
         flex: 1;
+      }
+      
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
     }
     
@@ -324,6 +426,14 @@
       
       thead th, tbody td {
         padding: 12px 8px;
+      }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .chart-container {
+        height: 250px;
       }
     }
 
@@ -370,6 +480,57 @@
           </div>
         </div>
       </header>
+
+      <!-- Stats Cards -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-value" id="totalUsers">0</div>
+          <div class="stat-label">Total Users</div>
+          <div class="stat-change positive" id="userChange">
+            <i class="fas fa-arrow-up"></i> Loading...
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value" id="todayUsers">0</div>
+          <div class="stat-label">Today's Registrations</div>
+          <div class="stat-change positive" id="todayChange">
+            <i class="fas fa-arrow-up"></i> Loading...
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value" id="adminUsers">0</div>
+          <div class="stat-label">Admin Users</div>
+          <div class="stat-change">
+            <i class="fas fa-user-shield"></i> Loading...
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-value" id="regularUsers">0</div>
+          <div class="stat-label">Regular Users</div>
+          <div class="stat-change">
+            <i class="fas fa-user"></i> Loading...
+          </div>
+        </div>
+      </div>
+
+      <!-- Line Chart -->
+      <section class="card">
+        <div class="chart-header">
+          <div class="chart-title">User Registration Trend</div>
+          <div class="time-filter">
+            <button class="time-btn active" data-period="7d">7 Days</button>
+            <button class="time-btn" data-period="30d">30 Days</button>
+            <button class="time-btn" data-period="90d">90 Days</button>
+            <button class="time-btn" data-period="1y">1 Year</button>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="userChart"></canvas>
+        </div>
+      </section>
 
       <section class="card">
         <div class="topbar">
@@ -497,6 +658,11 @@
       const searchInput = document.getElementById('searchInput');
       const resultCount = document.getElementById('resultCount');
       const refreshBtn = document.getElementById('refreshBtn');
+      
+      // Chart elements
+      let userChart = null;
+      const timeFilterButtons = document.querySelectorAll('.time-btn');
+      let selectedPeriod = '7d';
 
       // Global variables
       let users = [];
@@ -540,6 +706,259 @@
         });
       }
 
+      // Calculate statistics
+      function calculateStatistics(users) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        const lastWeek = new Date(today);
+        lastWeek.setDate(lastWeek.getDate() - 7);
+        
+        // Total users
+        const totalUsers = users.length;
+        
+        // Today's registrations
+        const todayUsers = users.filter(user => {
+          const userDate = user.createdAt ? 
+            (user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt)) : 
+            null;
+          return userDate && userDate >= today;
+        }).length;
+        
+        // Yesterday's registrations
+        const yesterdayUsers = users.filter(user => {
+          const userDate = user.createdAt ? 
+            (user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt)) : 
+            null;
+          return userDate && userDate >= yesterday && userDate < today;
+        }).length;
+        
+        // Last week's registrations
+        const lastWeekUsers = users.filter(user => {
+          const userDate = user.createdAt ? 
+            (user.createdAt.toDate ? user.createdAt.toDate() : new Date(user.createdAt)) : 
+            null;
+          return userDate && userDate >= lastWeek;
+        }).length;
+        
+        // Admin vs Regular users
+        const adminUsers = users.filter(user => user.role === 'admin').length;
+        const regularUsers = users.filter(user => user.role !== 'admin').length;
+        
+        // Calculate percentage changes
+        const todayChange = yesterdayUsers > 0 ? 
+          ((todayUsers - yesterdayUsers) / yesterdayUsers * 100).toFixed(1) : 
+          (todayUsers > 0 ? '100.0' : '0.0');
+        
+        const weekChange = lastWeekUsers > 0 ? 
+          ((totalUsers - lastWeekUsers) / lastWeekUsers * 100).toFixed(1) : 
+          (totalUsers > 0 ? '100.0' : '0.0');
+        
+        // Update UI
+        document.getElementById('totalUsers').textContent = totalUsers;
+        document.getElementById('todayUsers').textContent = todayUsers;
+        document.getElementById('adminUsers').textContent = adminUsers;
+        document.getElementById('regularUsers').textContent = regularUsers;
+        
+        const userChangeEl = document.getElementById('userChange');
+        const todayChangeEl = document.getElementById('todayChange');
+        
+        userChangeEl.innerHTML = `<i class="fas fa-arrow-${parseFloat(weekChange) >= 0 ? 'up' : 'down'}"></i> ${Math.abs(parseFloat(weekChange))}% from last week`;
+        userChangeEl.className = `stat-change ${parseFloat(weekChange) >= 0 ? 'positive' : 'negative'}`;
+        
+        todayChangeEl.innerHTML = `<i class="fas fa-arrow-${parseFloat(todayChange) >= 0 ? 'up' : 'down'}"></i> ${Math.abs(parseFloat(todayChange))}% from yesterday`;
+        todayChangeEl.className = `stat-change ${parseFloat(todayChange) >= 0 ? 'positive' : 'negative'}`;
+      }
+
+      // Prepare chart data based on selected period
+      function prepareChartData(users, period) {
+        const now = new Date();
+        let days;
+        
+        switch(period) {
+          case '7d':
+            days = 7;
+            break;
+          case '30d':
+            days = 30;
+            break;
+          case '90d':
+            days = 90;
+            break;
+          case '1y':
+            days = 365;
+            break;
+          default:
+            days = 7;
+        }
+        
+        // Create date labels
+        const labels = [];
+        const data = [];
+        
+        // Initialize data with zeros for each day
+        for (let i = days - 1; i >= 0; i--) {
+          const date = new Date(now);
+          date.setDate(date.getDate() - i);
+          date.setHours(0, 0, 0, 0);
+          
+          // Format label based on period
+          let label;
+          if (days <= 7) {
+            label = date.toLocaleDateString('en-US', { weekday: 'short' });
+          } else if (days <= 30) {
+            label = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          } else {
+            label = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+          }
+          
+          labels.push(label);
+          data.push(0);
+        }
+        
+        // Count users for each day
+        users.forEach(user => {
+          if (!user.createdAt) return;
+          
+          const userDate = user.createdAt.toDate ? 
+            user.createdAt.toDate() : new Date(user.createdAt);
+          userDate.setHours(0, 0, 0, 0);
+          
+          // Calculate difference in days
+          const diffTime = Math.abs(now - userDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays <= days) {
+            const index = days - diffDays;
+            if (index >= 0 && index < data.length) {
+              data[index]++;
+            }
+          }
+        });
+        
+        // Calculate cumulative data for line chart
+        const cumulativeData = [];
+        let cumulative = 0;
+        for (let i = 0; i < data.length; i++) {
+          cumulative += data[i];
+          cumulativeData.push(cumulative);
+        }
+        
+        return {
+          labels,
+          dailyData: data,
+          cumulativeData
+        };
+      }
+
+      // Initialize or update chart
+      function updateChart(users) {
+        const ctx = document.getElementById('userChart').getContext('2d');
+        const chartData = prepareChartData(users, selectedPeriod);
+        
+        if (userChart) {
+          userChart.data.labels = chartData.labels;
+          userChart.data.datasets[0].data = chartData.cumulativeData;
+          userChart.data.datasets[1].data = chartData.dailyData;
+          userChart.update();
+        } else {
+          userChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: chartData.labels,
+              datasets: [
+                {
+                  label: 'Total Users',
+                  data: chartData.cumulativeData,
+                  borderColor: 'rgba(9, 121, 105, 1)',
+                  backgroundColor: 'rgba(9, 121, 105, 0.1)',
+                  borderWidth: 3,
+                  fill: true,
+                  tension: 0.4,
+                  pointBackgroundColor: 'rgba(9, 121, 105, 1)',
+                  pointRadius: 4,
+                  pointHoverRadius: 6
+                },
+                {
+                  label: 'Daily Registrations',
+                  data: chartData.dailyData,
+                  borderColor: 'rgba(255, 92, 108, 1)',
+                  backgroundColor: 'rgba(255, 92, 108, 0.1)',
+                  borderWidth: 2,
+                  borderDash: [5, 5],
+                  fill: false,
+                  tension: 0.4,
+                  pointBackgroundColor: 'rgba(255, 92, 108, 1)',
+                  pointRadius: 3
+                }
+              ]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              interaction: {
+                intersect: false,
+                mode: 'index'
+              },
+              plugins: {
+                legend: {
+                  position: 'top',
+                  labels: {
+                    usePointStyle: true,
+                    padding: 20
+                  }
+                },
+                tooltip: {
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  titleColor: '#1f2937',
+                  bodyColor: '#4b5563',
+                  borderColor: '#e5e7eb',
+                  borderWidth: 1,
+                  padding: 12,
+                  boxPadding: 6,
+                  usePointStyle: true,
+                  callbacks: {
+                    label: function(context) {
+                      let label = context.dataset.label || '';
+                      if (label) {
+                        label += ': ';
+                      }
+                      label += context.parsed.y;
+                      return label;
+                    }
+                  }
+                }
+              },
+              scales: {
+                x: {
+                  grid: {
+                    display: true,
+                    color: 'rgba(229, 231, 235, 0.5)'
+                  },
+                  ticks: {
+                    color: '#6b7280'
+                  }
+                },
+                y: {
+                  beginAtZero: true,
+                  grid: {
+                    display: true,
+                    color: 'rgba(229, 231, 235, 0.5)'
+                  },
+                  ticks: {
+                    color: '#6b7280',
+                    precision: 0
+                  }
+                }
+              }
+            }
+          });
+        }
+      }
+
       // Load all users from Firestore
       async function loadUsers() {
         try {
@@ -570,6 +989,13 @@
             return dateB - dateA;
           });
 
+          // Update statistics
+          calculateStatistics(users);
+          
+          // Update chart
+          updateChart(users);
+          
+          // Render table
           renderUsers(users);
           updateResultCount(users.length);
         } catch (error) {
@@ -737,9 +1163,24 @@
         }, 3000);
       }
 
-      // Event listeners for user management
+      // Event listeners
       searchInput.addEventListener('input', filterUsers);
       refreshBtn.addEventListener('click', loadUsers);
+      
+      // Time filter buttons
+      timeFilterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          // Update active state
+          timeFilterButtons.forEach(btn => btn.classList.remove('active'));
+          button.classList.add('active');
+          
+          // Update chart with new period
+          selectedPeriod = button.getAttribute('data-period');
+          if (users.length > 0) {
+            updateChart(users);
+          }
+        });
+      });
       
       // Keyboard shortcuts
       document.addEventListener('keydown', (e) => {
