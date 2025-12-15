@@ -305,58 +305,159 @@ async function loadDashboardData() {
 // Call loadDashboardData on page load
 window.addEventListener('DOMContentLoaded', loadDashboardData);
 
-// Function to fetch and display active users
+// Function to show active users with better formatting
 async function showActiveUsersList() {
-    try {
-        const usersSnapshot = await db.collection('users').get();
-        const now = new Date();
-        const activeUsers = [];
-        
-        usersSnapshot.forEach(doc => {
-            const data = doc.data();
-            if (data.lastLogin && data.lastLogin.toDate) {
-                const lastLogin = data.lastLogin.toDate();
-                if ((now - lastLogin) / 60000 <= 10) {
-                    activeUsers.push({
-                        email: data.email,
-                        displayName: data.displayName || data.firstName || 'Unknown User',
-                        lastLogin: lastLogin
-                    });
-                }
-            }
-        });
-        
-        // Render active users in a section
-        const container = document.getElementById('active-users-list');
-        if (container) {
-            if (activeUsers.length === 0) {
-                container.innerHTML = '<p>No users are currently active.</p>';
-            } else {
-                container.innerHTML = `
-                    <table class="activity-table">
-                        <thead>
-                            <tr>
-                                <th>Email</th>
-                                <th>Name</th>
-                                <th>Last Login</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${activeUsers.map(user => `
-                                <tr>
-                                    <td>${user.email}</td>
-                                    <td>${user.displayName}</td>
-                                    <td>${user.lastLogin.toLocaleString()}</td>
-                                </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>`;
-            }
-        }
-    } catch (error) {
-        console.error('Error fetching active users:', error);
+  const loadingEl = document.getElementById('active-users-loading');
+  const tableEl = document.getElementById('active-users-table');
+  const bodyEl = document.getElementById('active-users-body');
+  const emptyEl = document.getElementById('active-users-empty');
+  const errorEl = document.getElementById('active-users-error');
+  const statsEl = document.getElementById('active-users-stats');
+  
+  // Show loading state
+  loadingEl.classList.remove('hidden');
+  tableEl.classList.add('hidden');
+  emptyEl.classList.add('hidden');
+  errorEl.classList.add('hidden');
+  statsEl.classList.add('hidden');
+  
+  try {
+    // Get current user to verify admin
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      console.error("No authenticated user");
+      throw new Error("Authentication required");
     }
+    
+    // Get ID token to verify admin status
+    const idToken = await user.getIdToken();
+    
+    // Fetch users from Firestore
+    const db = firebase.firestore();
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.orderBy('lastLogin', 'desc').get();
+    
+    // Clear previous content
+    bodyEl.innerHTML = '';
+    
+    if (snapshot.empty) {
+      // Show empty state
+      loadingEl.classList.add('hidden');
+      emptyEl.classList.remove('hidden');
+      return;
+    }
+    
+    let activeCount = 0;
+    let onlineNowCount = 0;
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+    
+    snapshot.forEach(doc => {
+      const userData = doc.data();
+      const lastLogin = userData.lastLogin ? userData.lastLogin.toDate() : null;
+      const isActive = lastLogin && lastLogin > twentyFourHoursAgo;
+      const isOnlineNow = lastLogin && (now - lastLogin) < (15 * 60 * 1000); // Online if last login < 15 min ago
+      
+      if (isActive) activeCount++;
+      if (isOnlineNow) onlineNowCount++;
+      
+      // Only show active users
+      if (isActive) {
+        const row = document.createElement('tr');
+        row.className = 'hover:bg-gray-50 transition-colors';
+        
+        // Format last login time
+        let timeAgo = '';
+        if (lastLogin) {
+          const diffMs = now - lastLogin;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMs / 3600000);
+          const diffDays = Math.floor(diffMs / 86400000);
+          
+          if (diffMins < 60) {
+            timeAgo = `${diffMins}m ago`;
+          } else if (diffHours < 24) {
+            timeAgo = `${diffHours}h ago`;
+          } else {
+            timeAgo = `${diffDays}d ago`;
+          }
+        }
+        
+        // Determine status
+        let statusClass = 'bg-green-100 text-green-800';
+        let statusText = 'Active';
+        let statusIcon = 'fas fa-circle text-green-500 text-xs';
+        
+        if (isOnlineNow) {
+          statusClass = 'bg-green-100 text-green-800';
+          statusText = 'Online';
+          statusIcon = 'fas fa-circle text-green-500 text-xs animate-pulse';
+        } else if ((now - lastLogin) > (60 * 60 * 1000)) {
+          statusClass = 'bg-yellow-100 text-yellow-800';
+          statusText = 'Away';
+          statusIcon = 'fas fa-circle text-yellow-500 text-xs';
+        }
+        
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 h-10 w-10 bg-green-100 rounded-full flex items-center justify-center">
+                <span class="text-green-600 font-semibold">${userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 'U'}</span>
+              </div>
+              <div class="ml-4">
+                <div class="text-sm font-medium text-gray-900">${userData.firstName || 'No Name'}</div>
+              </div>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900">${userData.email || 'No Email'}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="text-sm text-gray-900">${lastLogin ? lastLogin.toLocaleDateString() : 'Never'}</div>
+            <div class="text-xs text-gray-500">${timeAgo}</div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}">
+              <i class="${statusIcon} mr-1.5"></i>
+              ${statusText}
+            </span>
+          </td>
+        `;
+        
+        bodyEl.appendChild(row);
+      }
+    });
+    
+    // Update counts
+    document.getElementById('showing-count').textContent = activeCount;
+    document.getElementById('total-active-count').textContent = activeCount;
+    document.getElementById('online-now').textContent = onlineNowCount;
+    document.getElementById('active-users-count').textContent = activeCount;
+    
+    // Show appropriate state
+    loadingEl.classList.add('hidden');
+    
+    if (activeCount > 0) {
+      tableEl.classList.remove('hidden');
+      statsEl.classList.remove('hidden');
+    } else {
+      emptyEl.classList.remove('hidden');
+    }
+    
+  } catch (error) {
+    console.error("Error loading active users:", error);
+    loadingEl.classList.add('hidden');
+    errorEl.classList.remove('hidden');
+  }
 }
+
+// Initialize active users on page load
+document.addEventListener('DOMContentLoaded', function() {
+  // After Firebase is initialized and sidebar loaded
+  setTimeout(() => {
+    showActiveUsersList();
+  }, 1000);
+});
 
 // Optionally, call this on page load or via a button
 window.showActiveUsersList = showActiveUsersList;
