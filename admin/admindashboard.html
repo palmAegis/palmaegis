@@ -14,6 +14,18 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="../admin/js/admin.js"></script>
+  
+  <style>
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+    .stats-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+  </style>
 </head>
 
 <body class="bg-gray-50 font-[Inter] flex min-h-screen">
@@ -192,6 +204,66 @@
   </div>
 </section>
 
+    <!-- User Activity Bar Chart -->
+    <section class="bg-white rounded-xl shadow p-6 mb-10">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h3 class="text-xl font-semibold text-gray-800">User Activity Timeline</h3>
+          <p class="text-sm text-gray-500 mt-1">User logins over the past 7 days</p>
+        </div>
+        <div class="flex space-x-2">
+          <button onclick="loadUserActivityChart('7days')" class="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded-md text-sm transition">
+            7 Days
+          </button>
+          <button onclick="loadUserActivityChart('30days')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-md text-sm transition">
+            30 Days
+          </button>
+        </div>
+      </div>
+      
+      <div class="chart-container">
+        <canvas id="userActivityChart"></canvas>
+      </div>
+      
+      <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="stats-card rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="bg-white bg-opacity-20 p-2 rounded-lg mr-3">
+              <i class="fas fa-chart-line text-white"></i>
+            </div>
+            <div>
+              <p class="text-sm opacity-90">Peak Activity</p>
+              <p id="peak-activity-day" class="text-xl font-bold">Monday</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stats-card rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="bg-white bg-opacity-20 p-2 rounded-lg mr-3">
+              <i class="fas fa-users text-white"></i>
+            </div>
+            <div>
+              <p class="text-sm opacity-90">Avg Daily Logins</p>
+              <p id="avg-daily-logins" class="text-xl font-bold">24</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="stats-card rounded-lg p-4">
+          <div class="flex items-center">
+            <div class="bg-white bg-opacity-20 p-2 rounded-lg mr-3">
+              <i class="fas fa-arrow-up text-white"></i>
+            </div>
+            <div>
+              <p class="text-sm opacity-90">Growth This Week</p>
+              <p id="growth-percentage" class="text-xl font-bold">+12%</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Quick Actions -->
     <section class="bg-white rounded-xl shadow p-6">
       <h3 class="text-xl font-semibold mb-4 text-gray-800">Quick Actions</h3>
@@ -218,6 +290,177 @@
 
   <script>
     document.getElementById("current-date").innerText = new Date().toLocaleDateString();
+    
+    // User Activity Chart
+    let userActivityChart = null;
+    
+    // Function to initialize and load the user activity chart
+    async function loadUserActivityChart(timeRange = '7days') {
+      try {
+        // Get user data from Firestore
+        const usersSnapshot = await db.collection('users').get();
+        const now = new Date();
+        const days = timeRange === '7days' ? 7 : 30;
+        
+        // Initialize data array for the chart
+        const labels = [];
+        const data = [];
+        
+        // Generate labels for the past N days
+        for (let i = days - 1; i >= 0; i--) {
+          const date = new Date(now);
+          date.setDate(date.getDate() - i);
+          const label = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+          labels.push(label);
+          data.push(0); // Initialize with 0 logins
+        }
+        
+        // Count logins per day
+        usersSnapshot.forEach(doc => {
+          const userData = doc.data();
+          if (userData.lastLogin && userData.lastLogin.toDate) {
+            const loginDate = userData.lastLogin.toDate();
+            const daysAgo = Math.floor((now - loginDate) / (1000 * 60 * 60 * 24));
+            
+            if (daysAgo < days) {
+              const index = days - 1 - daysAgo;
+              if (index >= 0 && index < data.length) {
+                data[index]++;
+              }
+            }
+          }
+        });
+        
+        // Calculate statistics
+        const totalLogins = data.reduce((sum, count) => sum + count, 0);
+        const avgDailyLogins = Math.round(totalLogins / days);
+        const maxLogins = Math.max(...data);
+        const maxIndex = data.indexOf(maxLogins);
+        const peakDay = labels[maxIndex];
+        
+        // Calculate growth percentage (compare last 3 days with previous 3 days)
+        let growthPercentage = 0;
+        if (data.length >= 6) {
+          const recent = data.slice(-3).reduce((a, b) => a + b, 0);
+          const previous = data.slice(-6, -3).reduce((a, b) => a + b, 0);
+          if (previous > 0) {
+            growthPercentage = Math.round(((recent - previous) / previous) * 100);
+          }
+        }
+        
+        // Update stats cards
+        document.getElementById('peak-activity-day').textContent = peakDay;
+        document.getElementById('avg-daily-logins').textContent = avgDailyLogins;
+        document.getElementById('growth-percentage').textContent = growthPercentage > 0 ? `+${growthPercentage}%` : `${growthPercentage}%`;
+        
+        // Create or update the chart
+        const ctx = document.getElementById('userActivityChart').getContext('2d');
+        
+        if (userActivityChart) {
+          userActivityChart.destroy();
+        }
+        
+        userActivityChart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'User Logins',
+              data: data,
+              backgroundColor: 'rgba(34, 197, 94, 0.7)',
+              borderColor: 'rgba(34, 197, 94, 1)',
+              borderWidth: 1,
+              borderRadius: 6,
+              hoverBackgroundColor: 'rgba(34, 197, 94, 0.9)'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false
+              },
+              tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: 'rgba(34, 197, 94, 0.5)',
+                borderWidth: 1,
+                callbacks: {
+                  label: function(context) {
+                    const value = context.raw;
+                    return `${value} user${value !== 1 ? 's' : ''} logged in`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                grid: {
+                  display: false
+                },
+                ticks: {
+                  color: '#6b7280',
+                  maxRotation: 45
+                }
+              },
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: 'rgba(0, 0, 0, 0.05)'
+                },
+                ticks: {
+                  color: '#6b7280',
+                  precision: 0
+                },
+                title: {
+                  display: true,
+                  text: 'Number of Logins',
+                  color: '#6b7280'
+                }
+              }
+            },
+            interaction: {
+              intersect: false,
+              mode: 'index'
+            }
+          }
+        });
+        
+      } catch (error) {
+        console.error('Error loading user activity chart:', error);
+        // Show error state
+        document.getElementById('userActivityChart').parentElement.innerHTML = `
+          <div class="text-center py-8">
+            <i class="fas fa-exclamation-triangle text-4xl text-red-300 mb-4"></i>
+            <p class="text-gray-500 text-lg mb-2">Failed to load activity data</p>
+            <button onclick="loadUserActivityChart('7days')" class="mt-4 bg-green-600 hover:bg-green-500 text-white px-4 py-2 rounded-md transition">
+              Try Again
+            </button>
+          </div>
+        `;
+      }
+    }
+    
+    // Load the chart when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Small delay to ensure Firebase is initialized
+      setTimeout(() => {
+        if (typeof db !== 'undefined') {
+          loadUserActivityChart('7days');
+        }
+      }, 1000);
+    });
+    
+    // Function to refresh the chart
+    window.refreshActivityChart = function() {
+      loadUserActivityChart('7days');
+    };
+    
+    // Make the function available globally
+    window.loadUserActivityChart = loadUserActivityChart;
+    
   </script>
 </body>
 </html>
