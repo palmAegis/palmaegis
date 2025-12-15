@@ -499,6 +499,93 @@
             margin-bottom: 15px;
         }
 
+        /* Image Upload Styles */
+        .image-upload-container {
+            margin-bottom: 20px;
+        }
+
+        .image-preview {
+            width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 2px dashed #ddd;
+            display: none;
+        }
+
+        .image-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .image-upload-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .image-upload-btn {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .image-capture-container {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-preview {
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+        }
+
+        .capture-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .capture-btn:hover {
+            background-color: #f0f0f0;
+        }
+
+        .close-camera {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
         /* Filter Modal Styles */
         .filter-modal {
             display: none;
@@ -801,6 +888,19 @@
                 bottom: 15px;
                 right: 15px;
             }
+
+            .image-upload-buttons {
+                flex-direction: column;
+            }
+
+            .camera-preview {
+                width: 95%;
+            }
+
+            .camera-controls {
+                flex-direction: column;
+                align-items: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -951,14 +1051,14 @@
                                         <span class="info-label">Soil Type:</span>
                                         <span class="info-value" id="detailSoilType">-</span>
                                     </div>
-                                    <div class="info-item">
-                                        <span class="info-label">pH Level:</span>
-                                        <span class="info-value" id="detailPHLevel">-</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <span class="info-label">Nutrient Level:</span>
-                                        <span class="info-value" id="detailNutrient">-</span>
-                                    </div>
+                                    <!-- Removed pH Level -->
+                                </div>
+                            </div>
+                            
+                            <div class="details-section">
+                                <h3 class="section-title">Farm Images</h3>
+                                <div id="detailImages">
+                                    <!-- Farm images will be populated here -->
                                 </div>
                             </div>
                             
@@ -1068,10 +1168,25 @@
                             <option value="silt">Silt</option>
                         </select>
                     </div>
-                    <div class="form-group">
-                        <label class="form-label" for="phLevel">pH Level</label>
-                        <input type="number" class="form-input" id="phLevel" min="0" max="14" step="0.1" value="6.5">
+                </div>
+                
+                <div class="form-group image-upload-container">
+                    <label class="form-label">Farm Image</label>
+                    <div class="image-preview" id="imagePreview">
+                        <img id="previewImage" src="" alt="Image Preview">
                     </div>
+                    <div class="image-upload-buttons">
+                        <button type="button" class="btn btn-secondary image-upload-btn" id="uploadImageBtn">
+                            <i class="fas fa-upload"></i> Upload Image
+                        </button>
+                        <button type="button" class="btn btn-secondary image-upload-btn" id="captureImageBtn">
+                            <i class="fas fa-camera"></i> Take Photo
+                        </button>
+                        <button type="button" class="btn btn-outline image-upload-btn" id="clearImageBtn">
+                            <i class="fas fa-times"></i> Clear
+                        </button>
+                    </div>
+                    <input type="file" id="imageInput" accept="image/*" style="display: none;">
                 </div>
                 
                 <div class="form-group">
@@ -1092,10 +1207,23 @@
         </div>
     </div>
 
+    <!-- Camera Capture Modal -->
+    <div class="image-capture-container" id="cameraModal">
+        <button class="close-camera" id="closeCameraBtn">&times;</button>
+        <video class="camera-preview" id="cameraPreview" autoplay playsinline></video>
+        <div class="camera-controls">
+            <button class="capture-btn" id="captureBtn">
+                <i class="fas fa-camera"></i>
+            </button>
+        </div>
+        <canvas id="cameraCanvas" style="display: none;"></canvas>
+    </div>
+
     <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
     import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
     import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+    import { getStorage, ref, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
     // Firebase configuration
     const firebaseConfig = {
@@ -1111,13 +1239,19 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    // Global variables for filtering
+    // Global variables
     let currentFilters = {
         status: 'all',
         soil: 'all',
         size: 'all'
     };
+    
+    // Image variables
+    let selectedImage = null;
+    let imageType = null; // 'upload' or 'capture'
+    let stream = null;
 
     // Create Back to Top Button
     const backToTopBtn = document.createElement('div');
@@ -1191,7 +1325,7 @@
         if (userNameElement) userNameElement.textContent = displayName;
         if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
 
-        // set avatar(s) safely (use base64/photoURL/picture or fall back to default)
+        // set avatar(s) safely
         const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
         const avatars = document.querySelectorAll('.user-avatar');
         avatars.forEach(img => {
@@ -1201,13 +1335,10 @@
             }
         });
 
-        // store for later in case sidebar is loaded after profile
         window.userData = userData;
     }
 
-    // If sidebar is loaded after user data, re-apply avatar when sidebar is inserted
     if (window.__sidebarLoaded) {
-        // sidebar might already be present
         if (window.userData) updateUserProfile(window.currentUser, window.userData);
     } else {
         window.addEventListener('sidebar:loaded', () => {
@@ -1277,25 +1408,20 @@
             
             const farmsRef = collection(db, "farms");
             
-            // Try different query approaches
             let querySnapshot;
             try {
-                // First try: Query with user filter and ordering
                 const q = query(farmsRef, where("userId", "==", userId), orderBy("createdAt", "desc"));
                 querySnapshot = await getDocs(q);
             } catch (queryError) {
                 console.log("First query failed, trying without ordering:", queryError);
                 
-                // Second try: Query without ordering (in case createdAt field doesn't exist)
                 try {
                     const q = query(farmsRef, where("userId", "==", userId));
                     querySnapshot = await getDocs(q);
                 } catch (secondError) {
                     console.log("Second query failed, trying to get all farms:", secondError);
                     
-                    // Third try: Get all farms and filter client-side
                     querySnapshot = await getDocs(farmsRef);
-                    // Filter by userId manually
                     const filteredDocs = [];
                     querySnapshot.forEach(doc => {
                         const data = doc.data();
@@ -1303,7 +1429,6 @@
                             filteredDocs.push({...doc, data: () => data});
                         }
                     });
-                    // Create a mock querySnapshot
                     querySnapshot = {
                         empty: filteredDocs.length === 0,
                         forEach: (callback) => filteredDocs.forEach(callback),
@@ -1316,7 +1441,6 @@
             
             if (querySnapshot.empty) {
                 showNoData();
-                // Still show stats with zeros
                 updateStats([]);
                 return;
             }
@@ -1327,19 +1451,14 @@
                 allFarms.push({farm, docId: doc.id});
             });
             
-            // Store all farms for filtering
             window.allFarms = allFarms;
             
-            // Update stats
             updateStats(allFarms);
-            
-            // Apply any existing filters
             applyFilters();
             
         } catch (error) {
             console.error("Error loading farms: ", error);
             
-            // More specific error messages
             if (error.code === 'permission-denied') {
                 showError("Database permission denied. Please contact support.");
             } else if (error.code === 'unavailable') {
@@ -1356,7 +1475,6 @@
     function updateStats(farms) {
         const statsGrid = document.getElementById('statsGrid');
         
-        // Calculate stats
         const totalFarms = farms.length;
         const activeFarms = farms.filter(({farm}) => farm.status === 'active').length;
         const totalArea = farms.reduce((sum, {farm}) => sum + (parseFloat(farm.area) || 0), 0);
@@ -1413,17 +1531,14 @@
         }
         
         const filteredFarms = window.allFarms.filter(({farm, docId}) => {
-            // Status filter
             if (currentFilters.status !== 'all' && farm.status !== currentFilters.status) {
                 return false;
             }
             
-            // Soil filter
             if (currentFilters.soil !== 'all' && farm.soilType !== currentFilters.soil) {
                 return false;
             }
             
-            // Size filter
             if (currentFilters.size !== 'all') {
                 const area = parseFloat(farm.area) || 0;
                 if (currentFilters.size === 'small' && area > 5) return false;
@@ -1462,7 +1577,6 @@
             size: 'all'
         };
         
-        // Reset filter inputs
         document.getElementById('statusFilter').value = 'all';
         document.getElementById('soilFilter').value = 'all';
         document.getElementById('sizeFilter').value = 'all';
@@ -1484,23 +1598,32 @@
     // Open add farm modal
     function openAddFarmModal() {
         document.getElementById('addFarmModal').style.display = 'flex';
+        resetImagePreview();
     }
 
     // Close add farm modal
     function closeAddFarmModal() {
         document.getElementById('addFarmModal').style.display = 'none';
         document.getElementById('addFarmForm').reset();
+        resetImagePreview();
+        stopCamera();
+    }
+
+    // Reset image preview
+    function resetImagePreview() {
+        selectedImage = null;
+        imageType = null;
+        document.getElementById('imagePreview').style.display = 'none';
+        document.getElementById('previewImage').src = '';
     }
 
     // Create a farm card for each farm
     function createFarmCard(farm, docId) {
         const farmsGrid = document.getElementById('farmsGrid');
         
-        // Format area
         const area = parseFloat(farm.area) || 0;
         const areaText = area > 0 ? `${area} acres` : 'Not specified';
         
-        // Determine utilization percentage (for progress bar)
         let utilizationPercent = 0;
         let utilizationClass = "progress-low";
         
@@ -1573,19 +1696,16 @@
         
         farmsGrid.appendChild(farmCard);
         
-        // Add event listener for view details
         const viewBtn = farmCard.querySelector('.view-details');
         viewBtn.addEventListener('click', () => {
             showFarmDetails(farm, docId);
         });
         
-        // Add event listener for edit farm
         const editBtn = farmCard.querySelector('.edit-farm');
         editBtn.addEventListener('click', () => {
             editFarm(farm, docId);
         });
         
-        // Add event listener for delete farm
         const deleteBtn = farmCard.querySelector('.delete-farm');
         deleteBtn.addEventListener('click', () => {
             deleteFarm(docId);
@@ -1597,18 +1717,13 @@
         const detailsPanel = document.getElementById('farmDetails');
         const farmsGrid = document.getElementById('farmsGrid');
         
-        // Hide farms grid and show details
         farmsGrid.style.display = 'none';
         detailsPanel.style.display = 'block';
-        
-        // Scroll to top of details
         detailsPanel.scrollTop = 0;
         
-        // Store current farm for editing
         window.currentFarm = farm;
         window.currentFarmId = docId;
         
-        // Populate details with safe defaults
         document.getElementById('detailsTitle').textContent = `Farm Details - ${farm.name || 'Unknown'}`;
         document.getElementById('detailId').textContent = farm.id || docId || 'Not specified';
         document.getElementById('detailName').textContent = farm.name || 'Not specified';
@@ -1616,8 +1731,6 @@
         document.getElementById('detailArea').textContent = `${parseFloat(farm.area) || 0} acres`;
         document.getElementById('detailStatus').textContent = farm.status === 'active' ? 'Active' : 'Inactive';
         document.getElementById('detailSoilType').textContent = farm.soilType || 'Not specified';
-        document.getElementById('detailPHLevel').textContent = farm.phLevel || 'Not tested';
-        document.getElementById('detailNutrient').textContent = farm.nutrientLevel || 'Not tested';
         document.getElementById('detailNotes').textContent = farm.notes || 'No notes available.';
         
         // Populate crops list
@@ -1638,12 +1751,28 @@
             cropsList.innerHTML = '<li class="crop-item">No crops recorded</li>';
         }
         
+        // Populate farm images
+        const imagesContainer = document.getElementById('detailImages');
+        imagesContainer.innerHTML = '';
+        
+        if (farm.images && farm.images.length > 0) {
+            farm.images.forEach((imageUrl, index) => {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.style.marginBottom = '15px';
+                imgWrapper.innerHTML = `
+                    <img src="${imageUrl}" alt="Farm Image ${index + 1}" style="width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover;">
+                `;
+                imagesContainer.appendChild(imgWrapper);
+            });
+        } else {
+            imagesContainer.innerHTML = '<p>No images available for this farm.</p>';
+        }
+        
         // Populate activities list
         const activitiesList = document.getElementById('detailActivities');
         activitiesList.innerHTML = '';
         
         if (farm.activities && farm.activities.length > 0) {
-            // Show only the 5 most recent activities
             const recentActivities = farm.activities.slice(-5).reverse();
             
             recentActivities.forEach(activity => {
@@ -1674,10 +1803,7 @@
 
     // Edit farm function
     function editFarm(farm, docId) {
-        // For now, just show the details and enable editing
         showFarmDetails(farm, docId);
-        
-        // Enable editing mode
         document.getElementById('editFarmBtn').style.display = 'block';
     }
 
@@ -1687,14 +1813,11 @@
             try {
                 await deleteDoc(doc(db, "farms", docId));
                 
-                // Remove from local data
                 window.allFarms = window.allFarms.filter(({docId: id}) => id !== docId);
                 
-                // Refresh display
                 applyFilters();
                 updateStats(window.allFarms);
                 
-                // If we're viewing details for this farm, close the details
                 if (window.currentFarmId === docId) {
                     document.getElementById('farmDetails').style.display = 'none';
                     document.getElementById('farmsGrid').style.display = 'grid';
@@ -1708,28 +1831,42 @@
         }
     }
 
+    // Upload image to Firebase Storage
+    async function uploadImageToStorage(imageData, imageName) {
+        try {
+            const storageRef = ref(storage, `farm-images/${window.currentUser.uid}/${Date.now()}_${imageName}`);
+            const snapshot = await uploadString(storageRef, imageData, 'data_url');
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            return downloadURL;
+        } catch (error) {
+            console.error('Error uploading image:', error);
+            throw error;
+        }
+    }
+
     // Add new farm
     async function addNewFarm(farmData) {
         try {
-            // Add user ID and timestamp
             farmData.userId = window.currentUser.uid;
             farmData.createdAt = new Date();
             
-            // Parse crops if provided
             if (farmData.crops) {
                 farmData.crops = farmData.crops.split(',').map(crop => crop.trim()).filter(crop => crop.length > 0);
             } else {
                 farmData.crops = [];
             }
             
-            // Add to Firestore
+            // Handle image upload if exists
+            if (selectedImage) {
+                farmData.images = [selectedImage];
+            } else {
+                farmData.images = [];
+            }
+            
             const docRef = await addDoc(collection(db, "farms"), farmData);
             console.log("Farm added with ID: ", docRef.id);
             
-            // Reload farm data
             await loadFarmData(window.currentUser.uid);
-            
-            // Close modal
             closeAddFarmModal();
             
             alert('Farm added successfully!');
@@ -1738,6 +1875,91 @@
             alert('Failed to add farm. Please try again.');
         }
     }
+
+    // Handle image upload
+    document.getElementById('uploadImageBtn').addEventListener('click', () => {
+        document.getElementById('imageInput').click();
+    });
+
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                selectedImage = e.target.result;
+                imageType = 'upload';
+                document.getElementById('previewImage').src = selectedImage;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Handle camera capture
+    document.getElementById('captureImageBtn').addEventListener('click', async () => {
+        try {
+            const cameraModal = document.getElementById('cameraModal');
+            const cameraPreview = document.getElementById('cameraPreview');
+            
+            cameraModal.style.display = 'flex';
+            
+            stream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: 'environment' },
+                audio: false 
+            });
+            cameraPreview.srcObject = stream;
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            alert('Could not access camera. Please check permissions and try again.');
+        }
+    });
+
+    // Handle capture button
+    document.getElementById('captureBtn').addEventListener('click', () => {
+        const cameraPreview = document.getElementById('cameraPreview');
+        const canvas = document.getElementById('cameraCanvas');
+        const context = canvas.getContext('2d');
+        
+        canvas.width = cameraPreview.videoWidth;
+        canvas.height = cameraPreview.videoHeight;
+        context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+        
+        selectedImage = canvas.toDataURL('image/jpeg', 0.8);
+        imageType = 'capture';
+        
+        document.getElementById('previewImage').src = selectedImage;
+        document.getElementById('imagePreview').style.display = 'block';
+        
+        closeCameraModal();
+    });
+
+    // Clear image
+    document.getElementById('clearImageBtn').addEventListener('click', () => {
+        resetImagePreview();
+    });
+
+    // Close camera modal
+    document.getElementById('closeCameraBtn').addEventListener('click', closeCameraModal);
+
+    function closeCameraModal() {
+        const cameraModal = document.getElementById('cameraModal');
+        cameraModal.style.display = 'none';
+        stopCamera();
+    }
+
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+    }
+
+    // Close camera modal when clicking outside
+    document.getElementById('cameraModal').addEventListener('click', (e) => {
+        if (e.target.id === 'cameraModal') {
+            closeCameraModal();
+        }
+    });
 
     // Event Listeners
     document.getElementById('filterBtn').addEventListener('click', openFilterModal);
@@ -1759,7 +1981,7 @@
     document.getElementById('cancelAddFarmBtn').addEventListener('click', closeAddFarmModal);
 
     // Add farm form submission
-    document.getElementById('addFarmForm').addEventListener('submit', (e) => {
+    document.getElementById('addFarmForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const farmData = {
@@ -1768,12 +1990,24 @@
             area: parseFloat(document.getElementById('farmArea').value),
             status: document.getElementById('farmStatus').value,
             soilType: document.getElementById('soilType').value,
-            phLevel: parseFloat(document.getElementById('phLevel').value),
             crops: document.getElementById('farmCrops').value,
             notes: document.getElementById('farmNotes').value
         };
         
-        addNewFarm(farmData);
+        // If there's an image to upload
+        if (selectedImage) {
+            try {
+                // Upload image to storage
+                const imageUrl = await uploadImageToStorage(selectedImage, `farm_${Date.now()}.jpg`);
+                farmData.images = [imageUrl];
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                alert('Farm added but image upload failed. Farm saved without image.');
+                farmData.images = [];
+            }
+        }
+        
+        await addNewFarm(farmData);
     });
 
     // Close details view
@@ -1784,7 +2018,6 @@
         detailsPanel.style.display = 'none';
         farmsGrid.style.display = 'grid';
         
-        // Scroll back to top of farms grid on mobile
         if (window.innerWidth <= 768) {
             mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
         }
@@ -1792,7 +2025,6 @@
 
     // Edit farm button
     document.getElementById('editFarmBtn').addEventListener('click', () => {
-        // For now, just show an alert
         alert('Edit functionality will be implemented in a future version.');
     });
 
@@ -1812,7 +2044,6 @@
     // Handle mobile keyboard appearance
     window.addEventListener('resize', function() {
         if (window.innerWidth <= 768) {
-            // Force scroll to top when keyboard appears
             const activeElement = document.activeElement;
             if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
                 setTimeout(() => {
@@ -1824,7 +2055,6 @@
 
     // Initialize scrolling
     function initializeScrolling() {
-        // Force reflow to ensure proper scrolling
         setTimeout(() => {
             mainContainer.style.overflowY = 'auto';
             mainContainer.style.webkitOverflowScrolling = 'touch';
