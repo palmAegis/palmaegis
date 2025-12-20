@@ -3,394 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PalmEgis - My Farm Report</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Farm & Assessment Report</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <style>
-        :root {
-            --primary: #2e7d32;
-            --primary-light: #4caf50;
-            --primary-dark: #1b5e20;
-            --secondary: #ff9800;
-            --danger: #f44336;
-            --warning: #ffc107;
-            --light: #f5f5f5;
-            --dark: #333;
-            --gray: #757575;
-            --border-radius: 8px;
-            --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
-        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        
+
         body {
-            background-color: #f8f9fa;
-            color: var(--dark);
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
             line-height: 1.6;
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 20px;
         }
-        
+
         header {
-            background: linear-gradient(to right, var(--primary-dark), var(--primary));
-            color: white;
-            padding: 20px 0;
-            border-radius: var(--border-radius);
+            text-align: center;
             margin-bottom: 30px;
-            box-shadow: var(--box-shadow);
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e1e5eb;
         }
-        
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .logo i {
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
             font-size: 2.5rem;
         }
-        
-        .logo h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
         }
-        
-        .logo span {
-            color: var(--secondary);
-        }
-        
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 15px;
-            border-radius: 50px;
-        }
-        
-        .user-select {
-            background: rgba(255, 255, 255, 0.9);
-            border: none;
-            padding: 8px 15px;
-            border-radius: 20px;
-            color: var(--dark);
-            font-weight: 500;
-            min-width: 200px;
-        }
-        
-        .tabs {
-            display: flex;
+
+        .controls {
             background: white;
-            border-radius: var(--border-radius);
-            overflow: hidden;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             margin-bottom: 30px;
-            box-shadow: var(--box-shadow);
-        }
-        
-        .tab {
-            flex: 1;
-            padding: 18px 20px;
-            text-align: center;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-            border-bottom: 3px solid transparent;
-        }
-        
-        .tab:hover {
-            background-color: #f0f0f0;
-        }
-        
-        .tab.active {
-            color: var(--primary);
-            border-bottom: 3px solid var(--primary);
-            background-color: rgba(46, 125, 50, 0.05);
-        }
-        
-        .tab-content {
-            display: none;
-        }
-        
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: var(--border-radius);
-            padding: 25px;
-            box-shadow: var(--box-shadow);
             display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
             align-items: center;
-            gap: 20px;
-            transition: transform 0.3s;
         }
-        
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
+
+        .controls button {
+            padding: 10px 20px;
+            background-color: #3498db;
             color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s;
         }
-        
-        .stat-icon.assessments {
-            background: linear-gradient(to right, #2196F3, #21CBF3);
+
+        .controls button:hover {
+            background-color: #2980b9;
         }
-        
-        .stat-icon.detections {
-            background: linear-gradient(to right, #FF9800, #FFB74D);
+
+        .controls select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            min-width: 150px;
         }
-        
-        .stat-icon.farms {
-            background: linear-gradient(to right, #4CAF50, #8BC34A);
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
         }
-        
-        .stat-icon.healthy {
-            background: linear-gradient(to right, #009688, #4DB6AC);
+
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            text-align: center;
         }
-        
-        .stat-info h3 {
+
+        .stat-card h3 {
+            color: #7f8c8d;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
             font-size: 2rem;
-            font-weight: 700;
-            color: var(--dark);
+            font-weight: bold;
+            color: #2c3e50;
         }
-        
-        .stat-info p {
-            color: var(--gray);
-            font-size: 0.9rem;
+
+        .data-section {
+            margin-bottom: 40px;
         }
-        
+
+        .section-title {
+            font-size: 1.8rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
         .table-container {
             background: white;
-            border-radius: var(--border-radius);
+            border-radius: 10px;
             overflow: hidden;
-            box-shadow: var(--box-shadow);
-            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
         }
-        
-        thead {
-            background-color: var(--primary);
-            color: white;
-        }
-        
+
         th {
-            padding: 18px 15px;
+            background-color: #3498db;
+            color: white;
             text-align: left;
+            padding: 15px;
             font-weight: 600;
         }
-        
-        tbody tr {
-            border-bottom: 1px solid #eee;
-            transition: background-color 0.2s;
-        }
-        
-        tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-        
+
         td {
             padding: 15px;
-            color: var(--dark);
+            border-bottom: 1px solid #f1f1f1;
         }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
+
+        tr:hover {
+            background-color: #f9f9f9;
         }
-        
+
         .status-healthy {
-            background-color: #e8f5e9;
-            color: #2e7d32;
+            background-color: #2ecc71;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
-        
-        .status-infected {
-            background-color: #ffebee;
-            color: #c62828;
+
+        .status-unhealthy {
+            background-color: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
         }
-        
-        .status-moderate {
-            background-color: #fff3e0;
-            color: #ef6c00;
+
+        .chip {
+            background-color: #ecf0f1;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+            margin: 2px;
         }
-        
+
         .loading {
             text-align: center;
             padding: 40px;
-            color: var(--gray);
+            color: #7f8c8d;
         }
-        
-        .loading i {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            color: var(--primary);
+
+        .timestamp {
+            font-size: 0.8rem;
+            color: #95a5a6;
         }
-        
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--gray);
-        }
-        
-        .empty-state i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            color: #ddd;
-        }
-        
-        .search-filter {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .search-box {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
-        
-        .search-box i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 12px 15px 12px 45px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            font-size: 1rem;
-            transition: border 0.3s;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        
-        .filter-select {
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            background: white;
-            font-size: 1rem;
-            min-width: 180px;
-        }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .pagination button {
-            padding: 8px 15px;
-            border: 1px solid #ddd;
-            background: white;
-            border-radius: 4px;
+
+        .image-preview {
+            max-width: 80px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.2s;
         }
-        
-        .pagination button:hover {
-            background-color: #f0f0f0;
-        }
-        
-        .pagination button.active {
-            background-color: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-        
-        .health-status-cell {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .health-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        
-        .health-dot.healthy {
-            background-color: #4caf50;
-        }
-        
-        .health-dot.infected {
-            background-color: #f44336;
-        }
-        
-        .health-dot.moderate {
-            background-color: #ff9800;
-        }
-        
-        .assessment-image {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        
-        .assessment-image:hover {
+
+        .image-preview:hover {
             transform: scale(1.05);
         }
-        
+
         .modal {
             display: none;
             position: fixed;
@@ -398,79 +205,54 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
-        
-        .modal.active {
-            display: flex;
-        }
-        
+
         .modal-content {
-            background: white;
-            border-radius: var(--border-radius);
-            max-width: 800px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 20px;
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 10px;
         }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
             cursor: pointer;
-            color: var(--gray);
         }
-        
-        .modal-image {
-            width: 100%;
-            max-height: 400px;
-            object-fit: contain;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
-        
+
         footer {
             text-align: center;
-            padding: 20px;
-            color: var(--gray);
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5eb;
+            color: #7f8c8d;
             font-size: 0.9rem;
-            border-top: 1px solid #eee;
-            margin-top: 30px;
         }
-        
+
         @media (max-width: 768px) {
-            .header-content {
+            .controls {
                 flex-direction: column;
-                gap: 15px;
-                text-align: center;
+                align-items: stretch;
             }
             
-            .user-select {
+            .controls select, .controls button {
+                width: 100%;
+            }
+            
+            .stat-card {
                 min-width: 100%;
             }
             
-            .dashboard-stats {
-                grid-template-columns: 1fr;
-            }
-            
-            .table-container {
-                overflow-x: auto;
-            }
-            
-            table {
-                min-width: 800px;
+            th, td {
+                padding: 10px 5px;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -478,236 +260,114 @@
 <body>
     <div class="container">
         <header>
-            <div class="header-content">
-                <div class="logo">
-                    <i class="fas fa-pagelines"></i>
-                    <div>
-                        <h1>Palm<span>Egis</span></h1>
-                        <p>Farm Assessment Report</p>
-                    </div>
-                </div>
-                <div class="user-info">
-                    <i class="fas fa-user-circle"></i>
-                    <select class="user-select" id="user-select">
-                        <option value="">Select User...</option>
-                    </select>
-                </div>
-            </div>
+            <h1>Farm Management Report</h1>
+            <p class="subtitle">Data from Firestore collections: farms and assessments</p>
         </header>
-        
-        <div class="tabs">
-            <div class="tab active" data-tab="dashboard">Dashboard</div>
-            <div class="tab" data-tab="assessments">Assessments</div>
-            <div class="tab" data-tab="farms">Farms</div>
-            <div class="tab" data-tab="detections">Detections</div>
-        </div>
-        
-        <!-- Dashboard Tab -->
-        <div id="dashboard" class="tab-content active">
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <div class="stat-icon assessments">
-                        <i class="fas fa-clipboard-check"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="total-assessments">0</h3>
-                        <p>Total Assessments</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon detections">
-                        <i class="fas fa-search"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="total-detections">0</h3>
-                        <p>Total Detections</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon farms">
-                        <i class="fas fa-tractor"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="total-farms">0</h3>
-                        <p>Total Farms</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon healthy">
-                        <i class="fas fa-leaf"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="healthy-rate">0%</h3>
-                        <p>Healthy Palm Rate</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="table-container">
-                <h3 style="padding: 20px 20px 0; margin: 0;">Recent Assessments</h3>
-                <div id="dashboard-assessments">
-                    <div class="loading">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading dashboard data...</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Assessments Tab -->
-        <div id="assessments" class="tab-content">
-            <div class="search-filter">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-assessment" placeholder="Search assessments...">
-                </div>
-                <select class="filter-select" id="filter-health-status">
-                    <option value="">All Health Status</option>
+
+        <div class="controls">
+            <button id="loadData">Load Data</button>
+            <select id="collectionSelect">
+                <option value="both">Both Collections</option>
+                <option value="farms">Farms Only</option>
+                <option value="assessments">Assessments Only</option>
+            </select>
+            <select id="sortSelect">
+                <option value="createdAt">Sort by Created Date</option>
+                <option value="name">Sort by Name</option>
+                <option value="date">Sort by Assessment Date</option>
+            </select>
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                <span>Filter Health Status:</span>
+                <select id="healthFilter">
+                    <option value="all">All</option>
                     <option value="Healthy">Healthy</option>
-                    <option value="Infected">Infected</option>
-                    <option value="Moderate">Moderate</option>
+                    <option value="Unhealthy">Unhealthy</option>
                 </select>
-                <select class="filter-select" id="filter-disease">
-                    <option value="">All Diseases</option>
-                </select>
-            </div>
-            
-            <div class="table-container">
-                <table id="assessments-table">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Image</th>
-                            <th>User</th>
-                            <th>Disease</th>
-                            <th>Health Status</th>
-                            <th>Detection Count</th>
-                            <th>Location</th>
-                            <th>Treatment</th>
-                        </tr>
-                    </thead>
-                    <tbody id="assessments-body">
-                        <tr>
-                            <td colspan="8">
-                                <div class="loading">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    <p>Loading assessments data...</p>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
-        
-        <!-- Detections Tab -->
-        <div id="detections" class="tab-content">
-            <div class="search-filter">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-detection" placeholder="Search detections...">
-                </div>
-                <select class="filter-select" id="filter-class">
-                    <option value="">All Classes</option>
-                </select>
-                <select class="filter-select" id="filter-model">
-                    <option value="">All Models</option>
-                </select>
+
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Total Farms</h3>
+                <div id="farmCount" class="stat-value">0</div>
             </div>
-            
-            <div class="table-container">
-                <table id="detections-table">
-                    <thead>
-                        <tr>
-                            <th>Detection ID</th>
-                            <th>Class</th>
-                            <th>Confidence</th>
-                            <th>Model</th>
-                            <th>Coordinates</th>
-                            <th>Dimensions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detections-body">
-                        <tr>
-                            <td colspan="6">
-                                <div class="loading">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    <p>Loading detections data...</p>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="stat-card">
+                <h3>Total Assessments</h3>
+                <div id="assessmentCount" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Healthy Assessments</h3>
+                <div id="healthyCount" class="stat-value">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Unhealthy Assessments</h3>
+                <div id="unhealthyCount" class="stat-value">0</div>
             </div>
         </div>
-        
-        <!-- Farms Tab -->
-        <div id="farms" class="tab-content">
-            <div class="search-filter">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-farm" placeholder="Search farms...">
-                </div>
-                <select class="filter-select" id="filter-status">
-                    <option value="">All Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Pending">Pending</option>
-                </select>
-                <select class="filter-select" id="filter-soil">
-                    <option value="">All Soil Types</option>
-                </select>
-            </div>
-            
+
+        <div class="data-section">
+            <h2 class="section-title">Farms Collection</h2>
             <div class="table-container">
-                <table id="farms-table">
+                <div id="farmsLoading" class="loading">Click "Load Data" to fetch farm information</div>
+                <table id="farmsTable" style="display: none;">
                     <thead>
                         <tr>
-                            <th>Farm Name</th>
+                            <th>Name</th>
                             <th>Location</th>
                             <th>Area</th>
                             <th>Crops</th>
                             <th>Soil Type</th>
                             <th>Status</th>
-                            <th>Created At</th>
+                            <th>Created</th>
+                            <th>Images</th>
                         </tr>
                     </thead>
-                    <tbody id="farms-body">
-                        <tr>
-                            <td colspan="7">
-                                <div class="loading">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    <p>Loading farms data...</p>
-                                </div>
-                            </td>
-                        </tr>
+                    <tbody id="farmsBody">
+                        <!-- Farm data will be loaded here -->
                     </tbody>
                 </table>
             </div>
         </div>
-        
-        <!-- Image Modal -->
-        <div id="image-modal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Assessment Image</h3>
-                    <button class="modal-close" id="close-modal">&times;</button>
-                </div>
-                <img id="modal-image" class="modal-image" src="" alt="Assessment Image">
-                <div id="image-details"></div>
+
+        <div class="data-section">
+            <h2 class="section-title">Assessments Collection</h2>
+            <div class="table-container">
+                <div id="assessmentsLoading" class="loading">Click "Load Data" to fetch assessment information</div>
+                <table id="assessmentsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>User</th>
+                            <th>Health Status</th>
+                            <th>Disease</th>
+                            <th>Detection Count</th>
+                            <th>Location</th>
+                            <th>Treatment</th>
+                            <th>Confidence</th>
+                            <th>Image</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assessmentsBody">
+                        <!-- Assessment data will be loaded here -->
+                    </tbody>
+                </table>
             </div>
         </div>
-        
+
         <footer>
-            <p>PalmEgis Assessment System &copy; <span id="current-year"></span> | Report Generated on <span id="current-date"></span></p>
+            <p>Report generated from Firebase Firestore | Data updates in real-time</p>
+            <p class="timestamp">Last updated: <span id="lastUpdated">Not loaded yet</span></p>
         </footer>
     </div>
 
+    <!-- Modal for image preview -->
+    <div id="imageModal" class="modal">
+        <span class="close-modal">&times;</span>
+        <img id="modalImage" class="modal-content" src="" alt="Preview">
+    </div>
+
     <script>
-        // Firebase Configuration
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
             authDomain: "palmaegis-setup.firebaseapp.com",
@@ -720,623 +380,309 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        
-        // Global variables
-        let allAssessmentsData = [];
-        let allDetectionsData = [];
-        let allFarmsData = [];
-        let currentUserFilter = '';
-        
-        // DOM Elements
-        const userSelect = document.getElementById('user-select');
-        const tabs = document.querySelectorAll('.tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const assessmentsBody = document.getElementById('assessments-body');
-        const detectionsBody = document.getElementById('detections-body');
-        const farmsBody = document.getElementById('farms-body');
-        const imageModal = document.getElementById('image-modal');
-        const modalImage = document.getElementById('modal-image');
-        const closeModal = document.getElementById('close-modal');
-        
-        // Set current date and year
-        document.getElementById('current-year').textContent = new Date().getFullYear();
-        document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-        
-        // Tab switching functionality
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabId = tab.getAttribute('data-tab');
-                
-                // Update active tab
-                tabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                
-                // Update active content
-                tabContents.forEach(content => content.classList.remove('active'));
-                document.getElementById(tabId).classList.add('active');
-            });
-        });
-        
-        // Close modal
+
+        // DOM elements
+        const loadDataBtn = document.getElementById('loadData');
+        const collectionSelect = document.getElementById('collectionSelect');
+        const sortSelect = document.getElementById('sortSelect');
+        const healthFilter = document.getElementById('healthFilter');
+        const farmsBody = document.getElementById('farmsBody');
+        const assessmentsBody = document.getElementById('assessmentsBody');
+        const farmsTable = document.getElementById('farmsTable');
+        const assessmentsTable = document.getElementById('assessmentsTable');
+        const farmsLoading = document.getElementById('farmsLoading');
+        const assessmentsLoading = document.getElementById('assessmentsLoading');
+        const farmCountEl = document.getElementById('farmCount');
+        const assessmentCountEl = document.getElementById('assessmentCount');
+        const healthyCountEl = document.getElementById('healthyCount');
+        const unhealthyCountEl = document.getElementById('unhealthyCount');
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+        const imageModal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const closeModal = document.querySelector('.close-modal');
+
+        // Global data storage
+        let farmsData = [];
+        let assessmentsData = [];
+
+        // Event Listeners
+        loadDataBtn.addEventListener('click', loadAllData);
+        collectionSelect.addEventListener('change', filterData);
+        sortSelect.addEventListener('change', sortData);
+        healthFilter.addEventListener('change', filterData);
         closeModal.addEventListener('click', () => {
-            imageModal.classList.remove('active');
+            imageModal.style.display = 'none';
         });
-        
-        // Close modal when clicking outside
-        imageModal.addEventListener('click', (e) => {
-            if (e.target === imageModal) {
-                imageModal.classList.remove('active');
+
+        // Close modal when clicking outside the image
+        window.addEventListener('click', (event) => {
+            if (event.target === imageModal) {
+                imageModal.style.display = 'none';
             }
         });
-        
-        // Show image in modal
-        function showImageInModal(imageUrl, assessment) {
-            modalImage.src = imageUrl || 'https://via.placeholder.com/400x300?text=No+Image+Available';
-            
-            let detailsHtml = '';
-            if (assessment) {
-                detailsHtml = `
-                    <div style="margin-top: 20px;">
-                        <h4>Assessment Details</h4>
-                        <p><strong>Date:</strong> ${formatDate(assessment.date || assessment.createdAt?.toDate?.() || new Date())}</p>
-                        <p><strong>User:</strong> ${assessment.userName || assessment.userEmail || 'Unknown'}</p>
-                        <p><strong>Disease:</strong> ${assessment.disease || 'N/A'}</p>
-                        <p><strong>Health Status:</strong> ${assessment.healthStatus || 'Unknown'}</p>
-                        <p><strong>Location:</strong> ${assessment.location || 'N/A'}</p>
-                        <p><strong>Treatment:</strong> ${assessment.treatment || 'No treatment recommended'}</p>
-                    </div>
-                `;
-            }
-            
-            document.getElementById('image-details').innerHTML = detailsHtml;
-            imageModal.classList.add('active');
-        }
-        
-        // Load all data from Firebase
+
+        // Load all data from Firestore
         async function loadAllData() {
             try {
-                // Load assessments
-                const assessmentsSnapshot = await db.collection('assessments').orderBy('createdAt', 'desc').limit(200).get();
-                allAssessmentsData = [];
-                assessmentsSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.id = doc.id;
-                    allAssessmentsData.push(data);
-                });
+                // Show loading states
+                farmsLoading.textContent = "Loading farms data...";
+                assessmentsLoading.textContent = "Loading assessments data...";
                 
-                // Load detections
-                const detectionsSnapshot = await db.collection('detections').limit(300).get();
-                allDetectionsData = [];
-                detectionsSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.id = doc.id;
-                    allDetectionsData.push(data);
-                });
+                // Reset data
+                farmsData = [];
+                assessmentsData = [];
                 
-                // Load farms
-                const farmsSnapshot = await db.collection('farms').orderBy('createdAt', 'desc').limit(100).get();
-                allFarmsData = [];
-                farmsSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.id = doc.id;
-                    allFarmsData.push(data);
-                });
+                // Load farms data
+                const farmsSnapshot = await db.collection("farms").get();
+                farmsData = farmsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
                 
-                // Update dashboard stats
-                updateDashboardStats();
+                // Load assessments data
+                const assessmentsSnapshot = await db.collection("assessments").get();
+                assessmentsData = assessmentsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
                 
-                // Populate user dropdown
-                populateUserDropdown();
-                
-                // Render data tables
-                renderAssessmentsTable(allAssessmentsData);
-                renderDetectionsTable(allDetectionsData);
-                renderFarmsTable(allFarmsData);
-                
-                // Populate filter dropdowns
-                populateFilterDropdowns();
-                
-                // Set up search and filter functionality
-                setupSearchAndFilter();
+                // Update UI
+                updateStats();
+                renderData();
+                updateLastUpdated();
                 
             } catch (error) {
-                console.error("Error loading data: ", error);
-                showError("Failed to load data from Firebase. Please check your connection.");
+                console.error("Error loading data:", error);
+                farmsLoading.textContent = "Error loading farms data. Check console.";
+                assessmentsLoading.textContent = "Error loading assessments data. Check console.";
             }
         }
-        
-        // Update dashboard statistics
-        function updateDashboardStats() {
-            // Total assessments
-            document.getElementById('total-assessments').textContent = allAssessmentsData.length;
+
+        // Update statistics
+        function updateStats() {
+            const totalFarms = farmsData.length;
+            const totalAssessments = assessmentsData.length;
+            const healthyAssessments = assessmentsData.filter(a => a.healthStatus === "Healthy").length;
+            const unhealthyAssessments = assessmentsData.filter(a => a.healthStatus === "Unhealthy").length;
             
-            // Total detections
-            document.getElementById('total-detections').textContent = allDetectionsData.length;
-            
-            // Total farms
-            document.getElementById('total-farms').textContent = allFarmsData.length;
-            
-            // Healthy rate calculation
-            const healthyAssessments = allAssessmentsData.filter(a => a.healthStatus === 'Healthy').length;
-            const healthyRate = allAssessmentsData.length > 0 ? Math.round((healthyAssessments / allAssessmentsData.length) * 100) : 0;
-            document.getElementById('healthy-rate').textContent = `${healthyRate}%`;
-            
-            // Update recent assessments in dashboard
-            updateRecentAssessments();
+            farmCountEl.textContent = totalFarms;
+            assessmentCountEl.textContent = totalAssessments;
+            healthyCountEl.textContent = healthyAssessments;
+            unhealthyCountEl.textContent = unhealthyAssessments;
         }
-        
-        // Update recent assessments in dashboard
-        function updateRecentAssessments() {
-            const dashboardTable = document.getElementById('dashboard-assessments');
-            const recentAssessments = allAssessmentsData.slice(0, 5);
+
+        // Render data based on current filters
+        function renderData() {
+            const collectionType = collectionSelect.value;
+            const healthStatus = healthFilter.value;
             
-            if (recentAssessments.length === 0) {
-                dashboardTable.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-clipboard-list"></i>
-                        <h3>No Assessments Found</h3>
-                        <p>No assessment data has been recorded yet.</p>
-                    </div>
-                `;
-                return;
+            // Filter assessments by health status
+            let filteredAssessments = assessmentsData;
+            if (healthStatus !== 'all') {
+                filteredAssessments = assessmentsData.filter(a => a.healthStatus === healthStatus);
             }
             
-            let tableHTML = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>User</th>
-                            <th>Disease</th>
-                            <th>Health Status</th>
-                            <th>Detections</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            recentAssessments.forEach(assessment => {
-                const date = assessment.date || assessment.createdAt?.toDate?.() || new Date();
-                const formattedDate = formatDate(date);
-                
-                tableHTML += `
-                    <tr>
-                        <td>${formattedDate}</td>
-                        <td>${assessment.userName || assessment.userEmail || 'Unknown'}</td>
-                        <td>${assessment.disease || 'N/A'}</td>
-                        <td>
-                            <div class="health-status-cell">
-                                <div class="health-dot ${getHealthStatusClass(assessment.healthStatus)}"></div>
-                                <span>${assessment.healthStatus || 'Unknown'}</span>
-                            </div>
-                        </td>
-                        <td>${assessment.detectionCount || 0}</td>
-                    </tr>
-                `;
-            });
-            
-            tableHTML += `
-                    </tbody>
-                </table>
-            `;
-            
-            dashboardTable.innerHTML = tableHTML;
-        }
-        
-        // Populate user dropdown with unique users
-        function populateUserDropdown() {
-            const users = new Map();
-            
-            // Extract unique users from assessments
-            allAssessmentsData.forEach(assessment => {
-                if (assessment.userEmail) {
-                    users.set(assessment.userEmail, {
-                        email: assessment.userEmail,
-                        name: assessment.userName || assessment.userEmail
-                    });
-                }
-            });
-            
-            // Extract unique users from farms
-            allFarmsData.forEach(farm => {
-                // Assuming farms might have userId but we'll use email from assessments
-            });
-            
-            // Add users to dropdown
-            users.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user.email;
-                option.textContent = user.name;
-                userSelect.appendChild(option);
-            });
-            
-            // Add event listener for user selection
-            userSelect.addEventListener('change', () => {
-                currentUserFilter = userSelect.value;
-                applyFilters();
-            });
-        }
-        
-        // Apply all filters based on user selection
-        function applyFilters() {
-            // Filter assessments
-            let filteredAssessments = allAssessmentsData;
-            if (currentUserFilter) {
-                filteredAssessments = allAssessmentsData.filter(assessment => 
-                    assessment.userEmail === currentUserFilter
-                );
-            }
-            renderAssessmentsTable(filteredAssessments);
-            
-            // Filter farms (if farms have userId or userEmail field)
-            let filteredFarms = allFarmsData;
-            // Note: Farms might not have userEmail field, adjust based on your data structure
-            renderFarmsTable(filteredFarms);
-        }
-        
-        // Render assessments table
-        function renderAssessmentsTable(data) {
-            if (data.length === 0) {
-                assessmentsBody.innerHTML = `
-                    <tr>
-                        <td colspan="8">
-                            <div class="empty-state">
-                                <i class="fas fa-clipboard-list"></i>
-                                <h3>No Assessments Found</h3>
-                                <p>No assessment data matches your search criteria.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
+            // Show/hide tables based on selection
+            if (collectionType === 'both' || collectionType === 'farms') {
+                farmsTable.style.display = 'table';
+                farmsLoading.style.display = 'none';
+                renderFarmsTable();
+            } else {
+                farmsTable.style.display = 'none';
+                farmsLoading.style.display = 'block';
+                farmsLoading.textContent = "Farms collection not selected for display";
             }
             
-            let tableHTML = '';
-            
-            data.forEach(assessment => {
-                const date = assessment.date || assessment.createdAt?.toDate?.() || new Date();
-                const formattedDate = formatDate(date);
-                const imageUrl = assessment.image || '';
-                
-                tableHTML += `
-                    <tr>
-                        <td>${formattedDate}</td>
-                        <td>
-                            ${imageUrl ? 
-                                `<img src="${imageUrl}" alt="Assessment Image" class="assessment-image" 
-                                     onclick="showImageInModal('${imageUrl}', ${JSON.stringify(assessment).replace(/'/g, "\\'")})">` 
-                                : 'No Image'
-                            }
-                        </td>
-                        <td>${assessment.userName || assessment.userEmail || 'Unknown'}</td>
-                        <td>${assessment.disease || 'N/A'}</td>
-                        <td>
-                            <div class="health-status-cell">
-                                <div class="health-dot ${getHealthStatusClass(assessment.healthStatus)}"></div>
-                                <span class="status-badge status-${getHealthStatusClass(assessment.healthStatus)}">${assessment.healthStatus || 'Unknown'}</span>
-                            </div>
-                        </td>
-                        <td>${assessment.detectionCount || 0}</td>
-                        <td>${assessment.location || 'N/A'}</td>
-                        <td>${assessment.treatment || 'N/A'}</td>
-                    </tr>
-                `;
-            });
-            
-            assessmentsBody.innerHTML = tableHTML;
-        }
-        
-        // Render detections table
-        function renderDetectionsTable(data) {
-            if (data.length === 0) {
-                detectionsBody.innerHTML = `
-                    <tr>
-                        <td colspan="6">
-                            <div class="empty-state">
-                                <i class="fas fa-search"></i>
-                                <h3>No Detections Found</h3>
-                                <p>No detection data matches your search criteria.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
+            if (collectionType === 'both' || collectionType === 'assessments') {
+                assessmentsTable.style.display = 'table';
+                assessmentsLoading.style.display = 'none';
+                renderAssessmentsTable(filteredAssessments);
+            } else {
+                assessmentsTable.style.display = 'none';
+                assessmentsLoading.style.display = 'block';
+                assessmentsLoading.textContent = "Assessments collection not selected for display";
             }
-            
-            let tableHTML = '';
-            
-            data.forEach(detection => {
-                const confidencePercent = detection.confidence ? Math.round(detection.confidence * 100) : 0;
-                const confidenceColor = confidencePercent > 80 ? '#4caf50' : confidencePercent > 60 ? '#ff9800' : '#f44336';
-                
-                tableHTML += `
-                    <tr>
-                        <td>${detection.detection_id || detection.id || 'N/A'}</td>
-                        <td>${detection.class || 'Unknown'}</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 100%; background: #f0f0f0; height: 6px; border-radius: 3px; overflow: hidden;">
-                                    <div style="width: ${confidencePercent}%; background: ${confidenceColor}; height: 100%;"></div>
-                                </div>
-                                <span>${confidencePercent}%</span>
-                            </div>
-                        </td>
-                        <td>${detection.model || detection.modelName || 'Unknown'}</td>
-                        <td>(${detection.x || 0}, ${detection.y || 0})</td>
-                        <td>${detection.width || 0} × ${detection.height || 0}</td>
-                    </tr>
-                `;
-            });
-            
-            detectionsBody.innerHTML = tableHTML;
         }
-        
+
         // Render farms table
-        function renderFarmsTable(data) {
-            if (data.length === 0) {
-                farmsBody.innerHTML = `
-                    <tr>
-                        <td colspan="7">
-                            <div class="empty-state">
-                                <i class="fas fa-tractor"></i>
-                                <h3>No Farms Found</h3>
-                                <p>No farm data matches your search criteria.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+        function renderFarmsTable() {
+            farmsBody.innerHTML = '';
             
-            let tableHTML = '';
+            // Sort farms data
+            const sortedFarms = sortDataBy(farmsData, sortSelect.value);
             
-            data.forEach(farm => {
-                const createdAt = farm.createdAt?.toDate?.() || new Date();
-                const formattedDate = formatDate(createdAt);
+            sortedFarms.forEach(farm => {
+                const row = document.createElement('tr');
                 
-                tableHTML += `
-                    <tr>
-                        <td><strong>${farm.name || 'Unnamed Farm'}</strong></td>
-                        <td>${farm.location || 'N/A'}</td>
-                        <td>${farm.area ? `${farm.area} ha` : 'N/A'}</td>
-                        <td>${farm.crops || 'N/A'}</td>
-                        <td>${farm.soilType || 'N/A'}</td>
-                        <td><span class="status-badge ${getStatusClass(farm.status)}">${farm.status || 'Unknown'}</span></td>
-                        <td>${formattedDate}</td>
-                    </tr>
-                `;
-            });
-            
-            farmsBody.innerHTML = tableHTML;
-        }
-        
-        // Populate filter dropdowns with unique values
-        function populateFilterDropdowns() {
-            // Disease filter
-            const diseaseFilter = document.getElementById('filter-disease');
-            const diseases = [...new Set(allAssessmentsData.map(a => a.disease).filter(Boolean))];
-            diseases.forEach(disease => {
-                const option = document.createElement('option');
-                option.value = disease;
-                option.textContent = disease;
-                diseaseFilter.appendChild(option);
-            });
-            
-            // Class filter for detections
-            const classFilter = document.getElementById('filter-class');
-            const classes = [...new Set(allDetectionsData.map(d => d.class).filter(Boolean))];
-            classes.forEach(cls => {
-                const option = document.createElement('option');
-                option.value = cls;
-                option.textContent = cls;
-                classFilter.appendChild(option);
-            });
-            
-            // Model filter for detections
-            const modelFilter = document.getElementById('filter-model');
-            const models = [...new Set(allDetectionsData.map(d => d.model || d.modelName).filter(Boolean))];
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                modelFilter.appendChild(option);
-            });
-            
-            // Soil type filter for farms
-            const soilFilter = document.getElementById('filter-soil');
-            const soilTypes = [...new Set(allFarmsData.map(f => f.soilType).filter(Boolean))];
-            soilTypes.forEach(soil => {
-                const option = document.createElement('option');
-                option.value = soil;
-                option.textContent = soil;
-                soilFilter.appendChild(option);
-            });
-        }
-        
-        // Setup search and filter functionality
-        function setupSearchAndFilter() {
-            // Assessments search and filter
-            const searchAssessment = document.getElementById('search-assessment');
-            const filterHealthStatus = document.getElementById('filter-health-status');
-            const filterDisease = document.getElementById('filter-disease');
-            
-            const applyAssessmentFilters = () => {
-                const searchTerm = searchAssessment.value.toLowerCase();
-                const healthStatus = filterHealthStatus.value;
-                const disease = filterDisease.value;
-                
-                let filtered = allAssessmentsData;
-                
-                // Apply user filter first
-                if (currentUserFilter) {
-                    filtered = filtered.filter(assessment => 
-                        assessment.userEmail === currentUserFilter
-                    );
+                // Format crops as chips
+                let cropsHTML = '';
+                if (farm.crops && Array.isArray(farm.crops)) {
+                    farm.crops.forEach(crop => {
+                        cropsHTML += `<span class="chip">${crop}</span>`;
+                    });
+                } else if (farm.crops) {
+                    cropsHTML = `<span class="chip">${farm.crops}</span>`;
                 }
                 
-                // Apply other filters
-                filtered = filtered.filter(assessment => {
-                    const matchesSearch = 
-                        (assessment.userName && assessment.userName.toLowerCase().includes(searchTerm)) ||
-                        (assessment.userEmail && assessment.userEmail.toLowerCase().includes(searchTerm)) ||
-                        (assessment.location && assessment.location.toLowerCase().includes(searchTerm)) ||
-                        (assessment.disease && assessment.disease.toLowerCase().includes(searchTerm)) ||
-                        (assessment.treatment && assessment.treatment.toLowerCase().includes(searchTerm));
-                    
-                    const matchesHealthStatus = !healthStatus || assessment.healthStatus === healthStatus;
-                    const matchesDisease = !disease || assessment.disease === disease;
-                    
-                    return (searchTerm === '' || matchesSearch) && matchesHealthStatus && matchesDisease;
-                });
+                // Format images
+                let imagesHTML = '';
+                if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
+                    farm.images.forEach((img, index) => {
+                        if (index < 3) { // Show max 3 images
+                            imagesHTML += `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="openImageModal('${img}')"> `;
+                        }
+                    });
+                    if (farm.images.length > 3) {
+                        imagesHTML += `<span class="chip">+${farm.images.length - 3} more</span>`;
+                    }
+                }
                 
-                renderAssessmentsTable(filtered);
-            };
-            
-            searchAssessment.addEventListener('input', applyAssessmentFilters);
-            filterHealthStatus.addEventListener('change', applyAssessmentFilters);
-            filterDisease.addEventListener('change', applyAssessmentFilters);
-            
-            // Detections search and filter
-            const searchDetection = document.getElementById('search-detection');
-            const filterClass = document.getElementById('filter-class');
-            const filterModel = document.getElementById('filter-model');
-            
-            const applyDetectionFilters = () => {
-                const searchTerm = searchDetection.value.toLowerCase();
-                const className = filterClass.value;
-                const model = filterModel.value;
+                // Format date
+                const createdAt = farm.createdAt ? 
+                    new Date(farm.createdAt.seconds * 1000).toLocaleDateString() : 
+                    'N/A';
                 
-                const filtered = allDetectionsData.filter(detection => {
-                    const matchesSearch = 
-                        (detection.detection_id && detection.detection_id.toLowerCase().includes(searchTerm)) ||
-                        (detection.class && detection.class.toLowerCase().includes(searchTerm));
-                    
-                    const matchesClass = !className || detection.class === className;
-                    const matchesModel = !model || detection.model === model || detection.modelName === model;
-                    
-                    return (searchTerm === '' || matchesSearch) && matchesClass && matchesModel;
-                });
+                row.innerHTML = `
+                    <td><strong>${farm.name || 'Unnamed Farm'}</strong></td>
+                    <td>${farm.location || 'N/A'}</td>
+                    <td>${farm.area || 'N/A'}</td>
+                    <td>${cropsHTML || 'N/A'}</td>
+                    <td>${farm.soilType || 'N/A'}</td>
+                    <td><span class="chip">${farm.status || 'Unknown'}</span></td>
+                    <td class="timestamp">${createdAt}</td>
+                    <td>${imagesHTML || 'No images'}</td>
+                `;
                 
-                renderDetectionsTable(filtered);
-            };
-            
-            searchDetection.addEventListener('input', applyDetectionFilters);
-            filterClass.addEventListener('change', applyDetectionFilters);
-            filterModel.addEventListener('change', applyDetectionFilters);
-            
-            // Farms search and filter
-            const searchFarm = document.getElementById('search-farm');
-            const filterStatus = document.getElementById('filter-status');
-            const filterSoil = document.getElementById('filter-soil');
-            
-            const applyFarmFilters = () => {
-                const searchTerm = searchFarm.value.toLowerCase();
-                const status = filterStatus.value;
-                const soilType = filterSoil.value;
-                
-                let filtered = allFarmsData;
-                
-                // Apply user filter if needed (adjust based on your farm data structure)
-                
-                filtered = filtered.filter(farm => {
-                    const matchesSearch = 
-                        (farm.name && farm.name.toLowerCase().includes(searchTerm)) ||
-                        (farm.location && farm.location.toLowerCase().includes(searchTerm)) ||
-                        (farm.crops && farm.crops.toLowerCase().includes(searchTerm));
-                    
-                    const matchesStatus = !status || farm.status === status;
-                    const matchesSoil = !soilType || farm.soilType === soilType;
-                    
-                    return (searchTerm === '' || matchesSearch) && matchesStatus && matchesSoil;
-                });
-                
-                renderFarmsTable(filtered);
-            };
-            
-            searchFarm.addEventListener('input', applyFarmFilters);
-            filterStatus.addEventListener('change', applyFarmFilters);
-            filterSoil.addEventListener('change', applyFarmFilters);
-        }
-        
-        // Utility functions
-        function formatDate(date) {
-            if (!date) return 'N/A';
-            
-            const d = new Date(date);
-            if (isNaN(d.getTime())) return 'Invalid Date';
-            
-            return d.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+                farmsBody.appendChild(row);
             });
         }
-        
-        function getHealthStatusClass(status) {
-            if (!status) return 'unknown';
+
+        // Render assessments table
+        function renderAssessmentsTable(assessments) {
+            assessmentsBody.innerHTML = '';
             
-            const statusLower = status.toLowerCase();
-            if (statusLower.includes('healthy')) return 'healthy';
-            if (statusLower.includes('infected')) return 'infected';
-            if (statusLower.includes('moderate')) return 'moderate';
-            return 'unknown';
+            // Sort assessments data
+            const sortedAssessments = sortDataBy(assessments, sortSelect.value);
+            
+            sortedAssessments.forEach(assessment => {
+                const row = document.createElement('tr');
+                
+                // Format health status badge
+                const healthStatusClass = assessment.healthStatus === "Healthy" ? 
+                    "status-healthy" : "status-unhealthy";
+                
+                // Format date
+                const date = assessment.date || assessment.timestamp || assessment.createdAt;
+                let formattedDate = 'N/A';
+                if (date) {
+                    if (date.seconds) {
+                        formattedDate = new Date(date.seconds * 1000).toLocaleDateString();
+                    } else if (typeof date === 'string') {
+                        formattedDate = new Date(date).toLocaleDateString();
+                    }
+                }
+                
+                // Format confidence threshold
+                const confidence = assessment.confidenceThreshold ? 
+                    `${Math.round(assessment.confidenceThreshold * 100)}%` : 
+                    'N/A';
+                
+                // Format image
+                let imageHTML = '';
+                if (assessment.image) {
+                    imageHTML = `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="openImageModal('${assessment.image}')">`;
+                }
+                
+                row.innerHTML = `
+                    <td class="timestamp">${formattedDate}</td>
+                    <td>${assessment.userName || assessment.userEmail || 'Unknown User'}</td>
+                    <td><span class="${healthStatusClass}">${assessment.healthStatus || 'Unknown'}</span></td>
+                    <td>${assessment.disease || 'N/A'}</td>
+                    <td>${assessment.detectionCount || 0}</td>
+                    <td>${assessment.location || 'N/A'}</td>
+                    <td>${assessment.treatment || 'N/A'}</td>
+                    <td>${confidence}</td>
+                    <td>${imageHTML || 'No image'}</td>
+                `;
+                
+                assessmentsBody.appendChild(row);
+            });
         }
-        
-        function getStatusClass(status) {
-            if (!status) return '';
+
+        // Sort data based on selected option
+        function sortDataBy(data, sortBy) {
+            if (!data.length) return data;
             
-            const statusLower = status.toLowerCase();
-            if (statusLower.includes('active')) return 'status-healthy';
-            if (statusLower.includes('inactive')) return 'status-infected';
-            if (statusLower.includes('pending')) return 'status-moderate';
-            return '';
+            return [...data].sort((a, b) => {
+                let valA, valB;
+                
+                switch(sortBy) {
+                    case 'name':
+                        valA = a.name || '';
+                        valB = b.name || '';
+                        return valA.localeCompare(valB);
+                    
+                    case 'date':
+                        valA = getDateValue(a);
+                        valB = getDateValue(b);
+                        return valB - valA; // Most recent first
+                    
+                    case 'createdAt':
+                    default:
+                        valA = getCreatedAtValue(a);
+                        valB = getCreatedAtValue(b);
+                        return valB - valA; // Most recent first
+                }
+            });
         }
-        
-        function showError(message) {
-            // Create error notification
-            const errorDiv = document.createElement('div');
-            errorDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #f44336;
-                color: white;
-                padding: 15px 20px;
-                border-radius: var(--border-radius);
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                z-index: 1000;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                max-width: 400px;
-            `;
-            
-            errorDiv.innerHTML = `
-                <i class="fas fa-exclamation-triangle"></i>
-                <div>
-                    <strong>Error</strong>
-                    <p>${message}</p>
-                </div>
-            `;
-            
-            document.body.appendChild(errorDiv);
-            
-            // Remove after 5 seconds
-            setTimeout(() => {
-                errorDiv.remove();
-            }, 5000);
+
+        // Helper to get date value for sorting
+        function getDateValue(item) {
+            if (item.date && item.date.seconds) {
+                return item.date.seconds * 1000;
+            } else if (item.timestamp && item.timestamp.seconds) {
+                return item.timestamp.seconds * 1000;
+            } else if (item.createdAt && item.createdAt.seconds) {
+                return item.createdAt.seconds * 1000;
+            } else if (item.date) {
+                return new Date(item.date).getTime();
+            }
+            return 0;
         }
-        
-        // Make showImageInModal globally available for onclick handlers
-        window.showImageInModal = showImageInModal;
-        
-        // Initialize the application
+
+        // Helper to get createdAt value for sorting
+        function getCreatedAtValue(item) {
+            if (item.createdAt && item.createdAt.seconds) {
+                return item.createdAt.seconds * 1000;
+            }
+            return 0;
+        }
+
+        // Apply filters and sorting
+        function filterData() {
+            renderData();
+        }
+
+        // Apply sorting
+        function sortData() {
+            renderData();
+        }
+
+        // Update last updated timestamp
+        function updateLastUpdated() {
+            const now = new Date();
+            lastUpdatedEl.textContent = now.toLocaleString();
+        }
+
+        // Open image modal
+        function openImageModal(imageUrl) {
+            modalImage.src = imageUrl;
+            imageModal.style.display = 'flex';
+        }
+
+        // Initialize page with a sample message
         document.addEventListener('DOMContentLoaded', () => {
-            loadAllData();
+            lastUpdatedEl.textContent = "Not loaded yet";
         });
     </script>
 </body>
