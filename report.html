@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PalmEgis - Disease Assessment Dashboard</title>
+    <title>My Palm Farm - Farmer Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         :root {
             --primary: #2e7d32;
@@ -42,6 +43,85 @@
             padding: 20px;
         }
         
+        /* Login Screen */
+        .login-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        }
+        
+        .login-box {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .login-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .login-logo i {
+            font-size: 3rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+        
+        .login-logo h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--dark);
+        }
+        
+        .login-logo span {
+            color: var(--secondary);
+        }
+        
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+        
+        .login-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .login-btn:hover {
+            background: var(--primary-dark);
+        }
+        
+        .login-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+        }
+        
+        /* Dashboard */
         header {
             background: linear-gradient(to right, var(--primary-dark), var(--primary));
             color: white;
@@ -84,6 +164,43 @@
             background: rgba(255, 255, 255, 0.1);
             padding: 8px 15px;
             border-radius: 50px;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .user-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            min-width: 200px;
+            display: none;
+            z-index: 100;
+            margin-top: 10px;
+        }
+        
+        .user-menu.active {
+            display: block;
+        }
+        
+        .user-menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+        
+        .user-menu-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .user-menu-item i {
+            color: var(--gray);
         }
         
         .tabs {
@@ -368,6 +485,64 @@
             background-color: #ff9800;
         }
         
+        .assessment-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--gray);
+        }
+        
+        .modal-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: contain;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
         footer {
             text-align: center;
             padding: 20px;
@@ -399,28 +574,54 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <div class="login-logo">
+                <i class="fas fa-pagelines"></i>
+                <h1>Palm<span>Egis</span></h1>
+                <p>Farmer Login</p>
+            </div>
+            <div class="login-form">
+                <input type="email" id="login-email" placeholder="Email Address" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button id="login-btn" class="login-btn">Login to My Farm</button>
+            </div>
+            <div class="login-footer">
+                <p>Access your farm data and assessments</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Dashboard (Hidden initially) -->
+    <div id="dashboard-screen" class="container" style="display: none;">
         <header>
             <div class="header-content">
                 <div class="logo">
                     <i class="fas fa-pagelines"></i>
                     <div>
-                        <h1>Palm<span>Egis</span></h1>
-                        <p>Palm Tree Disease Assessment System</p>
+                        <h1>My Palm<span>Farm</span></h1>
+                        <p>Personal Farm Management Dashboard</p>
                     </div>
                 </div>
-                <div class="user-info">
+                <div class="user-info" id="user-menu-trigger">
                     <i class="fas fa-user-circle"></i>
-                    <span>Loading User...</span>
+                    <span id="user-name">Loading...</span>
+                    <i class="fas fa-chevron-down"></i>
+                    <div class="user-menu" id="user-menu">
+                        <a href="#" class="user-menu-item" id="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Logout</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </header>
         
         <div class="tabs">
-            <div class="tab active" data-tab="assessments">Assessments</div>
-            <div class="tab" data-tab="detections">Detections</div>
-            <div class="tab" data-tab="farms">Farms</div>
-            <div class="tab" data-tab="dashboard">Dashboard</div>
+            <div class="tab active" data-tab="dashboard">Dashboard</div>
+            <div class="tab" data-tab="assessments">My Assessments</div>
+            <div class="tab" data-tab="farms">My Farms</div>
         </div>
         
         <!-- Dashboard Tab -->
@@ -432,7 +633,27 @@
                     </div>
                     <div class="stat-info">
                         <h3 id="total-assessments">0</h3>
-                        <p>Total Assessments</p>
+                        <p>My Assessments</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon farms">
+                        <i class="fas fa-tractor"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="total-farms">0</h3>
+                        <p>My Farms</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon healthy">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="healthy-rate">0%</h3>
+                        <p>Healthy Rate</p>
                     </div>
                 </div>
                 
@@ -445,26 +666,6 @@
                         <p>Total Detections</p>
                     </div>
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon farms">
-                        <i class="fas fa-tractor"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="total-farms">0</h3>
-                        <p>Total Farms</p>
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-icon healthy">
-                        <i class="fas fa-leaf"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3 id="healthy-rate">0%</h3>
-                        <p>Healthy Palm Rate</p>
-                    </div>
-                </div>
             </div>
             
             <div class="table-container">
@@ -472,7 +673,7 @@
                 <div id="dashboard-assessments">
                     <div class="loading">
                         <i class="fas fa-spinner fa-spin"></i>
-                        <p>Loading dashboard data...</p>
+                        <p>Loading your data...</p>
                     </div>
                 </div>
             </div>
@@ -483,7 +684,7 @@
             <div class="search-filter">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="search-assessment" placeholder="Search assessments...">
+                    <input type="text" id="search-assessment" placeholder="Search my assessments...">
                 </div>
                 <select class="filter-select" id="filter-health-status">
                     <option value="">All Health Status</option>
@@ -501,12 +702,12 @@
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>User</th>
+                            <th>Image</th>
                             <th>Disease</th>
                             <th>Health Status</th>
                             <th>Detection Count</th>
                             <th>Location</th>
-                            <th>Next Assessment</th>
+                            <th>Treatment</th>
                         </tr>
                     </thead>
                     <tbody id="assessments-body">
@@ -514,58 +715,13 @@
                             <td colspan="7">
                                 <div class="loading">
                                     <i class="fas fa-spinner fa-spin"></i>
-                                    <p>Loading assessments data...</p>
+                                    <p>Loading your assessments...</p>
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            
-            <div class="pagination" id="assessments-pagination"></div>
-        </div>
-        
-        <!-- Detections Tab -->
-        <div id="detections" class="tab-content">
-            <div class="search-filter">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="search-detection" placeholder="Search detections...">
-                </div>
-                <select class="filter-select" id="filter-class">
-                    <option value="">All Classes</option>
-                </select>
-                <select class="filter-select" id="filter-model">
-                    <option value="">All Models</option>
-                </select>
-            </div>
-            
-            <div class="table-container">
-                <table id="detections-table">
-                    <thead>
-                        <tr>
-                            <th>Detection ID</th>
-                            <th>Class</th>
-                            <th>Confidence</th>
-                            <th>Model</th>
-                            <th>Coordinates</th>
-                            <th>Dimensions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="detections-body">
-                        <tr>
-                            <td colspan="6">
-                                <div class="loading">
-                                    <i class="fas fa-spinner fa-spin"></i>
-                                    <p>Loading detections data...</p>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="pagination" id="detections-pagination"></div>
         </div>
         
         <!-- Farms Tab -->
@@ -573,7 +729,7 @@
             <div class="search-filter">
                 <div class="search-box">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="search-farm" placeholder="Search farms...">
+                    <input type="text" id="search-farm" placeholder="Search my farms...">
                 </div>
                 <select class="filter-select" id="filter-status">
                     <option value="">All Status</option>
@@ -596,7 +752,7 @@
                             <th>Crops</th>
                             <th>Soil Type</th>
                             <th>Status</th>
-                            <th>Created At</th>
+                            <th>Images</th>
                         </tr>
                     </thead>
                     <tbody id="farms-body">
@@ -604,19 +760,29 @@
                             <td colspan="7">
                                 <div class="loading">
                                     <i class="fas fa-spinner fa-spin"></i>
-                                    <p>Loading farms data...</p>
+                                    <p>Loading your farms...</p>
                                 </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            
-            <div class="pagination" id="farms-pagination"></div>
+        </div>
+        
+        <!-- Image Modal -->
+        <div id="image-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Assessment Image</h3>
+                    <button class="modal-close" id="close-modal">&times;</button>
+                </div>
+                <img id="modal-image" class="modal-image" src="" alt="Assessment Image">
+                <div id="image-details"></div>
+            </div>
         </div>
         
         <footer>
-            <p>PalmEgis Disease Assessment System &copy; <span id="current-year"></span> | Data loaded from Firebase</p>
+            <p>My Palm Farm Dashboard &copy; <span id="current-year"></span> | Your personal farm management system</p>
         </footer>
     </div>
 
@@ -634,22 +800,94 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
         
         // Global variables
-        let assessmentsData = [];
-        let detectionsData = [];
-        let farmsData = [];
         let currentUser = null;
+        let userAssessmentsData = [];
+        let userFarmsData = [];
+        let allDetectionsData = [];
         
         // DOM Elements
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardScreen = document.getElementById('dashboard-screen');
+        const loginEmail = document.getElementById('login-email');
+        const loginPassword = document.getElementById('login-password');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userNameElement = document.getElementById('user-name');
+        const userMenuTrigger = document.getElementById('user-menu-trigger');
+        const userMenu = document.getElementById('user-menu');
+        
         const tabs = document.querySelectorAll('.tab');
         const tabContents = document.querySelectorAll('.tab-content');
         const assessmentsBody = document.getElementById('assessments-body');
-        const detectionsBody = document.getElementById('detections-body');
         const farmsBody = document.getElementById('farms-body');
+        const imageModal = document.getElementById('image-modal');
+        const modalImage = document.getElementById('modal-image');
+        const closeModal = document.getElementById('close-modal');
         
         // Set current year in footer
         document.getElementById('current-year').textContent = new Date().getFullYear();
+        
+        // Check if user is already logged in
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                currentUser = user;
+                showDashboard();
+                loadUserData();
+            } else {
+                showLogin();
+            }
+        });
+        
+        // Login function
+        loginBtn.addEventListener('click', async () => {
+            const email = loginEmail.value;
+            const password = loginPassword.value;
+            
+            if (!email || !password) {
+                showError("Please enter email and password");
+                return;
+            }
+            
+            try {
+                loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+                loginBtn.disabled = true;
+                
+                await auth.signInWithEmailAndPassword(email, password);
+                // Success - auth state change will handle the rest
+            } catch (error) {
+                console.error("Login error:", error);
+                showError(error.message);
+                loginBtn.innerHTML = 'Login to My Farm';
+                loginBtn.disabled = false;
+            }
+        });
+        
+        // Logout function
+        logoutBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                await auth.signOut();
+                showLogin();
+            } catch (error) {
+                console.error("Logout error:", error);
+                showError("Failed to logout");
+            }
+        });
+        
+        // User menu toggle
+        userMenuTrigger.addEventListener('click', () => {
+            userMenu.classList.toggle('active');
+        });
+        
+        // Close user menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!userMenuTrigger.contains(e.target)) {
+                userMenu.classList.remove('active');
+            }
+        });
         
         // Tab switching functionality
         tabs.forEach(tab => {
@@ -666,43 +904,111 @@
             });
         });
         
-        // Load data from Firebase
-        async function loadAllData() {
+        // Close modal
+        closeModal.addEventListener('click', () => {
+            imageModal.classList.remove('active');
+        });
+        
+        // Close modal when clicking outside
+        imageModal.addEventListener('click', (e) => {
+            if (e.target === imageModal) {
+                imageModal.classList.remove('active');
+            }
+        });
+        
+        // Show image in modal
+        function showImageInModal(imageUrl, assessment) {
+            modalImage.src = imageUrl || 'https://via.placeholder.com/400x300?text=No+Image+Available';
+            
+            let detailsHtml = '';
+            if (assessment) {
+                detailsHtml = `
+                    <div style="margin-top: 20px;">
+                        <h4>Assessment Details</h4>
+                        <p><strong>Date:</strong> ${formatDate(assessment.date || assessment.createdAt?.toDate?.() || new Date())}</p>
+                        <p><strong>Disease:</strong> ${assessment.disease || 'N/A'}</p>
+                        <p><strong>Health Status:</strong> ${assessment.healthStatus || 'Unknown'}</p>
+                        <p><strong>Location:</strong> ${assessment.location || 'N/A'}</p>
+                        <p><strong>Treatment:</strong> ${assessment.treatment || 'No treatment recommended'}</p>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('image-details').innerHTML = detailsHtml;
+            imageModal.classList.add('active');
+        }
+        
+        // Show login screen
+        function showLogin() {
+            loginScreen.style.display = 'flex';
+            dashboardScreen.style.display = 'none';
+            loginEmail.value = '';
+            loginPassword.value = '';
+            loginBtn.innerHTML = 'Login to My Farm';
+            loginBtn.disabled = false;
+        }
+        
+        // Show dashboard screen
+        function showDashboard() {
+            loginScreen.style.display = 'none';
+            dashboardScreen.style.display = 'block';
+            if (currentUser) {
+                userNameElement.textContent = currentUser.email;
+            }
+        }
+        
+        // Load user-specific data from Firebase
+        async function loadUserData() {
+            if (!currentUser) return;
+            
             try {
-                // Load assessments
-                const assessmentsSnapshot = await db.collection('assessments').orderBy('createdAt', 'desc').limit(100).get();
-                assessmentsData = [];
+                const userId = currentUser.uid;
+                const userEmail = currentUser.email;
+                
+                // Load user's assessments (filtered by userId or userEmail)
+                const assessmentsSnapshot = await db.collection('assessments')
+                    .where('userEmail', '==', userEmail)
+                    .orderBy('createdAt', 'desc')
+                    .limit(100)
+                    .get();
+                
+                userAssessmentsData = [];
                 assessmentsSnapshot.forEach(doc => {
                     const data = doc.data();
                     data.id = doc.id;
-                    assessmentsData.push(data);
+                    userAssessmentsData.push(data);
                 });
                 
-                // Load detections
-                const detectionsSnapshot = await db.collection('detections').limit(200).get();
-                detectionsData = [];
-                detectionsSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    data.id = doc.id;
-                    detectionsData.push(data);
-                });
+                // Load user's farms (filtered by userId)
+                const farmsSnapshot = await db.collection('farms')
+                    .where('userId', '==', userId)
+                    .orderBy('createdAt', 'desc')
+                    .limit(50)
+                    .get();
                 
-                // Load farms
-                const farmsSnapshot = await db.collection('farms').orderBy('createdAt', 'desc').limit(50).get();
-                farmsData = [];
+                userFarmsData = [];
                 farmsSnapshot.forEach(doc => {
                     const data = doc.data();
                     data.id = doc.id;
-                    farmsData.push(data);
+                    userFarmsData.push(data);
+                });
+                
+                // Load detections related to user's assessments
+                // For simplicity, we'll load all detections and filter later
+                const detectionsSnapshot = await db.collection('detections').limit(200).get();
+                allDetectionsData = [];
+                detectionsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    data.id = doc.id;
+                    allDetectionsData.push(data);
                 });
                 
                 // Update dashboard stats
                 updateDashboardStats();
                 
                 // Render data tables
-                renderAssessmentsTable(assessmentsData);
-                renderDetectionsTable(detectionsData);
-                renderFarmsTable(farmsData);
+                renderAssessmentsTable(userAssessmentsData);
+                renderFarmsTable(userFarmsData);
                 
                 // Populate filter dropdowns
                 populateFilterDropdowns();
@@ -711,26 +1017,27 @@
                 setupSearchAndFilter();
                 
             } catch (error) {
-                console.error("Error loading data: ", error);
-                showError("Failed to load data from Firebase. Please check your connection.");
+                console.error("Error loading user data: ", error);
+                showError("Failed to load your data. Please try again.");
             }
         }
         
         // Update dashboard statistics
         function updateDashboardStats() {
-            // Total assessments
-            document.getElementById('total-assessments').textContent = assessmentsData.length;
+            // User's assessments count
+            document.getElementById('total-assessments').textContent = userAssessmentsData.length;
             
-            // Total detections
-            document.getElementById('total-detections').textContent = detectionsData.length;
+            // User's farms count
+            document.getElementById('total-farms').textContent = userFarmsData.length;
             
-            // Total farms
-            document.getElementById('total-farms').textContent = farmsData.length;
-            
-            // Healthy rate (example calculation)
-            const healthyAssessments = assessmentsData.filter(a => a.healthStatus === 'Healthy').length;
-            const healthyRate = assessmentsData.length > 0 ? Math.round((healthyAssessments / assessmentsData.length) * 100) : 0;
+            // Healthy rate calculation
+            const healthyAssessments = userAssessmentsData.filter(a => a.healthStatus === 'Healthy').length;
+            const healthyRate = userAssessmentsData.length > 0 ? Math.round((healthyAssessments / userAssessmentsData.length) * 100) : 0;
             document.getElementById('healthy-rate').textContent = `${healthyRate}%`;
+            
+            // Total detections in user's assessments
+            const totalDetections = userAssessmentsData.reduce((sum, assessment) => sum + (assessment.detectionCount || 0), 0);
+            document.getElementById('total-detections').textContent = totalDetections;
             
             // Update recent assessments in dashboard
             updateRecentAssessments();
@@ -739,14 +1046,15 @@
         // Update recent assessments in dashboard
         function updateRecentAssessments() {
             const dashboardTable = document.getElementById('dashboard-assessments');
-            const recentAssessments = assessmentsData.slice(0, 5);
+            const recentAssessments = userAssessmentsData.slice(0, 5);
             
             if (recentAssessments.length === 0) {
                 dashboardTable.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-clipboard-list"></i>
-                        <h3>No Assessments Found</h3>
-                        <p>No assessment data has been recorded yet.</p>
+                        <h3>No Assessments Yet</h3>
+                        <p>You haven't conducted any assessments yet.</p>
+                        <p style="margin-top: 10px; font-size: 0.9rem;">Use the PalmEgis mobile app to create assessments.</p>
                     </div>
                 `;
                 return;
@@ -757,10 +1065,10 @@
                     <thead>
                         <tr>
                             <th>Date</th>
-                            <th>User</th>
                             <th>Disease</th>
                             <th>Health Status</th>
                             <th>Detections</th>
+                            <th>Location</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -773,7 +1081,6 @@
                 tableHTML += `
                     <tr>
                         <td>${formattedDate}</td>
-                        <td>${assessment.userName || assessment.userEmail || 'Unknown'}</td>
                         <td>${assessment.disease || 'N/A'}</td>
                         <td>
                             <div class="health-status-cell">
@@ -782,6 +1089,7 @@
                             </div>
                         </td>
                         <td>${assessment.detectionCount || 0}</td>
+                        <td>${assessment.location || 'N/A'}</td>
                     </tr>
                 `;
             });
@@ -794,7 +1102,7 @@
             dashboardTable.innerHTML = tableHTML;
         }
         
-        // Render assessments table
+        // Render user's assessments table
         function renderAssessmentsTable(data) {
             if (data.length === 0) {
                 assessmentsBody.innerHTML = `
@@ -803,7 +1111,8 @@
                             <div class="empty-state">
                                 <i class="fas fa-clipboard-list"></i>
                                 <h3>No Assessments Found</h3>
-                                <p>No assessment data matches your search criteria.</p>
+                                <p>You haven't conducted any assessments yet.</p>
+                                <p style="margin-top: 10px; font-size: 0.9rem;">Use the PalmEgis mobile app to create assessments.</p>
                             </div>
                         </td>
                     </tr>
@@ -815,14 +1124,19 @@
             
             data.forEach(assessment => {
                 const date = assessment.date || assessment.createdAt?.toDate?.() || new Date();
-                const nextAssessment = assessment.nextAssessment?.toDate?.() || new Date();
                 const formattedDate = formatDate(date);
-                const formattedNextDate = formatDate(nextAssessment);
+                const imageUrl = assessment.image || '';
                 
                 tableHTML += `
                     <tr>
                         <td>${formattedDate}</td>
-                        <td>${assessment.userName || assessment.userEmail || 'Unknown'}</td>
+                        <td>
+                            ${imageUrl ? 
+                                `<img src="${imageUrl}" alt="Assessment Image" class="assessment-image" 
+                                     onclick="showImageInModal('${imageUrl}', ${JSON.stringify(assessment).replace(/'/g, "\\'")})">` 
+                                : 'No Image'
+                            }
+                        </td>
                         <td>${assessment.disease || 'N/A'}</td>
                         <td>
                             <div class="health-status-cell">
@@ -832,7 +1146,7 @@
                         </td>
                         <td>${assessment.detectionCount || 0}</td>
                         <td>${assessment.location || 'N/A'}</td>
-                        <td>${formattedNextDate}</td>
+                        <td>${assessment.treatment || 'N/A'}</td>
                     </tr>
                 `;
             });
@@ -840,52 +1154,7 @@
             assessmentsBody.innerHTML = tableHTML;
         }
         
-        // Render detections table
-        function renderDetectionsTable(data) {
-            if (data.length === 0) {
-                detectionsBody.innerHTML = `
-                    <tr>
-                        <td colspan="6">
-                            <div class="empty-state">
-                                <i class="fas fa-search"></i>
-                                <h3>No Detections Found</h3>
-                                <p>No detection data matches your search criteria.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
-            
-            let tableHTML = '';
-            
-            data.forEach(detection => {
-                const confidencePercent = detection.confidence ? Math.round(detection.confidence * 100) : 0;
-                const confidenceColor = confidencePercent > 80 ? '#4caf50' : confidencePercent > 60 ? '#ff9800' : '#f44336';
-                
-                tableHTML += `
-                    <tr>
-                        <td>${detection.detection_id || detection.id || 'N/A'}</td>
-                        <td>${detection.class || 'Unknown'}</td>
-                        <td>
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 100%; background: #f0f0f0; height: 6px; border-radius: 3px; overflow: hidden;">
-                                    <div style="width: ${confidencePercent}%; background: ${confidenceColor}; height: 100%;"></div>
-                                </div>
-                                <span>${confidencePercent}%</span>
-                            </div>
-                        </td>
-                        <td>${detection.model || detection.modelName || 'Unknown'}</td>
-                        <td>(${detection.x || 0}, ${detection.y || 0})</td>
-                        <td>${detection.width || 0} × ${detection.height || 0}</td>
-                    </tr>
-                `;
-            });
-            
-            detectionsBody.innerHTML = tableHTML;
-        }
-        
-        // Render farms table
+        // Render user's farms table
         function renderFarmsTable(data) {
             if (data.length === 0) {
                 farmsBody.innerHTML = `
@@ -893,8 +1162,9 @@
                         <td colspan="7">
                             <div class="empty-state">
                                 <i class="fas fa-tractor"></i>
-                                <h3>No Farms Found</h3>
-                                <p>No farm data matches your search criteria.</p>
+                                <h3>No Farms Registered</h3>
+                                <p>You haven't registered any farms yet.</p>
+                                <p style="margin-top: 10px; font-size: 0.9rem;">Add your farms through the PalmEgis app.</p>
                             </div>
                         </td>
                     </tr>
@@ -905,18 +1175,20 @@
             let tableHTML = '';
             
             data.forEach(farm => {
-                const createdAt = farm.createdAt?.toDate?.() || new Date();
-                const formattedDate = formatDate(createdAt);
+                const images = farm.images || [];
+                const imagesHtml = images.length > 0 
+                    ? `<span>${images.length} image(s)</span>`
+                    : 'No images';
                 
                 tableHTML += `
                     <tr>
-                        <td><strong>${farm.name || 'Unnamed Farm'}</strong></td>
+                        <td><strong>${farm.name || 'My Farm'}</strong></td>
                         <td>${farm.location || 'N/A'}</td>
                         <td>${farm.area ? `${farm.area} ha` : 'N/A'}</td>
                         <td>${farm.crops || 'N/A'}</td>
                         <td>${farm.soilType || 'N/A'}</td>
-                        <td><span class="status-badge ${getStatusClass(farm.status)}">${farm.status || 'Unknown'}</span></td>
-                        <td>${formattedDate}</td>
+                        <td><span class="status-badge ${getStatusClass(farm.status)}">${farm.status || 'Active'}</span></td>
+                        <td>${imagesHtml}</td>
                     </tr>
                 `;
             });
@@ -924,11 +1196,12 @@
             farmsBody.innerHTML = tableHTML;
         }
         
-        // Populate filter dropdowns with unique values
+        // Populate filter dropdowns with unique values from user's data
         function populateFilterDropdowns() {
-            // Disease filter
+            // Disease filter from user's assessments
             const diseaseFilter = document.getElementById('filter-disease');
-            const diseases = [...new Set(assessmentsData.map(a => a.disease).filter(Boolean))];
+            diseaseFilter.innerHTML = '<option value="">All Diseases</option>';
+            const diseases = [...new Set(userAssessmentsData.map(a => a.disease).filter(Boolean))];
             diseases.forEach(disease => {
                 const option = document.createElement('option');
                 option.value = disease;
@@ -936,29 +1209,10 @@
                 diseaseFilter.appendChild(option);
             });
             
-            // Class filter for detections
-            const classFilter = document.getElementById('filter-class');
-            const classes = [...new Set(detectionsData.map(d => d.class).filter(Boolean))];
-            classes.forEach(cls => {
-                const option = document.createElement('option');
-                option.value = cls;
-                option.textContent = cls;
-                classFilter.appendChild(option);
-            });
-            
-            // Model filter for detections
-            const modelFilter = document.getElementById('filter-model');
-            const models = [...new Set(detectionsData.map(d => d.model || d.modelName).filter(Boolean))];
-            models.forEach(model => {
-                const option = document.createElement('option');
-                option.value = model;
-                option.textContent = model;
-                modelFilter.appendChild(option);
-            });
-            
-            // Soil type filter for farms
+            // Soil type filter from user's farms
             const soilFilter = document.getElementById('filter-soil');
-            const soilTypes = [...new Set(farmsData.map(f => f.soilType).filter(Boolean))];
+            soilFilter.innerHTML = '<option value="">All Soil Types</option>';
+            const soilTypes = [...new Set(userFarmsData.map(f => f.soilType).filter(Boolean))];
             soilTypes.forEach(soil => {
                 const option = document.createElement('option');
                 option.value = soil;
@@ -967,7 +1221,7 @@
             });
         }
         
-        // Setup search and filter functionality
+        // Setup search and filter functionality for user's data
         function setupSearchAndFilter() {
             // Assessments search and filter
             const searchAssessment = document.getElementById('search-assessment');
@@ -979,12 +1233,11 @@
                 const healthStatus = filterHealthStatus.value;
                 const disease = filterDisease.value;
                 
-                const filtered = assessmentsData.filter(assessment => {
+                const filtered = userAssessmentsData.filter(assessment => {
                     const matchesSearch = 
-                        (assessment.userName && assessment.userName.toLowerCase().includes(searchTerm)) ||
-                        (assessment.userEmail && assessment.userEmail.toLowerCase().includes(searchTerm)) ||
+                        (assessment.disease && assessment.disease.toLowerCase().includes(searchTerm)) ||
                         (assessment.location && assessment.location.toLowerCase().includes(searchTerm)) ||
-                        (assessment.disease && assessment.disease.toLowerCase().includes(searchTerm));
+                        (assessment.treatment && assessment.treatment.toLowerCase().includes(searchTerm));
                     
                     const matchesHealthStatus = !healthStatus || assessment.healthStatus === healthStatus;
                     const matchesDisease = !disease || assessment.disease === disease;
@@ -999,34 +1252,6 @@
             filterHealthStatus.addEventListener('change', applyAssessmentFilters);
             filterDisease.addEventListener('change', applyAssessmentFilters);
             
-            // Detections search and filter
-            const searchDetection = document.getElementById('search-detection');
-            const filterClass = document.getElementById('filter-class');
-            const filterModel = document.getElementById('filter-model');
-            
-            const applyDetectionFilters = () => {
-                const searchTerm = searchDetection.value.toLowerCase();
-                const className = filterClass.value;
-                const model = filterModel.value;
-                
-                const filtered = detectionsData.filter(detection => {
-                    const matchesSearch = 
-                        (detection.detection_id && detection.detection_id.toLowerCase().includes(searchTerm)) ||
-                        (detection.class && detection.class.toLowerCase().includes(searchTerm));
-                    
-                    const matchesClass = !className || detection.class === className;
-                    const matchesModel = !model || detection.model === model || detection.modelName === model;
-                    
-                    return (searchTerm === '' || matchesSearch) && matchesClass && matchesModel;
-                });
-                
-                renderDetectionsTable(filtered);
-            };
-            
-            searchDetection.addEventListener('input', applyDetectionFilters);
-            filterClass.addEventListener('change', applyDetectionFilters);
-            filterModel.addEventListener('change', applyDetectionFilters);
-            
             // Farms search and filter
             const searchFarm = document.getElementById('search-farm');
             const filterStatus = document.getElementById('filter-status');
@@ -1037,7 +1262,7 @@
                 const status = filterStatus.value;
                 const soilType = filterSoil.value;
                 
-                const filtered = farmsData.filter(farm => {
+                const filtered = userFarmsData.filter(farm => {
                     const matchesSearch = 
                         (farm.name && farm.name.toLowerCase().includes(searchTerm)) ||
                         (farm.location && farm.location.toLowerCase().includes(searchTerm)) ||
@@ -1126,15 +1351,8 @@
             }, 5000);
         }
         
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', () => {
-            loadAllData();
-            
-            // Simulate user loading
-            setTimeout(() => {
-                document.querySelector('.user-info span').textContent = "Admin User";
-            }, 1000);
-        });
+        // Make showImageInModal globally available for onclick handlers
+        window.showImageInModal = showImageInModal;
     </script>
 </body>
 </html>
