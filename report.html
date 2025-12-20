@@ -32,16 +32,20 @@
             color: white;
             padding: 20px;
             box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            min-height: 100vh;
         }
 
         .sidebar-placeholder {
             text-align: center;
-            padding: 20px;
+            padding: 20px 0;
         }
 
         .sidebar-placeholder h3 {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             color: #ecf0f1;
+            font-size: 1.5rem;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
         }
 
         .sidebar-placeholder ul {
@@ -50,16 +54,47 @@
         }
 
         .sidebar-placeholder li {
-            padding: 10px;
-            margin: 5px 0;
+            padding: 12px 15px;
+            margin: 8px 0;
             background-color: #34495e;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .sidebar-placeholder li:hover {
             background-color: #3498db;
+            transform: translateX(5px);
+        }
+
+        .sidebar-placeholder li i {
+            font-style: normal;
+            font-weight: bold;
+        }
+
+        .user-sidebar-info {
+            background-color: #1a252f;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .user-sidebar-email {
+            font-weight: 600;
+            color: #3498db;
+            font-size: 0.9rem;
+            word-break: break-all;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background-color: #34495e;
+            margin: 20px 0;
         }
 
         .container {
@@ -321,6 +356,7 @@
             
             #sidebarPlaceholder {
                 width: 100%;
+                min-height: auto;
                 padding: 10px;
             }
             
@@ -352,9 +388,15 @@
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar placeholder -->
         <div id="sidebarPlaceholder"></div>
         <script src="js/sidebar-loader.js"></script>
+
+         <main class="main-content">
+            <div class="top-header">
+                <div class="header-left">
+                    <h1>Community Forum</h1>
+                </div>
+            </div>
 
         <div class="container">
             <header>
@@ -488,6 +530,7 @@
 
         // DOM elements
         const userEmail = document.getElementById('userEmail');
+        const sidebarUserEmail = document.getElementById('sidebarUserEmail');
         const logoutBtn = document.getElementById('logoutBtn');
         
         const loadDataBtn = document.getElementById('loadData');
@@ -539,6 +582,7 @@
                 // User is signed in
                 currentUser = user;
                 userEmail.textContent = user.email;
+                sidebarUserEmail.textContent = user.email;
                 // Auto-load user data when they're already logged in
                 setTimeout(() => {
                     loadUserData();
@@ -938,18 +982,24 @@
             document.body.removeChild(link);
         }
 
-        // Sidebar functions
-        function showAllData() {
+        // Sidebar functions - These are now available globally for the sidebar to call
+        window.showAllData = function() {
             collectionSelect.value = 'both';
             healthFilter.value = 'all';
             renderData();
         }
 
-        function filterByStatus(status) {
+        window.filterByStatus = function(status) {
             collectionSelect.value = 'assessments';
             healthFilter.value = status;
             renderData();
         }
+
+        // Make these functions globally available for the sidebar
+        window.loadUserData = loadUserData;
+        window.downloadReport = downloadReport;
+        window.handleLogout = handleLogout;
+        window.openImageModal = openImageModal;
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
@@ -959,6 +1009,7 @@
                 if (user) {
                     currentUser = user;
                     userEmail.textContent = user.email;
+                    sidebarUserEmail.textContent = user.email;
                     // Auto-load data after a short delay
                     setTimeout(() => {
                         loadUserData();
