@@ -506,7 +506,7 @@
           <div class="stat-value" id="adminUsers">0</div>
           <div class="stat-label">Admin Users</div>
           <div class="stat-change">
-            <i class="fas fa-user-shield"></i> Loading...
+            <i class="fas fa-user-shield"></i>
           </div>
         </div>
         
@@ -514,7 +514,7 @@
           <div class="stat-value" id="regularUsers">0</div>
           <div class="stat-label">Regular Users</div>
           <div class="stat-change">
-            <i class="fas fa-user"></i> Loading...
+            <i class="fas fa-user"></i>
           </div>
         </div>
       </div>
@@ -753,11 +753,11 @@
         
         // Calculate percentage changes
         const todayChange = yesterdayUsers > 0 ? 
-          ((todayUsers - yesterdayUsers) / yesterdayUsers * 100).toFixed(1) : 
+          ((todayUsers - yesterdayUsers) / yesterdayUsers * 1).toFixed(1) : 
           (todayUsers > 0 ? '100.0' : '0.0');
         
         const weekChange = lastWeekUsers > 0 ? 
-          ((totalUsers - lastWeekUsers) / lastWeekUsers * 100).toFixed(1) : 
+          ((totalUsers - lastWeekUsers) / lastWeekUsers * 1).toFixed(1) : 
           (totalUsers > 0 ? '100.0' : '0.0');
         
         // Update UI
