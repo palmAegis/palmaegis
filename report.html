@@ -6,6 +6,7 @@
     <title>Farm & Assessment Report</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -31,6 +32,7 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 1px solid #e1e5eb;
+            position: relative;
         }
 
         h1 {
@@ -42,6 +44,81 @@
         .subtitle {
             color: #7f8c8d;
             font-size: 1.1rem;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-email {
+            font-weight: 600;
+            color: #3498db;
+        }
+
+        .auth-container {
+            max-width: 400px;
+            margin: 100px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .auth-container h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .auth-button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+        }
+
+        .auth-button:hover {
+            background-color: #2980b9;
+        }
+
+        .auth-error {
+            color: #e74c3c;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .auth-links {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .auth-links a {
+            color: #3498db;
+            text-decoration: none;
         }
 
         .controls {
@@ -76,6 +153,22 @@
             border-radius: 5px;
             border: 1px solid #ddd;
             min-width: 150px;
+        }
+
+        .download-btn {
+            background-color: #27ae60 !important;
+        }
+
+        .download-btn:hover {
+            background-color: #219653 !important;
+        }
+
+        .logout-btn {
+            background-color: #e74c3c !important;
+        }
+
+        .logout-btn:hover {
+            background-color: #c0392b !important;
         }
 
         .stats {
@@ -254,18 +347,41 @@
                 padding: 10px 5px;
                 font-size: 0.9rem;
             }
+            
+            .user-info {
+                position: static;
+                margin-top: 15px;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="authContainer" class="auth-container" style="display: none;">
+        <h2>Login to View Your Report</h2>
+        <input type="email" id="email" class="auth-input" placeholder="Email" required>
+        <input type="password" id="password" class="auth-input" placeholder="Password" required>
+        <button id="loginBtn" class="auth-button">Login</button>
+        <div id="authError" class="auth-error"></div>
+        <div class="auth-links">
+            <p>Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
+            <p>Or <a href="#" id="resetLink">Reset Password</a></p>
+        </div>
+    </div>
+
+    <div id="mainContainer" class="container" style="display: none;">
         <header>
-            <h1>Farm Management Report</h1>
-            <p class="subtitle">Data from Firestore collections: farms and assessments</p>
+            <h1>My Farm Management Report</h1>
+            <p class="subtitle">Your personalized data from Firestore collections</p>
+            <div class="user-info">
+                <span class="user-email" id="userEmail">Loading...</span>
+                <button id="logoutBtn" class="logout-btn" style="padding: 5px 10px; font-size: 14px;">Logout</button>
+            </div>
         </header>
 
         <div class="controls">
-            <button id="loadData">Load Data</button>
+            <button id="loadData">Load My Data</button>
+            <button id="downloadReport" class="download-btn">Download Report</button>
             <select id="collectionSelect">
                 <option value="both">Both Collections</option>
                 <option value="farms">Farms Only</option>
@@ -288,11 +404,11 @@
 
         <div class="stats">
             <div class="stat-card">
-                <h3>Total Farms</h3>
+                <h3>My Farms</h3>
                 <div id="farmCount" class="stat-value">0</div>
             </div>
             <div class="stat-card">
-                <h3>Total Assessments</h3>
+                <h3>My Assessments</h3>
                 <div id="assessmentCount" class="stat-value">0</div>
             </div>
             <div class="stat-card">
@@ -306,9 +422,9 @@
         </div>
 
         <div class="data-section">
-            <h2 class="section-title">Farms Collection</h2>
+            <h2 class="section-title">My Farms Collection</h2>
             <div class="table-container">
-                <div id="farmsLoading" class="loading">Click "Load Data" to fetch farm information</div>
+                <div id="farmsLoading" class="loading">Click "Load My Data" to fetch your farm information</div>
                 <table id="farmsTable" style="display: none;">
                     <thead>
                         <tr>
@@ -330,9 +446,9 @@
         </div>
 
         <div class="data-section">
-            <h2 class="section-title">Assessments Collection</h2>
+            <h2 class="section-title">My Assessments Collection</h2>
             <div class="table-container">
-                <div id="assessmentsLoading" class="loading">Click "Load Data" to fetch assessment information</div>
+                <div id="assessmentsLoading" class="loading">Click "Load My Data" to fetch your assessment information</div>
                 <table id="assessmentsTable" style="display: none;">
                     <thead>
                         <tr>
@@ -355,7 +471,7 @@
         </div>
 
         <footer>
-            <p>Report generated from Firebase Firestore | Data updates in real-time</p>
+            <p>Report generated from Firebase Firestore | Only your data is displayed</p>
             <p class="timestamp">Last updated: <span id="lastUpdated">Not loaded yet</span></p>
         </footer>
     </div>
@@ -380,9 +496,22 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
         // DOM elements
+        const authContainer = document.getElementById('authContainer');
+        const mainContainer = document.getElementById('mainContainer');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginBtn = document.getElementById('loginBtn');
+        const authError = document.getElementById('authError');
+        const signupLink = document.getElementById('signupLink');
+        const resetLink = document.getElementById('resetLink');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userEmail = document.getElementById('userEmail');
+        
         const loadDataBtn = document.getElementById('loadData');
+        const downloadReportBtn = document.getElementById('downloadReport');
         const collectionSelect = document.getElementById('collectionSelect');
         const sortSelect = document.getElementById('sortSelect');
         const healthFilter = document.getElementById('healthFilter');
@@ -404,9 +533,21 @@
         // Global data storage
         let farmsData = [];
         let assessmentsData = [];
+        let currentUser = null;
 
         // Event Listeners
-        loadDataBtn.addEventListener('click', loadAllData);
+        loginBtn.addEventListener('click', handleLogin);
+        signupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            handleSignup();
+        });
+        resetLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            handlePasswordReset();
+        });
+        logoutBtn.addEventListener('click', handleLogout);
+        loadDataBtn.addEventListener('click', loadUserData);
+        downloadReportBtn.addEventListener('click', downloadReport);
         collectionSelect.addEventListener('change', filterData);
         sortSelect.addEventListener('change', sortData);
         healthFilter.addEventListener('change', filterData);
@@ -421,26 +562,143 @@
             }
         });
 
-        // Load all data from Firestore
-        async function loadAllData() {
+        // Check auth state on load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                currentUser = user;
+                userEmail.textContent = user.email;
+                authContainer.style.display = 'none';
+                mainContainer.style.display = 'block';
+            } else {
+                // User is signed out
+                currentUser = null;
+                authContainer.style.display = 'block';
+                mainContainer.style.display = 'none';
+                clearData();
+            }
+        });
+
+        // Handle login
+        async function handleLogin() {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            
+            if (!email || !password) {
+                authError.textContent = 'Please enter both email and password';
+                return;
+            }
+            
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+                authError.textContent = '';
+                emailInput.value = '';
+                passwordInput.value = '';
+            } catch (error) {
+                authError.textContent = getAuthErrorMessage(error.code);
+            }
+        }
+
+        // Handle signup
+        async function handleSignup() {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            
+            if (!email || !password) {
+                authError.textContent = 'Please enter both email and password';
+                return;
+            }
+            
+            if (password.length < 6) {
+                authError.textContent = 'Password must be at least 6 characters';
+                return;
+            }
+            
+            try {
+                await auth.createUserWithEmailAndPassword(email, password);
+                authError.textContent = '';
+                emailInput.value = '';
+                passwordInput.value = '';
+            } catch (error) {
+                authError.textContent = getAuthErrorMessage(error.code);
+            }
+        }
+
+        // Handle password reset
+        async function handlePasswordReset() {
+            const email = emailInput.value;
+            
+            if (!email) {
+                authError.textContent = 'Please enter your email to reset password';
+                return;
+            }
+            
+            try {
+                await auth.sendPasswordResetEmail(email);
+                authError.textContent = 'Password reset email sent. Check your inbox.';
+            } catch (error) {
+                authError.textContent = getAuthErrorMessage(error.code);
+            }
+        }
+
+        // Handle logout
+        async function handleLogout() {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        }
+
+        // Get user-friendly auth error messages
+        function getAuthErrorMessage(errorCode) {
+            switch(errorCode) {
+                case 'auth/user-not-found':
+                    return 'No account found with this email';
+                case 'auth/wrong-password':
+                    return 'Incorrect password';
+                case 'auth/email-already-in-use':
+                    return 'Email already in use';
+                case 'auth/invalid-email':
+                    return 'Invalid email address';
+                case 'auth/weak-password':
+                    return 'Password is too weak';
+                case 'auth/too-many-requests':
+                    return 'Too many attempts. Try again later';
+                default:
+                    return 'Authentication failed. Please try again';
+            }
+        }
+
+        // Load user-specific data from Firestore
+        async function loadUserData() {
+            if (!currentUser) {
+                alert('Please login to load your data');
+                return;
+            }
+            
             try {
                 // Show loading states
-                farmsLoading.textContent = "Loading farms data...";
-                assessmentsLoading.textContent = "Loading assessments data...";
+                farmsLoading.textContent = "Loading your farms data...";
+                assessmentsLoading.textContent = "Loading your assessments data...";
                 
                 // Reset data
                 farmsData = [];
                 assessmentsData = [];
                 
-                // Load farms data
-                const farmsSnapshot = await db.collection("farms").get();
+                // Load farms data for current user only
+                const farmsSnapshot = await db.collection("farms")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
                 farmsData = farmsSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
                 
-                // Load assessments data
-                const assessmentsSnapshot = await db.collection("assessments").get();
+                // Load assessments data for current user only
+                const assessmentsSnapshot = await db.collection("assessments")
+                    .where("userId", "==", currentUser.uid)
+                    .get();
                 assessmentsData = assessmentsSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
@@ -452,10 +710,26 @@
                 updateLastUpdated();
                 
             } catch (error) {
-                console.error("Error loading data:", error);
+                console.error("Error loading user data:", error);
                 farmsLoading.textContent = "Error loading farms data. Check console.";
                 assessmentsLoading.textContent = "Error loading assessments data. Check console.";
             }
+        }
+
+        // Clear data when user logs out
+        function clearData() {
+            farmsData = [];
+            assessmentsData = [];
+            farmsBody.innerHTML = '';
+            assessmentsBody.innerHTML = '';
+            farmsTable.style.display = 'none';
+            assessmentsTable.style.display = 'none';
+            farmsLoading.style.display = 'block';
+            assessmentsLoading.style.display = 'block';
+            farmsLoading.textContent = "Click 'Load My Data' to fetch your farm information";
+            assessmentsLoading.textContent = "Click 'Load My Data' to fetch your assessment information";
+            updateStats();
+            lastUpdatedEl.textContent = "Not loaded yet";
         }
 
         // Update statistics
@@ -484,8 +758,11 @@
             
             // Show/hide tables based on selection
             if (collectionType === 'both' || collectionType === 'farms') {
-                farmsTable.style.display = 'table';
-                farmsLoading.style.display = 'none';
+                farmsTable.style.display = farmsData.length ? 'table' : 'none';
+                farmsLoading.style.display = farmsData.length ? 'none' : 'block';
+                if (farmsData.length === 0) {
+                    farmsLoading.textContent = "No farms found for your account";
+                }
                 renderFarmsTable();
             } else {
                 farmsTable.style.display = 'none';
@@ -494,8 +771,13 @@
             }
             
             if (collectionType === 'both' || collectionType === 'assessments') {
-                assessmentsTable.style.display = 'table';
-                assessmentsLoading.style.display = 'none';
+                assessmentsTable.style.display = filteredAssessments.length ? 'table' : 'none';
+                assessmentsLoading.style.display = filteredAssessments.length ? 'none' : 'block';
+                if (filteredAssessments.length === 0) {
+                    assessmentsLoading.textContent = healthStatus === 'all' 
+                        ? "No assessments found for your account" 
+                        : `No ${healthStatus.toLowerCase()} assessments found`;
+                }
                 renderAssessmentsTable(filteredAssessments);
             } else {
                 assessmentsTable.style.display = 'none';
@@ -595,7 +877,7 @@
                 
                 row.innerHTML = `
                     <td class="timestamp">${formattedDate}</td>
-                    <td>${assessment.userName || assessment.userEmail || 'Unknown User'}</td>
+                    <td>${assessment.userName || assessment.userEmail || 'You'}</td>
                     <td><span class="${healthStatusClass}">${assessment.healthStatus || 'Unknown'}</span></td>
                     <td>${assessment.disease || 'N/A'}</td>
                     <td>${assessment.detectionCount || 0}</td>
@@ -680,7 +962,90 @@
             imageModal.style.display = 'flex';
         }
 
-        // Initialize page with a sample message
+        // Download report as CSV
+        function downloadReport() {
+            if (!currentUser) {
+                alert('Please login to download your report');
+                return;
+            }
+            
+            if (farmsData.length === 0 && assessmentsData.length === 0) {
+                alert('No data to download. Please load your data first.');
+                return;
+            }
+            
+            const collectionType = collectionSelect.value;
+            const now = new Date();
+            const timestamp = now.toISOString().split('T')[0];
+            const filename = `farm_report_${currentUser.email}_${timestamp}.csv`;
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Add header
+            csvContent += `Farm Management Report for ${currentUser.email}\n`;
+            csvContent += `Generated on: ${now.toLocaleString()}\n\n`;
+            
+            // Add farms data if selected
+            if (collectionType === 'both' || collectionType === 'farms') {
+                csvContent += "MY FARMS\n";
+                csvContent += "Name,Location,Area,Crops,Soil Type,Status,Created\n";
+                
+                farmsData.forEach(farm => {
+                    const crops = farm.crops ? 
+                        (Array.isArray(farm.crops) ? farm.crops.join('; ') : farm.crops) : 
+                        '';
+                    const createdAt = farm.createdAt ? 
+                        new Date(farm.createdAt.seconds * 1000).toLocaleDateString() : 
+                        'N/A';
+                    
+                    csvContent += `"${farm.name || ''}","${farm.location || ''}","${farm.area || ''}","${crops}","${farm.soilType || ''}","${farm.status || ''}","${createdAt}"\n`;
+                });
+                
+                csvContent += "\n";
+            }
+            
+            // Add assessments data if selected
+            if (collectionType === 'both' || collectionType === 'assessments') {
+                csvContent += "MY ASSESSMENTS\n";
+                csvContent += "Date,Health Status,Disease,Detection Count,Location,Treatment,Confidence\n";
+                
+                assessmentsData.forEach(assessment => {
+                    const date = assessment.date || assessment.timestamp || assessment.createdAt;
+                    let formattedDate = 'N/A';
+                    if (date) {
+                        if (date.seconds) {
+                            formattedDate = new Date(date.seconds * 1000).toLocaleDateString();
+                        } else if (typeof date === 'string') {
+                            formattedDate = new Date(date).toLocaleDateString();
+                        }
+                    }
+                    
+                    const confidence = assessment.confidenceThreshold ? 
+                        `${Math.round(assessment.confidenceThreshold * 100)}%` : 
+                        'N/A';
+                    
+                    csvContent += `"${formattedDate}","${assessment.healthStatus || ''}","${assessment.disease || ''}",${assessment.detectionCount || 0},"${assessment.location || ''}","${assessment.treatment || ''}","${confidence}"\n`;
+                });
+            }
+            
+            // Add summary statistics
+            csvContent += "\nSUMMARY\n";
+            csvContent += `Total Farms,${farmsData.length}\n`;
+            csvContent += `Total Assessments,${assessmentsData.length}\n`;
+            csvContent += `Healthy Assessments,${assessmentsData.filter(a => a.healthStatus === "Healthy").length}\n`;
+            csvContent += `Unhealthy Assessments,${assessmentsData.filter(a => a.healthStatus === "Unhealthy").length}\n`;
+            
+            // Create download link
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             lastUpdatedEl.textContent = "Not loaded yet";
         });
