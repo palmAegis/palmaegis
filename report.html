@@ -18,11 +18,53 @@
         body {
             background-color: #f5f7fa;
             color: #333;
-            padding: 20px;
             line-height: 1.6;
         }
 
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        #sidebarPlaceholder {
+            width: 250px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-placeholder {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .sidebar-placeholder h3 {
+            margin-bottom: 20px;
+            color: #ecf0f1;
+        }
+
+        .sidebar-placeholder ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar-placeholder li {
+            padding: 10px;
+            margin: 5px 0;
+            background-color: #34495e;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .sidebar-placeholder li:hover {
+            background-color: #3498db;
+        }
+
         .container {
+            flex: 1;
+            padding: 20px;
             max-width: 1400px;
             margin: 0 auto;
         }
@@ -62,63 +104,6 @@
         .user-email {
             font-weight: 600;
             color: #3498db;
-        }
-
-        .auth-container {
-            max-width: 400px;
-            margin: 100px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .auth-container h2 {
-            margin-bottom: 20px;
-            color: #2c3e50;
-        }
-
-        .auth-input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-
-        .auth-button {
-            width: 100%;
-            padding: 12px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background-color 0.3s;
-        }
-
-        .auth-button:hover {
-            background-color: #2980b9;
-        }
-
-        .auth-error {
-            color: #e74c3c;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-
-        .auth-links {
-            margin-top: 20px;
-            font-size: 14px;
-        }
-
-        .auth-links a {
-            color: #3498db;
-            text-decoration: none;
         }
 
         .controls {
@@ -330,6 +315,15 @@
         }
 
         @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+            }
+            
+            #sidebarPlaceholder {
+                width: 100%;
+                padding: 10px;
+            }
+            
             .controls {
                 flex-direction: column;
                 align-items: stretch;
@@ -357,123 +351,117 @@
     </style>
 </head>
 <body>
-    <div id="authContainer" class="auth-container" style="display: none;">
-        <h2>Login to View Your Report</h2>
-        <input type="email" id="email" class="auth-input" placeholder="Email" required>
-        <input type="password" id="password" class="auth-input" placeholder="Password" required>
-        <button id="loginBtn" class="auth-button">Login</button>
-        <div id="authError" class="auth-error"></div>
-        <div class="auth-links">
-            <p>Don't have an account? <a href="#" id="signupLink">Sign up</a></p>
-            <p>Or <a href="#" id="resetLink">Reset Password</a></p>
-        </div>
-    </div>
+    <div class="dashboard-container">
+        <!-- Sidebar placeholder -->
+        <div id="sidebarPlaceholder"></div>
+        <script src="js/sidebar-loader.js"></script>
 
-    <div id="mainContainer" class="container" style="display: none;">
-        <header>
-            <h1>My Farm Management Report</h1>
-            <p class="subtitle">Your personalized data from Firestore collections</p>
-            <div class="user-info">
-                <span class="user-email" id="userEmail">Loading...</span>
-                <button id="logoutBtn" class="logout-btn" style="padding: 5px 10px; font-size: 14px;">Logout</button>
-            </div>
-        </header>
+        <div class="container">
+            <header>
+                <h1>My Farm Management Report</h1>
+                <p class="subtitle">Your personalized data from Firestore collections</p>
+                <div class="user-info">
+                    <span class="user-email" id="userEmail">Loading...</span>
+                    <button id="logoutBtn" class="logout-btn" style="padding: 5px 10px; font-size: 14px;">Logout</button>
+                </div>
+            </header>
 
-        <div class="controls">
-            <button id="loadData">Load My Data</button>
-            <button id="downloadReport" class="download-btn">Download Report</button>
-            <select id="collectionSelect">
-                <option value="both">Both Collections</option>
-                <option value="farms">Farms Only</option>
-                <option value="assessments">Assessments Only</option>
-            </select>
-            <select id="sortSelect">
-                <option value="createdAt">Sort by Created Date</option>
-                <option value="name">Sort by Name</option>
-                <option value="date">Sort by Assessment Date</option>
-            </select>
-            <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
-                <span>Filter Health Status:</span>
-                <select id="healthFilter">
-                    <option value="all">All</option>
-                    <option value="Healthy">Healthy</option>
-                    <option value="Unhealthy">Unhealthy</option>
+            <div class="controls">
+                <button id="loadData">Load My Data</button>
+                <button id="downloadReport" class="download-btn">Download Report</button>
+                <select id="collectionSelect">
+                    <option value="both">Both Collections</option>
+                    <option value="farms">Farms Only</option>
+                    <option value="assessments">Assessments Only</option>
                 </select>
+                <select id="sortSelect">
+                    <option value="createdAt">Sort by Created Date</option>
+                    <option value="name">Sort by Name</option>
+                    <option value="date">Sort by Assessment Date</option>
+                </select>
+                <div style="margin-left: auto; display: flex; align-items: center; gap: 10px;">
+                    <span>Filter Health Status:</span>
+                    <select id="healthFilter">
+                        <option value="all">All</option>
+                        <option value="Healthy">Healthy</option>
+                        <option value="Unhealthy">Unhealthy</option>
+                    </select>
+                </div>
             </div>
-        </div>
 
-        <div class="stats">
-            <div class="stat-card">
-                <h3>My Farms</h3>
-                <div id="farmCount" class="stat-value">0</div>
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>My Farms</h3>
+                    <div id="farmCount" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>My Assessments</h3>
+                    <div id="assessmentCount" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Healthy Assessments</h3>
+                    <div id="healthyCount" class="stat-value">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Unhealthy Assessments</h3>
+                    <div id="unhealthyCount" class="stat-value">0</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>My Assessments</h3>
-                <div id="assessmentCount" class="stat-value">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Healthy Assessments</h3>
-                <div id="healthyCount" class="stat-value">0</div>
-            </div>
-            <div class="stat-card">
-                <h3>Unhealthy Assessments</h3>
-                <div id="unhealthyCount" class="stat-value">0</div>
-            </div>
-        </div>
 
-        <div class="data-section">
-            <h2 class="section-title">My Farms Collection</h2>
-            <div class="table-container">
-                <div id="farmsLoading" class="loading">Click "Load My Data" to fetch your farm information</div>
-                <table id="farmsTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Location</th>
-                            <th>Area</th>
-                            <th>Crops</th>
-                            <th>Soil Type</th>
-                            <th>Status</th>
-                            <th>Created</th>
-                            <th>Images</th>
-                        </tr>
-                    </thead>
-                    <tbody id="farmsBody">
-                        <!-- Farm data will be loaded here -->
-                    </tbody>
-                </table>
+            <div class="data-section">
+                <h2 class="section-title">My Farms Collection</h2>
+                <div class="table-container">
+                    <div id="farmsLoading" class="loading">Click "Load My Data" to fetch your farm information</div>
+                    <table id="farmsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Location</th>
+                                <th>Area</th>
+                                <th>Crops</th>
+                                <th>Soil Type</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Images</th>
+                            </tr>
+                        </thead>
+                        <tbody id="farmsBody">
+                            <!-- Farm data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        <div class="data-section">
-            <h2 class="section-title">My Assessments Collection</h2>
-            <div class="table-container">
-                <div id="assessmentsLoading" class="loading">Click "Load My Data" to fetch your assessment information</div>
-                <table id="assessmentsTable" style="display: none;">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>User</th>
-                            <th>Health Status</th>
-                            <th>Disease</th>
-                            <th>Detection Count</th>
-                            <th>Location</th>
-                            <th>Treatment</th>
-                            <th>Confidence</th>
-                            <th>Image</th>
-                        </tr>
-                    </thead>
-                    <tbody id="assessmentsBody">
-                        <!-- Assessment data will be loaded here -->
-                    </tbody>
-                </table>
+            <div class="data-section">
+                <h2 class="section-title">My Assessments Collection</h2>
+                <div class="table-container">
+                    <div id="assessmentsLoading" class="loading">Click "Load My Data" to fetch your assessment information</div>
+                    <table id="assessmentsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>User</th>
+                                <th>Health Status</th>
+                                <th>Disease</th>
+                                <th>Detection Count</th>
+                                <th>Location</th>
+                                <th>Treatment</th>
+                                <th>Confidence</th>
+                                <th>Image</th>
+                            </tr>
+                        </thead>
+                        <tbody id="assessmentsBody">
+                            <!-- Assessment data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
 
-        <footer>
-            <p>Report generated from Firebase Firestore | Only your data is displayed</p>
-            <p class="timestamp">Last updated: <span id="lastUpdated">Not loaded yet</span></p>
-        </footer>
+            <footer>
+                <p>Report generated from Firebase Firestore | Only your data is displayed</p>
+                <p class="timestamp">Last updated: <span id="lastUpdated">Not loaded yet</span></p>
+            </footer>
+        </div>
     </div>
 
     <!-- Modal for image preview -->
@@ -499,16 +487,8 @@
         const auth = firebase.auth();
 
         // DOM elements
-        const authContainer = document.getElementById('authContainer');
-        const mainContainer = document.getElementById('mainContainer');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const loginBtn = document.getElementById('loginBtn');
-        const authError = document.getElementById('authError');
-        const signupLink = document.getElementById('signupLink');
-        const resetLink = document.getElementById('resetLink');
-        const logoutBtn = document.getElementById('logoutBtn');
         const userEmail = document.getElementById('userEmail');
+        const logoutBtn = document.getElementById('logoutBtn');
         
         const loadDataBtn = document.getElementById('loadData');
         const downloadReportBtn = document.getElementById('downloadReport');
@@ -536,15 +516,6 @@
         let currentUser = null;
 
         // Event Listeners
-        loginBtn.addEventListener('click', handleLogin);
-        signupLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            handleSignup();
-        });
-        resetLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            handlePasswordReset();
-        });
         logoutBtn.addEventListener('click', handleLogout);
         loadDataBtn.addEventListener('click', loadUserData);
         downloadReportBtn.addEventListener('click', downloadReport);
@@ -568,112 +539,34 @@
                 // User is signed in
                 currentUser = user;
                 userEmail.textContent = user.email;
-                authContainer.style.display = 'none';
-                mainContainer.style.display = 'block';
+                // Auto-load user data when they're already logged in
+                setTimeout(() => {
+                    loadUserData();
+                }, 500);
             } else {
-                // User is signed out
-                currentUser = null;
-                authContainer.style.display = 'block';
-                mainContainer.style.display = 'none';
-                clearData();
+                // User is signed out - redirect to login page or show message
+                console.log('User not logged in. Please login first.');
+                // For this version, we'll assume user is already logged in
+                // In a real app, you might redirect to login page
             }
         });
-
-        // Handle login
-        async function handleLogin() {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            
-            if (!email || !password) {
-                authError.textContent = 'Please enter both email and password';
-                return;
-            }
-            
-            try {
-                await auth.signInWithEmailAndPassword(email, password);
-                authError.textContent = '';
-                emailInput.value = '';
-                passwordInput.value = '';
-            } catch (error) {
-                authError.textContent = getAuthErrorMessage(error.code);
-            }
-        }
-
-        // Handle signup
-        async function handleSignup() {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-            
-            if (!email || !password) {
-                authError.textContent = 'Please enter both email and password';
-                return;
-            }
-            
-            if (password.length < 6) {
-                authError.textContent = 'Password must be at least 6 characters';
-                return;
-            }
-            
-            try {
-                await auth.createUserWithEmailAndPassword(email, password);
-                authError.textContent = '';
-                emailInput.value = '';
-                passwordInput.value = '';
-            } catch (error) {
-                authError.textContent = getAuthErrorMessage(error.code);
-            }
-        }
-
-        // Handle password reset
-        async function handlePasswordReset() {
-            const email = emailInput.value;
-            
-            if (!email) {
-                authError.textContent = 'Please enter your email to reset password';
-                return;
-            }
-            
-            try {
-                await auth.sendPasswordResetEmail(email);
-                authError.textContent = 'Password reset email sent. Check your inbox.';
-            } catch (error) {
-                authError.textContent = getAuthErrorMessage(error.code);
-            }
-        }
 
         // Handle logout
         async function handleLogout() {
             try {
                 await auth.signOut();
+                // After logout, you might want to redirect to a login page
+                alert('You have been logged out. This page will refresh.');
+                location.reload();
             } catch (error) {
                 console.error('Logout error:', error);
-            }
-        }
-
-        // Get user-friendly auth error messages
-        function getAuthErrorMessage(errorCode) {
-            switch(errorCode) {
-                case 'auth/user-not-found':
-                    return 'No account found with this email';
-                case 'auth/wrong-password':
-                    return 'Incorrect password';
-                case 'auth/email-already-in-use':
-                    return 'Email already in use';
-                case 'auth/invalid-email':
-                    return 'Invalid email address';
-                case 'auth/weak-password':
-                    return 'Password is too weak';
-                case 'auth/too-many-requests':
-                    return 'Too many attempts. Try again later';
-                default:
-                    return 'Authentication failed. Please try again';
             }
         }
 
         // Load user-specific data from Firestore
         async function loadUserData() {
             if (!currentUser) {
-                alert('Please login to load your data');
+                console.log('No user found. Please ensure you are logged in.');
                 return;
             }
             
@@ -1045,9 +938,33 @@
             document.body.removeChild(link);
         }
 
+        // Sidebar functions
+        function showAllData() {
+            collectionSelect.value = 'both';
+            healthFilter.value = 'all';
+            renderData();
+        }
+
+        function filterByStatus(status) {
+            collectionSelect.value = 'assessments';
+            healthFilter.value = status;
+            renderData();
+        }
+
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             lastUpdatedEl.textContent = "Not loaded yet";
+            // Auto-check auth state
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    currentUser = user;
+                    userEmail.textContent = user.email;
+                    // Auto-load data after a short delay
+                    setTimeout(() => {
+                        loadUserData();
+                    }, 1000);
+                }
+            });
         });
     </script>
 </body>
