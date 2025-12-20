@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palmaegis - Farm Assessment Reports</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Bootstrap for styling -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+        }
+        
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-header {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .farm-badge {
+            background-color: var(--success-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .assessment-status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        
+        .status-completed {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-in-progress {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .data-table {
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .table th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        
+        .table td {
+            vertical-align: middle;
+        }
+        
+        .filter-section {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading-spinner.active {
+            display: block;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logout-btn {
+            cursor: pointer;
+        }
+        
+        .farm-logo {
+            height: 40px;
+            margin-right: 10px;
+        }
+        
+        .risk-high { color: var(--danger-color); font-weight: 700; }
+        .risk-medium { color: var(--warning-color); font-weight: 700; }
+        .risk-low { color: var(--success-color); font-weight: 700; }
+    </style>
+</head>
+<body>
+    <!-- Sidebar placeholder -->
+        <div id="sidebarPlaceholder"></div>
+    <!-- Login Screen (Initially Visible) -->
+    <div id="loginScreen" class="login-container">
+        <h2 class="text-center mb-4">Palmaegis Reports</h2>
+        <div class="text-center mb-4">
+            <i class="fas fa-leaf fa-3x" style="color: #27ae60;"></i>
+        </div>
+        <p class="text-center mb-4">Please login to access farm assessment reports</p>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" placeholder="Enter your email">
+        </div>
+        <div class="mb-4">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" placeholder="Enter your password">
+        </div>
+        <button id="loginBtn" class="btn btn-primary w-100">Login</button>
+        <div id="loginError" class="alert alert-danger mt-3 d-none"></div>
+        <div class="text-center mt-3">
+            <small class="text-muted">Demo: Use any email/password (Firebase emulator mode)</small>
+        </div>
+    </div>
+    
+    <!-- Main Application (Initially Hidden) -->
+    <div id="mainApp" class="d-none">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--primary-color);">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">
+                    <i class="fas fa-leaf me-2"></i>
+                    Palmaegis Farm Reports
+                </a>
+                <div class="d-flex align-items-center">
+                    <span class="text-white me-3" id="userEmail"></span>
+                    <button id="logoutBtn" class="btn btn-outline-light btn-sm logout-btn">
+                        <i class="fas fa-sign-out-alt me-1"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </nav>
+        
+        <div class="container-fluid mt-4">
+            <!-- Dashboard Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h1>Farm Assessment Dashboard</h1>
+                    <p class="text-muted">Comprehensive overview of farm assessments and analytics</p>
+                </div>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="row" id="statsRow">
+                <div class="col-md-3">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalFarms">0</div>
+                        <div class="stat-label">Total Farms</div>
+                        <i class="fas fa-tractor fa-2x float-end mt-2"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="stat-number" id="totalAssessments">0</div>
+                        <div class="stat-label">Total Assessments</div>
+                        <i class="fas fa-clipboard-check fa-2x float-end mt-2"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <div class="stat-number" id="completedAssessments">0</div>
+                        <div class="stat-label">Completed</div>
+                        <i class="fas fa-check-circle fa-2x float-end mt-2"></i>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                        <div class="stat-number" id="avgScore">0.0</div>
+                        <div class="stat-label">Average Score</div>
+                        <i class="fas fa-chart-line fa-2x float-end mt-2"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="filter-section">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label for="farmFilter" class="form-label">Filter by Farm</label>
+                        <select class="form-select" id="farmFilter">
+                            <option value="all">All Farms</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="statusFilter" class="form-label">Filter by Status</label>
+                        <select class="form-select" id="statusFilter">
+                            <option value="all">All Status</option>
+                            <option value="completed">Completed</option>
+                            <option value="pending">Pending</option>
+                            <option value="in-progress">In Progress</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="dateFilter" class="form-label">Sort by Date</label>
+                        <select class="form-select" id="dateFilter">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button id="refreshBtn" class="btn btn-primary w-100">
+                            <i class="fas fa-sync-alt me-2"></i> Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-pie me-2"></i> Assessments by Status
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="statusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-chart-bar me-2"></i> Farm Performance
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="performanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Data Tables -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-tractor me-2"></i> Farms List
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="farmsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Farm Name</th>
+                                            <th>Location</th>
+                                            <th>Size (Ha)</th>
+                                            <th>Assessments</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="farmsTableBody">
+                                        <!-- Farm data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="fas fa-clipboard-list me-2"></i> Recent Assessments
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="assessmentsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Farm</th>
+                                            <th>Date</th>
+                                            <th>Score</th>
+                                            <th>Status</th>
+                                            <th>Risk</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="assessmentsTableBody">
+                                        <!-- Assessment data will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner">
+                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Loading farm and assessment data...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+            authDomain: "palmaegis-setup.firebaseapp.com",
+            projectId: "palmaegis-setup",
+            storageBucket: "palmaegis-setup.firebasestorage.app",
+            messagingSenderId: "445887502374",
+            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        // Global variables
+        let farms = [];
+        let assessments = [];
+        let statusChart, performanceChart;
+        
+        // DOM Elements
+        const loginScreen = document.getElementById('loginScreen');
+        const mainApp = document.getElementById('mainApp');
+        const loginBtn = document.getElementById('loginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const loginError = document.getElementById('loginError');
+        const userEmail = document.getElementById('userEmail');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const farmFilter = document.getElementById('farmFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const dateFilter = document.getElementById('dateFilter');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        
+        // Stats elements
+        const totalFarmsEl = document.getElementById('totalFarms');
+        const totalAssessmentsEl = document.getElementById('totalAssessments');
+        const completedAssessmentsEl = document.getElementById('completedAssessments');
+        const avgScoreEl = document.getElementById('avgScore');
+        
+        // Table bodies
+        const farmsTableBody = document.getElementById('farmsTableBody');
+        const assessmentsTableBody = document.getElementById('assessmentsTableBody');
+        
+        // Login function
+        loginBtn.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            
+            if (!email || !password) {
+                showLoginError('Please enter both email and password');
+                return;
+            }
+            
+            try {
+                // For demo purposes, we'll use Firebase anonymous auth
+                // In production, you would use signInWithEmailAndPassword
+                await auth.signInAnonymously();
+            } catch (error) {
+                console.error('Login error:', error);
+                showLoginError('Authentication failed. Please check your credentials.');
+            }
+        });
+        
+        // Logout function
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await auth.signOut();
+            } catch (error) {
+                console.error('Logout error:', error);
+            }
+        });
+        
+        // Refresh data
+        refreshBtn.addEventListener('click', loadData);
+        
+        // Filter events
+        farmFilter.addEventListener('change', filterData);
+        statusFilter.addEventListener('change', filterData);
+        dateFilter.addEventListener('change', filterData);
+        
+        // Auth state listener
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                loginScreen.classList.add('d-none');
+                mainApp.classList.remove('d-none');
+                userEmail.textContent = user.email || 'Demo User';
+                loadData();
+            } else {
+                // User is signed out
+                loginScreen.classList.remove('d-none');
+                mainApp.classList.add('d-none');
+            }
+        });
+        
+        // Show login error
+        function showLoginError(message) {
+            loginError.textContent = message;
+            loginError.classList.remove('d-none');
+            setTimeout(() => {
+                loginError.classList.add('d-none');
+            }, 5000);
+        }
+        
+        // Load data from Firebase
+        async function loadData() {
+            showLoading(true);
+            
+            try {
+                // Load farms
+                const farmsSnapshot = await db.collection('farms').get();
+                farms = [];
+                farmsSnapshot.forEach(doc => {
+                    farms.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                // Load assessments
+                const assessmentsSnapshot = await db.collection('assessments').get();
+                assessments = [];
+                assessmentsSnapshot.forEach(doc => {
+                    assessments.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+                
+                // Process and display data
+                processData();
+                updateStats();
+                updateFarmFilter();
+                renderFarmsTable();
+                renderAssessmentsTable();
+                updateCharts();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                alert('Error loading data. Please check console for details.');
+            } finally {
+                showLoading(false);
+            }
+        }
+        
+        // Process data and link farms with assessments
+        function processData() {
+            // Add assessment count to each farm
+            farms.forEach(farm => {
+                farm.assessmentCount = assessments.filter(a => a.farmId === farm.id || a.farmName === farm.name).length;
+                farm.completedAssessments = assessments.filter(a => 
+                    (a.farmId === farm.id || a.farmName === farm.name) && 
+                    a.status === 'completed'
+                ).length;
+                
+                // Calculate average score for farm
+                const farmAssessments = assessments.filter(a => 
+                    (a.farmId === farm.id || a.farmName === farm.name) && 
+                    a.status === 'completed'
+                );
+                
+                if (farmAssessments.length > 0) {
+                    const totalScore = farmAssessments.reduce((sum, a) => sum + (a.score || 0), 0);
+                    farm.averageScore = (totalScore / farmAssessments.length).toFixed(1);
+                } else {
+                    farm.averageScore = 'N/A';
+                }
+            });
+            
+            // Add farm name to assessments for display
+            assessments.forEach(assessment => {
+                const farm = farms.find(f => f.id === assessment.farmId || f.name === assessment.farmName);
+                assessment.farmDisplayName = farm ? farm.name : 'Unknown Farm';
+                assessment.farmLocation = farm ? farm.location : 'Unknown';
+                
+                // Calculate risk level based on score
+                if (assessment.score !== undefined) {
+                    if (assessment.score < 50) assessment.riskLevel = 'high';
+                    else if (assessment.score < 75) assessment.riskLevel = 'medium';
+                    else assessment.riskLevel = 'low';
+                }
+            });
+        }
+        
+        // Update statistics
+        function updateStats() {
+            totalFarmsEl.textContent = farms.length;
+            totalAssessmentsEl.textContent = assessments.length;
+            
+            const completedCount = assessments.filter(a => a.status === 'completed').length;
+            completedAssessmentsEl.textContent = completedCount;
+            
+            const completedAssessments = assessments.filter(a => a.status === 'completed' && a.score);
+            if (completedAssessments.length > 0) {
+                const totalScore = completedAssessments.reduce((sum, a) => sum + a.score, 0);
+                avgScoreEl.textContent = (totalScore / completedAssessments.length).toFixed(1);
+            } else {
+                avgScoreEl.textContent = '0.0';
+            }
+        }
+        
+        // Update farm filter dropdown
+        function updateFarmFilter() {
+            // Clear existing options except "All Farms"
+            while (farmFilter.options.length > 1) {
+                farmFilter.remove(1);
+            }
+            
+            // Add farm options
+            farms.forEach(farm => {
+                const option = document.createElement('option');
+                option.value = farm.id;
+                option.textContent = farm.name;
+                farmFilter.appendChild(option);
+            });
+        }
+        
+        // Render farms table
+        function renderFarmsTable(filteredFarms = farms) {
+            farmsTableBody.innerHTML = '';
+            
+            if (filteredFarms.length === 0) {
+                farmsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            No farms found matching the filter criteria
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            filteredFarms.forEach(farm => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <strong>${farm.name || 'Unnamed Farm'}</strong>
+                        ${farm.owner ? `<br><small class="text-muted">Owner: ${farm.owner}</small>` : ''}
+                    </td>
+                    <td>${farm.location || 'N/A'}</td>
+                    <td>${farm.size ? farm.size + ' Ha' : 'N/A'}</td>
+                    <td>
+                        <span class="badge bg-primary">${farm.assessmentCount || 0}</span>
+                        ${farm.completedAssessments > 0 ? 
+                          `<span class="badge bg-success ms-1">${farm.completedAssessments} completed</span>` : ''}
+                    </td>
+                    <td>
+                        ${farm.averageScore === 'N/A' ? 
+                          '<span class="badge bg-secondary">No assessments</span>' : 
+                          `<span class="badge ${getScoreBadgeClass(farm.averageScore)}">Score: ${farm.averageScore}</span>`}
+                    </td>
+                `;
+                farmsTableBody.appendChild(row);
+            });
+        }
+        
+        // Render assessments table
+        function renderAssessmentsTable(filteredAssessments = assessments) {
+            assessmentsTableBody.innerHTML = '';
+            
+            // Sort assessments based on date filter
+            let sortedAssessments = [...filteredAssessments];
+            if (dateFilter.value === 'newest') {
+                sortedAssessments.sort((a, b) => {
+                    const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+                    const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+                    return dateB - dateA;
+                });
+            } else {
+                sortedAssessments.sort((a, b) => {
+                    const dateA = a.date?.toDate ? a.date.toDate() : new Date(a.date || 0);
+                    const dateB = b.date?.toDate ? b.date.toDate() : new Date(b.date || 0);
+                    return dateA - dateB;
+                });
+            }
+            
+            if (sortedAssessments.length === 0) {
+                assessmentsTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            No assessments found matching the filter criteria
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Show only the first 10 assessments
+            const displayAssessments = sortedAssessments.slice(0, 10);
+            
+            displayAssessments.forEach(assessment => {
+                const date = assessment.date?.toDate ? 
+                    assessment.date.toDate().toLocaleDateString() : 
+                    (assessment.date || 'N/A');
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <strong>${assessment.farmDisplayName}</strong>
+                        ${assessment.assessor ? `<br><small class="text-muted">Assessor: ${assessment.assessor}</small>` : ''}
+                    </td>
+                    <td>${date}</td>
+                    <td>
+                        ${assessment.score !== undefined ? 
+                          `<span class="${getScoreClass(assessment.score)}">${assessment.score}%</span>` : 
+                          '<span class="text-muted">N/A</span>'}
+                    </td>
+                    <td>
+                        <span class="assessment-status status-${assessment.status || 'pending'}">
+                            ${(assessment.status || 'pending').toUpperCase()}
+                        </span>
+                    </td>
+                    <td>
+                        ${assessment.riskLevel ? 
+                          `<span class="risk-${assessment.riskLevel}">${assessment.riskLevel.toUpperCase()}</span>` : 
+                          '<span class="text-muted">N/A</span>'}
+                    </td>
+                `;
+                assessmentsTableBody.appendChild(row);
+            });
+        }
+        
+        // Filter data based on selected filters
+        function filterData() {
+            let filteredAssessments = [...assessments];
+            let filteredFarms = [...farms];
+            
+            // Filter by farm
+            if (farmFilter.value !== 'all') {
+                const farmId = farmFilter.value;
+                filteredAssessments = filteredAssessments.filter(a => 
+                    a.farmId === farmId || a.farmName === farms.find(f => f.id === farmId)?.name
+                );
+                filteredFarms = filteredFarms.filter(f => f.id === farmId);
+            }
+            
+            // Filter by status
+            if (statusFilter.value !== 'all') {
+                filteredAssessments = filteredAssessments.filter(a => 
+                    a.status === statusFilter.value
+                );
+            }
+            
+            // Re-process filtered data
+            const tempFarms = filteredFarms.map(farm => {
+                const farmAssessments = filteredAssessments.filter(a => 
+                    a.farmId === farm.id || a.farmName === farm.name
+                );
+                return {
+                    ...farm,
+                    assessmentCount: farmAssessments.length,
+                    completedAssessments: farmAssessments.filter(a => a.status === 'completed').length
+                };
+            });
+            
+            renderFarmsTable(tempFarms);
+            renderAssessmentsTable(filteredAssessments);
+        }
+        
+        // Update charts
+        function updateCharts() {
+            // Destroy existing charts if they exist
+            if (statusChart) statusChart.destroy();
+            if (performanceChart) performanceChart.destroy();
+            
+            // Prepare data for status chart
+            const statusCounts = {
+                completed: assessments.filter(a => a.status === 'completed').length,
+                pending: assessments.filter(a => a.status === 'pending').length,
+                'in-progress': assessments.filter(a => a.status === 'in-progress').length
+            };
+            
+            // Status chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            statusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Completed', 'Pending', 'In Progress'],
+                    datasets: [{
+                        data: [statusCounts.completed, statusCounts.pending, statusCounts['in-progress']],
+                        backgroundColor: ['#27ae60', '#f39c12', '#3498db'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Prepare data for performance chart (top 5 farms by average score)
+            const farmsWithScores = farms
+                .filter(farm => farm.averageScore !== 'N/A' && farm.completedAssessments > 0)
+                .sort((a, b) => b.averageScore - a.averageScore)
+                .slice(0, 5);
+            
+            // Performance chart
+            const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+            performanceChart = new Chart(performanceCtx, {
+                type: 'bar',
+                data: {
+                    labels: farmsWithScores.map(farm => farm.name.substring(0, 15) + (farm.name.length > 15 ? '...' : '')),
+                    datasets: [{
+                        label: 'Average Score (%)',
+                        data: farmsWithScores.map(farm => parseFloat(farm.averageScore)),
+                        backgroundColor: '#3498db',
+                        borderColor: '#2980b9',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Score (%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Helper functions
+        function getScoreClass(score) {
+            if (score >= 75) return 'risk-low';
+            if (score >= 50) return 'risk-medium';
+            return 'risk-high';
+        }
+        
+        function getScoreBadgeClass(score) {
+            if (score >= 75) return 'bg-success';
+            if (score >= 50) return 'bg-warning';
+            return 'bg-danger';
+        }
+        
+        function showLoading(show) {
+            if (show) {
+                loadingSpinner.classList.add('active');
+            } else {
+                loadingSpinner.classList.remove('active');
+            }
+        }
+        
+        // Auto-login for demo purposes
+        window.addEventListener('load', () => {
+            // Try to auto-login with anonymous auth for demo
+            setTimeout(() => {
+                if (!auth.currentUser) {
+                    auth.signInAnonymously().catch(error => {
+                        console.log('Auto-login failed, manual login required');
+                    });
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
