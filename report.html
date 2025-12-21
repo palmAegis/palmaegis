@@ -403,26 +403,8 @@
     </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <!-- Sidebar placeholder -->
-        <div id="sidebarPlaceholder">
-            <!-- Fallback sidebar content -->
-            <div class="sidebar-placeholder">
-                <div class="user-sidebar-info">
-                    <div class="user-sidebar-email" id="sidebarUserEmail">User Email</div>
-                </div>
-                <h3>Navigation</h3>
-                <ul>
-                    <li onclick="loadUserData()">📊 Load Data</li>
-                    <li onclick="downloadReport()">📥 Download Report</li>
-                    <li onclick="showAllData()">👁️ Show All Data</li>
-                    <li onclick="filterByStatus('Healthy')">✅ Healthy Only</li>
-                    <li onclick="filterByStatus('Unhealthy')">❌ Unhealthy Only</li>
-                    <div class="sidebar-divider"></div>
-                    <li onclick="handleLogout()">🚪 Logout</li>
-                </ul>
-            </div>
-        </div>
+      <!-- Sidebar Container -->
+      <div id="sidebar-container"></div>
 
         <div class="main-content">
             <div class="top-header">
