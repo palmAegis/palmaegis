@@ -548,9 +548,127 @@
             color: #7b1fa2;
         }
 
-        /* Charts Section */
-        .charts-section {
+        /* Reports Grid Styles */
+        .reports-grid {
             display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .report-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .report-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .report-date {
+            color: var(--text-lighter);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        .health-score {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .report-content {
+            flex: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-field {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .report-field:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .field-value {
+            color: var(--text-color);
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .report-actions button {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .view-btn {
+            background: rgba(46, 125, 50, 0.1);
+            color: var(--primary-color);
+        }
+
+        .view-btn:hover {
+            background: rgba(46, 125, 50, 0.2);
+        }
+
+        .download-btn {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Charts Section - MODIFIED TO HIDE INITIALLY */
+        .charts-section {
+            display: none !important; /* Hidden as requested */
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
@@ -600,6 +718,31 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        /* No Data Message */
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .no-data i {
+            font-size: 3rem;
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .no-data h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-data p {
+            color: var(--text-light);
         }
 
         /* Filter Modal */
@@ -714,6 +857,9 @@
             .data-table td {
                 padding: 0.6rem;
             }
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -752,24 +898,9 @@
                 <p>Loading farm reports...</p>
             </div>
 
-            <!-- Charts Section -->
-            <section class="charts-section" id="chartsSection" style="display: none;">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-heartbeat"></i> Health Status Distribution</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="healthChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h3><i class="fas fa-calendar-alt"></i> Assessments Over Time</h3>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="timelineChart"></canvas>
-                    </div>
-                </div>
+            <!-- Charts Section - HIDDEN -->
+            <section class="charts-section" id="chartsSection">
+                <!-- Charts are hidden as requested -->
             </section>
 
             <!-- Reports Grid -->
@@ -956,6 +1087,7 @@
                 const userDoc = await getDoc(doc(db, "users", currentUser.uid));
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
+                    console.log('User data loaded:', userData);
                     updateUserProfile(userData);
                 } else {
                     console.log('No user document found');
@@ -968,67 +1100,95 @@
         }
 
         function updateUserProfile(userData) {
-            console.log('User data received:', userData);
+            console.log('Updating user profile with:', userData);
             
             const userNameElements = document.querySelectorAll('.user-name');
             const userRoleElements = document.querySelectorAll('.user-role');
             const userAvatarElements = document.querySelectorAll('.user-avatar');
             
-            // Update user name
+            // Update user name - FIXED LOGIC
             let displayName = 'User';
-            if (userData.firstName && userData.lastName) {
-                displayName = `${userData.firstName} ${userData.lastName}`;
+            if (userData.firstName || userData.lastName) {
+                displayName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
             } else if (userData.username) {
                 displayName = userData.username;
             } else if (userData.displayName) {
                 displayName = userData.displayName;
             } else {
-                displayName = currentUser.email.split('@')[0];
+                displayName = currentUser.displayName || currentUser.email.split('@')[0];
             }
+            
+            console.log('Display name set to:', displayName);
             
             userNameElements.forEach(el => {
                 el.textContent = displayName;
             });
 
-            // Update user role/bio
-            const role = userData.role || userData.bio || 'Farmer';
+            // Update user role/bio - FIXED LOGIC
+            const role = userData.role || userData.bio || userData.position || 'Farmer';
+            console.log('User role set to:', role);
+            
             userRoleElements.forEach(el => {
                 el.textContent = role;
             });
 
-            // Update user avatar with fallback
+            // Update user avatar with improved fallback logic
             userAvatarElements.forEach(avatar => {
                 // Clear existing content
                 avatar.innerHTML = '';
                 
-                // Try different image sources
+                // Try different image sources with better validation
                 let imageSrc = '';
                 
-                if (userData.profileImage && userData.profileImage.trim() !== '') {
-                    imageSrc = userData.profileImage.trim();
-                } else if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
-                    imageSrc = userData.imageBase64.trim();
-                } else if (userData.picture && userData.picture.trim() !== '') {
-                    imageSrc = userData.picture.trim();
-                } else if (userData.photoURL && userData.photoURL.trim() !== '') {
-                    imageSrc = userData.photoURL.trim();
+                // Check for different possible image fields
+                const imageSources = [
+                    userData.profileImage,
+                    userData.imageBase64,
+                    userData.picture,
+                    userData.photoURL,
+                    userData.avatar,
+                    userData.profilePicture
+                ];
+
+                for (const source of imageSources) {
+                    if (source && typeof source === 'string' && source.trim() !== '') {
+                        const trimmedSource = source.trim();
+                        // Check if it's a URL or base64
+                        if (trimmedSource.startsWith('http') || trimmedSource.startsWith('data:image')) {
+                            imageSrc = trimmedSource;
+                            console.log('Found image source:', source);
+                            break;
+                        }
+                    }
+                }
+
+                // Also check Firebase user photoURL
+                if (!imageSrc && currentUser.photoURL) {
+                    imageSrc = currentUser.photoURL;
+                    console.log('Using Firebase photoURL:', imageSrc);
                 }
 
                 if (imageSrc) {
-                    // Create image element
+                    // Create image element with error handling
                     const img = document.createElement('img');
                     img.src = imageSrc;
                     img.alt = 'User Avatar';
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                    img.style.objectFit = 'cover';
+                    
                     img.onerror = function() {
                         console.log('Image failed to load, using initials');
                         showAvatarInitials(avatar, displayName);
                     };
+                    
                     img.onload = function() {
-                        console.log('User image loaded successfully');
+                        console.log('User image loaded successfully from:', imageSrc);
                     };
+                    
                     avatar.appendChild(img);
                 } else {
-                    console.log('No image source found, using initials');
+                    console.log('No valid image source found, using initials');
                     showAvatarInitials(avatar, displayName);
                 }
             });
@@ -1036,7 +1196,7 @@
             function showAvatarInitials(avatar, name) {
                 // Get initials from name
                 let initials = 'U';
-                const nameParts = name.split(' ');
+                const nameParts = name.trim().split(' ');
                 if (nameParts.length >= 2) {
                     initials = (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
                 } else if (name.length > 0) {
@@ -1073,7 +1233,7 @@
                     });
                 });
 
-                console.log(`Loaded ${allFarms.length} farms:`, allFarms);
+                console.log(`Loaded ${allFarms.length} farms`);
 
                 // Load assessments
                 const assessmentsQuery = query(
@@ -1093,7 +1253,7 @@
                     });
                 });
 
-                console.log(`Loaded ${allAssessments.length} assessments:`, allAssessments);
+                console.log(`Loaded ${allAssessments.length} assessments`);
 
                 // Populate disease filter
                 populateDiseaseFilter();
@@ -1193,13 +1353,15 @@
                 return;
             }
 
-            chartsSection.style.display = 'grid';
+            // Charts are hidden as requested - don't show them
+            chartsSection.style.display = 'none';
+            
             reportsSection.style.display = 'block';
             dataTablesSection.style.display = 'block';
             noDataMessage.style.display = 'none';
 
-            // Update charts
-            updateCharts();
+            // Don't update charts since they're hidden
+            // updateCharts();
 
             // Update reports grid
             updateReportsGrid();
@@ -1208,123 +1370,7 @@
             updateTables();
         }
 
-        function updateCharts() {
-            // Destroy existing charts
-            if (healthChart) healthChart.destroy();
-            if (timelineChart) timelineChart.destroy();
-
-            // Prepare data for health chart
-            const healthStatusCounts = {
-                Healthy: 0,
-                Infected: 0,
-                Warning: 0
-            };
-
-            filteredAssessments.forEach(assessment => {
-                const status = assessment.healthStatus || 'Healthy';
-                if (healthStatusCounts[status] !== undefined) {
-                    healthStatusCounts[status]++;
-                }
-            });
-
-            // Health Status Chart
-            const healthCtx = document.getElementById('healthChart').getContext('2d');
-            healthChart = new Chart(healthCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Healthy', 'Infected', 'Warning'],
-                    datasets: [{
-                        data: [
-                            healthStatusCounts.Healthy,
-                            healthStatusCounts.Infected,
-                            healthStatusCounts.Warning
-                        ],
-                        backgroundColor: [
-                            '#4caf50',
-                            '#e53935',
-                            '#ff9800'
-                        ],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = Math.round((value / total) * 100);
-                                    return `${label}: ${value} (${percentage}%)`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Timeline Chart - Group by month
-            const monthlyData = {};
-            filteredAssessments.forEach(assessment => {
-                const date = new Date(assessment.timestamp);
-                const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                
-                if (!monthlyData[monthYear]) {
-                    monthlyData[monthYear] = 0;
-                }
-                monthlyData[monthYear]++;
-            });
-
-            const months = Object.keys(monthlyData).sort();
-            const assessmentCounts = months.map(m => monthlyData[m]);
-
-            // Timeline Chart
-            const timelineCtx = document.getElementById('timelineChart').getContext('2d');
-            timelineChart = new Chart(timelineCtx, {
-                type: 'line',
-                data: {
-                    labels: months.map(m => {
-                        const [year, month] = m.split('-');
-                        return `${month}/${year.slice(2)}`;
-                    }),
-                    datasets: [{
-                        label: 'Number of Assessments',
-                        data: assessmentCounts,
-                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                        borderColor: '#4caf50',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Assessments'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Month'
-                            }
-                        }
-                    }
-                }
-            });
-        }
+        // Removed chart update functions since charts are hidden
 
         function updateReportsGrid() {
             reportsGrid.innerHTML = '';
