@@ -11,10 +11,8 @@
     <link rel="shortcut icon" href="images/logo1.png">
     <meta name="theme-color" content="#2e7d32">
     
-    <!-- Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
-    <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <style>
@@ -866,7 +864,6 @@
 
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar placeholder -->
         <div id="sidebarPlaceholder"></div>
 
         <main class="main-content">
@@ -892,30 +889,23 @@
                 </div>
             </header>
 
-            <!-- Loading State -->
             <div class="loading" id="loadingState">
                 <div class="loading-spinner"></div>
                 <p>Loading farm reports...</p>
             </div>
 
-            <!-- Charts Section - HIDDEN -->
             <section class="charts-section" id="chartsSection">
-                <!-- Charts are hidden as requested -->
-            </section>
+                </section>
 
-            <!-- Reports Grid -->
             <section id="reportsSection" style="display: none;">
                 <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">
                     <i class="fas fa-file-alt"></i> Recent Assessments
                 </h2>
                 <div class="reports-grid" id="reportsGrid">
-                    <!-- Reports will be dynamically inserted here -->
-                </div>
+                    </div>
             </section>
 
-            <!-- Data Tables -->
             <div class="data-tables" id="dataTablesSection">
-                <!-- Assessments Table -->
                 <div class="table-container">
                     <h3><i class="fas fa-clipboard-check"></i> Assessment Records</h3>
                     <div class="table-responsive">
@@ -933,13 +923,11 @@
                                 </tr>
                             </thead>
                             <tbody id="assessmentsTableBody">
-                                <!-- Data will be populated here -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- Farms Table -->
                 <div class="table-container">
                     <h3><i class="fas fa-tractor"></i> Farm Records</h3>
                     <div class="table-responsive">
@@ -957,14 +945,12 @@
                                 </tr>
                             </thead>
                             <tbody id="farmsTableBody">
-                                <!-- Data will be populated here -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- No Data Message -->
             <div class="no-data" id="noDataMessage" style="display: none;">
                 <i class="fas fa-inbox"></i>
                 <h3>No Reports Found</h3>
@@ -973,7 +959,6 @@
         </main>
     </div>
 
-    <!-- Filter Modal -->
     <div class="filter-modal" id="filterModal">
         <div class="filter-content">
             <div class="filter-header">
@@ -1005,8 +990,7 @@
                 <label for="diseaseFilter">Disease Type</label>
                 <select id="diseaseFilter">
                     <option value="all">All Diseases</option>
-                    <!-- Will be populated dynamically -->
-                </select>
+                    </select>
             </div>
             <div class="filter-actions">
                 <button class="filter-btn" id="clearFilters">
@@ -1019,7 +1003,6 @@
         </div>
     </div>
 
-    <!-- Firebase and Main Application Script -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
@@ -1107,7 +1090,7 @@
             const userRoleElements = document.querySelectorAll('.user-role');
             const userAvatarElements = document.querySelectorAll('.user-avatar');
             
-            // Update user name - FIXED LOGIC
+            // Update user name
             let displayName = 'User';
             if (userData.firstName || userData.lastName) {
                 displayName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
@@ -1125,7 +1108,7 @@
                 el.textContent = displayName;
             });
 
-            // Update user role/bio - FIXED LOGIC
+            // Update user role/bio
             const role = userData.role || userData.bio || userData.position || 'Farmer';
             console.log('User role set to:', role);
             
@@ -1133,15 +1116,14 @@
                 el.textContent = role;
             });
 
-            // Update user avatar with improved fallback logic
+            // --- FIXED: Update user avatar with "Pre-loading" Logic ---
             userAvatarElements.forEach(avatar => {
-                // Clear existing content
-                avatar.innerHTML = '';
+                // 1. FIRST: Always show Initials immediately.
+                // This ensures UI looks good while loading or if it fails.
+                showAvatarInitials(avatar, displayName);
                 
-                // Try different image sources with better validation
+                // 2. Identify possible image sources
                 let imageSrc = '';
-                
-                // Check for different possible image fields
                 const imageSources = [
                     userData.profileImage,
                     userData.imageBase64,
@@ -1154,48 +1136,52 @@
                 for (const source of imageSources) {
                     if (source && typeof source === 'string' && source.trim() !== '') {
                         const trimmedSource = source.trim();
-                        // Check if it's a URL or base64
                         if (trimmedSource.startsWith('http') || trimmedSource.startsWith('data:image')) {
                             imageSrc = trimmedSource;
-                            console.log('Found image source:', source);
+                            console.log('Found potential image source:', source);
                             break;
                         }
                     }
                 }
 
-                // Also check Firebase user photoURL
                 if (!imageSrc && currentUser.photoURL) {
                     imageSrc = currentUser.photoURL;
-                    console.log('Using Firebase photoURL:', imageSrc);
                 }
 
                 if (imageSrc) {
-                    // Create image element with error handling
-                    const img = document.createElement('img');
-                    img.src = imageSrc;
-                    img.alt = 'User Avatar';
-                    img.style.width = '100%';
-                    img.style.height = '100%';
-                    img.style.objectFit = 'cover';
-                    
-                    img.onerror = function() {
-                        console.log('Image failed to load, using initials');
-                        showAvatarInitials(avatar, displayName);
-                    };
+                    // 3. Pre-load the image in JavaScript memory
+                    const img = new Image();
                     
                     img.onload = function() {
-                        console.log('User image loaded successfully from:', imageSrc);
+                        // 4. Success: Clear initials and show the image
+                        console.log('User image loaded successfully');
+                        avatar.innerHTML = ''; 
+                        
+                        // Re-create the img element for the DOM
+                        const domImg = document.createElement('img');
+                        domImg.src = imageSrc;
+                        domImg.alt = 'User Avatar';
+                        domImg.style.width = '100%';
+                        domImg.style.height = '100%';
+                        domImg.style.objectFit = 'cover';
+                        
+                        avatar.appendChild(domImg);
                     };
-                    
-                    avatar.appendChild(img);
-                } else {
-                    console.log('No valid image source found, using initials');
-                    showAvatarInitials(avatar, displayName);
+
+                    img.onerror = function() {
+                        // 5. Failure: Do nothing.
+                        // The initials are already showing. 
+                        // We swallow the visual error so the user sees a nice UI.
+                        console.warn('Profile image failed to load (404), keeping initials.');
+                    };
+
+                    // Trigger the load
+                    img.src = imageSrc;
                 }
             });
 
             function showAvatarInitials(avatar, name) {
-                // Get initials from name
+                avatar.innerHTML = '';
                 let initials = 'U';
                 const nameParts = name.trim().split(' ');
                 if (nameParts.length >= 2) {
@@ -1809,7 +1795,6 @@
         });
     </script>
 
-    <!-- Sidebar loader script -->
     <script src="js/sidebar-loader.js"></script>
 </body>
 </html>
