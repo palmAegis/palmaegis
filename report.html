@@ -298,6 +298,13 @@
             font-weight: bold;
             font-size: 1.1rem;
             transition: all var(--transition-speed);
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-info {
@@ -354,6 +361,30 @@
         .header-actions {
             display: flex;
             gap: 1rem;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 25px;
+            overflow: hidden;
+        }
+
+        .view-btn {
+            padding: 0.6rem 1.2rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.3s;
+        }
+
+        .view-btn.active {
+            background: var(--gradient);
+            color: white;
         }
 
         .report-btn {
@@ -394,125 +425,134 @@
             background: rgba(46, 125, 50, 0.1);
         }
 
-        /* Report Cards */
-        .reports-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+        /* Data Tables */
+        .data-tables {
+            display: none;
         }
 
-        .report-card {
+        .data-tables.active {
+            display: block;
+        }
+
+        .table-container {
             background: var(--card-bg);
             border-radius: var(--border-radius);
             padding: 1.5rem;
             box-shadow: var(--shadow);
-            transition: all 0.3s;
-            border: 1px solid var(--border-color);
-        }
-
-        .report-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .report-title {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            font-weight: 600;
-        }
-
-        .report-date {
-            font-size: 0.9rem;
-            color: var(--text-light);
-        }
-
-        .report-content {
             margin-bottom: 1.5rem;
+            overflow-x: auto;
         }
 
-        .report-field {
-            margin-bottom: 0.8rem;
+        .table-container h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
             display: flex;
-            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
         }
 
-        .field-label {
-            font-weight: 500;
-            color: var(--text-light);
+        .table-container h3 i {
+            color: var(--primary-light);
         }
 
-        .field-value {
-            color: var(--text-color);
-            text-align: right;
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
         }
 
-        .health-score {
-            display: inline-block;
+        .data-table th {
+            background: rgba(46, 125, 50, 0.1);
+            color: var(--primary-dark);
+            font-weight: 600;
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover {
+            background: rgba(46, 125, 50, 0.05);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
         }
 
-        .score-excellent {
+        .status-healthy {
             background: #e8f5e9;
             color: #2e7d32;
         }
 
-        .score-good {
-            background: #f1f8e9;
-            color: #689f38;
-        }
-
-        .score-fair {
-            background: #fff3e0;
-            color: #f57c00;
-        }
-
-        .score-poor {
+        .status-infected {
             background: #ffebee;
             color: #e53935;
         }
 
-        .report-actions {
+        .status-warning {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        .image-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .image-preview:hover {
+            transform: scale(1.5);
+            box-shadow: var(--shadow-hover);
+            z-index: 10;
+            position: relative;
+        }
+
+        .action-buttons {
             display: flex;
-            gap: 0.8rem;
-            justify-content: flex-end;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
+            gap: 0.5rem;
         }
 
         .action-btn {
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
             border: none;
             cursor: pointer;
-            font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.3rem;
             transition: all 0.3s;
         }
 
-        .view-btn {
+        .view-action {
             background: #e3f2fd;
             color: #1976d2;
         }
 
-        .download-btn {
-            background: var(--gradient);
-            color: white;
+        .edit-action {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .delete-action {
+            background: #ffebee;
+            color: #e53935;
         }
 
         /* Charts Section */
@@ -548,30 +588,6 @@
             width: 100%;
         }
 
-        /* No Data Message */
-        .no-data {
-            text-align: center;
-            padding: 3rem;
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-        }
-
-        .no-data i {
-            font-size: 3rem;
-            color: var(--text-lighter);
-            margin-bottom: 1rem;
-        }
-
-        .no-data h3 {
-            color: var(--text-light);
-            margin-bottom: 0.5rem;
-        }
-
-        .no-data p {
-            color: var(--text-lighter);
-        }
-
         /* Loading State */
         .loading {
             text-align: center;
@@ -593,7 +609,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Report Filter Modal */
+        /* Filter Modal */
         .filter-modal {
             display: none;
             position: fixed;
@@ -681,15 +697,13 @@
                 width: 100%;
                 padding: 1rem;
             }
-            .reports-grid {
-                grid-template-columns: 1fr;
-            }
-            .charts-section {
-                grid-template-columns: 1fr;
-            }
             .header-actions {
                 flex-direction: column;
                 width: 100%;
+            }
+            .view-toggle {
+                width: 100%;
+                justify-content: center;
             }
             .report-btn, .filter-btn {
                 width: 100%;
@@ -699,6 +713,13 @@
                 flex-direction: column;
                 gap: 1rem;
                 align-items: flex-start;
+            }
+            .data-table {
+                font-size: 0.9rem;
+            }
+            .data-table th,
+            .data-table td {
+                padding: 0.6rem;
             }
         }
     </style>
@@ -715,11 +736,19 @@
                     <h1><i class="fas fa-chart-bar"></i> Farm Reports</h1>
                 </div>
                 <div class="header-actions">
+                    <div class="view-toggle">
+                        <button class="view-btn active" id="viewCardsBtn">
+                            <i class="fas fa-th-large"></i> Cards
+                        </button>
+                        <button class="view-btn" id="viewTablesBtn">
+                            <i class="fas fa-table"></i> Tables
+                        </button>
+                    </div>
                     <button class="filter-btn" id="filterBtn">
-                        <i class="fas fa-filter"></i> Filter Reports
+                        <i class="fas fa-filter"></i> Filter
                     </button>
                     <button class="report-btn" id="downloadAllBtn">
-                        <i class="fas fa-download"></i> Download All as PDF
+                        <i class="fas fa-download"></i> Download PDF
                     </button>
                 </div>
             </header>
@@ -734,7 +763,7 @@
             <section class="charts-section" id="chartsSection" style="display: none;">
                 <div class="chart-card">
                     <div class="chart-header">
-                        <h3><i class="fas fa-heartbeat"></i> Health Score Distribution</h3>
+                        <h3><i class="fas fa-heartbeat"></i> Health Status Distribution</h3>
                     </div>
                     <div class="chart-container">
                         <canvas id="healthChart"></canvas>
@@ -760,6 +789,57 @@
                 </div>
             </section>
 
+            <!-- Data Tables -->
+            <div class="data-tables" id="dataTablesSection">
+                <!-- Assessments Table -->
+                <div class="table-container">
+                    <h3><i class="fas fa-clipboard-check"></i> Assessment Records</h3>
+                    <div class="table-responsive">
+                        <table class="data-table" id="assessmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Disease</th>
+                                    <th>Health Status</th>
+                                    <th>Detection Count</th>
+                                    <th>Image</th>
+                                    <th>Location</th>
+                                    <th>Treatment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assessmentsTableBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Farms Table -->
+                <div class="table-container">
+                    <h3><i class="fas fa-tractor"></i> Farm Records</h3>
+                    <div class="table-responsive">
+                        <table class="data-table" id="farmsTable">
+                            <thead>
+                                <tr>
+                                    <th>Farm Name</th>
+                                    <th>Location</th>
+                                    <th>Area</th>
+                                    <th>Crops</th>
+                                    <th>Soil Type</th>
+                                    <th>Status</th>
+                                    <th>Images</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="farmsTableBody">
+                                <!-- Data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- No Data Message -->
             <div class="no-data" id="noDataMessage" style="display: none;">
                 <i class="fas fa-inbox"></i>
@@ -779,13 +859,6 @@
                 </button>
             </div>
             <div class="filter-group">
-                <label for="farmFilter">Farm</label>
-                <select id="farmFilter">
-                    <option value="all">All Farms</option>
-                    <!-- Farms will be populated dynamically -->
-                </select>
-            </div>
-            <div class="filter-group">
                 <label for="dateFilter">Date Range</label>
                 <select id="dateFilter">
                     <option value="all">All Time</option>
@@ -796,13 +869,19 @@
                 </select>
             </div>
             <div class="filter-group">
-                <label for="healthFilter">Health Score</label>
+                <label for="healthFilter">Health Status</label>
                 <select id="healthFilter">
-                    <option value="all">All Scores</option>
-                    <option value="excellent">Excellent (80-100)</option>
-                    <option value="good">Good (60-79)</option>
-                    <option value="fair">Fair (40-59)</option>
-                    <option value="poor">Poor (0-39)</option>
+                    <option value="all">All Status</option>
+                    <option value="Healthy">Healthy</option>
+                    <option value="Infected">Infected</option>
+                    <option value="Warning">Warning</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="diseaseFilter">Disease Type</label>
+                <select id="diseaseFilter">
+                    <option value="all">All Diseases</option>
+                    <!-- Will be populated dynamically -->
                 </select>
             </div>
             <div class="filter-actions">
@@ -851,15 +930,20 @@
         const reportsSection = document.getElementById('reportsSection');
         const reportsGrid = document.getElementById('reportsGrid');
         const noDataMessage = document.getElementById('noDataMessage');
+        const dataTablesSection = document.getElementById('dataTablesSection');
+        const assessmentsTableBody = document.getElementById('assessmentsTableBody');
+        const farmsTableBody = document.getElementById('farmsTableBody');
         const filterModal = document.getElementById('filterModal');
         const filterBtn = document.getElementById('filterBtn');
         const closeFilter = document.getElementById('closeFilter');
         const applyFilters = document.getElementById('applyFilters');
         const clearFilters = document.getElementById('clearFilters');
-        const farmFilter = document.getElementById('farmFilter');
         const dateFilter = document.getElementById('dateFilter');
         const healthFilter = document.getElementById('healthFilter');
+        const diseaseFilter = document.getElementById('diseaseFilter');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const viewCardsBtn = document.getElementById('viewCardsBtn');
+        const viewTablesBtn = document.getElementById('viewTablesBtn');
 
         // Check authentication state
         onAuthStateChanged(auth, async (user) => {
@@ -888,6 +972,9 @@
 
         function updateUserProfile(userData) {
             const userNameElements = document.querySelectorAll('.user-name');
+            const userAvatarElements = document.querySelectorAll('.user-avatar');
+            
+            // Update user name
             userNameElements.forEach(el => {
                 if (userData.firstName && userData.lastName) {
                     el.textContent = `${userData.firstName} ${userData.lastName}`;
@@ -895,8 +982,60 @@
                     el.textContent = userData.username;
                 } else if (userData.displayName) {
                     el.textContent = userData.displayName;
+                } else {
+                    el.textContent = currentUser.email.split('@')[0];
                 }
             });
+
+            // Update user avatar with fallback
+            userAvatarElements.forEach(avatar => {
+                // Clear existing content
+                avatar.innerHTML = '';
+                
+                if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
+                    // Use Base64 image
+                    const img = document.createElement('img');
+                    img.src = userData.imageBase64.trim();
+                    img.alt = 'User Avatar';
+                    img.onerror = function() {
+                        // If image fails to load, use initials
+                        showAvatarInitials(avatar, userData);
+                    };
+                    avatar.appendChild(img);
+                } else if (userData.picture && userData.picture.trim() !== '') {
+                    // Use picture URL
+                    const img = document.createElement('img');
+                    img.src = userData.picture.trim();
+                    img.alt = 'User Avatar';
+                    img.onerror = function() {
+                        // If image fails to load, use initials
+                        showAvatarInitials(avatar, userData);
+                    };
+                    avatar.appendChild(img);
+                } else {
+                    // Use initials
+                    showAvatarInitials(avatar, userData);
+                }
+            });
+
+            function showAvatarInitials(avatar, userData) {
+                let initials = 'U';
+                if (userData.firstName && userData.lastName) {
+                    initials = `${userData.firstName.charAt(0)}${userData.lastName.charAt(0)}`.toUpperCase();
+                } else if (userData.username) {
+                    initials = userData.username.charAt(0).toUpperCase();
+                } else if (userData.displayName) {
+                    const names = userData.displayName.split(' ');
+                    initials = names.map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2);
+                }
+                avatar.textContent = initials;
+                avatar.style.background = 'var(--gradient)';
+                avatar.style.color = 'white';
+                avatar.style.display = 'flex';
+                avatar.style.alignItems = 'center';
+                avatar.style.justifyContent = 'center';
+                avatar.style.fontWeight = 'bold';
+            }
         }
 
         async function loadFarmReports() {
@@ -910,11 +1049,15 @@
                 const farmsSnapshot = await getDocs(farmsQuery);
                 allFarms = [];
                 farmsSnapshot.forEach(doc => {
+                    const data = doc.data();
                     allFarms.push({
                         id: doc.id,
-                        ...doc.data()
+                        ...data,
+                        createdAt: data.createdAt?.toDate() || new Date()
                     });
                 });
+
+                console.log(`Loaded ${allFarms.length} farms`);
 
                 // Load assessments
                 const assessmentsQuery = query(
@@ -929,18 +1072,21 @@
                     allAssessments.push({
                         id: doc.id,
                         ...data,
-                        farmName: getFarmName(data.farmId),
+                        date: data.date || data.timestamp?.toDate() || new Date(),
                         timestamp: data.timestamp?.toDate() || new Date()
                     });
                 });
 
-                console.log(`Loaded ${allFarms.length} farms and ${allAssessments.length} assessments`);
+                console.log(`Loaded ${allAssessments.length} assessments`);
 
-                // Populate farm filter
-                populateFarmFilter();
+                // Populate disease filter
+                populateDiseaseFilter();
 
                 // Apply initial filters
                 applyFilter();
+
+                // Update tables
+                updateTables();
 
                 // Hide loading state
                 loadingState.style.display = 'none';
@@ -952,7 +1098,7 @@
                         <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
                         <h3>Error Loading Reports</h3>
                         <p>${error.message}</p>
-                        <button onclick="loadFarmReports()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
                             Try Again
                         </button>
                     </div>
@@ -960,32 +1106,23 @@
             }
         }
 
-        function getFarmName(farmId) {
-            const farm = allFarms.find(f => f.id === farmId);
-            return farm ? farm.name : 'Unknown Farm';
-        }
-
-        function populateFarmFilter() {
-            farmFilter.innerHTML = '<option value="all">All Farms</option>';
-            allFarms.forEach(farm => {
+        function populateDiseaseFilter() {
+            const diseases = [...new Set(allAssessments.map(a => a.disease).filter(d => d))];
+            diseaseFilter.innerHTML = '<option value="all">All Diseases</option>';
+            diseases.forEach(disease => {
                 const option = document.createElement('option');
-                option.value = farm.id;
-                option.textContent = farm.name;
-                farmFilter.appendChild(option);
+                option.value = disease;
+                option.textContent = disease;
+                diseaseFilter.appendChild(option);
             });
         }
 
         function applyFilter() {
-            const selectedFarm = farmFilter.value;
             const dateRange = dateFilter.value;
-            const healthScore = healthFilter.value;
+            const healthStatus = healthFilter.value;
+            const diseaseType = diseaseFilter.value;
 
             filteredAssessments = allAssessments.filter(assessment => {
-                // Filter by farm
-                if (selectedFarm !== 'all' && assessment.farmId !== selectedFarm) {
-                    return false;
-                }
-
                 // Filter by date range
                 if (dateRange !== 'all') {
                     const now = new Date();
@@ -1012,23 +1149,14 @@
                     }
                 }
 
-                // Filter by health score
-                if (healthScore !== 'all') {
-                    const score = assessment.healthScore || 0;
-                    switch (healthScore) {
-                        case 'excellent':
-                            if (score < 80) return false;
-                            break;
-                        case 'good':
-                            if (score < 60 || score >= 80) return false;
-                            break;
-                        case 'fair':
-                            if (score < 40 || score >= 60) return false;
-                            break;
-                        case 'poor':
-                            if (score >= 40) return false;
-                            break;
-                    }
+                // Filter by health status
+                if (healthStatus !== 'all' && assessment.healthStatus !== healthStatus) {
+                    return false;
+                }
+
+                // Filter by disease type
+                if (diseaseType !== 'all' && assessment.disease !== diseaseType) {
+                    return false;
                 }
 
                 return true;
@@ -1044,12 +1172,14 @@
             if (filteredAssessments.length === 0) {
                 chartsSection.style.display = 'none';
                 reportsSection.style.display = 'none';
+                dataTablesSection.style.display = 'none';
                 noDataMessage.style.display = 'block';
                 return;
             }
 
             chartsSection.style.display = 'grid';
             reportsSection.style.display = 'block';
+            dataTablesSection.style.display = 'block';
             noDataMessage.style.display = 'none';
 
             // Update charts
@@ -1057,6 +1187,9 @@
 
             // Update reports grid
             updateReportsGrid();
+
+            // Update tables
+            updateTables();
         }
 
         function updateCharts() {
@@ -1065,39 +1198,35 @@
             if (timelineChart) timelineChart.destroy();
 
             // Prepare data for health chart
-            const scoreRanges = {
-                excellent: 0,
-                good: 0,
-                fair: 0,
-                poor: 0
+            const healthStatusCounts = {
+                Healthy: 0,
+                Infected: 0,
+                Warning: 0
             };
 
             filteredAssessments.forEach(assessment => {
-                const score = assessment.healthScore || 0;
-                if (score >= 80) scoreRanges.excellent++;
-                else if (score >= 60) scoreRanges.good++;
-                else if (score >= 40) scoreRanges.fair++;
-                else scoreRanges.poor++;
+                const status = assessment.healthStatus || 'Healthy';
+                if (healthStatusCounts[status] !== undefined) {
+                    healthStatusCounts[status]++;
+                }
             });
 
-            // Health Score Chart
+            // Health Status Chart
             const healthCtx = document.getElementById('healthChart').getContext('2d');
             healthChart = new Chart(healthCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Excellent (80-100)', 'Good (60-79)', 'Fair (40-59)', 'Poor (0-39)'],
+                    labels: ['Healthy', 'Infected', 'Warning'],
                     datasets: [{
                         data: [
-                            scoreRanges.excellent,
-                            scoreRanges.good,
-                            scoreRanges.fair,
-                            scoreRanges.poor
+                            healthStatusCounts.Healthy,
+                            healthStatusCounts.Infected,
+                            healthStatusCounts.Warning
                         ],
                         backgroundColor: [
-                            '#2e7d32',
                             '#4caf50',
-                            '#ff9800',
-                            '#e53935'
+                            '#e53935',
+                            '#ff9800'
                         ],
                         borderWidth: 2,
                         borderColor: '#ffffff'
@@ -1132,104 +1261,48 @@
                 const monthYear = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 
                 if (!monthlyData[monthYear]) {
-                    monthlyData[monthYear] = {
-                        count: 0,
-                        totalScore: 0
-                    };
+                    monthlyData[monthYear] = 0;
                 }
-                monthlyData[monthYear].count++;
-                monthlyData[monthYear].totalScore += assessment.healthScore || 0;
+                monthlyData[monthYear]++;
             });
 
             const months = Object.keys(monthlyData).sort();
-            const assessmentCounts = months.map(m => monthlyData[m].count);
-            const averageScores = months.map(m => 
-                Math.round(monthlyData[m].totalScore / monthlyData[m].count)
-            );
+            const assessmentCounts = months.map(m => monthlyData[m]);
 
             // Timeline Chart
             const timelineCtx = document.getElementById('timelineChart').getContext('2d');
             timelineChart = new Chart(timelineCtx, {
                 type: 'line',
                 data: {
-                    labels: months,
-                    datasets: [
-                        {
-                            label: 'Number of Assessments',
-                            data: assessmentCounts,
-                            backgroundColor: 'rgba(76, 175, 80, 0.2)',
-                            borderColor: '#4caf50',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            label: 'Average Health Score',
-                            data: averageScores,
-                            backgroundColor: 'rgba(33, 150, 243, 0.2)',
-                            borderColor: '#2196f3',
-                            borderWidth: 2,
-                            fill: false,
-                            tension: 0.4,
-                            yAxisID: 'y1'
-                        }
-                    ]
+                    labels: months.map(m => {
+                        const [year, month] = m.split('-');
+                        return `${month}/${year.slice(2)}`;
+                    }),
+                    datasets: [{
+                        label: 'Number of Assessments',
+                        data: assessmentCounts,
+                        backgroundColor: 'rgba(76, 175, 80, 0.2)',
+                        borderColor: '#4caf50',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false,
-                    },
                     scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Assessments'
+                            }
+                        },
                         x: {
                             title: {
                                 display: true,
                                 text: 'Month'
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: 'Number of Assessments'
-                            },
-                            min: 0
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Health Score'
-                            },
-                            min: 0,
-                            max: 100,
-                            grid: {
-                                drawOnChartArea: false,
-                            },
-                        }
-                    },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.datasetIndex === 0) {
-                                        label += context.raw + ' assessments';
-                                    } else {
-                                        label += context.raw + ' points';
-                                    }
-                                    return label;
-                                }
                             }
                         }
                     }
@@ -1240,7 +1313,7 @@
         function updateReportsGrid() {
             reportsGrid.innerHTML = '';
 
-            filteredAssessments.forEach(assessment => {
+            filteredAssessments.slice(0, 6).forEach(assessment => {
                 const card = createReportCard(assessment);
                 reportsGrid.appendChild(card);
             });
@@ -1249,54 +1322,52 @@
         function createReportCard(assessment) {
             const card = document.createElement('div');
             card.className = 'report-card';
-            card.id = `report-${assessment.id}`;
 
-            const healthScore = assessment.healthScore || 0;
-            let scoreClass = 'score-poor';
-            if (healthScore >= 80) scoreClass = 'score-excellent';
-            else if (healthScore >= 60) scoreClass = 'score-good';
-            else if (healthScore >= 40) scoreClass = 'score-fair';
-
-            const date = assessment.timestamp.toLocaleDateString('en-US', {
+            const date = new Date(assessment.date).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric'
             });
 
+            const healthStatus = assessment.healthStatus || 'Healthy';
+            let statusClass = 'status-healthy';
+            if (healthStatus === 'Infected') statusClass = 'status-infected';
+            else if (healthStatus === 'Warning') statusClass = 'status-warning';
+
             card.innerHTML = `
                 <div class="report-header">
                     <div>
-                        <div class="report-title">${assessment.farmName}</div>
-                        <div class="report-date">${date}</div>
+                        <div class="report-title">${date}</div>
+                        <div class="report-date">${assessment.time || ''}</div>
                     </div>
-                    <div class="health-score ${scoreClass}">
-                        ${healthScore}/100
+                    <div class="health-score ${statusClass}">
+                        ${healthStatus}
                     </div>
                 </div>
                 <div class="report-content">
                     <div class="report-field">
-                        <span class="field-label">Assessed By:</span>
-                        <span class="field-value">${assessment.assessor || 'Not specified'}</span>
+                        <span class="field-label">Disease:</span>
+                        <span class="field-value">${assessment.disease || 'None detected'}</span>
                     </div>
                     <div class="report-field">
-                        <span class="field-label">Disease Detected:</span>
-                        <span class="field-value">${assessment.diseaseDetected || 'None'}</span>
+                        <span class="field-label">Detection Count:</span>
+                        <span class="field-value">${assessment.detectionCount || 0}</span>
                     </div>
                     <div class="report-field">
-                        <span class="field-label">Infection Level:</span>
-                        <span class="field-value">${assessment.infectionLevel || 'Low'}</span>
+                        <span class="field-label">Confidence:</span>
+                        <span class="field-value">${assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'}</span>
                     </div>
                     <div class="report-field">
-                        <span class="field-label">Palm Count:</span>
-                        <span class="field-value">${assessment.palmCount || 'N/A'}</span>
+                        <span class="field-label">Location:</span>
+                        <span class="field-value">${assessment.location || 'Not specified'}</span>
                     </div>
                     <div class="report-field">
-                        <span class="field-label">Recommendations:</span>
-                        <span class="field-value">${assessment.recommendations ? assessment.recommendations.length : 0}</span>
+                        <span class="field-label">Treatment:</span>
+                        <span class="field-value">${assessment.treatment ? 'Recommended' : 'None'}</span>
                     </div>
                 </div>
                 <div class="report-actions">
-                    <button class="action-btn view-btn" onclick="viewReport('${assessment.id}')">
+                    <button class="action-btn view-btn" onclick="viewAssessment('${assessment.id}')">
                         <i class="fas fa-eye"></i> View
                     </button>
                     <button class="action-btn download-btn" onclick="downloadReport('${assessment.id}')">
@@ -1306,6 +1377,96 @@
             `;
 
             return card;
+        }
+
+        function updateTables() {
+            // Update assessments table
+            assessmentsTableBody.innerHTML = '';
+            
+            filteredAssessments.forEach(assessment => {
+                const row = document.createElement('tr');
+                
+                const date = new Date(assessment.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                const healthStatus = assessment.healthStatus || 'Healthy';
+                let statusClass = 'status-healthy';
+                if (healthStatus === 'Infected') statusClass = 'status-infected';
+                else if (healthStatus === 'Warning') statusClass = 'status-warning';
+
+                row.innerHTML = `
+                    <td>
+                        <div>${date}</div>
+                        <small style="color: var(--text-lighter);">${assessment.time || ''}</small>
+                    </td>
+                    <td>${assessment.disease || 'None'}</td>
+                    <td><span class="status-badge ${statusClass}">${healthStatus}</span></td>
+                    <td>${assessment.detectionCount || 0}</td>
+                    <td>
+                        ${assessment.image ? 
+                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="viewImage('${assessment.image}')">` : 
+                            '<span style="color: var(--text-lighter);">No image</span>'
+                        }
+                    </td>
+                    <td>${assessment.location || 'Not specified'}</td>
+                    <td>${assessment.treatment || 'None'}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-action" onclick="viewAssessment('${assessment.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-action" onclick="editAssessment('${assessment.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                assessmentsTableBody.appendChild(row);
+            });
+
+            // Update farms table
+            farmsTableBody.innerHTML = '';
+            
+            allFarms.forEach(farm => {
+                const row = document.createElement('tr');
+                
+                // Get images if available
+                let imagesHtml = '<span style="color: var(--text-lighter);">No images</span>';
+                if (farm.images && farm.images.length > 0) {
+                    imagesHtml = farm.images.slice(0, 3).map((img, index) => 
+                        `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="viewImage('${img}')">`
+                    ).join(' ');
+                    if (farm.images.length > 3) {
+                        imagesHtml += ` <span style="color: var(--text-lighter);">+${farm.images.length - 3} more</span>`;
+                    }
+                }
+
+                row.innerHTML = `
+                    <td><strong>${farm.name || 'Unnamed Farm'}</strong></td>
+                    <td>${farm.location || 'Not specified'}</td>
+                    <td>${farm.area || 'N/A'}</td>
+                    <td>${farm.crops || 'Oil Palm'}</td>
+                    <td>${farm.soilType || 'Not specified'}</td>
+                    <td><span class="status-badge ${farm.status === 'Active' ? 'status-healthy' : 'status-warning'}">${farm.status || 'Active'}</span></td>
+                    <td>${imagesHtml}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-action" onclick="viewFarm('${farm.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-action" onclick="editFarm('${farm.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                farmsTableBody.appendChild(row);
+            });
         }
 
         // Event Listeners
@@ -1323,13 +1484,28 @@
         });
 
         clearFilters.addEventListener('click', () => {
-            farmFilter.value = 'all';
             dateFilter.value = 'all';
             healthFilter.value = 'all';
+            diseaseFilter.value = 'all';
             applyFilter();
         });
 
         downloadAllBtn.addEventListener('click', downloadAllReports);
+
+        // View toggle
+        viewCardsBtn.addEventListener('click', () => {
+            viewCardsBtn.classList.add('active');
+            viewTablesBtn.classList.remove('active');
+            reportsSection.style.display = 'block';
+            dataTablesSection.style.display = 'none';
+        });
+
+        viewTablesBtn.addEventListener('click', () => {
+            viewTablesBtn.classList.add('active');
+            viewCardsBtn.classList.remove('active');
+            reportsSection.style.display = 'none';
+            dataTablesSection.style.display = 'block';
+        });
 
         // Close modal when clicking outside
         filterModal.addEventListener('click', (e) => {
@@ -1339,12 +1515,41 @@
         });
 
         // Functions for buttons
-        window.viewReport = async function(assessmentId) {
+        window.viewAssessment = function(assessmentId) {
             const assessment = filteredAssessments.find(a => a.id === assessmentId);
             if (assessment) {
-                // Store assessment in sessionStorage for detail view
                 sessionStorage.setItem('currentAssessment', JSON.stringify(assessment));
                 window.open('assessment-detail.html', '_blank');
+            }
+        };
+
+        window.viewFarm = function(farmId) {
+            const farm = allFarms.find(f => f.id === farmId);
+            if (farm) {
+                sessionStorage.setItem('currentFarm', JSON.stringify(farm));
+                window.open('farm-detail.html', '_blank');
+            }
+        };
+
+        window.editAssessment = function(assessmentId) {
+            const assessment = filteredAssessments.find(a => a.id === assessmentId);
+            if (assessment) {
+                sessionStorage.setItem('editAssessment', JSON.stringify(assessment));
+                window.location.href = 'assessment-edit.html';
+            }
+        };
+
+        window.editFarm = function(farmId) {
+            const farm = allFarms.find(f => f.id === farmId);
+            if (farm) {
+                sessionStorage.setItem('editFarm', JSON.stringify(farm));
+                window.location.href = 'farm-edit.html';
+            }
+        };
+
+        window.viewImage = function(imageUrl) {
+            if (imageUrl) {
+                window.open(imageUrl, '_blank');
             }
         };
 
@@ -1377,7 +1582,7 @@
                     // Generate PDF for multiple reports
                     doc.setFontSize(20);
                     doc.setTextColor(46, 125, 50);
-                    doc.text('Palm Aegis - Farm Assessment Reports', 105, yOffset, { align: 'center' });
+                    doc.text('Palm Aegis - Assessment Reports', 105, yOffset, { align: 'center' });
                     yOffset += 15;
 
                     doc.setFontSize(12);
@@ -1385,25 +1590,6 @@
                     doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, yOffset, { align: 'center' });
                     doc.text(`Total Reports: ${data.length}`, 105, yOffset + 7, { align: 'center' });
                     yOffset += 25;
-
-                    // Summary statistics
-                    const totalScore = data.reduce((sum, a) => sum + (a.healthScore || 0), 0);
-                    const avgScore = Math.round(totalScore / data.length);
-                    const farms = [...new Set(data.map(a => a.farmName))];
-
-                    doc.setFontSize(14);
-                    doc.setTextColor(46, 125, 50);
-                    doc.text('Summary Statistics', 20, yOffset);
-                    yOffset += 10;
-
-                    doc.setFontSize(11);
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(`Average Health Score: ${avgScore}/100`, 20, yOffset);
-                    yOffset += 7;
-                    doc.text(`Number of Farms: ${farms.length}`, 20, yOffset);
-                    yOffset += 7;
-                    doc.text(`Date Range: ${getDateRangeText()}`, 20, yOffset);
-                    yOffset += 15;
 
                     // Add a page for each report
                     data.forEach((assessment, index) => {
@@ -1459,34 +1645,35 @@
             doc.setTextColor(0, 0, 0);
             
             const details = [
-                [`Farm:`, assessment.farmName],
-                [`Date:`, assessment.timestamp.toLocaleDateString()],
-                [`Health Score:`, `${assessment.healthScore || 0}/100`],
-                [`Assessed By:`, assessment.assessor || 'Not specified'],
-                [`Disease Detected:`, assessment.diseaseDetected || 'None'],
-                [`Infection Level:`, assessment.infectionLevel || 'Low'],
-                [`Palm Count:`, assessment.palmCount || 'N/A'],
-                [`Location:`, assessment.location || 'Not specified']
+                ['Date:', new Date(assessment.date).toLocaleDateString()],
+                ['Time:', assessment.time || 'N/A'],
+                ['Disease:', assessment.disease || 'None detected'],
+                ['Health Status:', assessment.healthStatus || 'Healthy'],
+                ['Detection Count:', assessment.detectionCount || 0],
+                ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
+                ['Location:', assessment.location || 'Not specified'],
+                ['Treatment:', assessment.treatment || 'None']
             ];
 
             details.forEach(([label, value]) => {
                 doc.text(label, margin, yOffset);
-                doc.text(value, margin + 60, yOffset);
+                doc.text(value, margin + 50, yOffset);
                 yOffset += 7;
             });
 
             yOffset += 5;
 
-            // Recommendations
-            if (assessment.recommendations && assessment.recommendations.length > 0) {
+            // Detections
+            if (assessment.detections && assessment.detections.length > 0) {
                 doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
-                doc.text('Recommendations', margin, yOffset);
+                doc.text('Detections', margin, yOffset);
                 yOffset += 10;
 
                 doc.setFontSize(11);
-                assessment.recommendations.forEach((rec, index) => {
-                    const lines = doc.splitTextToSize(`${index + 1}. ${rec}`, contentWidth);
+                assessment.detections.forEach((det, index) => {
+                    const detectionText = `Detection ${index + 1}: ${det.disease || 'Unknown'} (${det.confidence ? Math.round(det.confidence * 100) : 0}%)`;
+                    const lines = doc.splitTextToSize(detectionText, contentWidth);
                     lines.forEach(line => {
                         if (yOffset > doc.internal.pageSize.height - 20) {
                             doc.addPage();
@@ -1495,28 +1682,22 @@
                         doc.text(line, margin, yOffset);
                         yOffset += 7;
                     });
-                    yOffset += 3;
                 });
+                yOffset += 3;
             }
 
-            // Notes
-            if (assessment.notes) {
+            // Next Assessment
+            if (assessment.nextAssessment) {
                 yOffset += 5;
                 doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
-                doc.text('Additional Notes', margin, yOffset);
+                doc.text('Next Assessment Due', margin, yOffset);
                 yOffset += 10;
 
                 doc.setFontSize(11);
-                const noteLines = doc.splitTextToSize(assessment.notes, contentWidth);
-                noteLines.forEach(line => {
-                    if (yOffset > doc.internal.pageSize.height - 20) {
-                        doc.addPage();
-                        yOffset = 20;
-                    }
-                    doc.text(line, margin, yOffset);
-                    yOffset += 7;
-                });
+                const nextDate = new Date(assessment.nextAssessment).toLocaleDateString();
+                doc.text(`Recommended date: ${nextDate}`, margin, yOffset);
+                yOffset += 7;
             }
 
             // Footer
@@ -1526,35 +1707,11 @@
             doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
         }
 
-        function getDateRangeText() {
-            const dateRange = dateFilter.value;
-            const now = new Date();
-            
-            switch (dateRange) {
-                case 'week':
-                    const weekAgo = new Date();
-                    weekAgo.setDate(now.getDate() - 7);
-                    return `${weekAgo.toLocaleDateString()} - ${now.toLocaleDateString()}`;
-                case 'month':
-                    const monthAgo = new Date();
-                    monthAgo.setDate(now.getDate() - 30);
-                    return `${monthAgo.toLocaleDateString()} - ${now.toLocaleDateString()}`;
-                case 'quarter':
-                    const quarterAgo = new Date();
-                    quarterAgo.setDate(now.getDate() - 90);
-                    return `${quarterAgo.toLocaleDateString()} - ${now.toLocaleDateString()}`;
-                case 'year':
-                    const yearAgo = new Date();
-                    yearAgo.setFullYear(now.getFullYear() - 1);
-                    return `${yearAgo.toLocaleDateString()} - ${now.toLocaleDateString()}`;
-                default:
-                    return 'All Time';
-            }
-        }
-
         // Initialize on DOM load
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Reports page loaded');
+            // Set default view to cards
+            viewCardsBtn.click();
         });
     </script>
 
