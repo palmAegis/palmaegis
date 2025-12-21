@@ -1083,102 +1083,47 @@
             }
         }
 
-        function updateUserProfile(userData) {
-            console.log('Updating user profile with:', userData);
-            
-            const userNameElements = document.querySelectorAll('.user-name');
-            const userRoleElements = document.querySelectorAll('.user-role');
-            const userAvatarElements = document.querySelectorAll('.user-avatar');
-            
-            // Update user name
-            let displayName = 'User';
-            if (userData.firstName || userData.lastName) {
-                displayName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
-            } else if (userData.username) {
-                displayName = userData.username;
-            } else if (userData.displayName) {
-                displayName = userData.displayName;
-            } else {
-                displayName = currentUser.displayName || currentUser.email.split('@')[0];
-            }
-            
-            console.log('Display name set to:', displayName);
-            
-            userNameElements.forEach(el => {
-                el.textContent = displayName;
-            });
+        // Update user avatar (FIXED FOR FIREBASE STORAGE)
+userAvatarElements.forEach(async (avatar) => {
 
-            // Update user role/bio
-            const role = userData.role || userData.bio || userData.position || 'Farmer';
-            console.log('User role set to:', role);
-            
-            userRoleElements.forEach(el => {
-                el.textContent = role;
-            });
+    // Show initials first (fallback)
+    showAvatarInitials(avatar, displayName);
 
-            // --- FIXED: Update user avatar with "Pre-loading" Logic ---
-            userAvatarElements.forEach(avatar => {
-                // 1. FIRST: Always show Initials immediately.
-                // This ensures UI looks good while loading or if it fails.
-                showAvatarInitials(avatar, displayName);
-                
-                // 2. Identify possible image sources
-                let imageSrc = '';
-                const imageSources = [
-                    userData.profileImage,
-                    userData.imageBase64,
-                    userData.picture,
-                    userData.photoURL,
-                    userData.avatar,
-                    userData.profilePicture
-                ];
+    let imagePath = userData.profileImage || currentUser.photoURL;
 
-                for (const source of imageSources) {
-                    if (source && typeof source === 'string' && source.trim() !== '') {
-                        const trimmedSource = source.trim();
-                        if (trimmedSource.startsWith('http') || trimmedSource.startsWith('data:image')) {
-                            imageSrc = trimmedSource;
-                            console.log('Found potential image source:', source);
-                            break;
-                        }
-                    }
-                }
+    if (!imagePath) return;
 
-                if (!imageSrc && currentUser.photoURL) {
-                    imageSrc = currentUser.photoURL;
-                }
+    try {
+        let imageURL = imagePath;
 
-                if (imageSrc) {
-                    // 3. Pre-load the image in JavaScript memory
-                    const img = new Image();
-                    
-                    img.onload = function() {
-                        // 4. Success: Clear initials and show the image
-                        console.log('User image loaded successfully');
-                        avatar.innerHTML = ''; 
-                        
-                        // Re-create the img element for the DOM
-                        const domImg = document.createElement('img');
-                        domImg.src = imageSrc;
-                        domImg.alt = 'User Avatar';
-                        domImg.style.width = '100%';
-                        domImg.style.height = '100%';
-                        domImg.style.objectFit = 'cover';
-                        
-                        avatar.appendChild(domImg);
-                    };
+        // If NOT full URL → assume Firebase Storage path
+        if (!imagePath.startsWith('http') && !imagePath.startsWith('data:image')) {
+            const imageRef = ref(storage, imagePath);
+            imageURL = await getDownloadURL(imageRef);
+        }
 
-                    img.onerror = function() {
-                        // 5. Failure: Do nothing.
-                        // The initials are already showing. 
-                        // We swallow the visual error so the user sees a nice UI.
-                        console.warn('Profile image failed to load (404), keeping initials.');
-                    };
+        // Create image element
+        const img = document.createElement('img');
+        img.src = imageURL;
+        img.alt = 'User Avatar';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
 
-                    // Trigger the load
-                    img.src = imageSrc;
-                }
-            });
+        img.onload = () => {
+            avatar.innerHTML = '';
+            avatar.appendChild(img);
+        };
+
+        img.onerror = () => {
+            console.warn('Avatar failed to load, fallback to initials');
+        };
+
+    } catch (error) {
+        console.warn('Error loading profile image:', error.message);
+    }
+});
+
 
             function showAvatarInitials(avatar, name) {
                 avatar.innerHTML = '';
@@ -1199,7 +1144,6 @@
                 avatar.style.fontWeight = 'bold';
                 avatar.style.fontSize = '1.1rem';
             }
-        }
 
         async function loadFarmReports() {
             try {
