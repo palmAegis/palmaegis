@@ -1031,7 +1031,6 @@
         let filteredAssessments = [];
         let healthChart = null;
         let timelineChart = null;
-        let userDataCache = null;
 
         // DOM elements
         const loadingState = document.getElementById('loadingState');
@@ -1059,10 +1058,6 @@
             if (user) {
                 console.log('User is signed in:', user.email);
                 currentUser = user;
-                
-                // Initialize observer to catch the Sidebar whenever it loads
-                initSidebarObserver();
-                
                 await loadUserData();
                 await loadFarmReports();
             } else {
@@ -1075,46 +1070,26 @@
             try {
                 const userDoc = await getDoc(doc(db, "users", currentUser.uid));
                 if (userDoc.exists()) {
-                    userDataCache = userDoc.data();
-                    console.log('User data loaded:', userDataCache);
+                    const userData = userDoc.data();
+                    console.log('User data loaded:', userData);
+                    updateUserProfile(userData);
                 } else {
                     console.log('No user document found');
-                    userDataCache = {};
+                    updateUserProfile({});
                 }
-                // Try to update profile immediately if sidebar is already there
-                updateUserProfile();
             } catch (error) {
                 console.error('Error loading user data:', error);
-                userDataCache = {};
+                updateUserProfile({});
             }
         }
-        
-        // This function watches for the sidebar to appear so we can fix the image instantly
-        function initSidebarObserver() {
-            const observer = new MutationObserver((mutations) => {
-                const userAvatar = document.querySelector('.user-avatar');
-                if (userAvatar) {
-                    // Sidebar has loaded! Update profile now.
-                    updateUserProfile();
-                    // Optional: Disconnect if you only need to do this once, 
-                    // but keep it on if the sidebar re-renders.
-                }
-            });
-            
-            observer.observe(document.body, { childList: true, subtree: true });
-        }
 
-        function updateUserProfile() {
-            if (!userDataCache && !currentUser) return;
+        function updateUserProfile(userData) {
+            console.log('Updating user profile with:', userData);
             
-            const userData = userDataCache || {};
             const userNameElements = document.querySelectorAll('.user-name');
             const userRoleElements = document.querySelectorAll('.user-role');
             const userAvatarElements = document.querySelectorAll('.user-avatar');
             
-            // If sidebar isn't loaded yet, elements will be empty. The Observer will retry later.
-            if (userAvatarElements.length === 0) return;
-
             // Update user name
             let displayName = 'User';
             if (userData.firstName || userData.lastName) {
@@ -1127,22 +1102,27 @@
                 displayName = currentUser.displayName || currentUser.email.split('@')[0];
             }
             
+            console.log('Display name set to:', displayName);
+            
             userNameElements.forEach(el => {
                 el.textContent = displayName;
             });
 
             // Update user role/bio
             const role = userData.role || userData.bio || userData.position || 'Farmer';
+            console.log('User role set to:', role);
+            
             userRoleElements.forEach(el => {
                 el.textContent = role;
             });
 
-            // --- FIXED: Image Loading Logic ---
+            // --- FIXED: Update user avatar with "Pre-loading" Logic ---
             userAvatarElements.forEach(avatar => {
-                // 1. CLEAR the broken image immediately and show initials
+                // 1. FIRST: Always show Initials immediately.
+                // This ensures UI looks good while loading or if it fails.
                 showAvatarInitials(avatar, displayName);
                 
-                // 2. Find a VALID image source
+                // 2. Identify possible image sources
                 let imageSrc = '';
                 const imageSources = [
                     userData.profileImage,
@@ -1156,27 +1136,28 @@
                 for (const source of imageSources) {
                     if (source && typeof source === 'string' && source.trim() !== '') {
                         const trimmedSource = source.trim();
-                        // CRITICAL FIX: Only allow HTTP or Data URLs. Ignore local filenames like "user-avatar.jpg"
                         if (trimmedSource.startsWith('http') || trimmedSource.startsWith('data:image')) {
                             imageSrc = trimmedSource;
+                            console.log('Found potential image source:', source);
                             break;
                         }
                     }
                 }
 
-                // Fallback to Firebase Auth photo if it's a valid URL
-                if (!imageSrc && currentUser.photoURL && currentUser.photoURL.startsWith('http')) {
+                if (!imageSrc && currentUser.photoURL) {
                     imageSrc = currentUser.photoURL;
                 }
 
-                // 3. If we found a valid URL, try to load it in background
                 if (imageSrc) {
+                    // 3. Pre-load the image in JavaScript memory
                     const img = new Image();
                     
                     img.onload = function() {
-                        // Success! Swap initials for the image
+                        // 4. Success: Clear initials and show the image
+                        console.log('User image loaded successfully');
                         avatar.innerHTML = ''; 
                         
+                        // Re-create the img element for the DOM
                         const domImg = document.createElement('img');
                         domImg.src = imageSrc;
                         domImg.alt = 'User Avatar';
@@ -1188,19 +1169,19 @@
                     };
 
                     img.onerror = function() {
-                        // Failed to load? Do nothing. Keep the initials.
-                        // This prevents the broken icon from showing up.
-                        console.warn('Profile image failed to load, keeping initials.');
+                        // 5. Failure: Do nothing.
+                        // The initials are already showing. 
+                        // We swallow the visual error so the user sees a nice UI.
+                        console.warn('Profile image failed to load (404), keeping initials.');
                     };
 
+                    // Trigger the load
                     img.src = imageSrc;
                 }
-                // If no valid imageSrc, we just leave the initials.
             });
 
             function showAvatarInitials(avatar, name) {
-                avatar.innerHTML = ''; // This wipes out any broken <img> tags from the sidebar loader
-                
+                avatar.innerHTML = '';
                 let initials = 'U';
                 const nameParts = name.trim().split(' ');
                 if (nameParts.length >= 2) {
