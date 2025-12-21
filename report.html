@@ -16,7 +16,6 @@
     
     <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
         /* Light theme color palette */
@@ -62,7 +61,7 @@
             overflow: hidden;
         }
 
-        /* Sidebar Styles (same as before) */
+        /* Sidebar Styles */
         .sidebar {
             width: 260px;
             background: var(--sidebar-bg);
@@ -279,7 +278,6 @@
 
         .user-profile-mini {
             display: flex;
-            object-fit: cover;
             align-items: center;
             transition: all var(--transition-speed);
         }
@@ -548,11 +546,6 @@
         .edit-action {
             background: #f3e5f5;
             color: #7b1fa2;
-        }
-
-        .delete-action {
-            background: #ffebee;
-            color: #e53935;
         }
 
         /* Charts Section */
@@ -964,27 +957,43 @@
                 if (userDoc.exists()) {
                     const userData = userDoc.data();
                     updateUserProfile(userData);
+                } else {
+                    console.log('No user document found');
+                    updateUserProfile({});
                 }
             } catch (error) {
                 console.error('Error loading user data:', error);
+                updateUserProfile({});
             }
         }
 
         function updateUserProfile(userData) {
+            console.log('User data received:', userData);
+            
             const userNameElements = document.querySelectorAll('.user-name');
+            const userRoleElements = document.querySelectorAll('.user-role');
             const userAvatarElements = document.querySelectorAll('.user-avatar');
             
             // Update user name
+            let displayName = 'User';
+            if (userData.firstName && userData.lastName) {
+                displayName = `${userData.firstName} ${userData.lastName}`;
+            } else if (userData.username) {
+                displayName = userData.username;
+            } else if (userData.displayName) {
+                displayName = userData.displayName;
+            } else {
+                displayName = currentUser.email.split('@')[0];
+            }
+            
             userNameElements.forEach(el => {
-                if (userData.firstName && userData.lastName) {
-                    el.textContent = `${userData.firstName} ${userData.lastName}`;
-                } else if (userData.username) {
-                    el.textContent = userData.username;
-                } else if (userData.displayName) {
-                    el.textContent = userData.displayName;
-                } else {
-                    el.textContent = currentUser.email.split('@')[0];
-                }
+                el.textContent = displayName;
+            });
+
+            // Update user role/bio
+            const role = userData.role || userData.bio || 'Farmer';
+            userRoleElements.forEach(el => {
+                el.textContent = role;
             });
 
             // Update user avatar with fallback
@@ -992,42 +1001,48 @@
                 // Clear existing content
                 avatar.innerHTML = '';
                 
-                if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
-                    // Use Base64 image
-                    const img = document.createElement('img');
-                    img.src = userData.imageBase64.trim();
-                    img.alt = 'User Avatar';
-                    img.onerror = function() {
-                        // If image fails to load, use initials
-                        showAvatarInitials(avatar, userData);
-                    };
-                    avatar.appendChild(img);
+                // Try different image sources
+                let imageSrc = '';
+                
+                if (userData.profileImage && userData.profileImage.trim() !== '') {
+                    imageSrc = userData.profileImage.trim();
+                } else if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
+                    imageSrc = userData.imageBase64.trim();
                 } else if (userData.picture && userData.picture.trim() !== '') {
-                    // Use picture URL
+                    imageSrc = userData.picture.trim();
+                } else if (userData.photoURL && userData.photoURL.trim() !== '') {
+                    imageSrc = userData.photoURL.trim();
+                }
+
+                if (imageSrc) {
+                    // Create image element
                     const img = document.createElement('img');
-                    img.src = userData.picture.trim();
+                    img.src = imageSrc;
                     img.alt = 'User Avatar';
                     img.onerror = function() {
-                        // If image fails to load, use initials
-                        showAvatarInitials(avatar, userData);
+                        console.log('Image failed to load, using initials');
+                        showAvatarInitials(avatar, displayName);
+                    };
+                    img.onload = function() {
+                        console.log('User image loaded successfully');
                     };
                     avatar.appendChild(img);
                 } else {
-                    // Use initials
-                    showAvatarInitials(avatar, userData);
+                    console.log('No image source found, using initials');
+                    showAvatarInitials(avatar, displayName);
                 }
             });
 
-            function showAvatarInitials(avatar, userData) {
+            function showAvatarInitials(avatar, name) {
+                // Get initials from name
                 let initials = 'U';
-                if (userData.firstName && userData.lastName) {
-                    initials = `${userData.firstName.charAt(0)}${userData.lastName.charAt(0)}`.toUpperCase();
-                } else if (userData.username) {
-                    initials = userData.username.charAt(0).toUpperCase();
-                } else if (userData.displayName) {
-                    const names = userData.displayName.split(' ');
-                    initials = names.map(n => n.charAt(0)).join('').toUpperCase().substring(0, 2);
+                const nameParts = name.split(' ');
+                if (nameParts.length >= 2) {
+                    initials = (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                } else if (name.length > 0) {
+                    initials = name.charAt(0).toUpperCase();
                 }
+                
                 avatar.textContent = initials;
                 avatar.style.background = 'var(--gradient)';
                 avatar.style.color = 'white';
@@ -1035,6 +1050,7 @@
                 avatar.style.alignItems = 'center';
                 avatar.style.justifyContent = 'center';
                 avatar.style.fontWeight = 'bold';
+                avatar.style.fontSize = '1.1rem';
             }
         }
 
@@ -1057,7 +1073,7 @@
                     });
                 });
 
-                console.log(`Loaded ${allFarms.length} farms`);
+                console.log(`Loaded ${allFarms.length} farms:`, allFarms);
 
                 // Load assessments
                 const assessmentsQuery = query(
@@ -1077,7 +1093,7 @@
                     });
                 });
 
-                console.log(`Loaded ${allAssessments.length} assessments`);
+                console.log(`Loaded ${allAssessments.length} assessments:`, allAssessments);
 
                 // Populate disease filter
                 populateDiseaseFilter();
@@ -1436,7 +1452,7 @@
                 
                 // Get images if available
                 let imagesHtml = '<span style="color: var(--text-lighter);">No images</span>';
-                if (farm.images && farm.images.length > 0) {
+                if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
                     imagesHtml = farm.images.slice(0, 3).map((img, index) => 
                         `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="viewImage('${img}')">`
                     ).join(' ');
@@ -1574,22 +1590,38 @@
 
         async function generatePDF(data, isMultiple) {
             try {
+                // Check if jsPDF is loaded
+                if (typeof window.jspdf === 'undefined') {
+                    throw new Error('jsPDF library not loaded. Please check your internet connection.');
+                }
+
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+                
+                // Create PDF document
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
                 let yOffset = 20;
+                const pageWidth = doc.internal.pageSize.width;
+                const margin = 20;
+                const contentWidth = pageWidth - (2 * margin);
 
                 if (isMultiple) {
                     // Generate PDF for multiple reports
                     doc.setFontSize(20);
                     doc.setTextColor(46, 125, 50);
-                    doc.text('Palm Aegis - Assessment Reports', 105, yOffset, { align: 'center' });
+                    doc.text('Palm Aegis - Assessment Reports', pageWidth / 2, yOffset, { align: 'center' });
                     yOffset += 15;
 
                     doc.setFontSize(12);
                     doc.setTextColor(100, 100, 100);
-                    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 105, yOffset, { align: 'center' });
-                    doc.text(`Total Reports: ${data.length}`, 105, yOffset + 7, { align: 'center' });
-                    yOffset += 25;
+                    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset, { align: 'center' });
+                    yOffset += 7;
+                    doc.text(`Total Reports: ${data.length}`, pageWidth / 2, yOffset, { align: 'center' });
+                    yOffset += 20;
 
                     // Add a page for each report
                     data.forEach((assessment, index) => {
@@ -1608,13 +1640,13 @@
                 // Save the PDF
                 const fileName = isMultiple 
                     ? `Palm-Aegis-Reports-${new Date().toISOString().slice(0,10)}.pdf`
-                    : `Assessment-${data.id}-${new Date().toISOString().slice(0,10)}.pdf`;
+                    : `Assessment-${data.id || 'report'}-${new Date().toISOString().slice(0,10)}.pdf`;
                 
                 doc.save(fileName);
 
             } catch (error) {
                 console.error('Error generating PDF:', error);
-                alert('Failed to generate PDF. Please try again.');
+                alert(`Failed to generate PDF: ${error.message}. Please make sure you have a stable internet connection.`);
             }
         }
 
@@ -1631,7 +1663,7 @@
 
             doc.setFontSize(11);
             doc.setTextColor(100, 100, 100);
-            doc.text(`Report ID: ${assessment.id}`, margin, yOffset);
+            doc.text(`Report ID: ${assessment.id || 'N/A'}`, margin, yOffset);
             doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - margin, yOffset, { align: 'right' });
             yOffset += 15;
 
@@ -1645,17 +1677,24 @@
             doc.setTextColor(0, 0, 0);
             
             const details = [
-                ['Date:', new Date(assessment.date).toLocaleDateString()],
+                ['Date:', assessment.date ? new Date(assessment.date).toLocaleDateString() : 'N/A'],
                 ['Time:', assessment.time || 'N/A'],
                 ['Disease:', assessment.disease || 'None detected'],
                 ['Health Status:', assessment.healthStatus || 'Healthy'],
                 ['Detection Count:', assessment.detectionCount || 0],
                 ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
                 ['Location:', assessment.location || 'Not specified'],
-                ['Treatment:', assessment.treatment || 'None']
+                ['Treatment:', assessment.treatment || 'None'],
+                ['User:', assessment.userName || assessment.userEmail || 'N/A']
             ];
 
             details.forEach(([label, value]) => {
+                // Check if we need a new page
+                if (yOffset > 250) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                
                 doc.text(label, margin, yOffset);
                 doc.text(value, margin + 50, yOffset);
                 yOffset += 7;
@@ -1664,7 +1703,12 @@
             yOffset += 5;
 
             // Detections
-            if (assessment.detections && assessment.detections.length > 0) {
+            if (assessment.detections && Array.isArray(assessment.detections) && assessment.detections.length > 0) {
+                if (yOffset > 230) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                
                 doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
                 doc.text('Detections', margin, yOffset);
@@ -1675,7 +1719,7 @@
                     const detectionText = `Detection ${index + 1}: ${det.disease || 'Unknown'} (${det.confidence ? Math.round(det.confidence * 100) : 0}%)`;
                     const lines = doc.splitTextToSize(detectionText, contentWidth);
                     lines.forEach(line => {
-                        if (yOffset > doc.internal.pageSize.height - 20) {
+                        if (yOffset > 250) {
                             doc.addPage();
                             yOffset = 20;
                         }
@@ -1688,6 +1732,11 @@
 
             // Next Assessment
             if (assessment.nextAssessment) {
+                if (yOffset > 230) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                
                 yOffset += 5;
                 doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
@@ -1701,7 +1750,7 @@
             }
 
             // Footer
-            const finalY = doc.internal.pageSize.height - 20;
+            const finalY = doc.internal.pageSize.height - 10;
             doc.setFontSize(10);
             doc.setTextColor(150, 150, 150);
             doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
