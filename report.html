@@ -6,9 +6,10 @@
     <title>Farm & Assessment Report</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="css/sidebar.css">
-        <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
+    <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
     <link rel="shortcut icon" href="images/logo1.png">
     <meta name="theme-color" content="#2e7d32">
     <style>
@@ -61,7 +62,6 @@
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 1px solid #e1e5eb;
-            position: relative;
         }
 
         .page-title {
@@ -73,24 +73,6 @@
         .subtitle {
             color: #7f8c8d;
             font-size: 1.1rem;
-        }
-
-        .user-info {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: white;
-            padding: 10px 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-email {
-            font-weight: 600;
-            color: #3498db;
         }
 
         .controls {
@@ -133,14 +115,6 @@
 
         .download-btn:hover {
             background-color: #219653 !important;
-        }
-
-        .logout-btn {
-            background-color: #e74c3c !important;
-        }
-
-        .logout-btn:hover {
-            background-color: #c0392b !important;
         }
 
         .stats {
@@ -301,6 +275,28 @@
             font-size: 0.9rem;
         }
 
+        .pdf-header {
+            background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .pdf-logo {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
         @media (max-width: 768px) {
             .dashboard-container {
                 flex-direction: column;
@@ -327,12 +323,6 @@
                 padding: 10px 5px;
                 font-size: 0.9rem;
             }
-            
-            .user-info {
-                position: static;
-                margin-top: 15px;
-                justify-content: center;
-            }
         }
     </style>
 </head>
@@ -345,23 +335,19 @@
         <div class="main-content">
             <div class="top-header">
                 <div class="header-left">
-                    <h1>Community Forum</h1>
-                </div>
-                <div class="user-info">
-                    <span class="user-email" id="userEmail">Loading...</span>
-                    <button id="logoutBtn" class="logout-btn" style="padding: 5px 10px; font-size: 14px;">Logout</button>
+                    <h1>Farm Management Report</h1>
                 </div>
             </div>
 
             <div class="container">
                 <header>
-                    <h1 class="page-title">My Farm Management Report</h1>
-                    <p class="subtitle">Your personalized data from Firestore collections</p>
+                    <h1 class="page-title">Farm Management Report</h1>
+                    <p class="subtitle">Comprehensive overview of your farms and assessments</p>
                 </header>
 
                 <div class="controls">
-                    <button id="loadData">Load My Data</button>
-                    <button id="downloadReport" class="download-btn">Download Report</button>
+                    <button id="loadData">Load Data</button>
+                    <button id="downloadReport" class="download-btn">Generate PDF Report</button>
                     <select id="collectionSelect">
                         <option value="both">Both Collections</option>
                         <option value="farms">Farms Only</option>
@@ -402,9 +388,9 @@
                 </div>
 
                 <div class="data-section">
-                    <h2 class="section-title">My Farms Collection</h2>
+                    <h2 class="section-title">Farms Collection</h2>
                     <div class="table-container">
-                        <div id="farmsLoading" class="loading">Click "Load My Data" to fetch your farm information</div>
+                        <div id="farmsLoading" class="loading">Click "Load Data" to fetch farm information</div>
                         <table id="farmsTable" style="display: none;">
                             <thead>
                                 <tr>
@@ -426,9 +412,9 @@
                 </div>
 
                 <div class="data-section">
-                    <h2 class="section-title">My Assessments Collection</h2>
+                    <h2 class="section-title">Assessments Collection</h2>
                     <div class="table-container">
-                        <div id="assessmentsLoading" class="loading">Click "Load My Data" to fetch your assessment information</div>
+                        <div id="assessmentsLoading" class="loading">Click "Load Data" to fetch assessment information</div>
                         <table id="assessmentsTable" style="display: none;">
                             <thead>
                                 <tr>
@@ -451,7 +437,7 @@
                 </div>
 
                 <footer>
-                    <p>Report generated from Firebase Firestore | Only your data is displayed</p>
+                    <p>Report generated from Firebase Firestore</p>
                     <p class="timestamp">Last updated: <span id="lastUpdated">Not loaded yet</span></p>
                 </footer>
             </div>
@@ -478,12 +464,8 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        const auth = firebase.auth();
 
         // DOM elements
-        const userEmail = document.getElementById('userEmail');
-        const logoutBtn = document.getElementById('logoutBtn');
-        
         const loadDataBtn = document.getElementById('loadData');
         const downloadReportBtn = document.getElementById('downloadReport');
         const collectionSelect = document.getElementById('collectionSelect');
@@ -507,12 +489,10 @@
         // Global data storage
         let farmsData = [];
         let assessmentsData = [];
-        let currentUser = null;
 
         // Event Listeners
-        logoutBtn.addEventListener('click', handleLogout);
-        loadDataBtn.addEventListener('click', loadUserData);
-        downloadReportBtn.addEventListener('click', downloadReport);
+        loadDataBtn.addEventListener('click', loadData);
+        downloadReportBtn.addEventListener('click', generatePDFReport);
         collectionSelect.addEventListener('change', filterData);
         sortSelect.addEventListener('change', sortData);
         healthFilter.addEventListener('change', filterData);
@@ -526,48 +506,27 @@
                 imageModal.style.display = 'none';
             }
         });
-        
-        // Handle logout
-        async function handleLogout() {
-            try {
-                await auth.signOut();
-                // After logout, you might want to redirect to a login page
-                alert('You have been logged out. This page will refresh.');
-                location.reload();
-            } catch (error) {
-                console.error('Logout error:', error);
-            }
-        }
 
-        // Load user-specific data from Firestore
-        async function loadUserData() {
-            if (!currentUser) {
-                console.log('No user found. Please ensure you are logged in.');
-                return;
-            }
-            
+        // Load data from Firestore
+        async function loadData() {
             try {
                 // Show loading states
-                farmsLoading.textContent = "Loading your farms data...";
-                assessmentsLoading.textContent = "Loading your assessments data...";
+                farmsLoading.textContent = "Loading farms data...";
+                assessmentsLoading.textContent = "Loading assessments data...";
                 
                 // Reset data
                 farmsData = [];
                 assessmentsData = [];
                 
-                // Load farms data for current user only
-                const farmsSnapshot = await db.collection("farms")
-                    .where("userId", "==", currentUser.uid)
-                    .get();
+                // Load farms data
+                const farmsSnapshot = await db.collection("farms").get();
                 farmsData = farmsSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
                 }));
                 
-                // Load assessments data for current user only
-                const assessmentsSnapshot = await db.collection("assessments")
-                    .where("userId", "==", currentUser.uid)
-                    .get();
+                // Load assessments data
+                const assessmentsSnapshot = await db.collection("assessments").get();
                 assessmentsData = assessmentsSnapshot.docs.map(doc => ({
                     id: doc.id,
                     ...doc.data()
@@ -579,26 +538,10 @@
                 updateLastUpdated();
                 
             } catch (error) {
-                console.error("Error loading user data:", error);
+                console.error("Error loading data:", error);
                 farmsLoading.textContent = "Error loading farms data. Check console.";
                 assessmentsLoading.textContent = "Error loading assessments data. Check console.";
             }
-        }
-
-        // Clear data when user logs out
-        function clearData() {
-            farmsData = [];
-            assessmentsData = [];
-            farmsBody.innerHTML = '';
-            assessmentsBody.innerHTML = '';
-            farmsTable.style.display = 'none';
-            assessmentsTable.style.display = 'none';
-            farmsLoading.style.display = 'block';
-            assessmentsLoading.style.display = 'block';
-            farmsLoading.textContent = "Click 'Load My Data' to fetch your farm information";
-            assessmentsLoading.textContent = "Click 'Load My Data' to fetch your assessment information";
-            updateStats();
-            lastUpdatedEl.textContent = "Not loaded yet";
         }
 
         // Update statistics
@@ -630,7 +573,7 @@
                 farmsTable.style.display = farmsData.length ? 'table' : 'none';
                 farmsLoading.style.display = farmsData.length ? 'none' : 'block';
                 if (farmsData.length === 0) {
-                    farmsLoading.textContent = "No farms found for your account";
+                    farmsLoading.textContent = "No farms found";
                 }
                 renderFarmsTable();
             } else {
@@ -644,7 +587,7 @@
                 assessmentsLoading.style.display = filteredAssessments.length ? 'none' : 'block';
                 if (filteredAssessments.length === 0) {
                     assessmentsLoading.textContent = healthStatus === 'all' 
-                        ? "No assessments found for your account" 
+                        ? "No assessments found" 
                         : `No ${healthStatus.toLowerCase()} assessments found`;
                 }
                 renderAssessmentsTable(filteredAssessments);
@@ -746,7 +689,7 @@
                 
                 row.innerHTML = `
                     <td class="timestamp">${formattedDate}</td>
-                    <td>${assessment.userName || assessment.userEmail || 'You'}</td>
+                    <td>${assessment.userName || assessment.userEmail || 'User'}</td>
                     <td><span class="${healthStatusClass}">${assessment.healthStatus || 'Unknown'}</span></td>
                     <td>${assessment.disease || 'N/A'}</td>
                     <td>${assessment.detectionCount || 0}</td>
@@ -831,126 +774,235 @@
             imageModal.style.display = 'flex';
         }
 
-        // Download report as CSV
-        function downloadReport() {
-            if (!currentUser) {
-                alert('Please login to download your report');
-                return;
-            }
-            
+        // Generate PDF Report
+        async function generatePDFReport() {
             if (farmsData.length === 0 && assessmentsData.length === 0) {
-                alert('No data to download. Please load your data first.');
+                alert('No data to generate report. Please load data first.');
                 return;
             }
             
-            const collectionType = collectionSelect.value;
-            const now = new Date();
-            const timestamp = now.toISOString().split('T')[0];
-            const filename = `farm_report_${currentUser.email}_${timestamp}.csv`;
-            
-            let csvContent = "data:text/csv;charset=utf-8,";
-            
-            // Add header
-            csvContent += `Farm Management Report for ${currentUser.email}\n`;
-            csvContent += `Generated on: ${now.toLocaleString()}\n\n`;
-            
-            // Add farms data if selected
-            if (collectionType === 'both' || collectionType === 'farms') {
-                csvContent += "MY FARMS\n";
-                csvContent += "Name,Location,Area,Crops,Soil Type,Status,Created\n";
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
                 
-                farmsData.forEach(farm => {
-                    const crops = farm.crops ? 
-                        (Array.isArray(farm.crops) ? farm.crops.join('; ') : farm.crops) : 
-                        '';
-                    const createdAt = farm.createdAt ? 
-                        new Date(farm.createdAt.seconds * 1000).toLocaleDateString() : 
-                        'N/A';
+                // Add header with logo and title
+                doc.setFillColor(46, 125, 50);
+                doc.rect(0, 0, pageWidth, 40, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.setFont('helvetica', 'bold');
+                doc.text('FARM MANAGEMENT REPORT', pageWidth / 2, 20, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                const now = new Date();
+                doc.text(`Generated on: ${now.toLocaleDateString()} ${now.toLocaleTimeString()}`, pageWidth / 2, 30, { align: 'center' });
+                
+                let yPosition = 50;
+                
+                // Add Summary Statistics
+                doc.setFillColor(240, 248, 255);
+                doc.rect(10, yPosition, pageWidth - 20, 30, 'F');
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                doc.text('SUMMARY STATISTICS', 15, yPosition + 10);
+                
+                yPosition += 35;
+                
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`Total Farms: ${farmsData.length}`, 15, yPosition);
+                doc.text(`Total Assessments: ${assessmentsData.length}`, pageWidth / 2, yPosition);
+                
+                yPosition += 8;
+                doc.text(`Healthy Assessments: ${assessmentsData.filter(a => a.healthStatus === "Healthy").length}`, 15, yPosition);
+                doc.text(`Unhealthy Assessments: ${assessmentsData.filter(a => a.healthStatus === "Unhealthy").length}`, pageWidth / 2, yPosition);
+                
+                yPosition += 20;
+                
+                // Add Farms Data
+                if (farmsData.length > 0) {
+                    doc.addPage();
+                    yPosition = 20;
                     
-                    csvContent += `"${farm.name || ''}","${farm.location || ''}","${farm.area || ''}","${crops}","${farm.soilType || ''}","${farm.status || ''}","${createdAt}"\n`;
-                });
-                
-                csvContent += "\n";
-            }
-            
-            // Add assessments data if selected
-            if (collectionType === 'both' || collectionType === 'assessments') {
-                csvContent += "MY ASSESSMENTS\n";
-                csvContent += "Date,Health Status,Disease,Detection Count,Location,Treatment,Confidence\n";
-                
-                assessmentsData.forEach(assessment => {
-                    const date = assessment.date || assessment.timestamp || assessment.createdAt;
-                    let formattedDate = 'N/A';
-                    if (date) {
-                        if (date.seconds) {
-                            formattedDate = new Date(date.seconds * 1000).toLocaleDateString();
-                        } else if (typeof date === 'string') {
-                            formattedDate = new Date(date).toLocaleDateString();
+                    doc.setFontSize(18);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('FARMS DATA', 15, yPosition);
+                    
+                    yPosition += 15;
+                    
+                    // Farms Table Header
+                    doc.setFillColor(52, 152, 219);
+                    doc.rect(10, yPosition, pageWidth - 20, 10, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    
+                    const farmColWidths = [40, 40, 25, 40, 25, 20];
+                    const farmCols = ['Name', 'Location', 'Area', 'Crops', 'Soil Type', 'Created'];
+                    
+                    let xPosition = 12;
+                    farmCols.forEach((col, index) => {
+                        doc.text(col, xPosition, yPosition + 7);
+                        xPosition += farmColWidths[index];
+                    });
+                    
+                    yPosition += 10;
+                    
+                    // Farms Table Data
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'normal');
+                    
+                    farmsData.forEach((farm, index) => {
+                        if (yPosition > pageHeight - 20) {
+                            doc.addPage();
+                            yPosition = 20;
                         }
-                    }
+                        
+                        const crops = farm.crops ? 
+                            (Array.isArray(farm.crops) ? farm.crops.join(', ') : farm.crops) : 
+                            '';
+                        const createdAt = farm.createdAt ? 
+                            new Date(farm.createdAt.seconds * 1000).toLocaleDateString() : 
+                            'N/A';
+                        
+                        xPosition = 12;
+                        doc.text(farm.name || 'Unnamed', xPosition, yPosition + 7);
+                        xPosition += farmColWidths[0];
+                        doc.text(farm.location || 'N/A', xPosition, yPosition + 7);
+                        xPosition += farmColWidths[1];
+                        doc.text(farm.area || 'N/A', xPosition, yPosition + 7);
+                        xPosition += farmColWidths[2];
+                        doc.text(crops.substring(0, 30) + (crops.length > 30 ? '...' : ''), xPosition, yPosition + 7);
+                        xPosition += farmColWidths[3];
+                        doc.text(farm.soilType || 'N/A', xPosition, yPosition + 7);
+                        xPosition += farmColWidths[4];
+                        doc.text(createdAt, xPosition, yPosition + 7);
+                        
+                        yPosition += 10;
+                    });
                     
-                    const confidence = assessment.confidenceThreshold ? 
-                        `${Math.round(assessment.confidenceThreshold * 100)}%` : 
-                        'N/A';
+                    yPosition += 10;
+                }
+                
+                // Add Assessments Data
+                if (assessmentsData.length > 0) {
+                    doc.addPage();
+                    yPosition = 20;
                     
-                    csvContent += `"${formattedDate}","${assessment.healthStatus || ''}","${assessment.disease || ''}",${assessment.detectionCount || 0},"${assessment.location || ''}","${assessment.treatment || ''}","${confidence}"\n`;
-                });
+                    doc.setFontSize(18);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('ASSESSMENTS DATA', 15, yPosition);
+                    
+                    yPosition += 15;
+                    
+                    // Assessments Table Header
+                    doc.setFillColor(52, 152, 219);
+                    doc.rect(10, yPosition, pageWidth - 20, 10, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(10);
+                    doc.setFont('helvetica', 'bold');
+                    
+                    const assessmentColWidths = [25, 30, 20, 30, 20, 25, 30, 20];
+                    const assessmentCols = ['Date', 'User', 'Status', 'Disease', 'Count', 'Location', 'Treatment', 'Confidence'];
+                    
+                    xPosition = 12;
+                    assessmentCols.forEach((col, index) => {
+                        doc.text(col, xPosition, yPosition + 7);
+                        xPosition += assessmentColWidths[index];
+                    });
+                    
+                    yPosition += 10;
+                    
+                    // Assessments Table Data
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'normal');
+                    
+                    assessmentsData.forEach((assessment) => {
+                        if (yPosition > pageHeight - 20) {
+                            doc.addPage();
+                            yPosition = 20;
+                        }
+                        
+                        const date = assessment.date || assessment.timestamp || assessment.createdAt;
+                        let formattedDate = 'N/A';
+                        if (date) {
+                            if (date.seconds) {
+                                formattedDate = new Date(date.seconds * 1000).toLocaleDateString();
+                            } else if (typeof date === 'string') {
+                                formattedDate = new Date(date).toLocaleDateString();
+                            }
+                        }
+                        
+                        const confidence = assessment.confidenceThreshold ? 
+                            `${Math.round(assessment.confidenceThreshold * 100)}%` : 
+                            'N/A';
+                        
+                        // Set color based on health status
+                        if (assessment.healthStatus === "Healthy") {
+                            doc.setTextColor(46, 125, 50);
+                        } else if (assessment.healthStatus === "Unhealthy") {
+                            doc.setTextColor(231, 76, 60);
+                        } else {
+                            doc.setTextColor(0, 0, 0);
+                        }
+                        
+                        xPosition = 12;
+                        doc.text(formattedDate, xPosition, yPosition + 7);
+                        xPosition += assessmentColWidths[0];
+                        doc.text(assessment.userName || assessment.userEmail || 'User', xPosition, yPosition + 7);
+                        xPosition += assessmentColWidths[1];
+                        doc.text(assessment.healthStatus || 'Unknown', xPosition, yPosition + 7);
+                        xPosition += assessmentColWidths[2];
+                        doc.text(assessment.disease || 'N/A', xPosition, yPosition + 7);
+                        xPosition += assessmentColWidths[3];
+                        doc.text((assessment.detectionCount || 0).toString(), xPosition, yPosition + 7);
+                        xPosition += assessmentColWidths[4];
+                        doc.text(assessment.location || 'N/A', xPosition, yPosition + 7);
+                        xPosition += assessmentColWidths[5];
+                        doc.text(assessment.treatment || 'N/A', xPosition, yPosition + 7);
+                        xPosition += assessmentColWidths[6];
+                        doc.text(confidence, xPosition, yPosition + 7);
+                        
+                        doc.setTextColor(0, 0, 0);
+                        yPosition += 10;
+                    });
+                }
+                
+                // Add footer on last page
+                doc.setFontSize(10);
+                doc.setTextColor(128, 128, 128);
+                doc.text('Report generated by Palmaegis Farm Management System', pageWidth / 2, pageHeight - 10, { align: 'center' });
+                
+                // Save the PDF
+                doc.save(`farm_report_${now.toISOString().split('T')[0]}.pdf`);
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF report. Please try again.');
             }
-            
-            // Add summary statistics
-            csvContent += "\nSUMMARY\n";
-            csvContent += `Total Farms,${farmsData.length}\n`;
-            csvContent += `Total Assessments,${assessmentsData.length}\n`;
-            csvContent += `Healthy Assessments,${assessmentsData.filter(a => a.healthStatus === "Healthy").length}\n`;
-            csvContent += `Unhealthy Assessments,${assessmentsData.filter(a => a.healthStatus === "Unhealthy").length}\n`;
-            
-            // Create download link
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", filename);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
-
-        // Sidebar functions - These are now available globally for the sidebar to call
-        window.showAllData = function() {
-            collectionSelect.value = 'both';
-            healthFilter.value = 'all';
-            renderData();
-        }
-
-        window.filterByStatus = function(status) {
-            collectionSelect.value = 'assessments';
-            healthFilter.value = status;
-            renderData();
-        }
-
-        // Make these functions globally available for the sidebar
-        window.loadUserData = loadUserData;
-        window.downloadReport = downloadReport;
-        window.handleLogout = handleLogout;
-        window.openImageModal = openImageModal;
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', () => {
             lastUpdatedEl.textContent = "Not loaded yet";
-            // Auto-check auth state
-            auth.onAuthStateChanged((user) => {
-                if (user) {
-                    currentUser = user;
-                    userEmail.textContent = user.email;
-                    if (sidebarUserEmail) {
-                        sidebarUserEmail.textContent = user.email;
-                    }
-                    // Auto-load data after a short delay
-                    setTimeout(() => {
-                        loadUserData();
-                    }, 1000);
-                }
-            });
+            // Auto-load data
+            setTimeout(() => {
+                loadData();
+            }, 1000);
         });
+
+        // Make functions globally available
+        window.loadData = loadData;
+        window.generatePDFReport = generatePDFReport;
+        window.openImageModal = openImageModal;
     </script>
 </body>
 </html>
