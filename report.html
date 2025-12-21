@@ -666,9 +666,9 @@
             opacity: 0.9;
         }
 
-        /* Charts Section - MODIFIED TO HIDE INITIALLY */
+        /* Charts Section - HIDDEN */
         .charts-section {
-            display: none !important; /* Hidden as requested */
+            display: none !important;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
@@ -1361,7 +1361,6 @@
             noDataMessage.style.display = 'none';
 
             // Don't update charts since they're hidden
-            // updateCharts();
 
             // Update reports grid
             updateReportsGrid();
@@ -1369,8 +1368,6 @@
             // Update tables
             updateTables();
         }
-
-        // Removed chart update functions since charts are hidden
 
         function updateReportsGrid() {
             reportsGrid.innerHTML = '';
@@ -1692,7 +1689,7 @@
 
             } catch (error) {
                 console.error('Error generating PDF:', error);
-                alert(`Failed to generate PDF: ${error.message}. Please make sure you have a stable internet connection.`);
+                alert(`Failed to generate PDF: ${error.message}\n\nPlease make sure you have a stable internet connection.`);
             }
         }
 
@@ -1713,7 +1710,7 @@
             doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - margin, yOffset, { align: 'right' });
             yOffset += 15;
 
-            // Assessment Details
+            // Assessment Details - FIXED: Convert all values to strings
             doc.setFontSize(14);
             doc.setTextColor(46, 125, 50);
             doc.text('Assessment Details', margin, yOffset);
@@ -1722,12 +1719,13 @@
             doc.setFontSize(11);
             doc.setTextColor(0, 0, 0);
             
+            // Convert all values to strings explicitly to avoid jsPDF error
             const details = [
                 ['Date:', assessment.date ? new Date(assessment.date).toLocaleDateString() : 'N/A'],
                 ['Time:', assessment.time || 'N/A'],
                 ['Disease:', assessment.disease || 'None detected'],
                 ['Health Status:', assessment.healthStatus || 'Healthy'],
-                ['Detection Count:', assessment.detectionCount || 0],
+                ['Detection Count:', String(assessment.detectionCount || 0)], // Convert number to string
                 ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
                 ['Location:', assessment.location || 'Not specified'],
                 ['Treatment:', assessment.treatment || 'None'],
@@ -1742,7 +1740,7 @@
                 }
                 
                 doc.text(label, margin, yOffset);
-                doc.text(value, margin + 50, yOffset);
+                doc.text(String(value), margin + 50, yOffset); // Ensure value is string
                 yOffset += 7;
             });
 
