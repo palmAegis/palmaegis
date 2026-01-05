@@ -7,7 +7,6 @@
             messagingSenderId: "445887502374",
             appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
         };
-
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
@@ -304,3 +303,276 @@ async function uploadImages() {
     progressFill.style.width = '0%';
     progressText.textContent = 'Uploading...';
     
+    const uploadPromises = selectedImages.map(async (image, index) => {
+        const fileName = `posts/${Date.now()}_${image.file.name}`;
+        const storageRef = storage.ref().child(fileName);
+        const uploadTask = storageRef.put(image.file);
+        
+        return new Promise((resolve, reject) => {
+            uploadTask.on('state_changed',
+                (snapshot) => {
+                    // Calculate progress for individual file
+                    const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                    // Update overall progress
+                    const overallProgress = (index / selectedImages.length) * 100 + (progress / selectedImages.length);
+                    progressFill.style.width = overallProgress + '%';
+                    progressText.textContent = `Uploading ${index + 1}/${selectedImages.length} (${Math.round(progress)}%)`;
+                },
+                (error) => {
+                    reject(error);
+                },
+                async () => {
+                    const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                    resolve(downloadURL);
+                }
+            );
+        });
+    });
+    
+    try {
+        const imageUrls = await Promise.all(uploadPromises);
+        uploadProgress.style.display = 'none';
+        return imageUrls;
+    } catch (error) {
+        console.error('Error uploading images:', error);
+        uploadProgress.style.display = 'none';
+        throw error;
+    }
+}
+
+// Create new post
+async function createPost() {
+    const title = postTitleInput.value.trim();
+    const content = postContentInput.value.trim();
+    
+    if (!title || !content) {
+        alert('Please enter both title and content');
+        return;
+    }
+    
+    try {
+        submitPostBtn.disabled = true;
+        submitPostBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Posting...</span>';
+        
+        // Upload images first
+        const imageUrls = await uploadImages();
+        
+        // Create post object
+        const post = {
+            id: 'post_' + Date.now(),
+            title: title,
+            content: content,
+            category: postCategorySelect.value,
+            author: {
+                id: currentUser.id,
+                name: currentUser.name,
+                avatar: currentUser.avatar
+            },
+            images: imageUrls,
+            likes: 0,
+            comments: 0,
+            shares: 0,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Save to Firestore
+        await db.collection('posts').doc(post.id).set(post);
+        
+        // Clear form
+        clearPostForm();
+        
+        // Reload posts
+        loadPosts();
+        
+    } catch (error) {
+        console.error('Error creating post:', error);
+        alert('Error creating post. Please try again.');
+    } finally {
+        submitPostBtn.disabled = false;
+        submitPostBtn.innerHTML = '<i class="fas fa-paper-plane"></i><span>Post</span>';
+    }
+}
+
+// Clear post form
+function clearPostForm() {
+    postTitleInput.value = '';
+    postContentInput.value = '';
+    selectedImages = [];
+    updateImagePreviews();
+    uploadProgress.style.display = 'none';
+}
+
+// Open image modal
+function openImageModal(images, startIndex) {
+    currentImages = images;
+    currentImageIndex = startIndex;
+    updateModalImage();
+    imageModal.classList.add('active');
+}
+
+// Update modal image
+function updateModalImage() {
+    if (currentImages.length === 0) return;
+    
+    modalImage.src = currentImages[currentImageIndex];
+    imageCounter.textContent = `${currentImageIndex + 1}/${currentImages.length}`;
+    
+    // Show/hide navigation buttons
+    prevImageBtn.style.display = currentImages.length > 1 ? 'flex' : 'none';
+    nextImageBtn.style.display = currentImages.length > 1 ? 'flex' : 'none';
+}
+
+// Show previous image
+function showPrevImage() {
+    currentImageIndex = (currentImageIndex - 1 + currentImages.length) % currentImages.length;
+    updateModalImage();
+}
+
+// Show next image
+function showNextImage() {
+    currentImageIndex = (currentImageIndex + 1) % currentImages.length;
+    updateModalImage();
+}
+
+// Like post
+function likePost(postId) {
+    const likeBtn = event.target.closest('.like');
+    likeBtn.classList.toggle('liked');
+    
+    // Update Firestore
+    db.collection('posts').doc(postId).update({
+        likes: firebase.firestore.FieldValue.increment(1)
+    });
+}
+
+// Comment on post
+function commentOnPost(postId) {
+    alert('Comment functionality to be implemented');
+}
+
+// Share post
+function sharePost(postId) {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Check out this post from Palm Aegis Community',
+            url: window.location.href
+        });
+    } else {
+        alert('Share link copied to clipboard!');
+        navigator.clipboard.writeText(window.location.href);
+    }
+}
+
+// Search posts
+async function handleSearch() {
+    const query = searchInput.value.trim().toLowerCase();
+    
+    if (!query) {
+        searchResults.innerHTML = '<p class="no-results">Enter search terms above</p>';
+        return;
+    }
+    
+    try {
+        searchResults.innerHTML = '<div class="loading-indicator"><div class="loading-spinner"></div><span>Searching...</span></div>';
+        
+        const snapshot = await db.collection('posts')
+            .orderBy('timestamp', 'desc')
+            .get();
+        
+        const results = [];
+        snapshot.forEach(doc => {
+            const post = doc.data();
+            const searchText = (post.title + ' ' + post.content).toLowerCase();
+            
+            if (searchText.includes(query)) {
+                results.push(post);
+            }
+        });
+        
+        if (results.length === 0) {
+            searchResults.innerHTML = '<p class="no-results">No posts found</p>';
+        } else {
+            searchResults.innerHTML = '';
+            results.forEach(post => {
+                const postElement = createPostElement(post);
+                searchResults.appendChild(postElement);
+            });
+        }
+    } catch (error) {
+        console.error('Error searching posts:', error);
+        searchResults.innerHTML = '<p class="error">Error searching posts</p>';
+    }
+}
+
+// Utility Functions
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+    
+    let interval = Math.floor(seconds / 31536000);
+    if (interval >= 1) return interval + ' year' + (interval === 1 ? '' : 's') + ' ago';
+    
+    interval = Math.floor(seconds / 2592000);
+    if (interval >= 1) return interval + ' month' + (interval === 1 ? '' : 's') + ' ago';
+    
+    interval = Math.floor(seconds / 86400);
+    if (interval >= 1) return interval + ' day' + (interval === 1 ? '' : 's') + ' ago';
+    
+    interval = Math.floor(seconds / 3600);
+    if (interval >= 1) return interval + ' hour' + (interval === 1 ? '' : 's') + ' ago';
+    
+    interval = Math.floor(seconds / 60);
+    if (interval >= 1) return interval + ' minute' + (interval === 1 ? '' : 's') + ' ago';
+    
+    return 'just now';
+}
+
+function getCategoryClass(category) {
+    const classes = {
+        'general': 'general',
+        'question': 'question',
+        'announcement': 'announcement',
+        'idea': 'idea'
+    };
+    return classes[category] || 'general';
+}
+
+function getCategoryText(category) {
+    const texts = {
+        'general': '💬 General',
+        'question': '❓ Question',
+        'announcement': '📢 News',
+        'idea': '💡 Idea'
+    };
+    return texts[category] || 'General';
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Initialize the app
+loadPosts();
+
+// Close modal on outside click
+window.addEventListener('click', (e) => {
+    if (e.target === imageModal) {
+        imageModal.classList.remove('active');
+    }
+    if (e.target === searchModal) {
+        searchModal.classList.remove('active');
+    }
+});
