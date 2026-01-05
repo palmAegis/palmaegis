@@ -11,6 +11,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 </head>
 <body>
     <div class="forum-container">
@@ -64,7 +65,7 @@
                 <i class="fas fa-lightbulb"></i>
                 <span>Ideas</span>
             </div>
-                </div>
+        </div>
 
         <!-- Main Content Area -->
         <main class="forum-main">
@@ -77,6 +78,27 @@
                     <div class="post-input-wrapper">
                         <input type="text" id="postTitle" placeholder="What's on your mind?" class="post-title-input">
                         <textarea id="postContent" placeholder="Share your thoughts..." class="post-content-input"></textarea>
+                        
+                        <!-- Image Preview Container -->
+                        <div class="image-preview-container" id="imagePreviewContainer">
+                            <!-- Image previews will appear here -->
+                        </div>
+                        
+                        <!-- Image Upload Controls -->
+                        <div class="image-upload-controls">
+                            <label for="imageUpload" class="image-upload-btn">
+                                <i class="fas fa-image"></i>
+                                <span>Add Image</span>
+                                <input type="file" id="imageUpload" accept="image/*" multiple style="display: none;">
+                            </label>
+                            <div class="upload-progress" id="uploadProgress" style="display: none;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="progressFill"></div>
+                                </div>
+                                <span id="progressText">Uploading...</span>
+                            </div>
+                        </div>
+                        
                         <div class="post-actions">
                             <div class="post-category-selector">
                                 <select id="postCategory" class="category-select">
@@ -84,7 +106,7 @@
                                     <option value="question">❓ Question</option>
                                     <option value="announcement">📢 News</option>
                                     <option value="idea">💡 Idea</option>
-                            </select>
+                                </select>
                             </div>
                             <div class="post-buttons">
                                 <button class="post-btn secondary" id="cancelPost">
@@ -106,14 +128,30 @@
                 <div class="loading-indicator">
                     <div class="loading-spinner"></div>
                     <span>Loading posts...</span>
-                    </div>
                 </div>
-            </main>
+            </div>
+        </main>
 
-        <!-- Floating Action Button -->
-        <!-- <button class="fab" id="createPostFab">
-            <i class="fas fa-plus"></i>
-        </button> -->
+        <!-- Image Modal -->
+        <div class="image-modal" id="imageModal">
+            <div class="image-modal-content">
+                <button class="close-modal" id="closeImageModal">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="modal-image-container">
+                    <img id="modalImage" src="" alt="Post Image">
+                </div>
+                <div class="image-nav">
+                    <button class="nav-btn" id="prevImage">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <span class="image-counter" id="imageCounter">1/1</span>
+                    <button class="nav-btn" id="nextImage">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Search Modal -->
         <div class="search-modal" id="searchModal">
