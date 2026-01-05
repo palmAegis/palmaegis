@@ -38,6 +38,7 @@
         .dashboard-container {
             display: flex;
             min-height: 100vh;
+            overflow: hidden;
         }
 
         .main-content {
@@ -45,6 +46,7 @@
             display: flex;
             flex-direction: column;
             width: 100%;
+            overflow: hidden;
         }
 
         .top-header {
@@ -57,6 +59,7 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            flex-shrink: 0;
         }
 
         .header-left h1 {
@@ -91,6 +94,26 @@
             padding: 30px;
             overflow-y: auto;
             width: 100%;
+            max-height: calc(100vh - 70px); /* Ensure it doesn't exceed viewport */
+        }
+
+        /* Add scrollbar styling */
+        .container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+
+        .container::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
 
         .page-header {
@@ -168,6 +191,7 @@
             overflow-x: auto;
             padding-bottom: 10px;
             scrollbar-width: thin;
+            flex-shrink: 0;
         }
 
         .category-tabs::-webkit-scrollbar {
@@ -190,6 +214,7 @@
             transition: all 0.3s;
             white-space: nowrap;
             border: 2px solid transparent;
+            flex-shrink: 0;
         }
 
         .category-tab:hover {
@@ -274,14 +299,14 @@
             align-items: center;
         }
 
-        /* Image Upload Styles */
+        /* Enhanced Image Upload Styles */
         .image-upload-section {
             margin-bottom: 20px;
-            display: none;
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
             border: 1px dashed #ddd;
+            display: none;
         }
 
         .image-upload-section.active {
@@ -294,18 +319,37 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        .image-upload-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .image-upload-header h4 {
+            color: #555;
+            font-size: 1rem;
+            margin: 0;
+        }
+
         .image-preview {
-            margin-top: 15px;
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #eee;
         }
 
         .image-preview img {
-            max-width: 150px;
-            max-height: 150px;
-            border-radius: 8px;
+            width: 120px;
+            height: 120px;
             object-fit: cover;
+            border-radius: 8px;
             border: 2px solid white;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
@@ -332,6 +376,15 @@
         .upload-btn:hover {
             background-color: #d0d0d0;
             transform: translateY(-2px);
+        }
+
+        .upload-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .upload-btn.primary:hover {
+            background-color: #1b5e20;
         }
 
         .upload-btn.camera {
@@ -373,11 +426,28 @@
             justify-content: center;
             font-size: 12px;
             transition: all 0.3s;
+            z-index: 10;
         }
 
         .remove-image:hover {
             background: #d32f2f;
             transform: scale(1.1);
+        }
+
+        .image-count {
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
         }
 
         /* Posts Grid */
@@ -572,7 +642,7 @@
             transform: none;
         }
 
-        /* Replies Section */
+        /* Enhanced Replies Section */
         .replies-section {
             margin-top: 20px;
             padding-top: 20px;
@@ -580,14 +650,29 @@
             animation: fadeIn 0.3s ease;
         }
 
-        .reply-input {
-            display: flex;
-            gap: 10px;
+        .reply-form {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
             margin-bottom: 20px;
-            flex-wrap: wrap;
+            border: 1px solid #e0e0e0;
         }
 
-        .reply-input textarea {
+        .reply-form h4 {
+            margin-bottom: 10px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .reply-input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .reply-input-container textarea {
             flex: 1;
             padding: 12px;
             border: 1px solid #ddd;
@@ -596,27 +681,101 @@
             min-height: 80px;
             font-size: 1rem;
             transition: border-color 0.3s;
+            font-family: inherit;
         }
 
-        .reply-input textarea:focus {
+        .reply-input-container textarea:focus {
             border-color: var(--primary-color);
             outline: none;
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
         }
 
-        .reply-btn {
-            padding: 10px 20px;
-            background-color: var(--primary-color);
-            color: white;
+        .reply-form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .reply-form-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .reply-attachment-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background-color: #e0e0e0;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            color: #555;
             transition: all 0.3s;
-            font-size: 1rem;
+            font-size: 0.9rem;
         }
 
-        .reply-btn:hover {
-            background-color: #1b5e20;
-            transform: translateY(-2px);
+        .reply-attachment-btn:hover {
+            background-color: #d0d0d0;
+        }
+
+        .reply-attachment-btn.has-images {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .reply-images-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .reply-image-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .reply-image-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid white;
+        }
+
+        .remove-reply-image {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 20px;
+            height: 20px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .remove-reply-image:hover {
+            background: #d32f2f;
+            transform: scale(1.1);
         }
 
         .replies-list {
@@ -630,6 +789,7 @@
             border-radius: 8px;
             padding: 15px;
             border-left: 4px solid var(--primary-color);
+            animation: slideIn 0.3s ease;
         }
 
         .reply-header {
@@ -663,6 +823,45 @@
             gap: 4px;
         }
 
+        .reply-content {
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            white-space: pre-wrap;
+        }
+
+        .reply-images {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .reply-image {
+            max-width: 120px;
+            max-height: 120px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .reply-time {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         /* Toast Notification */
         .toast {
             position: fixed;
@@ -691,17 +890,6 @@
 
         .toast-info {
             background-color: #2196f3;
-        }
-
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
         }
 
         @keyframes slideOut {
@@ -943,6 +1131,7 @@
 
             .container {
                 padding: 20px;
+                max-height: calc(100vh - 120px);
             }
 
             .page-header {
@@ -994,6 +1183,19 @@
                 min-width: 100px;
             }
 
+            .reply-input-container {
+                flex-direction: column;
+            }
+
+            .reply-form-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .reply-form-buttons {
+                justify-content: space-between;
+            }
+
             .modal-content {
                 width: 95%;
                 padding: 20px;
@@ -1031,6 +1233,16 @@
 
             .stat {
                 font-size: 0.8rem;
+            }
+
+            .action-btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+            }
+
+            .image-preview img {
+                width: 80px;
+                height: 80px;
             }
         }
     </style>
@@ -1090,31 +1302,36 @@
                 </div>
 
                 <!-- Create Post Section -->
-                <div class="create-post" id="createPostSection">
+                <div class="create-post" id="createPostSection" style="display: none;">
                     <input type="text" id="postTitleInput" class="post-input" placeholder="Title of your discussion" required>
                     <textarea class="post-input" id="postContentInput"
                         placeholder="What would you like to discuss? Be descriptive so others can help!" required></textarea>
                     
                     <!-- Image Upload Section -->
                     <div class="image-upload-section" id="imageUploadSection">
+                        <div class="image-upload-header">
+                            <h4><i class="fas fa-images"></i> Attach Images</h4>
+                            <button type="button" class="upload-btn danger" id="clearImagesBtn">
+                                <i class="fas fa-trash"></i> Clear All
+                            </button>
+                        </div>
                         <div class="upload-options">
-                            <label class="upload-btn">
+                            <label class="upload-btn primary">
                                 <i class="fas fa-image"></i> Upload Images
                                 <input type="file" id="imageUpload" accept="image/*" style="display: none;" multiple>
                             </label>
                             <button type="button" class="upload-btn camera" id="cameraBtn">
                                 <i class="fas fa-camera"></i> Take Photo
                             </button>
-                            <button type="button" class="upload-btn danger" id="clearImagesBtn">
-                                <i class="fas fa-trash"></i> Clear All
-                            </button>
                         </div>
-                        <div class="image-preview" id="imagePreview"></div>
+                        <div class="image-preview" id="imagePreview">
+                            <p style="color: #777; text-align: center; padding: 20px; width: 100%;">No images selected</p>
+                        </div>
                     </div>
                     
                     <div class="post-actions">
                         <div class="post-tags">
-                            <select id="postCategorySelect" class="category-tab" style="padding: 10px 15px;">
+                            <select id="postCategorySelect" class="category-tab" style="padding: 10px 15px; border: 2px solid #ddd;">
                                 <option value="disease">Disease Discussion</option>
                                 <option value="treatment">Treatment Methods</option>
                                 <option value="farming">General Farming</option>
@@ -1123,7 +1340,7 @@
                             <input type="text" id="postTagsInput" placeholder="Add tags (comma separated)"
                                 style="padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; min-width: 200px;">
                             <button type="button" class="btn btn-secondary" id="toggleImageBtn">
-                                <i class="fas fa-image"></i> Add Images
+                                <i class="fas fa-image"></i> Attach Images
                             </button>
                         </div>
                         <div>
@@ -1303,6 +1520,7 @@
         let posts = [];
         let currentPostId = null;
         let selectedImages = [];
+        let replyImages = new Map(); // Store reply images per post
         let mediaStream = null;
 
         // Toast notification function
@@ -1339,10 +1557,7 @@
 
                     // Load posts data
                     await loadPosts();
-                    
-                    // Hide create post section initially
-                    document.getElementById('createPostSection').style.display = 'none';
-                    
+
                 } catch (error) {
                     console.error('Error loading user data:', error);
                     showToast("Failed to load forum data. Please try again.", "error");
@@ -1415,10 +1630,11 @@
         }
 
         // Upload image to Firebase Storage
-        async function uploadImageToStorage(imageBase64, postId) {
+        async function uploadImageToStorage(imageBase64, postId, isReply = false) {
             try {
                 const timestamp = Date.now();
-                const imageName = `forum_images/${postId || 'temp'}_${timestamp}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+                const folder = isReply ? 'forum_reply_images' : 'forum_post_images';
+                const imageName = `${folder}/${postId || 'temp'}_${timestamp}_${Math.random().toString(36).substr(2, 9)}.jpg`;
                 const storageRef = ref(storage, imageName);
                 
                 const snapshot = await uploadString(storageRef, imageBase64, 'data_url');
@@ -1832,8 +2048,8 @@
                 document.getElementById('postTitleInput').value = '';
                 document.getElementById('postContentInput').value = '';
                 document.getElementById('postTagsInput').value = '';
-                document.getElementById('imagePreview').innerHTML = '';
                 selectedImages = [];
+                updateImagePreview();
                 document.getElementById('createPostSection').style.display = 'none';
                 document.getElementById('imageUploadSection').classList.remove('active');
 
@@ -1901,18 +2117,47 @@
             }
         }
 
-        // Show reply section for a post
+        // Show reply section for a post with image attachment capability
         function showReplySection(postId) {
             const postCard = document.querySelector(`.post-card[data-id="${postId}"]`);
             let replySection = postCard.querySelector('.replies-section');
 
             if (!replySection) {
+                // Initialize images array for this reply if not exists
+                if (!replyImages.has(postId)) {
+                    replyImages.set(postId, []);
+                }
+
                 replySection = document.createElement('div');
                 replySection.className = 'replies-section';
                 replySection.innerHTML = `
-                    <div class="reply-input">
-                        <textarea placeholder="Write your reply..." class="reply-textarea" rows="3"></textarea>
-                        <button class="reply-btn submit-reply">Reply</button>
+                    <div class="reply-form">
+                        <h4><i class="fas fa-reply"></i> Write a Reply</h4>
+                        <div class="reply-input-container">
+                            <textarea placeholder="Type your reply here..." class="reply-textarea" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="reply-images-preview" id="reply-images-${postId}" style="${replyImages.get(postId).length > 0 ? '' : 'display: none;'}">
+                            ${replyImages.get(postId).map((image, index) => `
+                                <div class="reply-image-item">
+                                    <img src="${image}" alt="Reply image ${index + 1}">
+                                    <button type="button" class="remove-reply-image" onclick="removeReplyImage('${postId}', ${index})">
+                                        ×
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="reply-form-actions">
+                            <div class="reply-form-buttons">
+                                <label class="reply-attachment-btn ${replyImages.get(postId).length > 0 ? 'has-images' : ''}">
+                                    <i class="fas fa-image"></i>
+                                    ${replyImages.get(postId).length > 0 ? `${replyImages.get(postId).length} Image(s)` : 'Add Images'}
+                                    <input type="file" id="reply-image-upload-${postId}" accept="image/*" style="display: none;" multiple>
+                                </label>
+                            </div>
+                            <button class="btn btn-primary submit-reply">Post Reply</button>
+                        </div>
                     </div>
                     <div class="replies-list" id="replies-${postId}">
                         <p style="text-align: center; color: #777; padding: 20px;">Loading replies...</p>
@@ -1920,22 +2165,124 @@
                 `;
 
                 postCard.appendChild(replySection);
+                
+                // Attach event listeners for this reply form
                 const submitBtn = replySection.querySelector('.submit-reply');
-                submitBtn.addEventListener('click', () => submitReply(postId));
+                const textarea = replySection.querySelector('.reply-textarea');
+                const uploadLabel = replySection.querySelector('.reply-attachment-btn');
+                const fileInput = replySection.querySelector(`#reply-image-upload-${postId}`);
+                const imagesPreview = replySection.querySelector(`#reply-images-${postId}`);
+
+                submitBtn.addEventListener('click', () => submitReply(postId, textarea.value.trim()));
+                
+                // Textarea enter key to submit
+                textarea.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        e.preventDefault();
+                        submitReply(postId, textarea.value.trim());
+                    }
+                });
+
+                // Image upload
+                uploadLabel.addEventListener('click', (e) => {
+                    if (e.target !== fileInput) {
+                        fileInput.click();
+                    }
+                });
+
+                fileInput.addEventListener('change', async (e) => {
+                    const files = e.target.files;
+                    if (!files || files.length === 0) return;
+
+                    for (let i = 0; i < files.length; i++) {
+                        const file = files[i];
+                        if (!file.type.match('image.*')) {
+                            showToast('Please select only image files.', 'error');
+                            continue;
+                        }
+
+                        if (file.size > 5 * 1024 * 1024) {
+                            showToast('Image size should be less than 5MB.', 'error');
+                            continue;
+                        }
+
+                        try {
+                            const base64 = await fileToBase64(file);
+                            const currentImages = replyImages.get(postId) || [];
+                            currentImages.push(base64);
+                            replyImages.set(postId, currentImages);
+                            
+                            // Update preview
+                            updateReplyImagesPreview(postId);
+                            
+                            // Update button text
+                            uploadLabel.innerHTML = `<i class="fas fa-image"></i> ${currentImages.length} Image(s)`;
+                            uploadLabel.classList.add('has-images');
+                            
+                        } catch (error) {
+                            console.error('Error processing image:', error);
+                            showToast('Error processing image.', 'error');
+                        }
+                    }
+                    
+                    // Reset file input
+                    fileInput.value = '';
+                });
+
                 loadReplies(postId);
             } else {
                 replySection.style.display = replySection.style.display === 'none' ? 'block' : 'none';
             }
         }
 
-        // Submit a reply to a post
-        async function submitReply(postId) {
-            const replySection = document.querySelector(`.post-card[data-id="${postId}"] .replies-section`);
-            const textarea = replySection.querySelector('.reply-textarea');
-            const replyContent = textarea.value.trim();
+        // Update reply images preview
+        window.updateReplyImagesPreview = function(postId) {
+            const images = replyImages.get(postId) || [];
+            const previewContainer = document.getElementById(`reply-images-${postId}`);
+            
+            if (!previewContainer) return;
+            
+            if (images.length === 0) {
+                previewContainer.style.display = 'none';
+                previewContainer.innerHTML = '';
+            } else {
+                previewContainer.style.display = 'flex';
+                previewContainer.innerHTML = images.map((image, index) => `
+                    <div class="reply-image-item">
+                        <img src="${image}" alt="Reply image ${index + 1}">
+                        <button type="button" class="remove-reply-image" onclick="removeReplyImage('${postId}', ${index})">
+                            ×
+                        </button>
+                    </div>
+                `).join('');
+            }
+        };
 
-            if (!replyContent) {
-                showToast("Please enter a reply.", "error");
+        // Remove reply image
+        window.removeReplyImage = function(postId, index) {
+            const images = replyImages.get(postId) || [];
+            images.splice(index, 1);
+            replyImages.set(postId, images);
+            
+            updateReplyImagesPreview(postId);
+            
+            // Update button text
+            const uploadLabel = document.querySelector(`#reply-images-${postId}`)?.closest('.reply-form')?.querySelector('.reply-attachment-btn');
+            if (uploadLabel) {
+                if (images.length > 0) {
+                    uploadLabel.innerHTML = `<i class="fas fa-image"></i> ${images.length} Image(s)`;
+                    uploadLabel.classList.add('has-images');
+                } else {
+                    uploadLabel.innerHTML = `<i class="fas fa-image"></i> Add Images`;
+                    uploadLabel.classList.remove('has-images');
+                }
+            }
+        };
+
+        // Submit a reply to a post with images
+        async function submitReply(postId, replyContent) {
+            if (!replyContent && (!replyImages.get(postId) || replyImages.get(postId).length === 0)) {
+                showToast("Please enter a reply or attach an image.", "error");
                 return;
             }
 
@@ -1944,13 +2291,31 @@
                 const postRef = doc(db, "forum_posts", postId);
                 const post = posts.find(p => p.id === postId);
 
+                // Upload reply images if any
+                const replyImageUrls = [];
+                const images = replyImages.get(postId) || [];
+                
+                if (images.length > 0) {
+                    showToast(`Uploading ${images.length} image(s)...`, "info");
+                    
+                    for (const imageBase64 of images) {
+                        try {
+                            const imageUrl = await uploadImageToStorage(imageBase64, postId, true);
+                            replyImageUrls.push(imageUrl);
+                        } catch (error) {
+                            console.error('Error uploading reply image:', error);
+                        }
+                    }
+                }
+
                 const replyData = {
-                    content: replyContent,
+                    content: replyContent || '',
                     authorId: currentUser.uid,
                     authorName: userProfile?.fullName || currentUser.email.split('@')[0],
                     authorAvatar: userProfile?.profileImage || null,
                     createdAt: serverTimestamp(),
-                    isExpert: userProfile?.isExpert || false
+                    isExpert: userProfile?.isExpert || false,
+                    images: replyImageUrls
                 };
 
                 await updateDoc(postRef, {
@@ -1958,7 +2323,24 @@
                     repliesCount: (post.repliesCount || 0) + 1
                 });
 
-                textarea.value = '';
+                // Clear reply form
+                const replySection = document.querySelector(`.post-card[data-id="${postId}"] .replies-section`);
+                if (replySection) {
+                    const textarea = replySection.querySelector('.reply-textarea');
+                    if (textarea) textarea.value = '';
+                    
+                    // Clear images
+                    replyImages.set(postId, []);
+                    updateReplyImagesPreview(postId);
+                    
+                    // Reset upload button
+                    const uploadLabel = replySection.querySelector('.reply-attachment-btn');
+                    if (uploadLabel) {
+                        uploadLabel.innerHTML = `<i class="fas fa-image"></i> Add Images`;
+                        uploadLabel.classList.remove('has-images');
+                    }
+                }
+
                 showToast("Reply posted!", "success");
                 loadReplies(postId);
 
@@ -1979,6 +2361,8 @@
                     const replies = postData.replies || [];
 
                     const repliesList = document.getElementById(`replies-${postId}`);
+                    if (!repliesList) return;
+                    
                     repliesList.innerHTML = '';
 
                     if (replies.length === 0) {
@@ -2009,180 +2393,20 @@
                             replyAvatarHtml = `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
                         }
 
-                        const replyCard = document.createElement('div');
-                        replyCard.className = 'reply-card';
-                        replyCard.innerHTML = `
-                            <div class="reply-header">
-                                <div class="reply-author">
-                                    <div class="author-avatar" style="width: 30px; height: 30px;">
-                                        ${replyAvatarHtml}
-                                    </div>
-                                    <div>
-                                        <strong>${reply.authorName || 'Anonymous'}</strong>
-                                        ${reply.isExpert ? '<span class="expert-tag">Expert</span>' : ''}
-                                    </div>
-                                </div>
-                                <div class="reply-time">${replyDate}</div>
-                            </div>
-                            <div class="reply-content">${reply.content}</div>
-                        `;
-
-                        repliesList.appendChild(replyCard);
-                    });
-                }
-
-            } catch (error) {
-                console.error("Error loading replies:", error);
-            }
-        }
-
-        // View post details
-        async function viewPostDetails(postId) {
-            try {
-                const postRef = doc(db, "forum_posts", postId);
-                const postDoc = await getDoc(postRef);
-
-                if (postDoc.exists()) {
-                    const post = postDoc.data();
-                    const postDate = post.createdAt ? post.createdAt.toDate().toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }) : 'Recent';
-
-                    let modalAvatarHtml = '';
-                    if (post.authorAvatar) {
-                        modalAvatarHtml = `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
-                                           onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
-                    } else {
-                        modalAvatarHtml = `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
-                    }
-
-                    // Create images HTML for modal
-                    let imagesHtml = '';
-                    if (post.images && post.images.length > 0) {
-                        imagesHtml = `<div class="post-images" style="margin: 15px 0;">`;
-                        post.images.forEach((imageUrl, index) => {
-                            imagesHtml += `
-                                <img src="${imageUrl}" 
-                                     alt="Post image ${index + 1}" 
-                                     class="post-image"
-                                     onclick="viewFullImage('${imageUrl}')"
-                                     style="max-width: 150px; max-height: 150px; margin: 5px; cursor: pointer;"
-                                     onerror="this.style.display='none'">
-                            `;
-                        });
-                        imagesHtml += `</div>`;
-                    }
-
-                    const modalContent = document.getElementById('postDetailContent');
-                    modalContent.innerHTML = `
-                        <div class="post-detail">
-                            <div class="post-header">
-                                <div class="post-author">
-                                    <div class="author-avatar">
-                                        ${modalAvatarHtml}
-                                    </div>
-                                    <div class="author-info">
-                                        <h3>${post.authorName || 'Anonymous'} 
-                                            ${post.isExpert ? '<span class="expert-tag">Expert</span>' : ''}
-                                        </h3>
-                                        <div class="post-time">${postDate}</div>
-                                    </div>
-                                </div>
-                                <div class="post-category">
-                                    ${post.category === 'disease' ? '<span class="category-tag tag-disease">Disease</span>' : ''}
-                                    ${post.category === 'treatment' ? '<span class="category-tag tag-treatment">Treatment</span>' : ''}
-                                    ${post.category === 'farming' ? '<span class="category-tag tag-farming">Farming</span>' : ''}
-                                    ${post.category === 'question' ? '<span class="category-tag tag-general">Question</span>' : ''}
-                                </div>
-                            </div>
-                            
-                            <h2>${post.title || 'Untitled'}</h2>
-                            <div class="post-content" style="margin: 20px 0; padding: 20px; background: #f9f9f9; border-radius: 8px; white-space: pre-wrap;">
-                                ${post.content}
-                            </div>
-                            
-                            ${imagesHtml}
-                            
-                            <div class="post-tags" style="margin-bottom: 20px;">
-                                ${(post.tags || []).map(tag => `<span class="category-tag tag-general">${tag}</span>`).join('')}
-                            </div>
-                            
-                            <div class="post-stats" style="margin-bottom: 20px;">
-                                <div class="stat"><i class="fas fa-heart"></i> ${post.likesCount || 0} Likes</div>
-                                <div class="stat"><i class="fas fa-comment"></i> ${post.repliesCount || 0} Replies</div>
-                                <div class="stat"><i class="fas fa-thumbs-up"></i> ${post.upvotes ? post.upvotes.length : 0} Upvotes</div>
-                                <div class="stat"><i class="fas fa-thumbs-down"></i> ${post.downvotes ? post.downvotes.length : 0} Downvotes</div>
-                            </div>
-                            
-                            <div class="replies-section" id="detail-replies-${postId}">
-                                <h3>Replies (${post.repliesCount || 0})</h3>
-                                <div class="reply-input" style="margin: 20px 0;">
-                                    <textarea placeholder="Write your reply..." id="detail-reply-text" 
-                                              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; min-height: 80px;"></textarea>
-                                    <button class="btn btn-primary" onclick="submitDetailReply('${postId}')" style="margin-top: 10px;">Post Reply</button>
-                                </div>
-                                <div class="replies-list" id="detail-replies-list-${postId}">
-                                    Loading replies...
-                                </div>
-                            </div>
-                        </div>
-                    `;
-
-                    window.currentDetailPostId = postId;
-                    loadDetailReplies(postId);
-                    openModal('postDetailModal');
-
-                }
-
-            } catch (error) {
-                console.error("Error loading post details:", error);
-                showToast("Failed to load post details", "error");
-            }
-        }
-
-        // Load replies for detail view
-        async function loadDetailReplies(postId) {
-            try {
-                const postRef = doc(db, "forum_posts", postId);
-                const postDoc = await getDoc(postRef);
-
-                if (postDoc.exists()) {
-                    const postData = postDoc.data();
-                    const replies = postData.replies || [];
-
-                    const repliesList = document.getElementById(`detail-replies-list-${postId}`);
-                    repliesList.innerHTML = '';
-
-                    if (replies.length === 0) {
-                        repliesList.innerHTML = '<p style="text-align: center; color: #777; padding: 20px;">No replies yet. Be the first to reply!</p>';
-                        return;
-                    }
-
-                    // Sort replies by date (newest first)
-                    replies.sort((a, b) => {
-                        const dateA = a.createdAt?.toDate() || new Date(0);
-                        const dateB = b.createdAt?.toDate() || new Date(0);
-                        return dateB - dateA;
-                    });
-
-                    replies.forEach(reply => {
-                        const replyDate = reply.createdAt ? reply.createdAt.toDate().toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) : 'Recent';
-
-                        let detailReplyAvatarHtml = '';
-                        if (reply.authorAvatar) {
-                            detailReplyAvatarHtml = `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
-                                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>';" />`;
-                        } else {
-                            detailReplyAvatarHtml = `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
+                        // Create reply images HTML
+                        let replyImagesHtml = '';
+                        if (reply.images && reply.images.length > 0) {
+                            replyImagesHtml = `<div class="reply-images">`;
+                            reply.images.forEach((imageUrl, index) => {
+                                replyImagesHtml += `
+                                    <img src="${imageUrl}" 
+                                         alt="Reply image ${index + 1}" 
+                                         class="reply-image"
+                                         onclick="viewFullImage('${imageUrl}')"
+                                         onerror="this.style.display='none'">
+                                `;
+                            });
+                            replyImagesHtml += `</div>`;
                         }
 
                         const replyCard = document.createElement('div');
@@ -2190,17 +2414,18 @@
                         replyCard.innerHTML = `
                             <div class="reply-header">
                                 <div class="reply-author">
-                                    <div class="author-avatar" style="width: 30px; height: 30px;">
-                                        ${detailReplyAvatarHtml}
+                                    <div class="author-avatar" style="width: 35px; height: 35px;">
+                                        ${replyAvatarHtml}
                                     </div>
                                     <div>
                                         <strong>${reply.authorName || 'Anonymous'}</strong>
                                         ${reply.isExpert ? '<span class="expert-tag">Expert</span>' : ''}
+                                        <div class="reply-time">${replyDate}</div>
                                     </div>
                                 </div>
-                                <div class="reply-time">${replyDate}</div>
                             </div>
                             <div class="reply-content">${reply.content}</div>
+                            ${replyImagesHtml}
                         `;
 
                         repliesList.appendChild(replyCard);
@@ -2212,83 +2437,27 @@
             }
         }
 
-        // Submit reply from detail view
-        window.submitDetailReply = async function (postId) {
-            const textarea = document.getElementById('detail-reply-text');
-            const replyContent = textarea.value.trim();
-
-            if (!replyContent) {
-                showToast("Please enter a reply.", "error");
-                return;
-            }
-
-            try {
-                const userProfile = await getUserProfile(currentUser.uid);
-                const postRef = doc(db, "forum_posts", postId);
-                const post = posts.find(p => p.id === postId) || {};
-
-                const replyData = {
-                    content: replyContent,
-                    authorId: currentUser.uid,
-                    authorName: userProfile?.fullName || currentUser.email.split('@')[0],
-                    authorAvatar: userProfile?.profileImage || null,
-                    createdAt: serverTimestamp(),
-                    isExpert: userProfile?.isExpert || false
-                };
-
-                await updateDoc(postRef, {
-                    replies: arrayUnion(replyData),
-                    repliesCount: (post.repliesCount || 0) + 1
-                });
-
-                textarea.value = '';
-                showToast("Reply posted!", "success");
-                loadDetailReplies(postId);
-                await loadPosts();
-
-            } catch (error) {
-                console.error("Error submitting reply:", error);
-                showToast("Failed to submit reply", "error");
-            }
-        }
-
-        // Open edit post modal
-        async function openEditPostModal(postId) {
-            try {
-                const postRef = doc(db, "forum_posts", postId);
-                const postDoc = await getDoc(postRef);
-
-                if (postDoc.exists()) {
-                    const post = postDoc.data();
-                    currentPostId = postId;
-
-                    document.getElementById('editPostTitle').value = post.title || '';
-                    document.getElementById('editPostContent').value = post.content || '';
-                    document.getElementById('editPostCategory').value = post.category || 'general';
-                    document.getElementById('editPostTags').value = (post.tags || []).join(', ');
-
-                    openModal('editPostModal');
-                }
-
-            } catch (error) {
-                console.error("Error loading post for editing:", error);
-                showToast("Failed to load post for editing", "error");
-            }
-        }
-
-        // Image handling functions
+        // Handle image upload for posts
         function handleImageUpload(event) {
             const files = event.target.files;
             if (!files || files.length === 0) return;
 
-            for (let i = 0; i < files.length; i++) {
+            const maxImages = 5;
+            const remainingSlots = maxImages - selectedImages.length;
+            
+            if (files.length > remainingSlots) {
+                showToast(`You can only upload up to ${maxImages} images total.`, "error");
+                return;
+            }
+
+            for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
                 const file = files[i];
                 if (!file.type.match('image.*')) {
                     showToast('Please select only image files.', 'error');
                     continue;
                 }
 
-                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                if (file.size > 5 * 1024 * 1024) {
                     showToast('Image size should be less than 5MB.', 'error');
                     continue;
                 }
@@ -2296,11 +2465,15 @@
                 fileToBase64(file).then(base64 => {
                     selectedImages.push(base64);
                     updateImagePreview();
+                    showToast(`Image ${selectedImages.length}/${maxImages} added`, "info");
                 }).catch(error => {
                     console.error('Error converting file:', error);
                     showToast('Error processing image.', 'error');
                 });
             }
+            
+            // Reset file input
+            event.target.value = '';
         }
 
         function updateImagePreview() {
@@ -2329,8 +2502,13 @@
                     removeImage(index);
                 };
                 
+                const countBadge = document.createElement('div');
+                countBadge.className = 'image-count';
+                countBadge.textContent = index + 1;
+                
                 imgContainer.appendChild(img);
                 imgContainer.appendChild(removeBtn);
+                imgContainer.appendChild(countBadge);
                 previewContainer.appendChild(imgContainer);
             });
         }
@@ -2403,6 +2581,7 @@
             document.getElementById('createFirstPostBtn').addEventListener('click', () => {
                 document.getElementById('createPostSection').style.display = 'block';
                 document.getElementById('postTitleInput').focus();
+                document.getElementById('createFirstPostBtn').scrollIntoView({ behavior: 'smooth' });
             });
         }
 
@@ -2421,11 +2600,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log("Forum page loaded, initializing...");
             
-            // Debug: Check if elements exist
-            console.log("Submit button exists:", !!document.getElementById('submitPostBtn'));
-            console.log("Title input exists:", !!document.getElementById('postTitleInput'));
-            console.log("Content input exists:", !!document.getElementById('postContentInput'));
-            
             // New post button
             document.getElementById('newPostBtn').addEventListener('click', () => {
                 const createPostSection = document.getElementById('createPostSection');
@@ -2433,21 +2607,18 @@
                 createPostSection.style.display = isVisible ? 'none' : 'block';
                 if (!isVisible) {
                     document.getElementById('postTitleInput').focus();
+                    createPostSection.scrollIntoView({ behavior: 'smooth' });
                 }
-                console.log("New post button clicked, section visible:", !isVisible);
             });
 
-            // Submit post button - FIXED VERSION
+            // Submit post button
             document.getElementById('submitPostBtn').addEventListener('click', async (e) => {
                 e.preventDefault();
-                console.log("Submit post button clicked!");
                 
                 const title = document.getElementById('postTitleInput').value.trim();
                 const content = document.getElementById('postContentInput').value.trim();
                 const category = document.getElementById('postCategorySelect').value;
                 const tags = document.getElementById('postTagsInput').value.trim();
-                
-                console.log("Form data:", { title, contentLength: content.length, category, tags, imagesCount: selectedImages.length });
                 
                 // Validation
                 if (!content) {
@@ -2469,8 +2640,8 @@
                 document.getElementById('postTitleInput').value = '';
                 document.getElementById('postContentInput').value = '';
                 document.getElementById('postTagsInput').value = '';
-                document.getElementById('imagePreview').innerHTML = '';
                 selectedImages = [];
+                updateImagePreview();
                 document.getElementById('imageUploadSection').classList.remove('active');
                 showToast("Post cancelled", "info");
             });
@@ -2480,7 +2651,8 @@
                 const imageSection = document.getElementById('imageUploadSection');
                 imageSection.classList.toggle('active');
                 if (imageSection.classList.contains('active')) {
-                    showToast("Image upload enabled", "info");
+                    imageSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    showToast("You can upload up to 5 images", "info");
                 }
             });
 
@@ -2495,7 +2667,7 @@
                 if (selectedImages.length > 0) {
                     if (confirm(`Clear all ${selectedImages.length} images?`)) {
                         selectedImages = [];
-                        document.getElementById('imagePreview').innerHTML = '';
+                        updateImagePreview();
                         showToast("All images cleared", "info");
                     }
                 } else {
@@ -2542,7 +2714,6 @@
                     document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
                     tab.classList.add('active');
                     currentFilters.category = tab.dataset.category;
-                    console.log("Category filter changed to:", currentFilters.category);
                     loadPosts();
                 });
             });
@@ -2550,7 +2721,6 @@
             // Search functionality
             document.getElementById('searchInput').addEventListener('input', (e) => {
                 const searchTerm = e.target.value.toLowerCase().trim();
-                console.log("Searching for:", searchTerm);
                 
                 if (searchTerm.length >= 2) {
                     const filteredPosts = posts.filter(post => {
@@ -2596,7 +2766,6 @@
                 currentFilters.sort = document.getElementById('filterSort').value;
                 currentFilters.time = document.getElementById('filterTime').value;
 
-                console.log("Applying filters:", currentFilters);
                 closeModal('filterModal');
                 loadPosts();
             });
@@ -2621,7 +2790,6 @@
                     }
                 });
 
-                console.log("Filters cleared");
                 closeModal('filterModal');
                 loadPosts();
             });
