@@ -43,6 +43,7 @@
         #sidebarPlaceholder {
             width: 250px;
             flex-shrink: 0;
+            background-color: var(--primary-dark);
         }
 
         .main-content {
@@ -220,6 +221,11 @@
 
         .btn-secondary:hover {
             background-color: #e68900;
+        }
+
+        .btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
         }
 
         .post-list {
@@ -422,7 +428,7 @@
         }
 
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         .alert {
@@ -442,6 +448,52 @@
             background-color: #ffebee;
             color: #c62828;
             border-left: 4px solid #f44336;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: var(--gray-color);
+        }
+
+        .loading i {
+            font-size: 36px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: var(--primary-dark);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end;
         }
 
         @media (max-width: 1024px) {
@@ -490,6 +542,7 @@
                 <h3><i class="fas fa-sign-in-alt"></i> Please Login</h3>
                 <p>You need to be logged in to participate in the forum.</p>
                 <button class="btn" id="loginBtn">Login to Continue</button>
+                <button class="btn btn-secondary" id="registerBtn" style="margin-top: 10px;">Register</button>
             </div>
 
             <div id="forumContent">
@@ -503,6 +556,20 @@
                             <div class="form-group">
                                 <label for="postTitle"><i class="fas fa-heading"></i> Post Title</label>
                                 <input type="text" id="postTitle" class="form-control" placeholder="What would you like to discuss?">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="postCategory"><i class="fas fa-tag"></i> Category</label>
+                                <select id="postCategory" class="form-control">
+                                    <option value="general">General Discussion</option>
+                                    <option value="crops">Crops & Planting</option>
+                                    <option value="livestock">Livestock</option>
+                                    <option value="equipment">Equipment & Tools</option>
+                                    <option value="market">Market & Prices</option>
+                                    <option value="weather">Weather & Climate</option>
+                                    <option value="pests">Pests & Diseases</option>
+                                    <option value="organic">Organic Farming</option>
+                                </select>
                             </div>
                             
                             <div class="form-group">
@@ -521,17 +588,29 @@
                                     </div>
                                 </div>
                                 <img id="imagePreview" class="preview-image" alt="Image Preview">
+                                <div id="uploadProgress" class="hidden" style="margin-top: 10px;">
+                                    <div style="width: 100%; background-color: #f0f0f0; border-radius: 4px;">
+                                        <div id="progressBar" style="height: 8px; background-color: var(--primary-color); width: 0%; border-radius: 4px; transition: width 0.3s;"></div>
+                                    </div>
+                                    <p id="progressText" style="font-size: 12px; color: var(--gray-color); margin-top: 5px;">Uploading: 0%</p>
+                                </div>
                             </div>
                             
                             <button class="btn" id="submitPost">
                                 <i class="fas fa-paper-plane"></i> Publish Post
+                            </button>
+                            <button class="btn btn-secondary" id="clearForm">
+                                <i class="fas fa-times"></i> Clear Form
                             </button>
                         </div>
                         
                         <h2 class="section-title">Recent Discussions</h2>
                         
                         <div class="post-list" id="postList">
-                            <!-- Posts will be loaded here dynamically -->
+                            <div class="loading">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                <p>Loading forum posts...</p>
+                            </div>
                         </div>
                     </div>
                     
@@ -540,19 +619,19 @@
                             <h3 class="section-title">Forum Stats</h3>
                             <div class="stat-item">
                                 <span>Total Posts</span>
-                                <span class="stat-value" id="totalPosts">12</span>
+                                <span class="stat-value" id="totalPosts">0</span>
                             </div>
                             <div class="stat-item">
                                 <span>Total Comments</span>
-                                <span class="stat-value" id="totalComments">47</span>
+                                <span class="stat-value" id="totalComments">0</span>
                             </div>
                             <div class="stat-item">
                                 <span>Active Farmers</span>
-                                <span class="stat-value" id="activeFarmers">24</span>
+                                <span class="stat-value" id="activeFarmers">0</span>
                             </div>
                             <div class="stat-item">
                                 <span>Today's Posts</span>
-                                <span class="stat-value" id="todaysPosts">3</span>
+                                <span class="stat-value" id="todaysPosts">0</span>
                             </div>
                         </div>
                         
@@ -592,6 +671,54 @@
         </div>
     </div>
 
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal hidden">
+        <div class="modal-content">
+            <h3><i class="fas fa-sign-in-alt"></i> Login to Forum</h3>
+            <div id="loginModalAlert" class="alert hidden"></div>
+            <div class="form-group">
+                <label for="loginEmail">Email</label>
+                <input type="email" id="loginEmail" class="form-control" placeholder="farmer@example.com">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" id="modalLoginBtn">Login</button>
+                <button class="btn btn-secondary" id="modalCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div id="registerModal" class="modal hidden">
+        <div class="modal-content">
+            <h3><i class="fas fa-user-plus"></i> Register New Account</h3>
+            <div id="registerModalAlert" class="alert hidden"></div>
+            <div class="form-group">
+                <label for="registerName">Full Name</label>
+                <input type="text" id="registerName" class="form-control" placeholder="Enter your full name">
+            </div>
+            <div class="form-group">
+                <label for="registerEmail">Email</label>
+                <input type="email" id="registerEmail" class="form-control" placeholder="farmer@example.com">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">Password</label>
+                <input type="password" id="registerPassword" class="form-control" placeholder="Create a password (min 6 characters)">
+            </div>
+            <div class="form-group">
+                <label for="registerConfirmPassword">Confirm Password</label>
+                <input type="password" id="registerConfirmPassword" class="form-control" placeholder="Confirm your password">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn" id="modalRegisterBtn">Register</button>
+                <button class="btn btn-secondary" id="modalRegisterCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth.js"></script>
@@ -622,12 +749,24 @@
         const userAvatar = document.getElementById('userAvatar');
         const postList = document.getElementById('postList');
         const postTitle = document.getElementById('postTitle');
+        const postCategory = document.getElementById('postCategory');
         const postContent = document.getElementById('postContent');
         const postImage = document.getElementById('postImage');
         const imagePreview = document.getElementById('imagePreview');
         const submitPost = document.getElementById('submitPost');
+        const clearForm = document.getElementById('clearForm');
         const postAlert = document.getElementById('postAlert');
         const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+        const modalCancelBtn = document.getElementById('modalCancelBtn');
+        const modalRegisterCancelBtn = document.getElementById('modalRegisterCancelBtn');
+        const modalLoginBtn = document.getElementById('modalLoginBtn');
+        const modalRegisterBtn = document.getElementById('modalRegisterBtn');
+        const uploadProgress = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
         
         // Forum statistics elements
         const totalPostsEl = document.getElementById('totalPosts');
@@ -635,56 +774,11 @@
         const activeFarmersEl = document.getElementById('activeFarmers');
         const todaysPostsEl = document.getElementById('todaysPosts');
 
-        // Sample data for initial display
-        const samplePosts = [
-            {
-                id: 1,
-                author: "Rajesh Kumar",
-                authorInitial: "R",
-                title: "Best organic fertilizers for tomato plants",
-                content: "I've been experimenting with different organic fertilizers for my tomato farm. Cow dung compost has given me the best results so far. What are other farmers using?",
-                image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-                date: "2 hours ago",
-                likes: 8,
-                comments: [
-                    {author: "Suresh Patel", authorInitial: "S", text: "I've had good results with vermicompost mixed with neem cake.", date: "1 hour ago"},
-                    {author: "Anita Desai", authorInitial: "A", text: "Try adding banana peels to your compost. They're rich in potassium which tomatoes love!", date: "45 minutes ago"}
-                ]
-            },
-            {
-                id: 2,
-                author: "Priya Sharma",
-                authorInitial: "P",
-                title: "Dealing with whiteflies in cabbage crops",
-                content: "My cabbage crop is being attacked by whiteflies. I've tried neem oil spray but it's not very effective. Any suggestions from experienced farmers?",
-                image: "https://images.unsplash.com/photo-1560493676-04071c5f467b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80",
-                date: "5 hours ago",
-                likes: 5,
-                comments: [
-                    {author: "Mohammed Ali", authorInitial: "M", text: "Try a mixture of garlic and chili spray. It worked for me last season.", date: "3 hours ago"},
-                    {author: "Ravi Verma", authorInitial: "R", text: "Yellow sticky traps combined with regular spraying is the best approach.", date: "2 hours ago"},
-                    {author: "Sunita Reddy", authorInitial: "S", text: "Introduce ladybugs to your field. They're natural predators of whiteflies.", date: "1 hour ago"}
-                ]
-            },
-            {
-                id: 3,
-                author: "Amit Patel",
-                authorInitial: "A",
-                title: "Drip irrigation system recommendations",
-                content: "I'm planning to install a drip irrigation system for my 5-acre vegetable farm. Looking for recommendations on brands and setup tips. What systems are other farmers using?",
-                image: "",
-                date: "1 day ago",
-                likes: 12,
-                comments: [
-                    {author: "Kiran Mehta", authorInitial: "K", text: "I've been using Jain Irrigation systems for 3 years. Very reliable and good after-sales service.", date: "22 hours ago"},
-                    {author: "Vikram Singh", authorInitial: "V", text: "Make sure to install proper filters to prevent clogging. It's worth the extra investment.", date: "20 hours ago"}
-                ]
-            }
-        ];
-
-        // Track user authentication state
+        // Global variables
         let currentUser = null;
-        let posts = [...samplePosts];
+        let posts = [];
+        let postImageFile = null;
+        let postsListener = null;
 
         // Initialize the forum
         document.addEventListener('DOMContentLoaded', function() {
@@ -697,11 +791,8 @@
                 createBasicSidebar();
             }
             
-            // Initialize authentication state
-            initAuthState();
-            
-            // Load posts
-            loadPosts();
+            // Initialize authentication
+            initAuth();
             
             // Setup event listeners
             setupEventListeners();
@@ -710,7 +801,7 @@
         // Create a basic sidebar if sidebar-loader.js is not available
         function createBasicSidebar() {
             const sidebarHTML = `
-                <div class="sidebar" style="width: 250px; background-color: #1b5e20; color: white; height: 100vh; padding: 20px;">
+                <div class="sidebar" style="width: 100%; background-color: #1b5e20; color: white; height: 100%; padding: 20px;">
                     <div class="logo" style="font-size: 24px; font-weight: 700; margin-bottom: 30px; text-align: center;">
                         <i class="fas fa-leaf"></i> Palmaegis
                     </div>
@@ -746,47 +837,59 @@
                                     <i class="fas fa-user"></i> Profile
                                 </a>
                             </li>
+                            <li style="margin-bottom: 15px; margin-top: 30px;">
+                                <button id="sidebarLogout" style="background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 16px;">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </li>
                         </ul>
                     </nav>
                 </div>
             `;
             sidebarPlaceholder.innerHTML = sidebarHTML;
+            
+            // Add logout functionality to sidebar
+            document.getElementById('sidebarLogout')?.addEventListener('click', logout);
         }
 
-        // Initialize authentication state
-        function initAuthState() {
-            // For demo purposes, we'll simulate a logged-in user
-            // In a real app, you would use Firebase Auth
-            simulateLogin();
-            
-            // Uncomment for real Firebase authentication
-            /*
+        // Initialize authentication
+        function initAuth() {
             auth.onAuthStateChanged((user) => {
                 if (user) {
+                    // User is signed in
                     currentUser = user;
-                    userAvatar.textContent = user.displayName ? user.displayName.charAt(0) : 'F';
-                    userName.textContent = user.displayName || 'Farmer User';
+                    userAvatar.textContent = user.displayName ? user.displayName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase();
+                    userName.textContent = user.displayName || user.email;
                     forumContent.classList.remove('hidden');
                     loginPrompt.classList.add('hidden');
+                    
+                    // Load posts
+                    loadPostsRealtime();
+                    
+                    // Update user status in Firestore
+                    updateUserStatus(true);
                 } else {
+                    // User is signed out
                     currentUser = null;
                     forumContent.classList.add('hidden');
                     loginPrompt.classList.remove('hidden');
+                    
+                    // Stop listening to posts
+                    if (postsListener) {
+                        postsListener();
+                        postsListener = null;
+                    }
+                    
+                    // Clear posts
+                    posts = [];
+                    postList.innerHTML = `
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Please login to view forum posts</p>
+                        </div>
+                    `;
                 }
             });
-            */
-        }
-
-        // Simulate login for demo purposes
-        function simulateLogin() {
-            currentUser = {
-                displayName: "Farmer User",
-                email: "farmer@example.com"
-            };
-            userAvatar.textContent = 'F';
-            userName.textContent = 'Farmer User';
-            forumContent.classList.remove('hidden');
-            loginPrompt.classList.add('hidden');
         }
 
         // Setup event listeners
@@ -795,6 +898,14 @@
             postImage.addEventListener('change', function(e) {
                 const file = e.target.files[0];
                 if (file) {
+                    // Check file size (5MB max)
+                    if (file.size > 5 * 1024 * 1024) {
+                        showAlert('Image size should be less than 5MB', 'error');
+                        postImage.value = '';
+                        return;
+                    }
+                    
+                    postImageFile = file;
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         imagePreview.src = e.target.result;
@@ -807,176 +918,551 @@
             // Submit post
             submitPost.addEventListener('click', createPost);
 
+            // Clear form
+            clearForm.addEventListener('click', clearPostForm);
+
             // Login button
-            loginBtn.addEventListener('click', function() {
-                // In a real app, this would trigger Firebase auth
-                simulateLogin();
-                showAlert('Logged in successfully!', 'success');
+            loginBtn.addEventListener('click', () => {
+                loginModal.classList.remove('hidden');
+            });
+
+            // Register button
+            registerBtn.addEventListener('click', () => {
+                registerModal.classList.remove('hidden');
+            });
+
+            // Modal buttons
+            modalCancelBtn.addEventListener('click', () => {
+                loginModal.classList.add('hidden');
+                clearModalAlerts();
+            });
+
+            modalRegisterCancelBtn.addEventListener('click', () => {
+                registerModal.classList.add('hidden');
+                clearModalAlerts();
+            });
+
+            modalLoginBtn.addEventListener('click', login);
+            modalRegisterBtn.addEventListener('click', register);
+
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === loginModal) {
+                    loginModal.classList.add('hidden');
+                    clearModalAlerts();
+                }
+                if (e.target === registerModal) {
+                    registerModal.classList.add('hidden');
+                    clearModalAlerts();
+                }
+            });
+
+            // Allow Enter key in login/register forms
+            document.getElementById('loginPassword')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') login();
+            });
+
+            document.getElementById('registerPassword')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') register();
+            });
+        }
+
+        // Clear modal alerts
+        function clearModalAlerts() {
+            document.getElementById('loginModalAlert').classList.add('hidden');
+            document.getElementById('registerModalAlert').classList.add('hidden');
+        }
+
+        // Login function
+        function login() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const loginAlert = document.getElementById('loginModalAlert');
+            
+            if (!email || !password) {
+                loginAlert.textContent = 'Please enter both email and password';
+                loginAlert.className = 'alert alert-error';
+                loginAlert.classList.remove('hidden');
+                return;
+            }
+            
+            modalLoginBtn.disabled = true;
+            modalLoginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Success
+                    loginModal.classList.add('hidden');
+                    document.getElementById('loginEmail').value = '';
+                    document.getElementById('loginPassword').value = '';
+                    showAlert('Login successful!', 'success');
+                    modalLoginBtn.disabled = false;
+                    modalLoginBtn.innerHTML = 'Login';
+                })
+                .catch((error) => {
+                    // Handle errors
+                    modalLoginBtn.disabled = false;
+                    modalLoginBtn.innerHTML = 'Login';
+                    
+                    let errorMessage = 'Login failed. ';
+                    switch(error.code) {
+                        case 'auth/user-not-found':
+                            errorMessage += 'No user found with this email.';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage += 'Incorrect password.';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage += 'Invalid email address.';
+                            break;
+                        default:
+                            errorMessage += error.message;
+                    }
+                    
+                    loginAlert.textContent = errorMessage;
+                    loginAlert.className = 'alert alert-error';
+                    loginAlert.classList.remove('hidden');
+                });
+        }
+
+        // Register function
+        function register() {
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            const registerAlert = document.getElementById('registerModalAlert');
+            
+            // Validation
+            if (!name || !email || !password || !confirmPassword) {
+                registerAlert.textContent = 'Please fill in all fields';
+                registerAlert.className = 'alert alert-error';
+                registerAlert.classList.remove('hidden');
+                return;
+            }
+            
+            if (password.length < 6) {
+                registerAlert.textContent = 'Password must be at least 6 characters';
+                registerAlert.className = 'alert alert-error';
+                registerAlert.classList.remove('hidden');
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                registerAlert.textContent = 'Passwords do not match';
+                registerAlert.className = 'alert alert-error';
+                registerAlert.classList.remove('hidden');
+                return;
+            }
+            
+            modalRegisterBtn.disabled = true;
+            modalRegisterBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+            
+            auth.createUserWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Update user profile
+                    return userCredential.user.updateProfile({
+                        displayName: name
+                    });
+                })
+                .then(() => {
+                    // Create user document in Firestore
+                    return db.collection('users').doc(auth.currentUser.uid).set({
+                        name: name,
+                        email: email,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                        isOnline: true
+                    });
+                })
+                .then(() => {
+                    // Success
+                    registerModal.classList.add('hidden');
+                    document.getElementById('registerName').value = '';
+                    document.getElementById('registerEmail').value = '';
+                    document.getElementById('registerPassword').value = '';
+                    document.getElementById('registerConfirmPassword').value = '';
+                    showAlert('Registration successful! Welcome to the forum.', 'success');
+                    modalRegisterBtn.disabled = false;
+                    modalRegisterBtn.innerHTML = 'Register';
+                })
+                .catch((error) => {
+                    // Handle errors
+                    modalRegisterBtn.disabled = false;
+                    modalRegisterBtn.innerHTML = 'Register';
+                    
+                    let errorMessage = 'Registration failed. ';
+                    switch(error.code) {
+                        case 'auth/email-already-in-use':
+                            errorMessage += 'Email is already registered.';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage += 'Invalid email address.';
+                            break;
+                        case 'auth/weak-password':
+                            errorMessage += 'Password is too weak.';
+                            break;
+                        default:
+                            errorMessage += error.message;
+                    }
+                    
+                    registerAlert.textContent = errorMessage;
+                    registerAlert.className = 'alert alert-error';
+                    registerAlert.classList.remove('hidden');
+                });
+        }
+
+        // Logout function
+        function logout() {
+            if (currentUser) {
+                updateUserStatus(false);
+            }
+            
+            auth.signOut()
+                .then(() => {
+                    showAlert('Logged out successfully', 'success');
+                })
+                .catch((error) => {
+                    showAlert('Logout failed: ' + error.message, 'error');
+                });
+        }
+
+        // Update user status in Firestore
+        function updateUserStatus(isOnline) {
+            if (!currentUser) return;
+            
+            db.collection('users').doc(currentUser.uid).update({
+                isOnline: isOnline,
+                lastActive: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(error => {
+                console.error('Error updating user status:', error);
             });
         }
 
         // Create a new post
-        function createPost() {
+        async function createPost() {
             if (!currentUser) {
                 showAlert('Please login to create a post.', 'error');
+                loginModal.classList.remove('hidden');
                 return;
             }
 
             const title = postTitle.value.trim();
+            const category = postCategory.value;
             const content = postContent.value.trim();
-            const imageFile = postImage.files[0];
 
             if (!title || !content) {
                 showAlert('Please enter both title and content for your post.', 'error');
                 return;
             }
 
-            // Create new post object
-            const newPost = {
-                id: posts.length + 1,
-                author: currentUser.displayName || "Farmer User",
-                authorInitial: (currentUser.displayName || "F").charAt(0),
-                title: title,
-                content: content,
-                image: "",
-                date: "Just now",
-                likes: 0,
-                comments: []
-            };
+            // Disable submit button
+            submitPost.disabled = true;
+            submitPost.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Publishing...';
 
-            // Simulate image upload
-            if (imageFile) {
-                // In a real app, upload to Firebase Storage
-                newPost.image = URL.createObjectURL(imageFile);
+            try {
+                let imageUrl = '';
+                
+                // Upload image if selected
+                if (postImageFile) {
+                    imageUrl = await uploadImage(postImageFile);
+                }
+
+                // Create post in Firestore
+                const postData = {
+                    title: title,
+                    category: category,
+                    content: content,
+                    imageUrl: imageUrl,
+                    authorId: currentUser.uid,
+                    authorName: currentUser.displayName || currentUser.email,
+                    authorInitial: (currentUser.displayName || currentUser.email).charAt(0).toUpperCase(),
+                    likes: 0,
+                    likesBy: [],
+                    comments: [],
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                await db.collection('posts').add(postData);
+                
+                // Clear form and show success message
+                clearPostForm();
+                showAlert('Your post has been published successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error creating post:', error);
+                showAlert('Failed to create post: ' + error.message, 'error');
+            } finally {
+                // Re-enable submit button
+                submitPost.disabled = false;
+                submitPost.innerHTML = '<i class="fas fa-paper-plane"></i> Publish Post';
             }
+        }
 
-            // Add to posts array
-            posts.unshift(newPost);
+        // Upload image to Firebase Storage
+        async function uploadImage(file) {
+            return new Promise((resolve, reject) => {
+                // Show progress
+                uploadProgress.classList.remove('hidden');
+                progressBar.style.width = '0%';
+                progressText.textContent = 'Uploading: 0%';
+                
+                // Create a storage reference
+                const storageRef = storage.ref();
+                const fileName = `forum/${currentUser.uid}/${Date.now()}_${file.name}`;
+                const imageRef = storageRef.child(fileName);
+                
+                // Upload file
+                const uploadTask = imageRef.put(file);
+                
+                // Listen for state changes, errors, and completion
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Update progress
+                        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                        progressBar.style.width = progress + '%';
+                        progressText.textContent = `Uploading: ${Math.round(progress)}%`;
+                    },
+                    (error) => {
+                        // Handle error
+                        uploadProgress.classList.add('hidden');
+                        reject(error);
+                    },
+                    async () => {
+                        // Upload completed successfully
+                        uploadProgress.classList.add('hidden');
+                        
+                        // Get download URL
+                        const downloadURL = await uploadTask.snapshot.ref.getDownloadURL();
+                        resolve(downloadURL);
+                    }
+                );
+            });
+        }
 
-            // Clear form
+        // Clear post form
+        function clearPostForm() {
             postTitle.value = '';
             postContent.value = '';
             postImage.value = '';
+            postImageFile = null;
             imagePreview.style.display = 'none';
-
-            // Reload posts
-            loadPosts();
-
-            // Show success message
-            showAlert('Your post has been published successfully!', 'success');
-
-            // Update stats
-            updateForumStats();
+            uploadProgress.classList.add('hidden');
         }
 
-        // Load and display posts
-        function loadPosts() {
-            postList.innerHTML = '';
-            
-            if (posts.length === 0) {
-                postList.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--gray-color);">
-                        <i class="fas fa-comment-slash" style="font-size: 48px; margin-bottom: 20px;"></i>
-                        <h3>No posts yet</h3>
-                        <p>Be the first to start a discussion!</p>
-                    </div>
-                `;
-                return;
+        // Load posts in realtime
+        function loadPostsRealtime() {
+            // Stop previous listener if exists
+            if (postsListener) {
+                postsListener();
             }
             
-            posts.forEach(post => {
-                const postElement = document.createElement('div');
-                postElement.className = 'post-item';
-                postElement.innerHTML = `
-                    <div class="post-header">
-                        <div class="post-author-avatar">${post.authorInitial}</div>
-                        <div class="post-author-info">
-                            <h4>${post.author}</h4>
-                            <div class="post-date">${post.date}</div>
-                        </div>
-                    </div>
-                    <div class="post-content">
-                        <h3 style="margin-bottom: 10px; color: var(--primary-dark);">${post.title}</h3>
-                        <p>${post.content}</p>
-                        ${post.image ? `<img src="${post.image}" class="post-image" alt="Post image">` : ''}
-                    </div>
-                    <div class="post-actions">
-                        <button class="action-btn like-btn" data-id="${post.id}">
-                            <i class="far fa-thumbs-up"></i> Like (${post.likes})
-                        </button>
-                        <button class="action-btn comment-toggle" data-id="${post.id}">
-                            <i class="far fa-comment"></i> Comment (${post.comments.length})
-                        </button>
-                    </div>
-                    <div class="comment-section hidden" id="commentSection-${post.id}">
-                        <div class="comment-form">
-                            <input type="text" class="comment-input" id="commentInput-${post.id}" placeholder="Write a comment...">
-                            <button class="btn btn-secondary add-comment" data-id="${post.id}">Post</button>
-                        </div>
-                        <div class="comment-list" id="commentList-${post.id}">
-                            ${post.comments.map(comment => `
-                                <div class="comment-item">
-                                    <div class="comment-avatar">${comment.authorInitial}</div>
-                                    <div class="comment-content">
-                                        <div class="comment-author">${comment.author}</div>
-                                        <div class="comment-text">${comment.text}</div>
-                                        <div class="comment-date">${comment.date}</div>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-                postList.appendChild(postElement);
-            });
+            postList.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading forum posts...</p>
+                </div>
+            `;
             
-            // Add event listeners to like buttons
+            // Set up realtime listener for posts
+            postsListener = db.collection('posts')
+                .orderBy('createdAt', 'desc')
+                .limit(50)
+                .onSnapshot((snapshot) => {
+                    posts = [];
+                    const postsContainer = document.getElementById('postList');
+                    
+                    if (snapshot.empty) {
+                        postsContainer.innerHTML = `
+                            <div style="text-align: center; padding: 40px; color: var(--gray-color);">
+                                <i class="fas fa-comment-slash" style="font-size: 48px; margin-bottom: 20px;"></i>
+                                <h3>No posts yet</h3>
+                                <p>Be the first to start a discussion!</p>
+                            </div>
+                        `;
+                        updateForumStats();
+                        return;
+                    }
+                    
+                    postsContainer.innerHTML = '';
+                    
+                    snapshot.forEach(doc => {
+                        const post = {
+                            id: doc.id,
+                            ...doc.data()
+                        };
+                        posts.push(post);
+                        
+                        // Format date
+                        let postDate = 'Just now';
+                        if (post.createdAt && post.createdAt.toDate) {
+                            const date = post.createdAt.toDate();
+                            const now = new Date();
+                            const diffMs = now - date;
+                            const diffMins = Math.floor(diffMs / 60000);
+                            const diffHours = Math.floor(diffMs / 3600000);
+                            const diffDays = Math.floor(diffMs / 86400000);
+                            
+                            if (diffMins < 1) postDate = 'Just now';
+                            else if (diffMins < 60) postDate = `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+                            else if (diffHours < 24) postDate = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                            else if (diffDays < 7) postDate = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                            else postDate = date.toLocaleDateString();
+                        }
+                        
+                        // Check if current user liked this post
+                        const hasLiked = post.likesBy && currentUser ? post.likesBy.includes(currentUser.uid) : false;
+                        
+                        const postElement = document.createElement('div');
+                        postElement.className = 'post-item';
+                        postElement.innerHTML = `
+                            <div class="post-header">
+                                <div class="post-author-avatar">${post.authorInitial}</div>
+                                <div class="post-author-info">
+                                    <h4>${post.authorName} <span style="font-size: 12px; background-color: #e8f5e9; padding: 2px 8px; border-radius: 10px; color: var(--primary-dark);">${post.category}</span></h4>
+                                    <div class="post-date">${postDate}</div>
+                                </div>
+                            </div>
+                            <div class="post-content">
+                                <h3 style="margin-bottom: 10px; color: var(--primary-dark);">${post.title}</h3>
+                                <p>${post.content}</p>
+                                ${post.imageUrl ? `<img src="${post.imageUrl}" class="post-image" alt="Post image" onerror="this.style.display='none'">` : ''}
+                            </div>
+                            <div class="post-actions">
+                                <button class="action-btn like-btn" data-id="${post.id}" data-liked="${hasLiked}">
+                                    <i class="${hasLiked ? 'fas' : 'far'} fa-thumbs-up"></i> 
+                                    <span>${post.likes || 0}</span>
+                                </button>
+                                <button class="action-btn comment-toggle" data-id="${post.id}">
+                                    <i class="far fa-comment"></i> 
+                                    <span>${post.comments ? post.comments.length : 0}</span>
+                                </button>
+                            </div>
+                            <div class="comment-section hidden" id="commentSection-${post.id}">
+                                <div class="comment-form">
+                                    <input type="text" class="comment-input" id="commentInput-${post.id}" placeholder="Write a comment...">
+                                    <button class="btn btn-secondary add-comment" data-id="${post.id}">Post</button>
+                                </div>
+                                <div class="comment-list" id="commentList-${post.id}">
+                                    ${post.comments && post.comments.length > 0 ? 
+                                        post.comments.map(comment => `
+                                            <div class="comment-item">
+                                                <div class="comment-avatar">${comment.authorInitial || 'U'}</div>
+                                                <div class="comment-content">
+                                                    <div class="comment-author">${comment.authorName}</div>
+                                                    <div class="comment-text">${comment.text}</div>
+                                                    <div class="comment-date">${comment.date || 'Recently'}</div>
+                                                </div>
+                                            </div>
+                                        `).join('') : 
+                                        '<p style="text-align: center; color: var(--gray-color); font-size: 14px;">No comments yet. Be the first to comment!</p>'
+                                    }
+                                </div>
+                            </div>
+                        `;
+                        postsContainer.appendChild(postElement);
+                    });
+                    
+                    // Add event listeners to new elements
+                    addPostEventListeners();
+                    
+                    // Update forum statistics
+                    updateForumStats();
+                }, (error) => {
+                    console.error('Error loading posts:', error);
+                    postList.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: var(--gray-color);">
+                            <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px; color: #ff9800;"></i>
+                            <h3>Error loading posts</h3>
+                            <p>${error.message}</p>
+                            <button class="btn" onclick="loadPostsRealtime()" style="margin-top: 15px;">
+                                <i class="fas fa-redo"></i> Try Again
+                            </button>
+                        </div>
+                    `;
+                });
+        }
+
+        // Add event listeners to post elements
+        function addPostEventListeners() {
+            // Like buttons
             document.querySelectorAll('.like-btn').forEach(button => {
                 button.addEventListener('click', function() {
-                    const postId = parseInt(this.getAttribute('data-id'));
-                    likePost(postId);
+                    const postId = this.getAttribute('data-id');
+                    const hasLiked = this.getAttribute('data-liked') === 'true';
+                    likePost(postId, hasLiked);
                 });
             });
             
-            // Add event listeners to comment toggle buttons
+            // Comment toggle buttons
             document.querySelectorAll('.comment-toggle').forEach(button => {
                 button.addEventListener('click', function() {
-                    const postId = parseInt(this.getAttribute('data-id'));
-                    toggleCommentSection(postId);
+                    const postId = this.getAttribute('data-id');
+                    const commentSection = document.getElementById(`commentSection-${postId}`);
+                    commentSection.classList.toggle('hidden');
+                    
+                    // Focus on comment input
+                    if (!commentSection.classList.contains('hidden')) {
+                        document.getElementById(`commentInput-${postId}`).focus();
+                    }
                 });
             });
             
-            // Add event listeners to comment buttons
+            // Comment buttons
             document.querySelectorAll('.add-comment').forEach(button => {
                 button.addEventListener('click', function() {
-                    const postId = parseInt(this.getAttribute('data-id'));
+                    const postId = this.getAttribute('data-id');
                     addComment(postId);
                 });
             });
             
-            // Update forum statistics
-            updateForumStats();
+            // Allow Enter key in comment inputs
+            document.querySelectorAll('.comment-input').forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        const postId = this.id.replace('commentInput-', '');
+                        addComment(postId);
+                    }
+                });
+            });
         }
 
         // Like a post
-        function likePost(postId) {
-            const post = posts.find(p => p.id === postId);
-            if (post) {
-                post.likes++;
-                loadPosts();
+        async function likePost(postId, hasLiked) {
+            if (!currentUser) {
+                showAlert('Please login to like posts.', 'error');
+                loginModal.classList.remove('hidden');
+                return;
+            }
+            
+            try {
+                const postRef = db.collection('posts').doc(postId);
+                
+                if (hasLiked) {
+                    // Unlike: remove user from likesBy and decrement likes
+                    await postRef.update({
+                        likes: firebase.firestore.FieldValue.increment(-1),
+                        likesBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                    });
+                } else {
+                    // Like: add user to likesBy and increment likes
+                    await postRef.update({
+                        likes: firebase.firestore.FieldValue.increment(1),
+                        likesBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                    });
+                }
+            } catch (error) {
+                console.error('Error liking post:', error);
+                showAlert('Failed to like post: ' + error.message, 'error');
             }
         }
 
-        // Toggle comment section
-        function toggleCommentSection(postId) {
-            const commentSection = document.getElementById(`commentSection-${postId}`);
-            commentSection.classList.toggle('hidden');
-        }
-
         // Add a comment to a post
-        function addComment(postId) {
+        async function addComment(postId) {
             if (!currentUser) {
                 showAlert('Please login to comment.', 'error');
+                loginModal.classList.remove('hidden');
                 return;
             }
             
@@ -988,40 +1474,82 @@
                 return;
             }
             
-            const post = posts.find(p => p.id === postId);
-            if (post) {
-                const newComment = {
-                    author: currentUser.displayName || "Farmer User",
-                    authorInitial: (currentUser.displayName || "F").charAt(0),
+            try {
+                const comment = {
                     text: commentText,
-                    date: "Just now"
+                    authorId: currentUser.uid,
+                    authorName: currentUser.displayName || currentUser.email,
+                    authorInitial: (currentUser.displayName || currentUser.email).charAt(0).toUpperCase(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 
-                post.comments.push(newComment);
+                // Add comment to post
+                await db.collection('posts').doc(postId).update({
+                    comments: firebase.firestore.FieldValue.arrayUnion(comment)
+                });
+                
+                // Clear input
                 commentInput.value = '';
-                loadPosts();
                 
-                // Show the comment section
-                const commentSection = document.getElementById(`commentSection-${postId}`);
-                commentSection.classList.remove('hidden');
-                
-                // Update stats
-                updateForumStats();
+            } catch (error) {
+                console.error('Error adding comment:', error);
+                showAlert('Failed to add comment: ' + error.message, 'error');
             }
         }
 
         // Update forum statistics
-        function updateForumStats() {
-            const totalPosts = posts.length;
-            const totalComments = posts.reduce((sum, post) => sum + post.comments.length, 0);
-            const activeFarmers = new Set(posts.map(post => post.author)).size;
-            const today = new Date().toLocaleDateString();
-            const todaysPosts = posts.filter(post => post.date.includes('now') || post.date.includes('hour') || post.date.includes('Today')).length;
-            
-            totalPostsEl.textContent = totalPosts;
-            totalCommentsEl.textContent = totalComments;
-            activeFarmersEl.textContent = activeFarmers;
-            todaysPostsEl.textContent = todaysPosts;
+        async function updateForumStats() {
+            try {
+                // Get total posts count
+                const postsSnapshot = await db.collection('posts').get();
+                const totalPosts = postsSnapshot.size;
+                
+                // Calculate total comments
+                let totalComments = 0;
+                postsSnapshot.forEach(doc => {
+                    const post = doc.data();
+                    totalComments += post.comments ? post.comments.length : 0;
+                });
+                
+                // Get active farmers (users online in last 30 minutes)
+                const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+                const usersSnapshot = await db.collection('users')
+                    .where('lastActive', '>=', thirtyMinutesAgo)
+                    .get();
+                const activeFarmers = usersSnapshot.size;
+                
+                // Get today's posts
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todaySnapshot = await db.collection('posts')
+                    .where('createdAt', '>=', today)
+                    .get();
+                const todaysPosts = todaySnapshot.size;
+                
+                // Update UI
+                totalPostsEl.textContent = totalPosts;
+                totalCommentsEl.textContent = totalComments;
+                activeFarmersEl.textContent = activeFarmers;
+                todaysPostsEl.textContent = todaysPosts;
+                
+            } catch (error) {
+                console.error('Error updating forum stats:', error);
+                // Use local data if Firestore fails
+                const totalPosts = posts.length;
+                const totalComments = posts.reduce((sum, post) => sum + (post.comments ? post.comments.length : 0), 0);
+                const activeFarmers = new Set(posts.map(post => post.authorId)).size;
+                const todaysPosts = posts.filter(post => {
+                    if (!post.createdAt) return false;
+                    const postDate = post.createdAt.toDate ? post.createdAt.toDate() : new Date();
+                    const today = new Date();
+                    return postDate.toDateString() === today.toDateString();
+                }).length;
+                
+                totalPostsEl.textContent = totalPosts;
+                totalCommentsEl.textContent = totalComments;
+                activeFarmersEl.textContent = activeFarmers;
+                todaysPostsEl.textContent = todaysPosts;
+            }
         }
 
         // Show alert message
@@ -1036,22 +1564,9 @@
             }, 5000);
         }
 
-        // Simulate real-time updates
-        setInterval(() => {
-            // Update post timestamps
-            posts.forEach(post => {
-                if (post.date === "Just now") {
-                    post.date = "1 minute ago";
-                } else if (post.date === "1 minute ago") {
-                    post.date = "5 minutes ago";
-                } else if (post.date === "5 minutes ago") {
-                    post.date = "10 minutes ago";
-                }
-            });
-            
-            // Reload posts to update timestamps
-            loadPosts();
-        }, 60000); // Update every minute
+        // Export functions to global scope for event handlers
+        window.loadPostsRealtime = loadPostsRealtime;
+        window.logout = logout;
     </script>
     
     <!-- Sidebar loader script -->
