@@ -1581,12 +1581,13 @@
         }
 
         // Function to create comment HTML
-        function createCommentHTML(comment, discussionId, isReply = false) {
+        function createCommentHTML(comment, discussionId, isReply = false, parentCommentId = null) {
             const isLiked = comment.likes && comment.likes.includes(currentUser?.uid);
             const isAuthor = currentUser && comment.authorId === currentUser.uid;
+            const hasReplies = comment.replies && comment.replies.length > 0;
             
             return `
-                <div class="${isReply ? 'reply-card' : 'comment-card'}" data-comment-id="${comment.id}">
+                <div class="${isReply ? 'reply-card' : 'comment-card'}" data-comment-id="${comment.id}" ${parentCommentId ? `data-parent-id="${parentCommentId}"` : ''}>
                     <div class="comment-header">
                         <div class="comment-author">
                             <div class="author-avatar" style="${comment.authorAvatar ? `background-image: url('${comment.authorAvatar}')` : ''}">
@@ -1599,7 +1600,10 @@
                         </div>
                         ${isAuthor ? `
                             <div class="author-controls">
-                                <button class="delete-btn-small" data-action="delete-comment" data-discussion-id="${discussionId}" data-comment-id="${comment.id}">
+                                <button class="delete-btn-small" data-action="delete-comment" 
+                                        data-discussion-id="${discussionId}" 
+                                        data-comment-id="${comment.id}"
+                                        ${isReply && parentCommentId ? `data-parent-id="${parentCommentId}" data-is-reply="true"` : ''}>
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -1612,7 +1616,8 @@
                         <button class="comment-action like-comment ${isLiked ? 'liked' : ''}" 
                                 data-action="like-comment" 
                                 data-discussion-id="${discussionId}"
-                                data-comment-id="${comment.id}">
+                                data-comment-id="${comment.id}"
+                                ${isReply && parentCommentId ? `data-parent-id="${parentCommentId}" data-is-reply="true"` : ''}>
                             <i class="fas fa-heart"></i>
                             <span>${comment.likes?.length || 0}</span>
                         </button>
@@ -1627,9 +1632,9 @@
                         ` : ''}
                     </div>
                     
-                    ${!isReply && comment.replies && comment.replies.length > 0 ? `
-                        <div class="replies-list">
-                            ${comment.replies.map(reply => createCommentHTML(reply, discussionId, true)).join('')}
+                    ${!isReply && hasReplies ? `
+                        <div class="replies-list" id="replies-${comment.id}">
+                            ${comment.replies.map(reply => createCommentHTML(reply, discussionId, true, comment.id)).join('')}
                         </div>
                     ` : ''}
                     
@@ -1736,6 +1741,9 @@
                     </div>
                 </div>
             `;
+            
+            // Attach comment events immediately after rendering
+            attachCommentEvents();
         }
 
         // Load discussions from Firestore
@@ -1958,12 +1966,12 @@
                 
             } catch (error) {
                 console.error("Error loading popular topics:", error);
-                topicsList.innerHTML = `
-                    <div style="color: var(--dark-gray); text-align: center; padding: 1rem;">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <p>Error loading topics</p>
-                    </div>
-                `;
+                // topicsList.innerHTML = `
+                //     <div style="color: var(--dark-gray); text-align: center; padding: 1rem;">
+                //         <i class="fas fa-exclamation-circle"></i>
+                //         <p>Error loading topics</p>
+                //     </div>
+                // `;
             }
         }
 
@@ -2005,8 +2013,15 @@
             try {
                 const discussionRef = doc(db, "forum_posts", discussionId);
                 const discussionDoc = await getDoc(discussionRef);
+                
+                if (!discussionDoc.exists()) {
+                    showToast("Discussion not found", 3000);
+                    return;
+                }
+                
                 const discussion = discussionDoc.data();
                 
+                // Create new comment object
                 const comment = {
                     id: 'comment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                     content: content.trim(),
@@ -2017,12 +2032,14 @@
                     authorAvatar: currentUserProfile.imageBase64 || null,
                     likes: [],
                     replies: [],
-                    createdAt: serverTimestamp()
+                    createdAt: Timestamp.now()  // Use Timestamp.now() instead of serverTimestamp()
                 };
+                
+                let updatedComments = [];
                 
                 if (parentCommentId) {
                     // Add as reply to existing comment
-                    const updatedComments = (discussion.comments || []).map(c => {
+                    updatedComments = (discussion.comments || []).map(c => {
                         if (c.id === parentCommentId) {
                             return {
                                 ...c,
@@ -2031,16 +2048,16 @@
                         }
                         return c;
                     });
-                    
-                    await updateDoc(discussionRef, {
-                        comments: updatedComments
-                    });
                 } else {
                     // Add as new top-level comment
-                    await updateDoc(discussionRef, {
-                        comments: arrayUnion(comment)
-                    });
+                    updatedComments = [...(discussion.comments || []), comment];
                 }
+                
+                // Update the document with the new comments array
+                await updateDoc(discussionRef, {
+                    comments: updatedComments,
+                    updatedAt: serverTimestamp()
+                });
                 
                 showToast(parentCommentId ? "Reply posted!" : "Comment added!", 2000);
                 
@@ -2051,7 +2068,7 @@
                 
             } catch (error) {
                 console.error("Error adding comment:", error);
-                showToast("Error adding comment", 3000);
+                showToast("Error adding comment: " + error.message, 3000);
             }
         }
 
@@ -2065,32 +2082,35 @@
             try {
                 const discussionRef = doc(db, "forum_posts", discussionId);
                 const discussionDoc = await getDoc(discussionRef);
+                
+                if (!discussionDoc.exists()) {
+                    showToast("Discussion not found", 3000);
+                    return;
+                }
+                
                 const discussion = discussionDoc.data();
+                let updatedComments = [];
                 
                 if (isReply && parentCommentId) {
                     // Delete reply from comment
-                    const updatedComments = (discussion.comments || []).map(comment => {
+                    updatedComments = (discussion.comments || []).map(comment => {
                         if (comment.id === parentCommentId) {
                             return {
                                 ...comment,
-                                replies: comment.replies.filter(reply => reply.id !== commentId)
+                                replies: (comment.replies || []).filter(reply => reply.id !== commentId)
                             };
                         }
                         return comment;
                     });
-                    
-                    await updateDoc(discussionRef, {
-                        comments: updatedComments
-                    });
                 } else {
                     // Delete top-level comment
-                    const commentToDelete = discussion.comments.find(c => c.id === commentId);
-                    if (commentToDelete) {
-                        await updateDoc(discussionRef, {
-                            comments: arrayRemove(commentToDelete)
-                        });
-                    }
+                    updatedComments = (discussion.comments || []).filter(comment => comment.id !== commentId);
                 }
+                
+                await updateDoc(discussionRef, {
+                    comments: updatedComments,
+                    updatedAt: serverTimestamp()
+                });
                 
                 showToast("Comment deleted", 2000);
                 
@@ -2102,6 +2122,87 @@
             } catch (error) {
                 console.error("Error deleting comment:", error);
                 showToast("Error deleting comment", 3000);
+            }
+        }
+
+        // Like/unlike comment
+        async function handleLikeComment(discussionId, commentId, isReply = false, parentCommentId = null) {
+            if (!currentUser) {
+                showToast("Please sign in to like comments", 3000);
+                return;
+            }
+            
+            try {
+                const discussionRef = doc(db, "forum_posts", discussionId);
+                const discussionDoc = await getDoc(discussionRef);
+                
+                if (!discussionDoc.exists()) {
+                    showToast("Discussion not found", 3000);
+                    return;
+                }
+                
+                const discussion = discussionDoc.data();
+                let updatedComments = [];
+                let commentFound = false;
+                
+                if (isReply && parentCommentId) {
+                    // Handle like for reply
+                    updatedComments = (discussion.comments || []).map(comment => {
+                        if (comment.id === parentCommentId) {
+                            return {
+                                ...comment,
+                                replies: (comment.replies || []).map(reply => {
+                                    if (reply.id === commentId) {
+                                        commentFound = true;
+                                        const isLiked = reply.likes && reply.likes.includes(currentUser.uid);
+                                        return {
+                                            ...reply,
+                                            likes: isLiked 
+                                                ? (reply.likes || []).filter(id => id !== currentUser.uid)
+                                                : [...(reply.likes || []), currentUser.uid]
+                                        };
+                                    }
+                                    return reply;
+                                })
+                            };
+                        }
+                        return comment;
+                    });
+                } else {
+                    // Handle like for top-level comment
+                    updatedComments = (discussion.comments || []).map(comment => {
+                        if (comment.id === commentId) {
+                            commentFound = true;
+                            const isLiked = comment.likes && comment.likes.includes(currentUser.uid);
+                            return {
+                                ...comment,
+                                likes: isLiked 
+                                    ? (comment.likes || []).filter(id => id !== currentUser.uid)
+                                    : [...(comment.likes || []), currentUser.uid]
+                            };
+                        }
+                        return comment;
+                    });
+                }
+                
+                if (!commentFound) {
+                    showToast("Comment not found", 3000);
+                    return;
+                }
+                
+                await updateDoc(discussionRef, {
+                    comments: updatedComments,
+                    updatedAt: serverTimestamp()
+                });
+                
+                // Reload discussion if modal is open
+                if (currentDiscussion && currentDiscussion.id === discussionId) {
+                    openDiscussionModal(discussionId);
+                }
+                
+            } catch (error) {
+                console.error("Error liking comment:", error);
+                showToast("Error updating like", 3000);
             }
         }
 
@@ -2259,54 +2360,6 @@
             }
         }
 
-        // Function to attach modal events
-        function attachModalEvents() {
-            // Modal like button
-            document.querySelector('.like-stat[data-action="like-modal"]')?.addEventListener('click', (e) => {
-                const discussionId = e.target.closest('.like-stat').dataset.id;
-                const statElement = e.target.closest('.like-stat');
-                handleLikeDiscussion(discussionId, statElement);
-            });
-
-            // Submit comment button
-            document.getElementById('submitCommentBtn')?.addEventListener('click', async () => {
-                const commentInput = document.querySelector('.comment-input');
-                const content = commentInput.value.trim();
-                const discussionId = document.getElementById('submitCommentBtn').dataset.discussionId;
-                
-                if (content && discussionId) {
-                    await addComment(discussionId, content);
-                    commentInput.value = '';
-                }
-            });
-
-            // Cancel comment button
-            document.getElementById('cancelCommentBtn')?.addEventListener('click', () => {
-                document.querySelector('.comment-input').value = '';
-            });
-
-            // Delete discussion button
-            document.getElementById('deleteDiscussionBtn')?.addEventListener('click', () => {
-                document.getElementById('deleteConfirmation').classList.add('active');
-            });
-
-            // Cancel delete
-            document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => {
-                document.getElementById('deleteConfirmation').classList.remove('active');
-            });
-
-            // Confirm delete
-            document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
-                const discussionId = document.getElementById('deleteDiscussionBtn')?.dataset.id;
-                if (discussionId) {
-                    await deleteDiscussion(discussionId);
-                }
-            });
-
-            // Attach comment events
-            attachCommentEvents();
-        }
-
         // Function to attach comment events
         function attachCommentEvents() {
             // Like comment buttons
@@ -2314,13 +2367,10 @@
                 button.addEventListener('click', async (e) => {
                     const discussionId = button.dataset.discussionId;
                     const commentId = button.dataset.commentId;
+                    const isReply = button.hasAttribute('data-is-reply');
+                    const parentCommentId = button.getAttribute('data-parent-id');
                     
-                    if (!currentUser) {
-                        showToast("Please sign in to like comments", 3000);
-                        return;
-                    }
-                    
-                    showToast("Comment liked!", 2000);
+                    await handleLikeComment(discussionId, commentId, isReply, parentCommentId);
                 });
             });
 
@@ -2330,8 +2380,8 @@
                     e.stopPropagation();
                     const discussionId = button.dataset.discussionId;
                     const commentId = button.dataset.commentId;
-                    const isReply = button.closest('.reply-card');
-                    const parentCommentId = isReply ? button.closest('.replies-list').parentElement.dataset.commentId : null;
+                    const isReply = button.hasAttribute('data-is-reply');
+                    const parentCommentId = button.getAttribute('data-parent-id');
                     
                     if (confirm("Are you sure you want to delete this comment?")) {
                         await deleteComment(discussionId, commentId, isReply, parentCommentId);
@@ -2380,6 +2430,51 @@
                         replyForm.querySelector('.reply-input').value = '';
                     }
                 });
+            });
+        }
+
+        // Function to attach modal events
+        function attachModalEvents() {
+            // Modal like button
+            document.querySelector('.like-stat[data-action="like-modal"]')?.addEventListener('click', (e) => {
+                const discussionId = e.target.closest('.like-stat').dataset.id;
+                const statElement = e.target.closest('.like-stat');
+                handleLikeDiscussion(discussionId, statElement);
+            });
+
+            // Submit comment button
+            document.getElementById('submitCommentBtn')?.addEventListener('click', async () => {
+                const commentInput = document.querySelector('.comment-input');
+                const content = commentInput.value.trim();
+                const discussionId = document.getElementById('submitCommentBtn').dataset.discussionId;
+                
+                if (content && discussionId) {
+                    await addComment(discussionId, content);
+                    commentInput.value = '';
+                }
+            });
+
+            // Cancel comment button
+            document.getElementById('cancelCommentBtn')?.addEventListener('click', () => {
+                document.querySelector('.comment-input').value = '';
+            });
+
+            // Delete discussion button
+            document.getElementById('deleteDiscussionBtn')?.addEventListener('click', () => {
+                document.getElementById('deleteConfirmation').classList.add('active');
+            });
+
+            // Cancel delete
+            document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => {
+                document.getElementById('deleteConfirmation').classList.remove('active');
+            });
+
+            // Confirm delete
+            document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
+                const discussionId = document.getElementById('deleteDiscussionBtn')?.dataset.id;
+                if (discussionId) {
+                    await deleteDiscussion(discussionId);
+                }
             });
         }
 
