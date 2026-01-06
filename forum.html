@@ -66,16 +66,16 @@
     }
 
     /* ================= HEADER ================= */
-        .top-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            padding: 1rem 1.5rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 1.5rem;
-        }
+    .top-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--white);
+        padding: 1rem 1.5rem;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        margin-bottom: 1.5rem;
+    }
 
     .header-content {
         max-width: 1400px;
@@ -355,14 +355,23 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: var(--primary-color);
-        color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
         background-size: cover;
         background-position: center;
+        flex-shrink: 0;
+    }
+
+    .avatar-fallback {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        font-weight: bold;
     }
 
     .author-info h4 {
@@ -389,6 +398,7 @@
         padding: 0.3rem 0.6rem;
         border-radius: 15px;
         transition: var(--transition);
+        cursor: pointer;
     }
 
     .stat:hover {
@@ -523,14 +533,13 @@
         width: 36px;
         height: 36px;
         border-radius: 50%;
-        background: var(--primary-color);
-        color: white;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: bold;
         background-size: cover;
         background-position: center;
+        flex-shrink: 0;
     }
 
     .member-info h4 {
@@ -977,6 +986,23 @@
         border-left: 2px solid var(--medium-gray);
     }
 
+    /* ================= TOAST NOTIFICATION ================= */
+    #toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--primary-color);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        transform: translateX(150%);
+        transition: transform 0.3s ease;
+        max-width: 300px;
+        word-wrap: break-word;
+    }
+
     /* ================= RESPONSIVE DESIGN ================= */
     @media (max-width: 1200px) {
         .forum-layout {
@@ -1004,7 +1030,7 @@
     }
 
     @media (max-width: 768px) {
-        .forum-header {
+        .top-header {
             padding: 1rem;
             position: sticky;
         }
@@ -1171,6 +1197,8 @@
 
 </head>
 <body>
+    <div id="toast"></div>
+    
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
         <script src="js/sidebar-loader.js"></script>
@@ -1182,6 +1210,10 @@
                     <div class="header-left">
                         <h1>Community Forum</h1>
                         <span class="header-tagline">Connect, Share & Grow Together</span>
+                    </div>
+                    <div class="search-container">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" placeholder="Search discussions...">
                     </div>
                 </div>
             </header>
@@ -1267,7 +1299,9 @@
                             </h3>
                             <div class="members-list" id="onlineFarmersList">
                                 <div class="member-item">
-                                    <div class="member-avatar" style="background: #4caf50; color: white;">PT</div>
+                                    <div class="member-avatar" style="background: #4caf50;">
+                                        <div class="avatar-fallback" style="color: white;">PT</div>
+                                    </div>
                                     <div class="member-info">
                                         <h4>Pakebun Testing</h4>
                                         <div class="status">Active Now</div>
@@ -1275,7 +1309,9 @@
                                     <div class="online-dot"></div>
                                 </div>
                                 <div class="member-item">
-                                    <div class="member-avatar" style="background: #2196f3; color: white;">SS</div>
+                                    <div class="member-avatar" style="background: #2196f3;">
+                                        <div class="avatar-fallback" style="color: white;">SS</div>
+                                    </div>
                                     <div class="member-info">
                                         <h4>Seering Pakebun Savit</h4>
                                         <div class="status">Active Now</div>
@@ -1455,7 +1491,6 @@
 
         // Show toast notification
         function showToast(message, duration = 3000) {
-            // Create toast if it doesn't exist
             let toast = document.getElementById('toast');
             if (!toast) {
                 toast = document.createElement('div');
@@ -1493,10 +1528,24 @@
                 if (userDoc.exists()) {
                     return userDoc.data();
                 }
-                return null;
+                return {
+                    username: 'User',
+                    firstName: 'User',
+                    lastName: '',
+                    email: userId + '@example.com',
+                    imageBase64: null,
+                    bio: 'Farmer'
+                };
             } catch (error) {
                 console.error("Error getting user profile:", error);
-                return null;
+                return {
+                    username: 'User',
+                    firstName: 'User',
+                    lastName: '',
+                    email: 'user@example.com',
+                    imageBase64: null,
+                    bio: 'Farmer'
+                };
             }
         }
 
@@ -1504,28 +1553,63 @@
         function formatDate(timestamp) {
             if (!timestamp) return 'Recently';
             
-            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            const now = new Date();
-            const diff = Math.floor((now - date) / 1000);
+            try {
+                const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+                const now = new Date();
+                const diff = Math.floor((now - date) / 1000);
+                
+                if (diff < 60) return 'Just now';
+                if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+                if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+                if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
+                
+                return date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric' 
+                });
+            } catch (error) {
+                return 'Recently';
+            }
+        }
+
+        // Get avatar HTML
+        function getAvatarHTML(user, size = 40) {
+            const name = user?.firstName || user?.username || user?.email?.split('@')[0] || 'U';
+            const initials = name.charAt(0).toUpperCase();
+            const hasImage = user?.imageBase64 && user.imageBase64.trim() !== '';
             
-            if (diff < 60) return 'Just now';
-            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-            if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
-            
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric',
-                year: 'numeric' 
-            });
+            if (hasImage) {
+                return `
+                    <div class="author-avatar" style="width: ${size}px; height: ${size}px; background-image: url('${user.imageBase64}');">
+                        <div class="avatar-fallback" style="display: none;">${initials}</div>
+                    </div>
+                `;
+            } else {
+                const colors = ['#4caf50', '#2196f3', '#9c27b0', '#ff9800', '#3f51b5'];
+                const colorIndex = (initials.charCodeAt(0) || 0) % colors.length;
+                const bgColor = colors[colorIndex];
+                
+                return `
+                    <div class="author-avatar" style="width: ${size}px; height: ${size}px; background: ${bgColor};">
+                        <div class="avatar-fallback" style="color: white;">${initials}</div>
+                    </div>
+                `;
+            }
         }
 
         // Function to create discussion card HTML
         function createDiscussionCard(discussion) {
             const isLiked = discussion.likes && discussion.likes.includes(currentUser?.uid);
-            const excerpt = discussion.content.length > 150 
+            const excerpt = discussion.content?.length > 150 
                 ? discussion.content.substring(0, 150) + '...' 
-                : discussion.content;
+                : discussion.content || '';
+            
+            const authorName = discussion.authorName || 'Anonymous';
+            const authorAvatar = getAvatarHTML({
+                firstName: authorName,
+                imageBase64: discussion.authorAvatar
+            });
             
             return `
                 <div class="discussion-card" data-id="${discussion.id}">
@@ -1535,7 +1619,7 @@
                             <span class="discussion-category">${discussion.category || 'General'}</span>
                             <span>${formatDate(discussion.createdAt)}</span>
                             ${currentUser && discussion.authorId === currentUser.uid ? `
-                                <button class="delete-btn-small" data-id="${discussion.id}" style="cursor:pointer; color:#f44336; border:none; background:none;">
+                                <button class="delete-btn-small" data-id="${discussion.id}" style="cursor:pointer; color:#f44336; border:none; background:none; padding: 2px 5px;">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             ` : ''}
@@ -1546,11 +1630,9 @@
                     
                     <div class="discussion-footer">
                         <div class="discussion-author">
-                            <div class="author-avatar" style="${discussion.authorAvatar ? `background-image: url('${discussion.authorAvatar}')` : ''}">
-                                ${!discussion.authorAvatar ? (discussion.authorName?.charAt(0) || 'U') : ''}
-                            </div>
+                            ${authorAvatar}
                             <div class="author-info">
-                                <h4>${discussion.authorName || 'Anonymous'}</h4>
+                                <h4>${authorName}</h4>
                                 <div class="role">${discussion.authorRole || 'Farmer'}</div>
                             </div>
                         </div>
@@ -1580,15 +1662,19 @@
             const isAuthor = currentUser && comment.authorId === currentUser.uid;
             const hasReplies = comment.replies && comment.replies.length > 0;
             
+            const authorName = comment.authorName || 'Anonymous';
+            const authorAvatar = getAvatarHTML({
+                firstName: authorName,
+                imageBase64: comment.authorAvatar
+            }, 36);
+            
             return `
                 <div class="${isReply ? 'reply-card' : 'comment-card'}" data-comment-id="${comment.id}" ${parentCommentId ? `data-parent-id="${parentCommentId}"` : ''}>
                     <div class="comment-header">
                         <div class="comment-author">
-                            <div class="author-avatar" style="${comment.authorAvatar ? `background-image: url('${comment.authorAvatar}')` : ''}">
-                                ${!comment.authorAvatar ? (comment.authorName?.charAt(0) || 'U') : ''}
-                            </div>
+                            ${authorAvatar}
                             <div class="comment-author-info">
-                                <h4>${comment.authorName || 'Anonymous'}</h4>
+                                <h4>${authorName}</h4>
                                 <div class="comment-time">${formatDate(comment.createdAt)}</div>
                             </div>
                         </div>
@@ -1650,8 +1736,16 @@
         // Function to render discussion detail
         function renderDiscussionDetail(discussion) {
             const modalContent = document.getElementById('discussionContent');
+            if (!modalContent) return;
+            
             const isLiked = discussion.likes && discussion.likes.includes(currentUser?.uid);
             const isAuthor = currentUser && discussion.authorId === currentUser.uid;
+            
+            const authorName = discussion.authorName || 'Anonymous';
+            const authorAvatar = getAvatarHTML({
+                firstName: authorName,
+                imageBase64: discussion.authorAvatar
+            });
             
             modalContent.innerHTML = `
                 <div class="discussion-card">
@@ -1678,11 +1772,9 @@
                     
                     <div class="discussion-footer">
                         <div class="discussion-author">
-                            <div class="author-avatar" style="${discussion.authorAvatar ? `background-image: url('${discussion.authorAvatar}')` : ''}">
-                                ${!discussion.authorAvatar ? (discussion.authorName?.charAt(0) || 'U') : ''}
-                            </div>
+                            ${authorAvatar}
                             <div class="author-info">
-                                <h4>${discussion.authorName || 'Anonymous'}</h4>
+                                <h4>${authorName}</h4>
                                 <div class="role">${discussion.authorRole || 'Farmer'}</div>
                             </div>
                         </div>
@@ -1743,6 +1835,11 @@
         // Load discussions from Firestore
         async function loadDiscussions(sortBy = 'newest') {
             const grid = document.getElementById('discussionsGrid');
+            if (!grid) {
+                console.error('discussionsGrid element not found');
+                return;
+            }
+            
             grid.innerHTML = `
                 <div class="loading">
                     <div class="spinner"></div>
@@ -1762,7 +1859,7 @@
                         q = query(discussionsRef, orderBy("likes", "desc"), limit(20));
                         break;
                     case 'unanswered':
-                        q = query(discussionsRef, where("comments", "==", []), limit(20));
+                        q = query(discussionsRef, orderBy("createdAt", "desc"), limit(20));
                         break;
                     default:
                         q = query(discussionsRef, orderBy("createdAt", "desc"), limit(20));
@@ -1783,8 +1880,10 @@
                             </div>
                         `;
                         document.getElementById('createFirstPost')?.addEventListener('click', () => {
-                            document.getElementById('createDiscussionModal').classList.add('active');
+                            const modal = document.getElementById('createDiscussionModal');
+                            if (modal) modal.classList.add('active');
                         });
+                        updateStats();
                         return;
                     }
                     
@@ -1794,6 +1893,11 @@
                             id: docSnap.id,
                             ...data
                         });
+                    }
+                    
+                    // Filter for unanswered if needed
+                    if (sortBy === 'unanswered') {
+                        discussions = discussions.filter(d => !d.comments || d.comments.length === 0);
                     }
                     
                     // Update stats
@@ -1826,21 +1930,29 @@
         async function updateStats() {
             try {
                 // Total discussions
-                document.getElementById('totalDiscussions').textContent = discussions.length;
+                const totalDiscussionsEl = document.getElementById('totalDiscussions');
+                if (totalDiscussionsEl) totalDiscussionsEl.textContent = discussions.length;
                 
                 // Online farmers count
-                document.getElementById('onlineFarmers').textContent = onlineFarmers.length;
+                const onlineFarmersEl = document.getElementById('onlineFarmers');
+                if (onlineFarmersEl) onlineFarmersEl.textContent = onlineFarmers.length;
                 
                 // Total members (count users in Firestore)
-                const usersSnapshot = await getDocs(collection(db, "users"));
-                document.getElementById('totalMembers').textContent = usersSnapshot.size;
+                const totalMembersEl = document.getElementById('totalMembers');
+                if (totalMembersEl) {
+                    const usersSnapshot = await getDocs(collection(db, "users"));
+                    totalMembersEl.textContent = usersSnapshot.size;
+                }
                 
                 // Answered rate (discussions with comments vs total)
-                const answeredDiscussions = discussions.filter(d => d.comments && d.comments.length > 0);
-                const answeredRate = discussions.length > 0 
-                    ? Math.round((answeredDiscussions.length / discussions.length) * 100) 
-                    : 0;
-                document.getElementById('answeredRate').textContent = answeredRate + '%';
+                const answeredRateEl = document.getElementById('answeredRate');
+                if (answeredRateEl) {
+                    const answeredDiscussions = discussions.filter(d => d.comments && d.comments.length > 0);
+                    const answeredRate = discussions.length > 0 
+                        ? Math.round((answeredDiscussions.length / discussions.length) * 100) 
+                        : 0;
+                    answeredRateEl.textContent = answeredRate + '%';
+                }
                 
             } catch (error) {
                 console.error("Error updating stats:", error);
@@ -1850,30 +1962,25 @@
         // Load online farmers from Firestore
         async function loadOnlineFarmers() {
             const onlineFarmersList = document.getElementById('onlineFarmersList');
+            if (!onlineFarmersList) return;
             
             try {
-                // Get users who have been active in the last 5 minutes
-                const usersRef = collection(db, "users");
-                const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-                
-                unsubscribeOnlineUsers = onSnapshot(usersRef, (snapshot) => {
+                unsubscribeOnlineUsers = onSnapshot(collection(db, "users"), (snapshot) => {
                     onlineFarmers = [];
                     onlineFarmersList.innerHTML = '';
                     
                     snapshot.forEach((docSnap) => {
                         const userData = docSnap.data();
-                        const lastActive = userData.lastActive?.toDate ? userData.lastActive.toDate() : new Date(0);
-                        
-                        // Consider user online if active in last 5 minutes
-                        if (lastActive > fiveMinutesAgo) {
-                            onlineFarmers.push({
-                                id: docSnap.id,
-                                ...userData
-                            });
-                        }
+                        onlineFarmers.push({
+                            id: docSnap.id,
+                            ...userData
+                        });
                     });
                     
-                    if (onlineFarmers.length === 0) {
+                    // Limit display to 5 online farmers
+                    const displayFarmers = onlineFarmers.slice(0, 5);
+                    
+                    if (displayFarmers.length === 0) {
                         onlineFarmersList.innerHTML = `
                             <div style="text-align: center; padding: 1rem; color: var(--dark-gray);">
                                 <i class="fas fa-user-slash" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
@@ -1881,15 +1988,21 @@
                             </div>
                         `;
                     } else {
-                        onlineFarmers.forEach(farmer => {
+                        displayFarmers.forEach(farmer => {
                             const memberItem = document.createElement('div');
                             memberItem.className = 'member-item';
-                            memberItem.innerHTML = `
-                                <div class="member-avatar" style="${farmer.imageBase64 ? `background-image: url('${farmer.imageBase64}')` : ''}">
-                                    ${!farmer.imageBase64 ? (farmer.firstName?.charAt(0) || farmer.username?.charAt(0) || 'F') : ''}
-                                </div>
+                            
+                            const firstName = farmer.firstName || '';
+                            const lastName = farmer.lastName || '';
+                            const fullName = firstName && lastName ? `${firstName} ${lastName}` : farmer.username || 'Farmer';
+                            const initials = (firstName.charAt(0) + (lastName?.charAt(0) || '')).toUpperCase() || 'F';
+                            
+                            memberItem.innerHTML = getAvatarHTML({
+                                firstName: fullName,
+                                imageBase64: farmer.imageBase64
+                            }, 36) + `
                                 <div class="member-info">
-                                    <h4>${farmer.firstName && farmer.lastName ? `${farmer.firstName} ${farmer.lastName}` : farmer.username || 'Farmer'}</h4>
+                                    <h4>${fullName}</h4>
                                     <div class="status">${farmer.bio || 'Palm Oil Farmer'}</div>
                                 </div>
                                 <div class="online-dot"></div>
@@ -1915,81 +2028,6 @@
                 console.error("Error loading online farmers:", error);
                 showToast("Error loading online farmers", 3000);
             }
-        }
-
-        // Load popular topics
-        async function loadPopularTopics() {
-            const topicsList = document.getElementById('popularTopics');
-            
-            try {
-                const discussionsRef = collection(db, "forum_posts");
-                const q = query(discussionsRef, orderBy("views", "desc"), limit(5));
-                const snapshot = await getDocs(q);
-                
-                const categories = {};
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const category = data.category || 'general';
-                    categories[category] = (categories[category] || 0) + 1;
-                });
-                
-                const popularCategories = Object.entries(categories)
-                    .sort(([,a], [,b]) => b - a)
-                    .slice(0, 5);
-                
-                topicsList.innerHTML = popularCategories.map(([category, count]) => `
-                    <a href="#" class="topic-item" data-category="${category}">
-                        <div class="topic-icon">
-                            <i class="fas fa-hashtag"></i>
-                        </div>
-                        <div class="topic-info">
-                            <h4>${category.charAt(0).toUpperCase() + category.slice(1)}</h4>
-                        </div>
-                        <span class="topic-count">${count}</span>
-                    </a>
-                `).join('');
-                
-                // Add click event to filter by category
-                topicsList.querySelectorAll('.topic-item').forEach(item => {
-                    item.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const category = item.dataset.category;
-                        filterByCategory(category);
-                    });
-                });
-                
-            } catch (error) {
-                console.error("Error loading popular topics:", error);
-                // topicsList.innerHTML = `
-                //     <div style="color: var(--dark-gray); text-align: center; padding: 1rem;">
-                //         <i class="fas fa-exclamation-circle"></i>
-                //         <p>Error loading topics</p>
-                //     </div>
-                // `;
-            }
-        }
-
-        // Filter by category
-        function filterByCategory(category) {
-            const grid = document.getElementById('discussionsGrid');
-            const filteredDiscussions = discussions.filter(d => d.category === category);
-            
-            if (filteredDiscussions.length === 0) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-filter"></i>
-                        <h3>No Discussions Found</h3>
-                        <p>No discussions in the "${category}" category</p>
-                    </div>
-                `;
-            } else {
-                grid.innerHTML = filteredDiscussions.map(discussion => 
-                    createDiscussionCard(discussion)
-                ).join('');
-                attachDiscussionCardEvents();
-            }
-            
-            showToast(`Showing ${category} discussions`, 2000);
         }
 
         // Add comment to discussion
@@ -2026,7 +2064,7 @@
                     authorAvatar: currentUserProfile.imageBase64 || null,
                     likes: [],
                     replies: [],
-                    createdAt: Timestamp.now()  // Use Timestamp.now() instead of serverTimestamp()
+                    createdAt: Timestamp.now()
                 };
                 
                 let updatedComments = [];
@@ -2062,7 +2100,7 @@
                 
             } catch (error) {
                 console.error("Error adding comment:", error);
-                showToast("Error adding comment: " + error.message, 3000);
+                showToast("Error adding comment", 3000);
             }
         }
 
@@ -2342,8 +2380,11 @@
                     });
                     
                     renderDiscussionDetail(currentDiscussion);
-                    document.getElementById('discussionModal').classList.add('active');
-                    document.body.style.overflow = 'hidden';
+                    const modal = document.getElementById('discussionModal');
+                    if (modal) {
+                        modal.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
                     
                     // Attach modal events
                     attachModalEvents();
@@ -2439,28 +2480,31 @@
             // Submit comment button
             document.getElementById('submitCommentBtn')?.addEventListener('click', async () => {
                 const commentInput = document.querySelector('.comment-input');
-                const content = commentInput.value.trim();
-                const discussionId = document.getElementById('submitCommentBtn').dataset.discussionId;
+                const content = commentInput?.value.trim();
+                const discussionId = document.getElementById('submitCommentBtn')?.dataset.discussionId;
                 
                 if (content && discussionId) {
                     await addComment(discussionId, content);
-                    commentInput.value = '';
+                    if (commentInput) commentInput.value = '';
                 }
             });
 
             // Cancel comment button
             document.getElementById('cancelCommentBtn')?.addEventListener('click', () => {
-                document.querySelector('.comment-input').value = '';
+                const commentInput = document.querySelector('.comment-input');
+                if (commentInput) commentInput.value = '';
             });
 
             // Delete discussion button
             document.getElementById('deleteDiscussionBtn')?.addEventListener('click', () => {
-                document.getElementById('deleteConfirmation').classList.add('active');
+                const deleteConfirmation = document.getElementById('deleteConfirmation');
+                if (deleteConfirmation) deleteConfirmation.classList.add('active');
             });
 
             // Cancel delete
             document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => {
-                document.getElementById('deleteConfirmation').classList.remove('active');
+                const deleteConfirmation = document.getElementById('deleteConfirmation');
+                if (deleteConfirmation) deleteConfirmation.classList.remove('active');
             });
 
             // Confirm delete
@@ -2507,13 +2551,20 @@
                 showToast("Discussion created successfully!", 3000);
                 
                 // Reset form
-                document.getElementById('discussionTitle').value = '';
-                document.getElementById('discussionContentInput').value = '';
-                document.getElementById('discussionCategory').value = 'general';
+                const titleInput = document.getElementById('discussionTitle');
+                const contentInput = document.getElementById('discussionContentInput');
+                const categorySelect = document.getElementById('discussionCategory');
+                
+                if (titleInput) titleInput.value = '';
+                if (contentInput) contentInput.value = '';
+                if (categorySelect) categorySelect.value = 'general';
                 
                 // Close modal
-                document.getElementById('createDiscussionModal').classList.remove('active');
-                document.body.style.overflow = 'auto';
+                const modal = document.getElementById('createDiscussionModal');
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
                 
             } catch (error) {
                 console.error("Error creating discussion:", error);
@@ -2541,6 +2592,8 @@
         // Function to handle search
         function setupSearch() {
             const searchInput = document.querySelector('.search-input');
+            if (!searchInput) return;
+            
             let searchTimeout;
             
             searchInput.addEventListener('input', (e) => {
@@ -2551,6 +2604,8 @@
                     if (searchTerm.length === 0) {
                         // Show all discussions if search is empty
                         const grid = document.getElementById('discussionsGrid');
+                        if (!grid) return;
+                        
                         grid.innerHTML = discussions.map(discussion => 
                             createDiscussionCard(discussion)
                         ).join('');
@@ -2568,6 +2623,7 @@
                     
                     // Update display
                     const grid = document.getElementById('discussionsGrid');
+                    if (!grid) return;
                     
                     if (filteredDiscussions.length === 0) {
                         grid.innerHTML = `
@@ -2606,8 +2662,11 @@
                     showToast("Please sign in to create discussions", 3000);
                     return;
                 }
-                document.getElementById('createDiscussionModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
+                const modal = document.getElementById('createDiscussionModal');
+                if (modal) {
+                    modal.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                }
             };
 
             if (newDiscussionBtn) newDiscussionBtn.addEventListener('click', handleNewDiscussion);
@@ -2661,6 +2720,7 @@
                     const myDiscussions = discussions.filter(d => d.authorId === currentUser.uid);
                     
                     const grid = document.getElementById('discussionsGrid');
+                    if (!grid) return;
                     
                     if (myDiscussions.length === 0) {
                         grid.innerHTML = `
@@ -2683,8 +2743,11 @@
 
             // Close modal buttons
             const closeModal = (modalId) => {
-                document.getElementById(modalId).classList.remove('active');
-                document.body.style.overflow = 'auto';
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
             };
 
             if (closeModalBtn) {
@@ -2706,11 +2769,13 @@
             // Submit new discussion
             if (submitDiscussionBtn) {
                 submitDiscussionBtn.addEventListener('click', () => {
-                    const title = document.getElementById('discussionTitle').value.trim();
-                    const category = document.getElementById('discussionCategory').value;
-                    const content = document.getElementById('discussionContentInput').value.trim();
+                    const title = document.getElementById('discussionTitle')?.value.trim();
+                    const category = document.getElementById('discussionCategory')?.value;
+                    const content = document.getElementById('discussionContentInput')?.value.trim();
                     
-                    createDiscussion(title, content, category);
+                    if (title && category && content) {
+                        createDiscussion(title, content, category);
+                    }
                 });
             }
 
@@ -2722,6 +2787,31 @@
                     }
                 });
             });
+        }
+
+        // Filter by category
+        function filterByCategory(category) {
+            const grid = document.getElementById('discussionsGrid');
+            if (!grid) return;
+            
+            const filteredDiscussions = discussions.filter(d => d.category === category);
+            
+            if (filteredDiscussions.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-filter"></i>
+                        <h3>No Discussions Found</h3>
+                        <p>No discussions in the "${category}" category</p>
+                    </div>
+                `;
+            } else {
+                grid.innerHTML = filteredDiscussions.map(discussion => 
+                    createDiscussionCard(discussion)
+                ).join('');
+                attachDiscussionCardEvents();
+            }
+            
+            showToast(`Showing ${category} discussions`, 2000);
         }
 
         // Update user last active time
@@ -2756,28 +2846,30 @@
                     // Update every 2 minutes
                     setInterval(updateUserLastActive, 120000);
                     
-                    // Load discussions
-                    loadDiscussions('newest');
-                    
-                    // Load online farmers
-                    loadOnlineFarmers();
-                    
-                    // Load popular topics
-                    loadPopularTopics();
-                    
-                    setupSorting();
-                    setupSearch();
-                    setupQuickActions();
                 } else {
                     console.log('User not authenticated');
-                    // Show limited content for non-logged in users
-                    loadDiscussions('newest');
-                    loadOnlineFarmers();
-                    loadPopularTopics();
+                    currentUserProfile = {
+                        username: 'Guest',
+                        firstName: 'Guest',
+                        lastName: 'User',
+                        email: 'guest@example.com',
+                        imageBase64: null,
+                        bio: 'Farmer'
+                    };
+                }
+                
+                // Always load content regardless of auth status
+                loadDiscussions('newest');
+                loadOnlineFarmers();
+                
+                // Setup event handlers with delays to ensure DOM is ready
+                setTimeout(() => {
                     setupSorting();
                     setupSearch();
                     setupQuickActions();
-                    
+                }, 100);
+                
+                if (!user) {
                     showToast("Sign in to participate in discussions", 5000);
                 }
             });
