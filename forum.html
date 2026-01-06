@@ -1492,7 +1492,7 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
         import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-        import { getStorage, ref, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+        import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -1630,19 +1630,55 @@
         }
 
         // Upload image to Firebase Storage
-        async function uploadImageToStorage(imageBase64, postId, isReply = false) {
+        async function uploadImageToStorage(imageBase64, isReply = false, postId = null) {
             try {
                 const timestamp = Date.now();
-                const folder = isReply ? 'forum_reply_images' : 'forum_post_images';
-                const imageName = `${folder}/${postId || 'temp'}_${timestamp}_${Math.random().toString(36).substr(2, 9)}.jpg`;
+                const randomString = Math.random().toString(36).substr(2, 9);
+                const userId = currentUser.uid;
+                
+                let folder = 'forum_post_images';
+                let imageName = `forum_post_images/${userId}_${timestamp}_${randomString}.jpg`;
+                
+                if (isReply && postId) {
+                    folder = 'forum_reply_images';
+                    imageName = `forum_reply_images/${postId}/${userId}_${timestamp}_${randomString}.jpg`;
+                }
+                
                 const storageRef = ref(storage, imageName);
+                
+                console.log(`Uploading image to: ${imageName}`);
                 
                 const snapshot = await uploadString(storageRef, imageBase64, 'data_url');
                 const downloadURL = await getDownloadURL(snapshot.ref);
+                
+                console.log(`Image uploaded successfully: ${downloadURL}`);
                 return downloadURL;
             } catch (error) {
                 console.error('Error uploading image:', error);
                 throw error;
+            }
+        }
+
+        // Delete images from storage
+        async function deletePostImages(imageUrls) {
+            try {
+                for (const imageUrl of imageUrls) {
+                    try {
+                        // Extract the path from the URL
+                        const urlParts = imageUrl.split('/');
+                        const encodedPath = urlParts.slice(urlParts.indexOf('o') + 1).join('/');
+                        const decodedPath = decodeURIComponent(encodedPath.split('?')[0]);
+                        
+                        const imageRef = ref(storage, decodedPath);
+                        await deleteObject(imageRef);
+                        console.log("Image deleted:", decodedPath);
+                    } catch (error) {
+                        console.error("Error deleting image:", error);
+                        // Continue with other images even if one fails
+                    }
+                }
+            } catch (error) {
+                console.error("Error in deletePostImages:", error);
             }
         }
 
@@ -2008,27 +2044,31 @@
                     throw new Error("User profile not found");
                 }
 
-                // Upload images to storage
+                // Upload images to storage and get URLs
                 const imageUrls = [];
                 if (images && images.length > 0) {
                     showToast(`Uploading ${images.length} image(s)...`, "info");
                     
-                    for (const imageBase64 of images) {
+                    for (let i = 0; i < images.length; i++) {
                         try {
-                            const imageUrl = await uploadImageToStorage(imageBase64);
-                            imageUrls.push(imageUrl);
+                            const imageBase64 = images[i];
+                            const downloadURL = await uploadImageToStorage(imageBase64, false);
+                            imageUrls.push(downloadURL);
+                            showToast(`Image ${i+1}/${images.length} uploaded`, "info");
                         } catch (error) {
                             console.error('Error uploading image:', error);
+                            showToast(`Error uploading image ${i+1}. Please try again.`, "error");
                         }
                     }
                 }
 
+                // Create post data with image URLs
                 const postData = {
                     title: title,
                     content: content,
                     category: category,
                     tags: tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
-                    images: imageUrls,
+                    images: imageUrls, // This now contains Firebase Storage URLs
                     authorId: currentUser.uid,
                     authorName: userProfile.fullName || currentUser.email.split('@')[0],
                     authorAvatar: userProfile.profileImage || null,
@@ -2039,10 +2079,13 @@
                     upvotes: [],
                     downvotes: [],
                     replies: [],
-                    repliesCount: 0
+                    repliesCount: 0,
+                    updatedAt: serverTimestamp()
                 };
 
+                // Save post to Firestore
                 const postRef = await addDoc(collection(db, "forum_posts"), postData);
+                console.log("Post created with ID:", postRef.id);
 
                 // Clear form and reset
                 document.getElementById('postTitleInput').value = '';
@@ -2100,14 +2143,37 @@
             }
         }
 
-        // Delete a post
+        // Delete a post and its images
         async function deletePost(postId) {
             if (!confirm("Are you sure you want to delete this discussion? This action cannot be undone.")) {
                 return;
             }
 
             try {
-                await deleteDoc(doc(db, "forum_posts", postId));
+                // Get the post first to get image URLs
+                const postRef = doc(db, "forum_posts", postId);
+                const postDoc = await getDoc(postRef);
+                
+                if (postDoc.exists()) {
+                    const postData = postDoc.data();
+                    
+                    // Delete post images from storage
+                    if (postData.images && postData.images.length > 0) {
+                        await deletePostImages(postData.images);
+                    }
+                    
+                    // Delete reply images from storage
+                    if (postData.replies && postData.replies.length > 0) {
+                        for (const reply of postData.replies) {
+                            if (reply.images && reply.images.length > 0) {
+                                await deletePostImages(reply.images);
+                            }
+                        }
+                    }
+                }
+                
+                // Delete the post document from Firestore
+                await deleteDoc(postRef);
                 await loadPosts();
                 showToast("Discussion deleted successfully!", "success");
 
@@ -2298,12 +2364,15 @@
                 if (images.length > 0) {
                     showToast(`Uploading ${images.length} image(s)...`, "info");
                     
-                    for (const imageBase64 of images) {
+                    for (let i = 0; i < images.length; i++) {
                         try {
-                            const imageUrl = await uploadImageToStorage(imageBase64, postId, true);
-                            replyImageUrls.push(imageUrl);
+                            const imageBase64 = images[i];
+                            const downloadURL = await uploadImageToStorage(imageBase64, true, postId);
+                            replyImageUrls.push(downloadURL);
+                            showToast(`Image ${i+1}/${images.length} uploaded`, "info");
                         } catch (error) {
                             console.error('Error uploading reply image:', error);
+                            showToast(`Error uploading image ${i+1}. Please try again.`, "error");
                         }
                     }
                 }
@@ -2315,7 +2384,7 @@
                     authorAvatar: userProfile?.profileImage || null,
                     createdAt: serverTimestamp(),
                     isExpert: userProfile?.isExpert || false,
-                    images: replyImageUrls
+                    images: replyImageUrls // This now contains Firebase Storage URLs
                 };
 
                 await updateDoc(postRef, {
@@ -2450,26 +2519,52 @@
                 return;
             }
 
+            const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
+            
             for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
                 const file = files[i];
-                if (!file.type.match('image.*')) {
-                    showToast('Please select only image files.', 'error');
+                
+                // Validate file type
+                if (!validImageTypes.includes(file.type.toLowerCase())) {
+                    showToast(`File "${file.name}" is not a valid image type. Please use JPEG, PNG, GIF, or WebP.`, "error");
                     continue;
                 }
 
+                // Validate file size (5MB max)
                 if (file.size > 5 * 1024 * 1024) {
-                    showToast('Image size should be less than 5MB.', 'error');
+                    showToast(`Image "${file.name}" is too large. Maximum size is 5MB.`, "error");
                     continue;
                 }
 
-                fileToBase64(file).then(base64 => {
-                    selectedImages.push(base64);
-                    updateImagePreview();
-                    showToast(`Image ${selectedImages.length}/${maxImages} added`, "info");
-                }).catch(error => {
-                    console.error('Error converting file:', error);
-                    showToast('Error processing image.', 'error');
-                });
+                // Convert to base64
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const base64 = e.target.result;
+                        
+                        // Validate base64 string
+                        if (!base64.startsWith('data:image/')) {
+                            throw new Error('Invalid image data');
+                        }
+                        
+                        selectedImages.push(base64);
+                        updateImagePreview();
+                        
+                        const imageCount = selectedImages.length;
+                        showToast(`Image ${imageCount}/${maxImages} added`, "info");
+                        
+                    } catch (error) {
+                        console.error('Error processing image:', error);
+                        showToast('Error processing image. Please try again.', 'error');
+                    }
+                };
+                
+                reader.onerror = function(error) {
+                    console.error('Error reading file:', error);
+                    showToast('Error reading image file.', 'error');
+                };
+                
+                reader.readAsDataURL(file);
             }
             
             // Reset file input
@@ -2540,21 +2635,41 @@
         }
 
         function capturePhoto() {
-            const video = document.getElementById('cameraView');
-            const canvas = document.getElementById('cameraCanvas');
-            const context = canvas.getContext('2d');
-            
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const imageData = canvas.toDataURL('image/jpeg', 0.8);
-            selectedImages.push(imageData);
-            updateImagePreview();
-            
-            stopCamera();
-            closeModal('cameraModal');
-            showToast("Photo captured!", "success");
+            try {
+                const video = document.getElementById('cameraView');
+                const canvas = document.getElementById('cameraCanvas');
+                const context = canvas.getContext('2d');
+                
+                // Ensure video is ready
+                if (!video.videoWidth || !video.videoHeight) {
+                    showToast("Camera is not ready. Please try again.", "error");
+                    return;
+                }
+                
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                
+                // Convert to base64 with quality compression
+                const imageData = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
+                
+                // Check if we can add more images
+                if (selectedImages.length >= 5) {
+                    showToast("Maximum 5 images allowed.", "error");
+                    return;
+                }
+                
+                selectedImages.push(imageData);
+                updateImagePreview();
+                
+                stopCamera();
+                closeModal('cameraModal');
+                showToast("Photo captured!", "success");
+                
+            } catch (error) {
+                console.error('Error capturing photo:', error);
+                showToast("Failed to capture photo. Please try again.", "error");
+            }
         }
 
         function stopCamera() {
