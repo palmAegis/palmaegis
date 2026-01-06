@@ -268,22 +268,33 @@
             background: var(--accent-color);
         }
 
-        /* Forum Layout */
-        .forum-layout {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 2rem;
-            animation: slideUp 0.6s ease-out 0.5s both;
-        }
+/* Forum Layout */
+.forum-layout {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 2rem;
+    animation: slideUp 0.6s ease-out 0.5s both;
+    max-width: 1200px;
+    margin: 0 auto;
+}
 
-        /* Discussion Cards */
-        .discussions-section {
-            background: var(--white);
-            border-radius: 16px;
-            padding: 2rem;
-            box-shadow: var(--card-shadow);
-            min-height: 500px;
-        }
+/* Main Discussions */
+.discussions-section {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--card-shadow);
+    min-height: 500px;
+    width: 100%;
+}
+
+/* For larger screens */
+@media (min-width: 1400px) {
+    .forum-layout {
+        grid-template-columns: 850px 350px;
+        justify-content: center;
+    }
+}
 
         .section-header {
             display: flex;
