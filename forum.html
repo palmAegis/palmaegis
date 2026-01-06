@@ -1,1192 +1,1174 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Community Forum | Palm Aegis</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
     <link rel="shortcut icon" href="images/logo1.png">
     <meta name="theme-color" content="#2e7d32">
-
+    
     <style>
-    /* ================= ROOT VARIABLES ================= */
-    :root {
-        --primary-color: #2e7d32;
-        --secondary-color: #4caf50;
-        --accent-color: #388e3c;
-        --light-green: #e8f5e9;
-        --white: #ffffff;
-        --light-gray: #f5f5f5;
-        --medium-gray: #e0e0e0;
-        --dark-gray: #757575;
-        --text-color: #333333;
-        --shadow: 0 2px 8px rgba(0,0,0,0.1);
-        --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        --border-radius: 12px;
-        --transition: all 0.3s ease;
-    }
+        /* ================= ROOT VARIABLES ================= */
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #4caf50;
+            --accent-color: #388e3c;
+            --light-green: #e8f5e9;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --medium-gray: #e0e0e0;
+            --dark-gray: #757575;
+            --text-color: #333333;
+            --shadow: 0 2px 8px rgba(0,0,0,0.1);
+            --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
 
-    /* ================= RESET ================= */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: 'Segoe UI', system-ui, sans-serif;
-    }
+        /* ================= RESET ================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
 
-    html, body {
-        height: 100%;
-        overflow-x: hidden;
-    }
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
 
-    body {
-        background: linear-gradient(135deg, #f8fff8 0%, #e8f5e9 100%);
-        color: var(--text-color);
-        min-height: 100vh;
-        line-height: 1.5;
-        overflow-y: auto;
-    }
+        body {
+            background: linear-gradient(135deg, #f8fff8 0%, #e8f5e9 100%);
+            color: var(--text-color);
+            min-height: 100vh;
+            line-height: 1.5;
+            overflow-y: auto;
+        }
 
-    /* ================= LAYOUT ================= */
-    .dashboard-container {
-        display: flex;
-        min-height: 100vh;
-        width: 100%;
-    }
+        /* ================= LAYOUT ================= */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
 
-    .main-content {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow-y: auto;
-        height: 100vh;
-    }
+        .main-content {
+            flex: 1;
+            margin-left: 260px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            transition: margin-left 0.3s ease;
+        }
 
-    /* ================= HEADER ================= */
+        /* ================= HEADER ================= */
         .top-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: var(--card-bg);
-            padding: 1rem 1.5rem;
+            background: white;
+            padding: 1.5rem;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             margin-bottom: 1.5rem;
         }
 
-    .header-content {
-        max-width: 1400px;
-        margin: 0 auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-        width: 100%;
-    }
-
-    .header-left h1 {
-        font-size: 2rem;
-        color: var(--primary-color);
-        margin-bottom: 0.25rem;
-    }
-
-    .header-tagline {
-        font-size: 0.95rem;
-        color: var(--dark-gray);
-    }
-
-    .search-container {
-        width: 280px;
-        position: relative;
-    }
-
-    .search-icon {
-        position: absolute;
-        left: 1rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--dark-gray);
-    }
-
-    .search-input {
-        width: 100%;
-        padding: 0.7rem 1rem 0.7rem 2.8rem;
-        border-radius: 25px;
-        border: 1px solid var(--medium-gray);
-        background: var(--light-gray);
-        font-size: 0.95rem;
-        transition: var(--transition);
-    }
-
-    .search-input:focus {
-        outline: none;
-        background: var(--white);
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-    }
-
-    /* ================= MAIN CONTAINER ================= */
-    .forum-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem;
-        width: 100%;
-        flex: 1;
-        overflow-y: visible;
-    }
-
-    /* ================= WELCOME SECTION ================= */
-    .welcome-section {
-        background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
-        color: white;
-        padding: 2.5rem;
-        border-radius: var(--border-radius);
-        margin-bottom: 2.5rem;
-        box-shadow: var(--card-shadow);
-    }
-
-    .welcome-content h2 {
-        font-size: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    .welcome-content p {
-        max-width: 600px;
-        opacity: 0.95;
-        font-size: 1.1rem;
-    }
-
-    /* ================= STATS GRID ================= */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1.5rem;
-        margin-top: 2rem;
-    }
-
-    .stat-card {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: var(--border-radius);
-        padding: 1.4rem;
-        backdrop-filter: blur(10px);
-        transition: var(--transition);
-    }
-
-    .stat-card:hover {
-        background: rgba(255, 255, 255, 0.25);
-        transform: translateY(-2px);
-    }
-
-    .stat-number {
-        font-size: 2rem;
-        font-weight: bold;
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
-        font-size: 0.9rem;
-        opacity: 0.9;
-    }
-
-    /* ================= QUICK ACTIONS ================= */
-    .quick-actions {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
-    }
-
-    .action-btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: 25px;
-        border: 1px solid var(--medium-gray);
-        background: var(--white);
-        color: var(--text-color);
-        font-weight: 600;
-        cursor: pointer;
-        transition: var(--transition);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .action-btn:hover {
-        background: var(--light-gray);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow);
-    }
-
-    .action-btn.primary {
-        background: var(--primary-color);
-        color: white;
-        border: none;
-    }
-
-    .action-btn.primary:hover {
-        background: var(--accent-color);
-    }
-
-    /* ================= FORUM LAYOUT ================= */
-    .forum-layout {
-        display: grid;
-        grid-template-columns: 1fr 350px;
-        gap: 2rem;
-        align-items: start;
-    }
-
-    /* ================= DISCUSSIONS SECTION ================= */
-    .discussions-section {
-        background: var(--white);
-        border-radius: var(--border-radius);
-        padding: 2rem;
-        box-shadow: var(--card-shadow);
-        min-height: 500px;
-    }
-
-    .section-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
-
-    .section-title {
-        font-size: 1.4rem;
-        color: var(--primary-color);
-        font-weight: 600;
-    }
-
-    .sort-options {
-        display: flex;
-        gap: 0.5rem;
-        flex-wrap: wrap;
-    }
-
-    .sort-btn {
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        border: 1px solid var(--medium-gray);
-        background: var(--white);
-        color: var(--text-color);
-        cursor: pointer;
-        transition: var(--transition);
-        font-size: 0.9rem;
-    }
-
-    .sort-btn.active,
-    .sort-btn:hover {
-        background: var(--primary-color);
-        color: white;
-        border-color: var(--primary-color);
-    }
-
-    /* ================= DISCUSSION CARD ================= */
-    .discussion-card {
-        border: 1px solid var(--medium-gray);
-        border-radius: var(--border-radius);
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        background: var(--white);
-        transition: var(--transition);
-        cursor: pointer;
-    }
-
-    .discussion-card:hover {
-        border-color: var(--primary-color);
-        box-shadow: var(--card-shadow);
-        transform: translateY(-2px);
-    }
-
-    .discussion-header {
-        margin-bottom: 1rem;
-    }
-
-    .discussion-title {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: var(--text-color);
-        margin-bottom: 0.5rem;
-        line-height: 1.4;
-    }
-
-    .discussion-meta {
-        display: flex;
-        gap: 1rem;
-        font-size: 0.85rem;
-        color: var(--dark-gray);
-        align-items: center;
-    }
-
-    .discussion-category {
-        background: var(--light-green);
-        color: var(--primary-color);
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
-        font-weight: 500;
-    }
-
-    .discussion-excerpt {
-        color: var(--text-color);
-        margin-bottom: 1.5rem;
-        line-height: 1.6;
-    }
-
-    .discussion-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-top: 1rem;
-        border-top: 1px solid var(--light-gray);
-    }
-
-    .discussion-author {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .author-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--primary-color);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        background-size: cover;
-        background-position: center;
-    }
-
-    .author-info h4 {
-        font-size: 0.95rem;
-        margin-bottom: 0.1rem;
-    }
-
-    .role {
-        font-size: 0.8rem;
-        color: var(--dark-gray);
-    }
-
-    .discussion-stats {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .stat {
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        color: var(--dark-gray);
-        font-size: 0.9rem;
-        padding: 0.3rem 0.6rem;
-        border-radius: 15px;
-        transition: var(--transition);
-    }
-
-    .stat:hover {
-        background: var(--light-gray);
-    }
-
-    .stat.liked {
-        color: #e91e63;
-    }
-
-    /* ================= DISCUSSIONS GRID ================= */
-    .discussions-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        min-height: 200px;
-    }
-
-    .loading {
-        text-align: center;
-        padding: 3rem;
-        color: var(--dark-gray);
-        min-height: 200px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .spinner {
-        border: 3px solid var(--light-gray);
-        border-top: 3px solid var(--primary-color);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 1rem;
-    }
-
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-
-    /* ================= EMPTY STATE ================= */
-    .empty-state {
-        text-align: center;
-        padding: 3rem;
-        color: var(--dark-gray);
-        min-height: 200px;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .empty-state i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: var(--medium-gray);
-    }
-
-    .empty-state h3 {
-        margin-bottom: 0.5rem;
-        color: var(--text-color);
-    }
-
-    /* ================= SIDEBAR ================= */
-    .forum-sidebar {
-        position: sticky;
-        top: 120px;
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-        height: fit-content;
-        max-height: calc(100vh - 140px);
-        overflow-y: auto;
-    }
-
-    .sidebar-card {
-        background: var(--white);
-        border-radius: var(--border-radius);
-        padding: 1.6rem;
-        box-shadow: var(--card-shadow);
-    }
-
-    .sidebar-title {
-        font-size: 1.1rem;
-        color: var(--primary-color);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-weight: 600;
-    }
-
-    /* ================= MEMBERS LIST ================= */
-    .members-list {
-        max-height: 220px;
-        overflow-y: auto;
-        padding-right: 5px;
-    }
-
-    .members-list::-webkit-scrollbar {
-        width: 4px;
-    }
-
-    .members-list::-webkit-scrollbar-track {
-        background: var(--light-gray);
-        border-radius: 10px;
-    }
-
-    .members-list::-webkit-scrollbar-thumb {
-        background: var(--medium-gray);
-        border-radius: 10px;
-    }
-
-    .member-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.7rem;
-        border-radius: 8px;
-        transition: var(--transition);
-    }
-
-    .member-item:hover {
-        background: var(--light-gray);
-    }
-
-    .member-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: var(--primary-color);
-        color: white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        background-size: cover;
-        background-position: center;
-    }
-
-    .member-info h4 {
-        font-size: 0.95rem;
-        margin-bottom: 0.1rem;
-    }
-
-    .status {
-        font-size: 0.8rem;
-        color: var(--dark-gray);
-    }
-
-    .online-dot {
-        width: 8px;
-        height: 8px;
-        background: #4caf50;
-        border-radius: 50%;
-        margin-left: auto;
-        box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-    }
-
-    /* ================= TOPICS LIST ================= */
-    .topics-list {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .topic-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.7rem;
-        border-radius: 8px;
-        text-decoration: none;
-        color: var(--text-color);
-        transition: var(--transition);
-    }
-
-    .topic-item:hover {
-        background: var(--light-gray);
-        transform: translateX(5px);
-    }
-
-    .topic-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        background: var(--light-green);
-        color: var(--primary-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .topic-info h4 {
-        font-size: 0.95rem;
-        font-weight: 500;
-        flex: 1;
-    }
-
-    .topic-count {
-        background: var(--light-gray);
-        color: var(--dark-gray);
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 500;
-    }
-
-    /* ================= COMMUNITY GUIDELINES ================= */
-    .sidebar-card ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .sidebar-card li {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid var(--light-gray);
-        font-size: 0.9rem;
-    }
-
-    .sidebar-card li:last-child {
-        border-bottom: none;
-    }
-
-    /* ================= FLOATING ACTION BUTTON ================= */
-    .create-post-fab {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: var(--primary-color);
-        color: white;
-        font-size: 1.5rem;
-        border: none;
-        cursor: pointer;
-        box-shadow: 0 4px 20px rgba(46, 125, 50, 0.4);
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 1000;
-    }
-
-    .create-post-fab:hover {
-        background: var(--accent-color);
-        transform: scale(1.1);
-        box-shadow: 0 6px 25px rgba(46, 125, 50, 0.5);
-    }
-
-    /* ================= MODALS ================= */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(5px);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 1001;
-        padding: 1rem;
-        overflow-y: auto;
-    }
-
-    .modal-overlay.active {
-        display: flex;
-    }
-
-    .modal {
-        background: var(--white);
-        border-radius: var(--border-radius);
-        width: 90%;
-        max-width: 800px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        animation: modalSlideIn 0.3s ease;
-    }
-
-    @keyframes modalSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .modal-header {
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--medium-gray);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        background: var(--white);
-        z-index: 1;
-    }
-
-    .modal-title {
-        font-size: 1.5rem;
-        color: var(--primary-color);
-        font-weight: 600;
-    }
-
-    .close-modal {
-        background: none;
-        border: none;
-        font-size: 2rem;
-        color: var(--dark-gray);
-        cursor: pointer;
-        line-height: 1;
-        padding: 0;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        transition: var(--transition);
-    }
-
-    .close-modal:hover {
-        background: var(--light-gray);
-        color: var(--text-color);
-    }
-
-    .modal-content {
-        padding: 1.5rem;
-        overflow-y: auto;
-    }
-
-    .modal-footer {
-        padding: 1.5rem;
-        border-top: 1px solid var(--medium-gray);
-        display: flex;
-        justify-content: flex-end;
-        gap: 1rem;
-        position: sticky;
-        bottom: 0;
-        background: var(--white);
-    }
-
-    /* ================= COMMENTS SECTION ================= */
-    .comments-section {
-        margin-top: 2rem;
-    }
-
-    .comments-header {
-        margin-bottom: 1.5rem;
-    }
-
-    .comments-title {
-        font-size: 1.2rem;
-        color: var(--text-color);
-        font-weight: 600;
-    }
-
-    .comment-form {
-        background: var(--light-gray);
-        padding: 1.5rem;
-        border-radius: var(--border-radius);
-        margin-bottom: 2rem;
-    }
-
-    .comment-input,
-    .reply-input {
-        width: 100%;
-        padding: 1rem;
-        border: 1px solid var(--medium-gray);
-        border-radius: 8px;
-        resize: vertical;
-        font-size: 1rem;
-        transition: var(--transition);
-    }
-
-    .comment-input:focus,
-    .reply-input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-    }
-
-    .comment-form-actions,
-    .reply-form-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    /* ================= COMMENTS LIST ================= */
-    .comments-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .comment-card,
-    .reply-card {
-        padding: 1rem;
-        border: 1px solid var(--light-gray);
-        border-radius: 8px;
-        background: var(--light-gray);
-    }
-
-    .reply-card {
-        background: var(--white);
-        margin-left: 2rem;
-    }
-
-    .comment-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 0.75rem;
-    }
-
-    .comment-author {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex: 1;
-    }
-
-    .comment-author-info h4 {
-        font-size: 0.95rem;
-        margin-bottom: 0.1rem;
-    }
-
-    .comment-time {
-        font-size: 0.8rem;
-        color: var(--dark-gray);
-    }
-
-    .author-controls {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .comment-content {
-        margin-bottom: 0.75rem;
-        line-height: 1.6;
-    }
-
-    .comment-actions {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .comment-action {
-        background: none;
-        border: none;
-        color: var(--dark-gray);
-        cursor: pointer;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        padding: 0.3rem 0.6rem;
-        border-radius: 15px;
-        transition: var(--transition);
-    }
-
-    .comment-action:hover {
-        background: rgba(0, 0, 0, 0.05);
-    }
-
-    .comment-action.liked {
-        color: #e91e63;
-    }
-
-    /* Reply form styles */
-    .reply-form {
-        display: none;
-        margin-top: 1rem;
-        padding: 1rem;
-        background: var(--white);
-        border-radius: 8px;
-        border: 1px solid var(--light-gray);
-    }
-
-    .reply-form.active {
-        display: block;
-    }
-
-    /* Delete button styles */
-    .delete-btn {
-        background: #f44336;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        transition: var(--transition);
-    }
-
-    .delete-btn:hover {
-        background: #d32f2f;
-        transform: translateY(-2px);
-    }
-
-    .delete-btn-small {
-        color: #f44336;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 0.8rem;
-        padding: 0.2rem 0.5rem;
-        border-radius: 4px;
-        transition: var(--transition);
-    }
-
-    .delete-btn-small:hover {
-        background: #ffebee;
-    }
-
-    .delete-confirmation {
-        background: #fff3f3;
-        border: 1px solid #ffcdd2;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 1rem 0;
-        display: none;
-    }
-
-    .delete-confirmation.active {
-        display: block;
-    }
-
-    .delete-confirmation-text {
-        color: #d32f2f;
-        margin-bottom: 1rem;
-        font-weight: 500;
-    }
-
-    .delete-confirmation-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: flex-end;
-    }
-
-    .delete-confirm-btn {
-        background: #d32f2f;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    .delete-cancel-btn {
-        background: var(--light-gray);
-        color: var(--text-color);
-        border: 1px solid var(--medium-gray);
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    /* Modal header actions */
-    .modal-header-actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    /* Replies list */
-    .replies-list {
-        margin-top: 1rem;
-        padding-left: 1rem;
-        border-left: 2px solid var(--medium-gray);
-    }
-
-    /* ================= RESPONSIVE DESIGN ================= */
-    @media (max-width: 1200px) {
-        .forum-layout {
-            grid-template-columns: 1fr;
+        .header-left h1 {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
         }
 
-        .forum-sidebar {
-            position: static;
-            max-height: none;
-        }
-    }
-
-    @media (max-width: 992px) {
-        .forum-container {
-            padding: 1.5rem;
+        .header-tagline {
+            font-size: 0.95rem;
+            color: var(--dark-gray);
         }
 
-        .welcome-section {
-            padding: 2rem;
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: #f5f5f5;
+            border-radius: 25px;
+            padding: 0.7rem 1.5rem;
+            width: 280px;
+            transition: var(--transition);
         }
 
-        .stats-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 768px) {
-        .forum-header {
-            padding: 1rem;
-            position: sticky;
+        .search-box i {
+            color: var(--dark-gray);
+            margin-right: 10px;
         }
 
-        .header-content {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
-        }
-
-        .search-container {
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
             width: 100%;
+            font-size: 0.95rem;
         }
 
+        .search-box:focus-within {
+            background: var(--white);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
+
+        /* ================= MAIN CONTAINER ================= */
+        .forum-container {
+            width: 100%;
+            flex: 1;
+            overflow-y: visible;
+        }
+
+        /* ================= WELCOME SECTION ================= */
         .welcome-section {
-            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2.5rem;
+            box-shadow: var(--card-shadow);
         }
 
         .welcome-content h2 {
-            font-size: 1.5rem;
+            font-size: 2rem;
+            margin-bottom: 1rem;
         }
 
+        .welcome-content p {
+            max-width: 600px;
+            opacity: 0.95;
+            font-size: 1.1rem;
+        }
+
+        /* ================= STATS GRID ================= */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: var(--border-radius);
+            padding: 1.4rem;
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* ================= QUICK ACTIONS ================= */
         .quick-actions {
-            justify-content: center;
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
 
         .action-btn {
-            flex: 1;
-            min-width: 150px;
-            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            border: 1px solid var(--medium-gray);
+            background: var(--white);
+            color: var(--text-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-btn:hover {
+            background: var(--light-gray);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .action-btn.primary {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .action-btn.primary:hover {
+            background: var(--accent-color);
+        }
+
+        /* ================= FORUM LAYOUT ================= */
+        .forum-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        /* ================= DISCUSSIONS SECTION ================= */
+        .discussions-section {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+            min-height: 500px;
         }
 
         .section-header {
-            flex-direction: column;
-            align-items: flex-start;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            font-weight: 600;
         }
 
         .sort-options {
-            width: 100%;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .sort-btn {
-            flex: 1;
-            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid var(--medium-gray);
+            background: var(--white);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .sort-btn.active,
+        .sort-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* ================= DISCUSSION CARD ================= */
+        .discussion-card {
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            background: var(--white);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .discussion-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: var(--card-shadow);
+            transform: translateY(-2px);
+        }
+
+        .discussion-header {
+            margin-bottom: 1rem;
+        }
+
+        .discussion-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .discussion-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: var(--dark-gray);
+            align-items: center;
+        }
+
+        .discussion-category {
+            background: var(--light-green);
+            color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-weight: 500;
+        }
+
+        .discussion-excerpt {
+            color: var(--text-color);
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
         }
 
         .discussion-footer {
-            flex-direction: column;
-            gap: 1rem;
-            align-items: flex-start;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .discussion-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .author-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .author-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .role {
+            font-size: 0.8rem;
+            color: var(--dark-gray);
         }
 
         .discussion-stats {
-            width: 100%;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 15px;
+            transition: var(--transition);
+        }
+
+        .stat:hover {
+            background: var(--light-gray);
+        }
+
+        .stat.liked {
+            color: #e91e63;
+        }
+
+        /* ================= DISCUSSIONS GRID ================= */
+        .discussions-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-height: 200px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--dark-gray);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
+            align-items: center;
         }
 
-        .modal {
-            width: 95%;
-            margin: 1rem;
+        .spinner {
+            border: 3px solid var(--light-gray);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
         }
 
-        .reply-card {
-            margin-left: 1rem;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .create-post-fab {
-            bottom: 1rem;
-            right: 1rem;
-            width: 50px;
-            height: 50px;
-            font-size: 1.2rem;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
+        /* ================= EMPTY STATE ================= */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: var(--dark-gray);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
 
-        .discussions-section {
-            padding: 1rem;
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--medium-gray);
+        }
+
+        .empty-state h3 {
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+        }
+
+        /* ================= SIDEBAR ================= */
+        .forum-sidebar {
+            position: sticky;
+            top: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            height: fit-content;
+            max-height: calc(100vh - 140px);
+            overflow-y: auto;
         }
 
         .sidebar-card {
-            padding: 1rem;
+            background: var(--white);
+            border-radius: var(--border-radius);
+            padding: 1.6rem;
+            box-shadow: var(--card-shadow);
         }
 
-        .forum-container {
-            padding: 1rem;
+        .sidebar-title {
+            font-size: 1.1rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
         }
 
-        .modal-content,
-        .modal-header,
-        .modal-footer {
-            padding: 1rem;
+        /* ================= MEMBERS LIST ================= */
+        .members-list {
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 5px;
         }
 
-        .modal-footer {
+        .members-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .members-list::-webkit-scrollbar-track {
+            background: var(--light-gray);
+            border-radius: 10px;
+        }
+
+        .members-list::-webkit-scrollbar-thumb {
+            background: var(--medium-gray);
+            border-radius: 10px;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+
+        .member-item:hover {
+            background: var(--light-gray);
+        }
+
+        .member-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .member-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .status {
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            margin-left: auto;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        /* ================= TOPICS LIST ================= */
+        .topics-list {
+            display: flex;
             flex-direction: column;
+            gap: 0.5rem;
         }
 
-        .action-btn {
+        .topic-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-color);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .topic-item:hover {
+            background: var(--light-gray);
+            transform: translateX(5px);
+        }
+
+        .topic-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--light-green);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topic-info h4 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .topic-count {
+            background: var(--light-gray);
+            color: var(--dark-gray);
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* ================= COMMUNITY GUIDELINES ================= */
+        .sidebar-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar-card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--light-gray);
+            font-size: 0.9rem;
+        }
+
+        .sidebar-card li:last-child {
+            border-bottom: none;
+        }
+
+        /* ================= FLOATING ACTION BUTTON ================= */
+        .create-post-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            font-size: 1.5rem;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.4);
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .create-post-fab:hover {
+            background: var(--accent-color);
+            transform: scale(1.1);
+            box-shadow: 0 6px 25px rgba(46, 125, 50, 0.5);
+        }
+
+        /* ================= MODALS ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1001;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--white);
+            z-index: 1;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: var(--dark-gray);
+            cursor: pointer;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+
+        .close-modal:hover {
+            background: var(--light-gray);
+            color: var(--text-color);
+        }
+
+        .modal-content {
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            position: sticky;
+            bottom: 0;
+            background: var(--white);
+        }
+
+        /* ================= COMMENTS SECTION ================= */
+        .comments-section {
+            margin-top: 2rem;
+        }
+
+        .comments-header {
+            margin-bottom: 1.5rem;
+        }
+
+        .comments-title {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .comment-form {
+            background: var(--light-gray);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+        }
+
+        .comment-input,
+        .reply-input {
             width: 100%;
+            padding: 1rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: 8px;
+            resize: vertical;
+            font-size: 1rem;
+            transition: var(--transition);
         }
-    }
 
-    /* ================= SCROLLABLE CONTENT AREA ================= */
-    .scrollable-content {
-        flex: 1;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-    }
+        .comment-input:focus,
+        .reply-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
 
-    /* Ensure body and html allow scrolling */
-    body.scroll-lock {
-        overflow: hidden;
-    }
+        .comment-form-actions,
+        .reply-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
 
-    /* Smooth scrolling */
-    html {
-        scroll-behavior: smooth;
-    }
+        /* ================= COMMENTS LIST ================= */
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
 
-    /* Better scrollbar for main content */
-    .main-content::-webkit-scrollbar {
-        width: 8px;
-    }
+        .comment-card,
+        .reply-card {
+            padding: 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 8px;
+            background: var(--light-gray);
+        }
 
-    .main-content::-webkit-scrollbar-track {
-        background: var(--light-gray);
-    }
+        .reply-card {
+            background: var(--white);
+            margin-left: 2rem;
+        }
 
-    .main-content::-webkit-scrollbar-thumb {
-        background: var(--medium-gray);
-        border-radius: 4px;
-    }
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.75rem;
+        }
 
-    .main-content::-webkit-scrollbar-thumb:hover {
-        background: var(--dark-gray);
-    }
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+        }
 
-    /* Forum container specific scroll */
-    .forum-container {
-        overflow-y: visible;
-    }
+        .comment-author-info h4 {
+            font-size: 0.95rem;
+            margin-bottom: 0.1rem;
+        }
 
-    /* Ensure discussions grid can grow */
-    .discussions-grid {
-        min-height: 300px;
-    }
+        .comment-time {
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+        }
 
-    /* Sidebar adjustments for better scrolling */
-    .forum-sidebar {
-        overflow-y: visible;
-    }
+        .author-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
 
-    @media (max-width: 1200px) {
+        .comment-content {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .comment-action {
+            background: none;
+            border: none;
+            color: var(--dark-gray);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            padding: 0.3rem 0.6rem;
+            border-radius: 15px;
+            transition: var(--transition);
+        }
+
+        .comment-action:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .comment-action.liked {
+            color: #e91e63;
+        }
+
+        /* Reply form styles */
+        .reply-form {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--white);
+            border-radius: 8px;
+            border: 1px solid var(--light-gray);
+        }
+
+        .reply-form.active {
+            display: block;
+        }
+
+        /* Delete button styles */
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .delete-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        .delete-btn-small {
+            color: #f44336;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .delete-btn-small:hover {
+            background: #ffebee;
+        }
+
+        .delete-confirmation {
+            background: #fff3f3;
+            border: 1px solid #ffcdd2;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            display: none;
+        }
+
+        .delete-confirmation.active {
+            display: block;
+        }
+
+        .delete-confirmation-text {
+            color: #d32f2f;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+
+        .delete-confirmation-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .delete-confirm-btn {
+            background: #d32f2f;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .delete-cancel-btn {
+            background: var(--light-gray);
+            color: var(--text-color);
+            border: 1px solid var(--medium-gray);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Modal header actions */
+        .modal-header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Replies list */
+        .replies-list {
+            margin-top: 1rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--medium-gray);
+        }
+
+        /* ================= RESPONSIVE DESIGN ================= */
+        @media (max-width: 1200px) {
+            .forum-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .forum-sidebar {
+                position: static;
+                max-height: none;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .welcome-section {
+                padding: 2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                margin-left: 0;
+            }
+
+            .sidebar-toggle {
+                display: none !important;
+            }
+
+            .mobile-menu-btn {
+                display: flex !important;
+                margin-right: 10px;
+            }
+
+            .top-header {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .welcome-section {
+                padding: 1.5rem;
+            }
+
+            .welcome-content h2 {
+                font-size: 1.5rem;
+            }
+
+            .quick-actions {
+                justify-content: center;
+            }
+
+            .action-btn {
+                flex: 1;
+                min-width: 150px;
+                justify-content: center;
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .sort-options {
+                width: 100%;
+            }
+
+            .sort-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            .discussion-footer {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: flex-start;
+            }
+
+            .discussion-stats {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .modal {
+                width: 95%;
+                margin: 1rem;
+            }
+
+            .reply-card {
+                margin-left: 1rem;
+            }
+
+            .create-post-fab {
+                bottom: 1rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .discussions-section {
+                padding: 1rem;
+            }
+
+            .sidebar-card {
+                padding: 1rem;
+            }
+
+            .modal-content,
+            .modal-header,
+            .modal-footer {
+                padding: 1rem;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+        }
+
+        /* ================= SCROLLABLE CONTENT AREA ================= */
+        .scrollable-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Ensure body and html allow scrolling */
+        body.scroll-lock {
+            overflow: hidden;
+        }
+
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Better scrollbar for main content */
+        .main-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: var(--light-gray);
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: var(--medium-gray);
+            border-radius: 4px;
+        }
+
+        .main-content::-webkit-scrollbar-thumb:hover {
+            background: var(--dark-gray);
+        }
+
+        /* Ensure discussions grid can grow */
+        .discussions-grid {
+            min-height: 300px;
+        }
+
+        /* Sidebar adjustments for better scrolling */
         .forum-sidebar {
             overflow-y: visible;
         }
-    }
-    </style>
 
+        @media (max-width: 1200px) {
+            .forum-sidebar {
+                overflow-y: visible;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
         <script src="js/sidebar-loader.js"></script>
 
         <main class="main-content">
-            <!-- Header -->
-            <header class="top-header">
-                <div class="header-content">
-                    <div class="header-left">
-                        <h1>Community Forum</h1>
-                        <span class="header-tagline">Connect, Share & Grow Together</span>
-                    </div>
+            <div class="top-header">
+                <div class="header-left">
+                    <h1>Community Forum</h1>
+                    <span class="header-tagline">Connect, Share & Grow Together</span>
                 </div>
-            </header>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="globalSearchInput" placeholder="Search discussions...">
+                </div>
+            </div>
 
-            <!-- Main Content -->
             <div class="forum-container">
                 <!-- Welcome Section -->
                 <section class="welcome-section">
@@ -1407,10 +1389,10 @@
         </main>
     </div>
 
-    <!-- JavaScript -->
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
         import { 
             getFirestore, 
             collection, 
@@ -1441,10 +1423,34 @@
             appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // DOM elements
+        const globalSearchInput = document.getElementById('globalSearchInput');
+        const newDiscussionBtn = document.getElementById('newDiscussionBtn');
+        const filterBtn = document.getElementById('filterBtn');
+        const trendingBtn = document.getElementById('trendingBtn');
+        const myDiscussionsBtn = document.getElementById('myDiscussionsBtn');
+        const discussionsGrid = document.getElementById('discussionsGrid');
+        const discussionModal = document.getElementById('discussionModal');
+        const discussionContent = document.getElementById('discussionContent');
+        const closeModal = document.getElementById('closeModal');
+        const closeDiscussionBtn = document.getElementById('closeDiscussionBtn');
+        const createDiscussionModal = document.getElementById('createDiscussionModal');
+        const closeCreateModal = document.getElementById('closeCreateModal');
+        const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+        const submitDiscussionBtn = document.getElementById('submitDiscussionBtn');
+        const discussionTitle = document.getElementById('discussionTitle');
+        const discussionCategory = document.getElementById('discussionCategory');
+        const discussionContentInput = document.getElementById('discussionContentInput');
+        const createPostFab = document.getElementById('createPostFab');
+        const onlineFarmersList = document.getElementById('onlineFarmersList');
+        const sortBtns = document.querySelectorAll('.sort-btn');
+
+        // Global variables
         let currentUser = null;
         let currentUserProfile = null;
         let discussions = [];
@@ -1452,11 +1458,9 @@
         let onlineFarmers = [];
         let unsubscribeDiscussions = null;
         let unsubscribeOnlineUsers = null;
-        
 
         // Show toast notification
         function showToast(message, duration = 3000) {
-            // Create toast if it doesn't exist
             let toast = document.getElementById('toast');
             if (!toast) {
                 toast = document.createElement('div');
@@ -1737,7 +1741,6 @@
                 </div>
             `;
             
-            // Attach comment events immediately after rendering
             attachCommentEvents();
         }
 
@@ -1850,10 +1853,7 @@
 
         // Load online farmers from Firestore
         async function loadOnlineFarmers() {
-            const onlineFarmersList = document.getElementById('onlineFarmersList');
-            
             try {
-                // Get users who have been active in the last 5 minutes
                 const usersRef = collection(db, "users");
                 const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
                 
@@ -1865,7 +1865,6 @@
                         const userData = docSnap.data();
                         const lastActive = userData.lastActive?.toDate ? userData.lastActive.toDate() : new Date(0);
                         
-                        // Consider user online if active in last 5 minutes
                         if (lastActive > fiveMinutesAgo) {
                             onlineFarmers.push({
                                 id: docSnap.id,
@@ -1899,7 +1898,6 @@
                         });
                     }
                     
-                    // Update stats
                     updateStats();
                     
                 }, (error) => {
@@ -1920,7 +1918,7 @@
 
         // Load popular topics
         async function loadPopularTopics() {
-            const topicsList = document.getElementById('popularTopics');
+            const topicsList = document.querySelector('.topics-list');
             
             try {
                 const discussionsRef = collection(db, "forum_posts");
@@ -1950,7 +1948,6 @@
                     </a>
                 `).join('');
                 
-                // Add click event to filter by category
                 topicsList.querySelectorAll('.topic-item').forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -1961,12 +1958,6 @@
                 
             } catch (error) {
                 console.error("Error loading popular topics:", error);
-                // topicsList.innerHTML = `
-                //     <div style="color: var(--dark-gray); text-align: center; padding: 1rem;">
-                //         <i class="fas fa-exclamation-circle"></i>
-                //         <p>Error loading topics</p>
-                //     </div>
-                // `;
             }
         }
 
@@ -2016,7 +2007,6 @@
                 
                 const discussion = discussionDoc.data();
                 
-                // Create new comment object
                 const comment = {
                     id: 'comment_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
                     content: content.trim(),
@@ -2027,13 +2017,12 @@
                     authorAvatar: currentUserProfile.imageBase64 || null,
                     likes: [],
                     replies: [],
-                    createdAt: Timestamp.now()  // Use Timestamp.now() instead of serverTimestamp()
+                    createdAt: Timestamp.now()
                 };
                 
                 let updatedComments = [];
                 
                 if (parentCommentId) {
-                    // Add as reply to existing comment
                     updatedComments = (discussion.comments || []).map(c => {
                         if (c.id === parentCommentId) {
                             return {
@@ -2044,11 +2033,9 @@
                         return c;
                     });
                 } else {
-                    // Add as new top-level comment
                     updatedComments = [...(discussion.comments || []), comment];
                 }
                 
-                // Update the document with the new comments array
                 await updateDoc(discussionRef, {
                     comments: updatedComments,
                     updatedAt: serverTimestamp()
@@ -2056,7 +2043,6 @@
                 
                 showToast(parentCommentId ? "Reply posted!" : "Comment added!", 2000);
                 
-                // Reload discussion to show new comment
                 if (currentDiscussion && currentDiscussion.id === discussionId) {
                     openDiscussionModal(discussionId);
                 }
@@ -2087,7 +2073,6 @@
                 let updatedComments = [];
                 
                 if (isReply && parentCommentId) {
-                    // Delete reply from comment
                     updatedComments = (discussion.comments || []).map(comment => {
                         if (comment.id === parentCommentId) {
                             return {
@@ -2098,7 +2083,6 @@
                         return comment;
                     });
                 } else {
-                    // Delete top-level comment
                     updatedComments = (discussion.comments || []).filter(comment => comment.id !== commentId);
                 }
                 
@@ -2109,7 +2093,6 @@
                 
                 showToast("Comment deleted", 2000);
                 
-                // Reload discussion
                 if (currentDiscussion && currentDiscussion.id === discussionId) {
                     openDiscussionModal(discussionId);
                 }
@@ -2141,7 +2124,6 @@
                 let commentFound = false;
                 
                 if (isReply && parentCommentId) {
-                    // Handle like for reply
                     updatedComments = (discussion.comments || []).map(comment => {
                         if (comment.id === parentCommentId) {
                             return {
@@ -2164,7 +2146,6 @@
                         return comment;
                     });
                 } else {
-                    // Handle like for top-level comment
                     updatedComments = (discussion.comments || []).map(comment => {
                         if (comment.id === commentId) {
                             commentFound = true;
@@ -2190,7 +2171,6 @@
                     updatedAt: serverTimestamp()
                 });
                 
-                // Reload discussion if modal is open
                 if (currentDiscussion && currentDiscussion.id === discussionId) {
                     openDiscussionModal(discussionId);
                 }
@@ -2221,16 +2201,13 @@
                     return;
                 }
                 
-                // Delete from Firestore
                 await deleteDoc(doc(db, "forum_posts", discussionId));
                 
-                // Close modal
-                document.getElementById('discussionModal').classList.remove('active');
+                discussionModal.classList.remove('active');
                 document.body.style.overflow = 'auto';
                 
                 showToast("Discussion deleted successfully", 3000);
                 
-                // Reload discussions
                 loadDiscussions('newest');
                 
             } catch (error) {
@@ -2266,7 +2243,6 @@
                 });
             });
 
-            // Delete buttons on discussion cards
             document.querySelectorAll('.delete-btn-small').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
@@ -2295,14 +2271,12 @@
                 const isLiked = discussion.likes && discussion.likes.includes(currentUser.uid);
                 
                 if (isLiked) {
-                    // Remove like
                     await updateDoc(discussionRef, {
                         likes: arrayRemove(currentUser.uid)
                     });
                     element.classList.remove('liked');
                     element.querySelector('span').textContent = (discussion.likes?.length || 1) - 1;
                 } else {
-                    // Add like
                     await updateDoc(discussionRef, {
                         likes: arrayUnion(currentUser.uid)
                     });
@@ -2310,7 +2284,6 @@
                     element.querySelector('span').textContent = (discussion.likes?.length || 0) + 1;
                 }
                 
-                // Update modal if open
                 if (currentDiscussion && currentDiscussion.id === discussionId) {
                     const modalLike = document.querySelector('.like-stat[data-action="like-modal"]');
                     if (modalLike) {
@@ -2337,16 +2310,14 @@
                         ...discussionDoc.data()
                     };
                     
-                    // Increment views
                     await updateDoc(discussionRef, {
                         views: (currentDiscussion.views || 0) + 1
                     });
                     
                     renderDiscussionDetail(currentDiscussion);
-                    document.getElementById('discussionModal').classList.add('active');
+                    discussionModal.classList.add('active');
                     document.body.style.overflow = 'hidden';
                     
-                    // Attach modal events
                     attachModalEvents();
                 }
             } catch (error) {
@@ -2357,7 +2328,6 @@
 
         // Function to attach comment events
         function attachCommentEvents() {
-            // Like comment buttons
             document.querySelectorAll('.like-comment').forEach(button => {
                 button.addEventListener('click', async (e) => {
                     const discussionId = button.dataset.discussionId;
@@ -2369,7 +2339,6 @@
                 });
             });
 
-            // Delete comment buttons
             document.querySelectorAll('[data-action="delete-comment"]').forEach(button => {
                 button.addEventListener('click', async (e) => {
                     e.stopPropagation();
@@ -2384,7 +2353,6 @@
                 });
             });
 
-            // Reply buttons
             document.querySelectorAll('.reply-to-comment').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const commentId = button.dataset.commentId;
@@ -2398,7 +2366,6 @@
                 });
             });
 
-            // Submit reply buttons
             document.querySelectorAll('.submit-reply').forEach(button => {
                 button.addEventListener('click', async (e) => {
                     const discussionId = button.dataset.discussionId;
@@ -2415,7 +2382,6 @@
                 });
             });
 
-            // Cancel reply buttons
             document.querySelectorAll('.cancel-reply').forEach(button => {
                 button.addEventListener('click', (e) => {
                     const commentId = button.dataset.commentId;
@@ -2430,14 +2396,12 @@
 
         // Function to attach modal events
         function attachModalEvents() {
-            // Modal like button
             document.querySelector('.like-stat[data-action="like-modal"]')?.addEventListener('click', (e) => {
                 const discussionId = e.target.closest('.like-stat').dataset.id;
                 const statElement = e.target.closest('.like-stat');
                 handleLikeDiscussion(discussionId, statElement);
             });
 
-            // Submit comment button
             document.getElementById('submitCommentBtn')?.addEventListener('click', async () => {
                 const commentInput = document.querySelector('.comment-input');
                 const content = commentInput.value.trim();
@@ -2449,22 +2413,18 @@
                 }
             });
 
-            // Cancel comment button
             document.getElementById('cancelCommentBtn')?.addEventListener('click', () => {
                 document.querySelector('.comment-input').value = '';
             });
 
-            // Delete discussion button
             document.getElementById('deleteDiscussionBtn')?.addEventListener('click', () => {
                 document.getElementById('deleteConfirmation').classList.add('active');
             });
 
-            // Cancel delete
             document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => {
                 document.getElementById('deleteConfirmation').classList.remove('active');
             });
 
-            // Confirm delete
             document.getElementById('confirmDeleteBtn')?.addEventListener('click', async () => {
                 const discussionId = document.getElementById('deleteDiscussionBtn')?.dataset.id;
                 if (discussionId) {
@@ -2507,13 +2467,11 @@
                 
                 showToast("Discussion created successfully!", 3000);
                 
-                // Reset form
                 document.getElementById('discussionTitle').value = '';
                 document.getElementById('discussionContentInput').value = '';
                 document.getElementById('discussionCategory').value = 'general';
                 
-                // Close modal
-                document.getElementById('createDiscussionModal').classList.remove('active');
+                createDiscussionModal.classList.remove('active');
                 document.body.style.overflow = 'auto';
                 
             } catch (error) {
@@ -2524,13 +2482,9 @@
 
         // Function to handle sorting
         function setupSorting() {
-            const sortBtns = document.querySelectorAll('.sort-btn');
-            
             sortBtns.forEach(btn => {
                 btn.addEventListener('click', () => {
-                    // Remove active class from all buttons
                     sortBtns.forEach(b => b.classList.remove('active'));
-                    // Add active class to clicked button
                     btn.classList.add('active');
                     
                     const sortType = btn.dataset.sort;
@@ -2541,16 +2495,14 @@
 
         // Function to handle search
         function setupSearch() {
-            const searchInput = document.querySelector('.search-input');
             let searchTimeout;
             
-            searchInput.addEventListener('input', (e) => {
+            globalSearchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
                 const searchTerm = e.target.value.toLowerCase().trim();
                 
                 searchTimeout = setTimeout(() => {
                     if (searchTerm.length === 0) {
-                        // Show all discussions if search is empty
                         const grid = document.getElementById('discussionsGrid');
                         grid.innerHTML = discussions.map(discussion => 
                             createDiscussionCard(discussion)
@@ -2559,7 +2511,6 @@
                         return;
                     }
                     
-                    // Filter discussions based on search term
                     const filteredDiscussions = discussions.filter(discussion => 
                         (discussion.title || '').toLowerCase().includes(searchTerm) ||
                         (discussion.content || '').toLowerCase().includes(searchTerm) ||
@@ -2567,7 +2518,6 @@
                         (discussion.authorName || '').toLowerCase().includes(searchTerm)
                     );
                     
-                    // Update display
                     const grid = document.getElementById('discussionsGrid');
                     
                     if (filteredDiscussions.length === 0) {
@@ -2590,34 +2540,20 @@
 
         // Function to handle quick action buttons
         function setupQuickActions() {
-            const newDiscussionBtn = document.getElementById('newDiscussionBtn');
-            const filterBtn = document.getElementById('filterBtn');
-            const trendingBtn = document.getElementById('trendingBtn');
-            const myDiscussionsBtn = document.getElementById('myDiscussionsBtn');
-            const createPostFab = document.getElementById('createPostFab');
-            const closeModalBtn = document.getElementById('closeModal');
-            const closeDiscussionBtn = document.getElementById('closeDiscussionBtn');
-            const closeCreateModalBtn = document.getElementById('closeCreateModal');
-            const cancelCreateBtn = document.getElementById('cancelCreateBtn');
-            const submitDiscussionBtn = document.getElementById('submitDiscussionBtn');
-
-            // New discussion
             const handleNewDiscussion = () => {
                 if (!currentUser) {
                     showToast("Please sign in to create discussions", 3000);
                     return;
                 }
-                document.getElementById('createDiscussionModal').classList.add('active');
+                createDiscussionModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             };
 
             if (newDiscussionBtn) newDiscussionBtn.addEventListener('click', handleNewDiscussion);
             if (createPostFab) createPostFab.addEventListener('click', handleNewDiscussion);
 
-            // Filter button
             if (filterBtn) {
                 filterBtn.addEventListener('click', () => {
-                    // Show category filter options
                     const categories = ['all', 'general', 'disease', 'treatment', 'farming', 'technology'];
                     const categoryList = categories.map(cat => `
                         <button class="action-btn" data-category="${cat}" style="margin: 0.25rem;">
@@ -2627,7 +2563,6 @@
                     
                     showToast(`Filter by category:<br>${categoryList}`, 5000);
                     
-                    // Add event listeners to filter buttons
                     setTimeout(() => {
                         document.querySelectorAll('.toast .action-btn').forEach(btn => {
                             btn.addEventListener('click', () => {
@@ -2643,7 +2578,6 @@
                 });
             }
 
-            // Trending button
             if (trendingBtn) {
                 trendingBtn.addEventListener('click', () => {
                     const sortBtn = document.querySelector('.sort-btn[data-sort="popular"]');
@@ -2651,7 +2585,6 @@
                 });
             }
 
-            // My discussions button
             if (myDiscussionsBtn) {
                 myDiscussionsBtn.addEventListener('click', () => {
                     if (!currentUser) {
@@ -2682,29 +2615,27 @@
                 });
             }
 
-            // Close modal buttons
-            const closeModal = (modalId) => {
+            const closeModalFunc = (modalId) => {
                 document.getElementById(modalId).classList.remove('active');
                 document.body.style.overflow = 'auto';
             };
 
-            if (closeModalBtn) {
-                closeModalBtn.addEventListener('click', () => closeModal('discussionModal'));
+            if (closeModal) {
+                closeModal.addEventListener('click', () => closeModalFunc('discussionModal'));
             }
 
             if (closeDiscussionBtn) {
-                closeDiscussionBtn.addEventListener('click', () => closeModal('discussionModal'));
+                closeDiscussionBtn.addEventListener('click', () => closeModalFunc('discussionModal'));
             }
 
-            if (closeCreateModalBtn) {
-                closeCreateModalBtn.addEventListener('click', () => closeModal('createDiscussionModal'));
+            if (closeCreateModal) {
+                closeCreateModal.addEventListener('click', () => closeModalFunc('createDiscussionModal'));
             }
 
             if (cancelCreateBtn) {
-                cancelCreateBtn.addEventListener('click', () => closeModal('createDiscussionModal'));
+                cancelCreateBtn.addEventListener('click', () => closeModalFunc('createDiscussionModal'));
             }
 
-            // Submit new discussion
             if (submitDiscussionBtn) {
                 submitDiscussionBtn.addEventListener('click', () => {
                     const title = document.getElementById('discussionTitle').value.trim();
@@ -2715,11 +2646,10 @@
                 });
             }
 
-            // Close modal when clicking outside
             document.querySelectorAll('.modal-overlay').forEach(modal => {
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) {
-                        closeModal(modal.id);
+                        closeModalFunc(modal.id);
                     }
                 });
             });
@@ -2738,50 +2668,97 @@
             }
         }
 
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('Forum page loaded');
-            
-            // Check authentication
-            onAuthStateChanged(auth, async (user) => {
-                if (user) {
-                    currentUser = user;
-                    console.log('User authenticated:', user.email);
-                    
-                    // Get user profile
-                    currentUserProfile = await getUserProfile(user.uid);
-                    
-                    // Update user last active
-                    updateUserLastActive();
-                    
-                    // Update every 2 minutes
-                    setInterval(updateUserLastActive, 120000);
-                    
-                    // Load discussions
-                    loadDiscussions('newest');
-                    
-                    // Load online farmers
-                    loadOnlineFarmers();
-                    
-                    // Load popular topics
-                    loadPopularTopics();
-                    
-                    setupSorting();
-                    setupSearch();
-                    setupQuickActions();
-                } else {
-                    console.log('User not authenticated');
-                    // Show limited content for non-logged in users
-                    loadDiscussions('newest');
-                    loadOnlineFarmers();
-                    loadPopularTopics();
-                    setupSorting();
-                    setupSearch();
-                    setupQuickActions();
-                    
-                    showToast("Sign in to participate in discussions", 5000);
+        // Update user profile in sidebar
+        function updateUserProfile(user, userData) {
+            const userNameElement = document.querySelector('.user-name');
+            const userRoleElement = document.querySelector('.user-role');
+
+            const displayName = userData.firstName && userData.lastName
+                ? `${userData.firstName} ${userData.lastName}`
+                : userData.username
+                    ? userData.username
+                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+
+            if (userNameElement) userNameElement.textContent = displayName;
+            if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
+
+            const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
+            const avatars = document.querySelectorAll('.user-avatar');
+            avatars.forEach(img => {
+                if (img) {
+                    img.src = avatarSrc;
+                    img.onerror = () => { img.src = 'images/default-avatar.png'; };
                 }
             });
+
+            window.userData = userData;
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('Community Forum page loaded');
+            
+            // Check authentication state
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    console.log('User is signed in:', user.email);
+                    window.currentUser = user;
+                    currentUser = user;
+
+                    try {
+                        const userDoc = await getDoc(doc(db, "users", user.uid));
+                        if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            window.userData = userData;
+                            currentUserProfile = userData;
+                            updateUserProfile(user, userData);
+                        } else {
+                            updateUserProfile(user, {});
+                        }
+
+                        updateUserLastActive();
+                        setInterval(updateUserLastActive, 120000);
+                        
+                        loadDiscussions('newest');
+                        loadOnlineFarmers();
+                        loadPopularTopics();
+                        setupSorting();
+                        setupSearch();
+                        setupQuickActions();
+                    } catch (error) {
+                        console.error('Error loading user data:', error);
+                        updateUserProfile(user, {});
+                        showToast("Failed to load user data. Please try again.");
+                    }
+                } else {
+                    console.log('User is not signed in');
+                    window.location.href = 'signin.html';
+                }
+            });
+
+            // Sidebar Toggle Logic (Mobile Support)
+            const checkSidebar = setInterval(() => {
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const sidebar = document.querySelector('.sidebar');
+
+                if (sidebarToggle && sidebar) {
+                    clearInterval(checkSidebar);
+
+                    sidebarToggle.addEventListener('click', (e) => {
+                        if (window.innerWidth <= 768) {
+                            e.stopPropagation();
+                            sidebar.classList.toggle('active');
+
+                            const icon = sidebarToggle.querySelector('i');
+                            if (sidebar.classList.contains('active')) {
+                                icon.className = 'fas fa-chevron-left';
+                            } else {
+                                icon.className = 'fas fa-chevron-right';
+                            }
+                        }
+                    });
+                }
+            }, 100);
         });
 
         // Cleanup on page unload
