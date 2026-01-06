@@ -88,35 +88,6 @@
             color: var(--dark-gray);
         }
 
-        .search-box {
-            display: flex;
-            align-items: center;
-            background-color: #f5f5f5;
-            border-radius: 25px;
-            padding: 0.7rem 1.5rem;
-            width: 280px;
-            transition: var(--transition);
-        }
-
-        .search-box i {
-            color: var(--dark-gray);
-            margin-right: 10px;
-        }
-
-        .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 100%;
-            font-size: 0.95rem;
-        }
-
-        .search-box:focus-within {
-            background: var(--white);
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-        }
-
         /* ================= MAIN CONTAINER ================= */
         .forum-container {
             width: 100%;
@@ -213,6 +184,91 @@
 
         .action-btn.primary:hover {
             background: var(--accent-color);
+        }
+
+        /* ================= FILTER MODAL ================= */
+        .filter-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--white);
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            z-index: 1002;
+            min-width: 300px;
+            max-width: 90%;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .filter-modal.active {
+            display: block;
+        }
+
+        .filter-modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-modal-title {
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .filter-modal-content {
+            padding: 1.5rem;
+        }
+
+        .filter-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .filter-option {
+            padding: 0.75rem;
+            border-radius: 8px;
+            border: 1px solid var(--medium-gray);
+            background: var(--white);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-option:hover {
+            background: var(--light-gray);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .filter-option.active {
+            background: var(--light-green);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .filter-option.active .filter-check {
+            display: block;
+        }
+
+        .filter-check {
+            display: none;
+            color: var(--primary-color);
+        }
+
+        .filter-modal-footer {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid var(--medium-gray);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
         }
 
         /* ================= FORUM LAYOUT ================= */
@@ -1006,10 +1062,6 @@
                 gap: 1rem;
             }
 
-            .search-box {
-                width: 100%;
-            }
-
             .welcome-section {
                 padding: 1.5rem;
             }
@@ -1162,10 +1214,6 @@
                 <div class="header-left">
                     <h1>Community Forum</h1>
                     <span class="header-tagline">Connect, Share & Grow Together</span>
-                </div>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="globalSearchInput" placeholder="Search discussions...">
                 </div>
             </div>
 
@@ -1335,6 +1383,45 @@
                 <i class="fas fa-edit"></i>
             </button>
 
+            <!-- Filter Modal -->
+            <div class="filter-modal" id="filterModal">
+                <div class="filter-modal-header">
+                    <h3 class="filter-modal-title">Filter by Category</h3>
+                    <button class="close-modal" id="closeFilterModal">&times;</button>
+                </div>
+                <div class="filter-modal-content">
+                    <div class="filter-options">
+                        <div class="filter-option active" data-category="all">
+                            <span>All Categories</span>
+                            <i class="fas fa-check filter-check"></i>
+                        </div>
+                        <div class="filter-option" data-category="general">
+                            <span>General</span>
+                            <i class="fas fa-check filter-check"></i>
+                        </div>
+                        <div class="filter-option" data-category="disease">
+                            <span>Disease</span>
+                            <i class="fas fa-check filter-check"></i>
+                        </div>
+                        <div class="filter-option" data-category="treatment">
+                            <span>Treatment</span>
+                            <i class="fas fa-check filter-check"></i>
+                        </div>
+                        <div class="filter-option" data-category="farming">
+                            <span>Farming Tips</span>
+                            <i class="fas fa-check filter-check"></i>
+                        </div>
+                        <div class="filter-option" data-category="technology">
+                            <span>Technology</span>
+                            <i class="fas fa-check filter-check"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="filter-modal-footer">
+                    <button class="action-btn" id="applyFilterBtn">Apply Filter</button>
+                </div>
+            </div>
+
             <!-- Discussion Detail Modal -->
             <div class="modal-overlay" id="discussionModal">
                 <div class="modal">
@@ -1429,7 +1516,6 @@
         const db = getFirestore(app);
 
         // DOM elements
-        const globalSearchInput = document.getElementById('globalSearchInput');
         const newDiscussionBtn = document.getElementById('newDiscussionBtn');
         const filterBtn = document.getElementById('filterBtn');
         const trendingBtn = document.getElementById('trendingBtn');
@@ -1449,6 +1535,12 @@
         const createPostFab = document.getElementById('createPostFab');
         const onlineFarmersList = document.getElementById('onlineFarmersList');
         const sortBtns = document.querySelectorAll('.sort-btn');
+        
+        // Filter Modal elements
+        const filterModal = document.getElementById('filterModal');
+        const closeFilterModal = document.getElementById('closeFilterModal');
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
+        const filterOptions = document.querySelectorAll('.filter-option');
 
         // Global variables
         let currentUser = null;
@@ -1458,6 +1550,8 @@
         let onlineFarmers = [];
         let unsubscribeDiscussions = null;
         let unsubscribeOnlineUsers = null;
+        let currentFilter = 'all';
+        let currentSort = 'newest';
 
         // Show toast notification
         function showToast(message, duration = 3000) {
@@ -1745,7 +1839,7 @@
         }
 
         // Load discussions from Firestore
-        async function loadDiscussions(sortBy = 'newest') {
+        async function loadDiscussions(sortBy = 'newest', filterBy = 'all') {
             const grid = document.getElementById('discussionsGrid');
             grid.innerHTML = `
                 <div class="loading">
@@ -1758,6 +1852,7 @@
                 const discussionsRef = collection(db, "forum_posts");
                 let q;
                 
+                // Base query based on sort
                 switch(sortBy) {
                     case 'newest':
                         q = query(discussionsRef, orderBy("createdAt", "desc"), limit(20));
@@ -1800,13 +1895,29 @@
                         });
                     }
                     
+                    // Apply filter if not 'all'
+                    let filteredDiscussions = discussions;
+                    if (filterBy !== 'all') {
+                        filteredDiscussions = discussions.filter(d => d.category === filterBy);
+                    }
+                    
                     // Update stats
                     updateStats();
                     
                     // Display discussions
-                    grid.innerHTML = discussions.map(discussion => 
-                        createDiscussionCard(discussion)
-                    ).join('');
+                    if (filteredDiscussions.length === 0) {
+                        grid.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-filter"></i>
+                                <h3>No Discussions Found</h3>
+                                <p>No discussions in the "${filterBy}" category</p>
+                            </div>
+                        `;
+                    } else {
+                        grid.innerHTML = filteredDiscussions.map(discussion => 
+                            createDiscussionCard(discussion)
+                        ).join('');
+                    }
                     
                     attachDiscussionCardEvents();
                 }, (error) => {
@@ -1952,7 +2063,10 @@
                     item.addEventListener('click', (e) => {
                         e.preventDefault();
                         const category = item.dataset.category;
-                        filterByCategory(category);
+                        // Set filter in modal
+                        setFilterOption(category);
+                        // Open filter modal
+                        filterModal.classList.add('active');
                     });
                 });
                 
@@ -1961,27 +2075,25 @@
             }
         }
 
-        // Filter by category
-        function filterByCategory(category) {
-            const grid = document.getElementById('discussionsGrid');
-            const filteredDiscussions = discussions.filter(d => d.category === category);
-            
-            if (filteredDiscussions.length === 0) {
-                grid.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-filter"></i>
-                        <h3>No Discussions Found</h3>
-                        <p>No discussions in the "${category}" category</p>
-                    </div>
-                `;
-            } else {
-                grid.innerHTML = filteredDiscussions.map(discussion => 
-                    createDiscussionCard(discussion)
-                ).join('');
-                attachDiscussionCardEvents();
+        // Set filter option in modal
+        function setFilterOption(category) {
+            filterOptions.forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.category === category) {
+                    option.classList.add('active');
+                }
+            });
+        }
+
+        // Apply filter
+        function applyFilter() {
+            const selectedOption = document.querySelector('.filter-option.active');
+            if (selectedOption) {
+                currentFilter = selectedOption.dataset.category;
+                loadDiscussions(currentSort, currentFilter);
+                showToast(`Showing ${currentFilter === 'all' ? 'all' : currentFilter} discussions`, 2000);
             }
-            
-            showToast(`Showing ${category} discussions`, 2000);
+            filterModal.classList.remove('active');
         }
 
         // Add comment to discussion
@@ -2208,7 +2320,7 @@
                 
                 showToast("Discussion deleted successfully", 3000);
                 
-                loadDiscussions('newest');
+                loadDiscussions(currentSort, currentFilter);
                 
             } catch (error) {
                 console.error("Error deleting discussion:", error);
@@ -2487,54 +2599,40 @@
                     sortBtns.forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     
-                    const sortType = btn.dataset.sort;
-                    loadDiscussions(sortType);
+                    currentSort = btn.dataset.sort;
+                    loadDiscussions(currentSort, currentFilter);
                 });
             });
         }
 
-        // Function to handle search
-        function setupSearch() {
-            let searchTimeout;
-            
-            globalSearchInput.addEventListener('input', (e) => {
-                clearTimeout(searchTimeout);
-                const searchTerm = e.target.value.toLowerCase().trim();
-                
-                searchTimeout = setTimeout(() => {
-                    if (searchTerm.length === 0) {
-                        const grid = document.getElementById('discussionsGrid');
-                        grid.innerHTML = discussions.map(discussion => 
-                            createDiscussionCard(discussion)
-                        ).join('');
-                        attachDiscussionCardEvents();
-                        return;
-                    }
-                    
-                    const filteredDiscussions = discussions.filter(discussion => 
-                        (discussion.title || '').toLowerCase().includes(searchTerm) ||
-                        (discussion.content || '').toLowerCase().includes(searchTerm) ||
-                        (discussion.category || '').toLowerCase().includes(searchTerm) ||
-                        (discussion.authorName || '').toLowerCase().includes(searchTerm)
-                    );
-                    
-                    const grid = document.getElementById('discussionsGrid');
-                    
-                    if (filteredDiscussions.length === 0) {
-                        grid.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fas fa-search"></i>
-                                <h3>No Results Found</h3>
-                                <p>No discussions match your search for "${searchTerm}"</p>
-                            </div>
-                        `;
-                    } else {
-                        grid.innerHTML = filteredDiscussions.map(discussion => 
-                            createDiscussionCard(discussion)
-                        ).join('');
-                        attachDiscussionCardEvents();
-                    }
-                }, 300);
+        // Function to handle filter modal
+        function setupFilterModal() {
+            // Open filter modal
+            filterBtn.addEventListener('click', () => {
+                filterModal.classList.add('active');
+            });
+
+            // Close filter modal
+            closeFilterModal.addEventListener('click', () => {
+                filterModal.classList.remove('active');
+            });
+
+            // Filter option selection
+            filterOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    filterOptions.forEach(opt => opt.classList.remove('active'));
+                    option.classList.add('active');
+                });
+            });
+
+            // Apply filter
+            applyFilterBtn.addEventListener('click', applyFilter);
+
+            // Close modal when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target === filterModal) {
+                    filterModal.classList.remove('active');
+                }
             });
         }
 
@@ -2551,32 +2649,6 @@
 
             if (newDiscussionBtn) newDiscussionBtn.addEventListener('click', handleNewDiscussion);
             if (createPostFab) createPostFab.addEventListener('click', handleNewDiscussion);
-
-            if (filterBtn) {
-                filterBtn.addEventListener('click', () => {
-                    const categories = ['all', 'general', 'disease', 'treatment', 'farming', 'technology'];
-                    const categoryList = categories.map(cat => `
-                        <button class="action-btn" data-category="${cat}" style="margin: 0.25rem;">
-                            ${cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </button>
-                    `).join('');
-                    
-                    showToast(`Filter by category:<br>${categoryList}`, 5000);
-                    
-                    setTimeout(() => {
-                        document.querySelectorAll('.toast .action-btn').forEach(btn => {
-                            btn.addEventListener('click', () => {
-                                const category = btn.dataset.category;
-                                if (category === 'all') {
-                                    loadDiscussions('newest');
-                                } else {
-                                    filterByCategory(category);
-                                }
-                            });
-                        });
-                    }, 100);
-                });
-            }
 
             if (trendingBtn) {
                 trendingBtn.addEventListener('click', () => {
@@ -2719,11 +2791,11 @@
                         updateUserLastActive();
                         setInterval(updateUserLastActive, 120000);
                         
-                        loadDiscussions('newest');
+                        loadDiscussions(currentSort, currentFilter);
                         loadOnlineFarmers();
                         loadPopularTopics();
                         setupSorting();
-                        setupSearch();
+                        setupFilterModal();
                         setupQuickActions();
                     } catch (error) {
                         console.error('Error loading user data:', error);
