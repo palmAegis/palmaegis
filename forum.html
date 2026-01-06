@@ -66,16 +66,16 @@
     }
 
     /* ================= HEADER ================= */
-    .forum-header {
-        background: var(--white);
-        padding: 1.5rem 2rem;
-        border-bottom: 1px solid var(--medium-gray);
-        box-shadow: var(--shadow);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        flex-shrink: 0;
-    }
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card-bg);
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 1.5rem;
+        }
 
     .header-content {
         max-width: 1400px;
@@ -1177,17 +1177,11 @@
 
         <main class="main-content">
             <!-- Header -->
-            <header class="forum-header">
+            <header class="top-header">
                 <div class="header-content">
                     <div class="header-left">
                         <h1>Community Forum</h1>
                         <span class="header-tagline">Connect, Share & Grow Together</span>
-                    </div>
-                    <div class="header-actions">
-                        <div class="search-container">
-                            <i class="fas fa-search search-icon"></i>
-                            <input type="text" class="search-input" placeholder="Search discussions, topics, or members...">
-                        </div>
                     </div>
                 </div>
             </header>
