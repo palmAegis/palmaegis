@@ -1,33 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reports | Palm Aegis</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="css/homepage.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/report.css">
     <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
     <link rel="shortcut icon" href="images/logo1.png">
     <meta name="theme-color" content="#2e7d32">
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    
     <style>
-        /* Light theme color palette */
         :root {
             --primary-color: #2e7d32;
-            --primary-light: #4caf50;
-            --primary-dark: #1b5e20;
-            --secondary-color: #66bb6a;
-            --accent-color: #aed581;
+            --secondary-color: #4caf50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+            --info-color: #2196f3;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
             --text-color: #333333;
             --text-light: #666666;
             --text-lighter: #888888;
             --bg-color: #c8f0c8;
-            --sidebar-bg: #ffffff;
             --card-bg: #ffffff;
             --border-color: #e0e0e0;
             --border-radius: 12px;
@@ -45,295 +41,21 @@
         }
 
         body {
-            background: linear-gradient(135deg, #eafbea, #c8f0c8);
-            color: var(--text-color);
-            display: block;
-            height: 100vh;
-            overflow: hidden;
+            background-color: #c8f0c8;
+            color: #333;
         }
 
-        /* Dashboard Container */
         .dashboard-container {
             display: flex;
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh;
         }
 
-        /* Sidebar Styles */
-        .sidebar {
-            width: 260px;
-            background: var(--sidebar-bg);
-            display: flex;
-            flex-direction: column;
-            box-shadow: var(--shadow);
-            position: fixed;
-            height: 100%;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            overflow-y: auto;
-            transition: all var(--transition-speed);
-            border-right: 1px solid var(--border-color);
-        }
-
-        .sidebar.collapsed {
-            width: 80px;
-            overflow: visible;
-        }
-
-        .sidebar.collapsed .logo h1,
-        .sidebar.collapsed .sidebar-nav a span,
-        .sidebar.collapsed .user-info,
-        .sidebar.collapsed .logout-btn span {
-            opacity: 0;
-            visibility: hidden;
-            width: 0;
-            height: 0;
-            margin: 0;
-        }
-
-        .sidebar.collapsed .logo {
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .logo img {
-            margin-right: 0;
-        }
-
-        .sidebar.collapsed .sidebar-nav a {
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .sidebar.collapsed .sidebar-nav a i {
-            margin-right: 0;
-        }
-
-        .sidebar.collapsed .user-profile-mini {
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .user-avatar {
-            margin-right: 0;
-            width: 40px;
-            height: 40px;
-            font-size: 1rem;
-        }
-
-        .sidebar.collapsed .logout-btn {
-            padding: 0.7rem;
-            justify-content: center;
-        }
-
-        .sidebar.collapsed .logout-btn i {
-            margin-right: 0;
-        }
-
-        .sidebar.collapsed .sidebar-nav li {
-            position: relative;
-        }
-
-        .sidebar.collapsed .sidebar-nav a::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            left: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--sidebar-bg);
-            color: var(--text-color);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-            z-index: 1001;
-            box-shadow: var(--shadow);
-            font-size: 0.9rem;
-            border: 1px solid var(--border-color);
-        }
-
-        .sidebar.collapsed .sidebar-nav a:hover::after {
-            opacity: 1;
-            visibility: visible;
-            left: 110%;
-        }
-
-        .sidebar-header {
-            padding: 1.5rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            border-bottom: 1px solid var(--border-color);
-            min-height: 80px;
-            position: relative;
-        }
-
-        .sidebar-toggle {
-            position: absolute;
-            right: -15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--gradient);
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-            z-index: 1002;
-            box-shadow: var(--shadow);
-        }
-
-        .sidebar-toggle:hover {
-            transform: translateY(-50%) scale(1.1);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            width: 100%;
-        }
-
-        .logo img {
-            width: 40px;
-            height: 40px;
-            margin-right: 12px;
-            border-radius: 8px;
-            transition: all var(--transition-speed);
-        }
-
-        .logo h1 {
-            color: var(--primary-color);
-            font-size: 1.4rem;
-            font-weight: 600;
-            transition: all var(--transition-speed);
-        }
-
-        .sidebar-nav {
-            flex: 1;
-            padding: 1.5rem 0;
-        }
-
-        .sidebar-nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .sidebar-nav li {
-            margin: 0.3rem 0;
-        }
-
-        .sidebar-nav a {
-            color: var(--text-light);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            padding: 0.9rem 1.5rem;
-            border-left: 4px solid transparent;
-            transition: all var(--transition-speed);
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .sidebar-nav a i {
-            margin-right: 15px;
-            font-size: 1.1rem;
-            width: 24px;
-            text-align: center;
-            transition: margin-right var(--transition-speed);
-        }
-
-        .sidebar-nav a:hover {
-            background: rgba(46, 125, 50, 0.05);
-            color: var(--primary-color);
-            border-left: 4px solid var(--accent-color);
-        }
-
-        .sidebar-nav .nav-item.active a {
-            background: rgba(46, 125, 50, 0.1);
-            color: var(--primary-color);
-            border-left: 4px solid var(--primary-color);
-            border-radius: 0 10px 10px 0;
-        }
-
-        /* Sidebar footer */
-        .sidebar-footer {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 1.2rem 1.5rem;
-            border-top: 1px solid var(--border-color);
-            margin-top: auto;
-            transition: all var(--transition-speed);
-        }
-
-        .user-profile-mini {
-            display: flex;
-            align-items: center;
-            transition: all var(--transition-speed);
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            margin-right: 12px;
-            border: 2px solid var(--accent-color);
-            background: var(--gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 1.1rem;
-            transition: all var(--transition-speed);
-            overflow: hidden;
-        }
-
-        .user-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .user-info {
-            line-height: 1.3;
-            transition: all var(--transition-speed);
-            overflow: hidden;
-        }
-
-        .user-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: var(--text-color);
-        }
-
-        .user-role {
-            font-size: 0.8rem;
-            color: var(--text-lighter);
-        }
-
-        /* Main Content */
         .main-content {
             flex: 1;
             margin-left: 260px;
             padding: 1.5rem;
             overflow-y: auto;
             transition: margin-left var(--transition-speed);
-            background-color: var(--bg-color);
-            width: calc(100% - 260px);
-        }
-
-        .main-content.expanded {
-            margin-left: 80px;
-            width: calc(100% - 80px);
         }
 
         /* Header */
@@ -421,6 +143,52 @@
             background: rgba(46, 125, 50, 0.1);
         }
 
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* No Data Message */
+        .no-data {
+            text-align: center;
+            padding: 3rem;
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: none;
+        }
+
+        .no-data i {
+            font-size: 3rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+
+        .no-data h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-data p {
+            color: var(--text-light);
+        }
+
         /* Data Tables */
         .data-tables {
             display: none;
@@ -449,7 +217,7 @@
         }
 
         .table-container h3 i {
-            color: var(--primary-light);
+            color: var(--secondary-color);
         }
 
         .data-table {
@@ -459,7 +227,7 @@
 
         .data-table th {
             background: rgba(46, 125, 50, 0.1);
-            color: var(--primary-dark);
+            color: var(--primary-color);
             font-weight: 600;
             padding: 1rem;
             text-align: left;
@@ -546,7 +314,7 @@
             color: #7b1fa2;
         }
 
-        /* Reports Grid Styles */
+        /* Reports Grid */
         .reports-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -646,101 +414,22 @@
             transition: all 0.3s;
         }
 
-        .view-btn {
+        .report-actions .view-btn {
             background: rgba(46, 125, 50, 0.1);
             color: var(--primary-color);
         }
 
-        .view-btn:hover {
+        .report-actions .view-btn:hover {
             background: rgba(46, 125, 50, 0.2);
         }
 
-        .download-btn {
+        .report-actions .download-btn {
             background: var(--gradient);
             color: white;
         }
 
-        .download-btn:hover {
+        .report-actions .download-btn:hover {
             opacity: 0.9;
-        }
-
-        /* Charts Section - HIDDEN */
-        .charts-section {
-            display: none !important;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .chart-card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            padding: 1.5rem;
-            box-shadow: var(--shadow);
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .chart-header h3 {
-            color: var(--primary-color);
-            font-size: 1.1rem;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-        }
-
-        /* Loading State */
-        .loading {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary-color);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* No Data Message */
-        .no-data {
-            text-align: center;
-            padding: 3rem;
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            display: none;
-        }
-
-        .no-data i {
-            font-size: 3rem;
-            color: var(--accent-color);
-            margin-bottom: 1rem;
-        }
-
-        .no-data h3 {
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .no-data p {
-            color: var(--text-light);
         }
 
         /* Filter Modal */
@@ -816,55 +505,84 @@
             margin-top: 2rem;
         }
 
-        /* Responsive Design */
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
                 width: 260px;
                 z-index: 1001;
             }
+
             .sidebar.active {
                 transform: translateX(0);
             }
+
+            .sidebar-toggle {
+                display: none !important;
+            }
+
+            .mobile-menu-btn {
+                display: flex !important;
+                margin-right: 10px;
+            }
+
             .main-content {
                 margin-left: 0;
-                width: 100%;
-                padding: 1rem;
             }
+
+            .dashboard-container {
+                flex-direction: column;
+            }
+
+            .main-content {
+                width: 100%;
+            }
+
+            .search-box {
+                width: 200px;
+            }
+
             .header-actions {
                 flex-direction: column;
                 width: 100%;
             }
+
             .view-toggle {
                 width: 100%;
                 justify-content: center;
             }
+
             .report-btn, .filter-btn {
                 width: 100%;
                 justify-content: center;
             }
+
             .top-header {
                 flex-direction: column;
                 gap: 1rem;
                 align-items: flex-start;
             }
+
             .data-table {
                 font-size: 0.9rem;
             }
+
             .data-table th,
             .data-table td {
                 padding: 0.6rem;
             }
+
             .reports-grid {
                 grid-template-columns: 1fr;
             }
         }
+        
     </style>
 </head>
 
 <body>
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
+        <script src="js/sidebar-loader.js"></script>
 
         <main class="main-content">
             <header class="top-header">
@@ -894,15 +612,13 @@
                 <p>Loading farm reports...</p>
             </div>
 
-            <section class="charts-section" id="chartsSection">
-                </section>
-
             <section id="reportsSection" style="display: none;">
                 <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">
                     <i class="fas fa-file-alt"></i> Recent Assessments
                 </h2>
                 <div class="reports-grid" id="reportsGrid">
-                    </div>
+                    <!-- Reports will be loaded here -->
+                </div>
             </section>
 
             <div class="data-tables" id="dataTablesSection">
@@ -923,7 +639,8 @@
                                 </tr>
                             </thead>
                             <tbody id="assessmentsTableBody">
-                                </tbody>
+                                <!-- Assessment data will be loaded here -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -945,7 +662,8 @@
                                 </tr>
                             </thead>
                             <tbody id="farmsTableBody">
-                                </tbody>
+                                <!-- Farm data will be loaded here -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -990,7 +708,8 @@
                 <label for="diseaseFilter">Disease Type</label>
                 <select id="diseaseFilter">
                     <option value="all">All Diseases</option>
-                    </select>
+                    <!-- Disease options will be loaded here -->
+                </select>
             </div>
             <div class="filter-actions">
                 <button class="filter-btn" id="clearFilters">
@@ -1003,11 +722,14 @@
         </div>
     </div>
 
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
         import { getFirestore, collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-        import { getStorage, ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -1029,12 +751,9 @@
         let allFarms = [];
         let allAssessments = [];
         let filteredAssessments = [];
-        let healthChart = null;
-        let timelineChart = null;
 
         // DOM elements
         const loadingState = document.getElementById('loadingState');
-        const chartsSection = document.getElementById('chartsSection');
         const reportsSection = document.getElementById('reportsSection');
         const reportsGrid = document.getElementById('reportsGrid');
         const noDataMessage = document.getElementById('noDataMessage');
@@ -1058,149 +777,170 @@
             if (user) {
                 console.log('User is signed in:', user.email);
                 currentUser = user;
-                await loadUserData();
-                await loadFarmReports();
+
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data();
+                        window.userData = userData;
+                        updateUserProfile(user, userData);
+                    } else {
+                        updateUserProfile(user, {});
+                    }
+
+                    // Load report data
+                    loadFarmReports();
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                    updateUserProfile(user, {});
+                    showError("Failed to load user data. Please try again.");
+                }
             } else {
                 console.log('User is not signed in');
                 window.location.href = 'signin.html';
             }
         });
 
-        async function loadUserData() {
-            try {
-                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    console.log('User data loaded:', userData);
-                    updateUserProfile(userData);
-                } else {
-                    console.log('No user document found');
-                    updateUserProfile({});
+        function updateUserProfile(user, userData) {
+            const userNameElement = document.querySelector('.user-name');
+            const userRoleElement = document.querySelector('.user-role');
+
+            const displayName = userData.firstName && userData.lastName
+                ? `${userData.firstName} ${userData.lastName}`
+                : userData.username
+                    ? userData.username
+                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+
+            if (userNameElement) userNameElement.textContent = displayName;
+            if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
+
+            // set avatar(s) safely
+            const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
+            const avatars = document.querySelectorAll('.user-avatar');
+            avatars.forEach(img => {
+                if (img) {
+                    img.src = avatarSrc;
+                    img.onerror = () => { img.src = 'images/default-avatar.png'; };
                 }
-            } catch (error) {
-                console.error('Error loading user data:', error);
-                updateUserProfile({});
-            }
+            });
+
+            // store for later in case sidebar is loaded after profile
+            window.userData = userData;
         }
 
-        function updateUserProfile(userData) {
-            console.log('Updating user profile with:', userData);
-            
-            const userNameElements = document.querySelectorAll('.user-name');
-            const userRoleElements = document.querySelectorAll('.user-role');
-            const userAvatarElements = document.querySelectorAll('.user-avatar');
-            
-            // Update user name
-            let displayName = 'User';
-            if (userData.firstName || userData.lastName) {
-                displayName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
-            } else if (userData.username) {
-                displayName = userData.username;
-            } else if (userData.displayName) {
-                displayName = userData.displayName;
-            } else {
-                displayName = currentUser.displayName || currentUser.email.split('@')[0];
-            }
-            
-            console.log('Display name set to:', displayName);
-            
-            userNameElements.forEach(el => {
-                el.textContent = displayName;
+        if (window.__sidebarLoaded) {
+            if (window.userData) updateUserProfile(window.currentUser, window.userData);
+        } else {
+            window.addEventListener('sidebar:loaded', () => {
+                if (window.currentUser) updateUserProfile(window.currentUser, window.userData || {});
+            }, { once: true });
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function () {
+            setupEventListeners();
+        });
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // View toggle
+            viewCardsBtn.addEventListener('click', () => {
+                viewCardsBtn.classList.add('active');
+                viewTablesBtn.classList.remove('active');
+                reportsSection.style.display = 'block';
+                dataTablesSection.style.display = 'none';
             });
 
-            // Update user role/bio
-            const role = userData.role || userData.bio || userData.position || 'Farmer';
-            console.log('User role set to:', role);
-            
-            userRoleElements.forEach(el => {
-                el.textContent = role;
+            viewTablesBtn.addEventListener('click', () => {
+                viewTablesBtn.classList.add('active');
+                viewCardsBtn.classList.remove('active');
+                reportsSection.style.display = 'none';
+                dataTablesSection.style.display = 'block';
             });
 
-            // --- FIXED: Update user avatar with "Pre-loading" Logic ---
-            userAvatarElements.forEach(avatar => {
-                // 1. FIRST: Always show Initials immediately.
-                // This ensures UI looks good while loading or if it fails.
-                showAvatarInitials(avatar, displayName);
-                
-                // 2. Identify possible image sources
-                let imageSrc = '';
-                const imageSources = [
-                    userData.profileImage,
-                    userData.imageBase64,
-                    userData.picture,
-                    userData.photoURL,
-                    userData.avatar,
-                    userData.profilePicture
-                ];
+            // Filter modal
+            filterBtn.addEventListener('click', () => {
+                filterModal.classList.add('active');
+            });
 
-                for (const source of imageSources) {
-                    if (source && typeof source === 'string' && source.trim() !== '') {
-                        const trimmedSource = source.trim();
-                        if (trimmedSource.startsWith('http') || trimmedSource.startsWith('data:image')) {
-                            imageSrc = trimmedSource;
-                            console.log('Found potential image source:', source);
-                            break;
+            closeFilter.addEventListener('click', () => {
+                filterModal.classList.remove('active');
+            });
+
+            applyFilters.addEventListener('click', () => {
+                applyFilter();
+                filterModal.classList.remove('active');
+            });
+
+            clearFilters.addEventListener('click', () => {
+                dateFilter.value = 'all';
+                healthFilter.value = 'all';
+                diseaseFilter.value = 'all';
+                applyFilter();
+            });
+
+            // Download PDF
+            downloadAllBtn.addEventListener('click', downloadAllReports);
+
+            // Close modal when clicking outside
+            filterModal.addEventListener('click', (e) => {
+                if (e.target === filterModal) {
+                    filterModal.classList.remove('active');
+                }
+            });
+
+            // Sidebar Toggle Logic (Mobile Support)
+            const checkSidebar = setInterval(() => {
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const sidebar = document.querySelector('.sidebar');
+
+                if (sidebarToggle && sidebar) {
+                    clearInterval(checkSidebar);
+
+                    sidebarToggle.addEventListener('click', (e) => {
+                        if (window.innerWidth <= 768) {
+                            e.stopPropagation();
+                            sidebar.classList.toggle('active');
+
+                            const icon = sidebarToggle.querySelector('i');
+                            if (sidebar.classList.contains('active')) {
+                                icon.className = 'fas fa-chevron-left';
+                            } else {
+                                icon.className = 'fas fa-chevron-right';
+                            }
                         }
-                    }
+                    });
                 }
+            }, 100);
 
-                if (!imageSrc && currentUser.photoURL) {
-                    imageSrc = currentUser.photoURL;
-                }
-
-                if (imageSrc) {
-                    // 3. Pre-load the image in JavaScript memory
-                    const img = new Image();
-                    
-                    img.onload = function() {
-                        // 4. Success: Clear initials and show the image
-                        console.log('User image loaded successfully');
-                        avatar.innerHTML = ''; 
-                        
-                        // Re-create the img element for the DOM
-                        const domImg = document.createElement('img');
-                        domImg.src = imageSrc;
-                        domImg.alt = 'User Avatar';
-                        domImg.style.width = '100%';
-                        domImg.style.height = '100%';
-                        domImg.style.objectFit = 'cover';
-                        
-                        avatar.appendChild(domImg);
-                    };
-
-                    img.onerror = function() {
-                        // 5. Failure: Do nothing.
-                        // The initials are already showing. 
-                        // We swallow the visual error so the user sees a nice UI.
-                        console.warn('Profile image failed to load (404), keeping initials.');
-                    };
-
-                    // Trigger the load
-                    img.src = imageSrc;
+            // Logout functionality
+            document.addEventListener('click', function (e) {
+                if (e.target.id === 'logoutBtn') {
+                    e.preventDefault();
+                    signOut(auth).then(() => {
+                        window.location.href = 'signin.html';
+                    }).catch((error) => {
+                        console.error('Logout error:', error);
+                    });
                 }
             });
-
-            function showAvatarInitials(avatar, name) {
-                avatar.innerHTML = '';
-                let initials = 'U';
-                const nameParts = name.trim().split(' ');
-                if (nameParts.length >= 2) {
-                    initials = (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
-                } else if (name.length > 0) {
-                    initials = name.charAt(0).toUpperCase();
-                }
-                
-                avatar.textContent = initials;
-                avatar.style.background = 'var(--gradient)';
-                avatar.style.color = 'white';
-                avatar.style.display = 'flex';
-                avatar.style.alignItems = 'center';
-                avatar.style.justifyContent = 'center';
-                avatar.style.fontWeight = 'bold';
-                avatar.style.fontSize = '1.1rem';
-            }
         }
 
+        // Show error message
+        function showError(message) {
+            loadingState.innerHTML = `
+                <div style="color: #e53935;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                    <h3>Error Loading Reports</h3>
+                    <p>${message}</p>
+                    <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
+
+        // Load farm reports from Firebase
         async function loadFarmReports() {
             try {
                 // Load farms
@@ -1248,24 +988,12 @@
                 // Apply initial filters
                 applyFilter();
 
-                // Update tables
-                updateTables();
-
                 // Hide loading state
                 loadingState.style.display = 'none';
 
             } catch (error) {
                 console.error('Error loading farm reports:', error);
-                loadingState.innerHTML = `
-                    <div style="color: #e53935;">
-                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                        <h3>Error Loading Reports</h3>
-                        <p>${error.message}</p>
-                        <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
-                            Try Again
-                        </button>
-                    </div>
-                `;
+                showError(error.message);
             }
         }
 
@@ -1333,21 +1061,15 @@
 
         function updateUI() {
             if (filteredAssessments.length === 0) {
-                chartsSection.style.display = 'none';
                 reportsSection.style.display = 'none';
                 dataTablesSection.style.display = 'none';
                 noDataMessage.style.display = 'block';
                 return;
             }
-
-            // Charts are hidden as requested - don't show them
-            chartsSection.style.display = 'none';
             
             reportsSection.style.display = 'block';
             dataTablesSection.style.display = 'block';
             noDataMessage.style.display = 'none';
-
-            // Don't update charts since they're hidden
 
             // Update reports grid
             updateReportsGrid();
@@ -1413,10 +1135,10 @@
                     </div>
                 </div>
                 <div class="report-actions">
-                    <button class="action-btn view-btn" onclick="viewAssessment('${assessment.id}')">
+                    <button class="view-btn" onclick="window.viewAssessment('${assessment.id}')">
                         <i class="fas fa-eye"></i> View
                     </button>
-                    <button class="action-btn download-btn" onclick="downloadReport('${assessment.id}')">
+                    <button class="download-btn" onclick="window.downloadReport('${assessment.id}')">
                         <i class="fas fa-download"></i> PDF
                     </button>
                 </div>
@@ -1453,7 +1175,7 @@
                     <td>${assessment.detectionCount || 0}</td>
                     <td>
                         ${assessment.image ? 
-                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="viewImage('${assessment.image}')">` : 
+                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="window.viewImage('${assessment.image}')">` : 
                             '<span style="color: var(--text-lighter);">No image</span>'
                         }
                     </td>
@@ -1461,10 +1183,10 @@
                     <td>${assessment.treatment || 'None'}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view-action" onclick="viewAssessment('${assessment.id}')">
+                            <button class="action-btn view-action" onclick="window.viewAssessment('${assessment.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn edit-action" onclick="editAssessment('${assessment.id}')">
+                            <button class="action-btn edit-action" onclick="window.editAssessment('${assessment.id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
@@ -1484,7 +1206,7 @@
                 let imagesHtml = '<span style="color: var(--text-lighter);">No images</span>';
                 if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
                     imagesHtml = farm.images.slice(0, 3).map((img, index) => 
-                        `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="viewImage('${img}')">`
+                        `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="window.viewImage('${img}')">`
                     ).join(' ');
                     if (farm.images.length > 3) {
                         imagesHtml += ` <span style="color: var(--text-lighter);">+${farm.images.length - 3} more</span>`;
@@ -1501,10 +1223,10 @@
                     <td>${imagesHtml}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view-action" onclick="viewFarm('${farm.id}')">
+                            <button class="action-btn view-action" onclick="window.viewFarm('${farm.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn edit-action" onclick="editFarm('${farm.id}')">
+                            <button class="action-btn edit-action" onclick="window.editFarm('${farm.id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
@@ -1514,51 +1236,6 @@
                 farmsTableBody.appendChild(row);
             });
         }
-
-        // Event Listeners
-        filterBtn.addEventListener('click', () => {
-            filterModal.classList.add('active');
-        });
-
-        closeFilter.addEventListener('click', () => {
-            filterModal.classList.remove('active');
-        });
-
-        applyFilters.addEventListener('click', () => {
-            applyFilter();
-            filterModal.classList.remove('active');
-        });
-
-        clearFilters.addEventListener('click', () => {
-            dateFilter.value = 'all';
-            healthFilter.value = 'all';
-            diseaseFilter.value = 'all';
-            applyFilter();
-        });
-
-        downloadAllBtn.addEventListener('click', downloadAllReports);
-
-        // View toggle
-        viewCardsBtn.addEventListener('click', () => {
-            viewCardsBtn.classList.add('active');
-            viewTablesBtn.classList.remove('active');
-            reportsSection.style.display = 'block';
-            dataTablesSection.style.display = 'none';
-        });
-
-        viewTablesBtn.addEventListener('click', () => {
-            viewTablesBtn.classList.add('active');
-            viewCardsBtn.classList.remove('active');
-            reportsSection.style.display = 'none';
-            dataTablesSection.style.display = 'block';
-        });
-
-        // Close modal when clicking outside
-        filterModal.addEventListener('click', (e) => {
-            if (e.target === filterModal) {
-                filterModal.classList.remove('active');
-            }
-        });
 
         // Functions for buttons
         window.viewAssessment = function(assessmentId) {
@@ -1697,7 +1374,7 @@
             doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - margin, yOffset, { align: 'right' });
             yOffset += 15;
 
-            // Assessment Details - FIXED: Convert all values to strings
+            // Assessment Details
             doc.setFontSize(14);
             doc.setTextColor(46, 125, 50);
             doc.text('Assessment Details', margin, yOffset);
@@ -1706,13 +1383,12 @@
             doc.setFontSize(11);
             doc.setTextColor(0, 0, 0);
             
-            // Convert all values to strings explicitly to avoid jsPDF error
             const details = [
                 ['Date:', assessment.date ? new Date(assessment.date).toLocaleDateString() : 'N/A'],
                 ['Time:', assessment.time || 'N/A'],
                 ['Disease:', assessment.disease || 'None detected'],
                 ['Health Status:', assessment.healthStatus || 'Healthy'],
-                ['Detection Count:', String(assessment.detectionCount || 0)], // Convert number to string
+                ['Detection Count:', String(assessment.detectionCount || 0)],
                 ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
                 ['Location:', assessment.location || 'Not specified'],
                 ['Treatment:', assessment.treatment || 'None'],
@@ -1720,14 +1396,13 @@
             ];
 
             details.forEach(([label, value]) => {
-                // Check if we need a new page
                 if (yOffset > 250) {
                     doc.addPage();
                     yOffset = 20;
                 }
                 
                 doc.text(label, margin, yOffset);
-                doc.text(String(value), margin + 50, yOffset); // Ensure value is string
+                doc.text(String(value), margin + 50, yOffset);
                 yOffset += 7;
             });
 
@@ -1786,15 +1461,6 @@
             doc.setTextColor(150, 150, 150);
             doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
         }
-
-        // Initialize on DOM load
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('Reports page loaded');
-            // Set default view to cards
-            viewCardsBtn.click();
-        });
     </script>
-
-    <script src="js/sidebar-loader.js"></script>
 </body>
 </html>
