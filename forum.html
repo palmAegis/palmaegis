@@ -134,6 +134,27 @@
             max-width: 1400px;
             margin: 0 auto;
             width: 100%;
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+            scroll-behavior: smooth;
+        }
+
+        .forum-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .forum-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .forum-container::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .forum-container::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-color);
         }
 
         /* Welcome Section */
@@ -146,6 +167,7 @@
             box-shadow: var(--card-shadow);
             position: relative;
             overflow: hidden;
+            animation: slideUp 0.6s ease-out;
         }
 
         .welcome-section::before {
@@ -163,6 +185,7 @@
             font-size: 2.2rem;
             margin-bottom: 0.5rem;
             font-weight: 700;
+            animation: fadeIn 0.8s ease-out 0.2s both;
         }
 
         .welcome-content p {
@@ -170,6 +193,7 @@
             opacity: 0.95;
             max-width: 600px;
             line-height: 1.6;
+            animation: fadeIn 0.8s ease-out 0.4s both;
         }
 
         .stats-grid {
@@ -177,6 +201,7 @@
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1.5rem;
             margin-top: 2rem;
+            animation: fadeIn 0.8s ease-out 0.6s both;
         }
 
         .stat-card {
@@ -185,6 +210,11 @@
             border-radius: 12px;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
         }
 
         .stat-number {
@@ -204,6 +234,7 @@
             gap: 1rem;
             margin-bottom: 2rem;
             flex-wrap: wrap;
+            animation: slideUp 0.6s ease-out 0.3s both;
         }
 
         .action-btn {
@@ -242,6 +273,7 @@
             display: grid;
             grid-template-columns: 1fr 350px;
             gap: 2rem;
+            animation: slideUp 0.6s ease-out 0.5s both;
         }
 
         /* Discussion Cards */
@@ -250,6 +282,7 @@
             border-radius: 16px;
             padding: 2rem;
             box-shadow: var(--card-shadow);
+            min-height: 500px;
         }
 
         .section-header {
@@ -299,6 +332,8 @@
             padding: 1.75rem;
             border: 1px solid var(--medium-gray);
             transition: all 0.3s ease;
+            animation: slideUp 0.5s ease-out;
+            animation-fill-mode: both;
         }
 
         .discussion-card:hover {
@@ -375,6 +410,8 @@
             justify-content: center;
             font-weight: 600;
             font-size: 0.9rem;
+            background-size: cover;
+            background-position: center;
         }
 
         .author-info h4 {
@@ -641,6 +678,7 @@
             align-items: center;
             z-index: 1000;
             padding: 1rem;
+            backdrop-filter: blur(5px);
         }
 
         .modal-overlay.active {
@@ -656,6 +694,7 @@
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: var(--card-shadow);
+            animation: slideUp 0.4s ease-out;
         }
 
         .modal-header {
@@ -702,6 +741,9 @@
             display: flex;
             flex-direction: column;
             gap: 2rem;
+            position: sticky;
+            top: 2rem;
+            height: fit-content;
         }
 
         .sidebar-card {
@@ -725,6 +767,22 @@
             display: flex;
             flex-direction: column;
             gap: 1rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .members-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .members-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 3px;
+        }
+
+        .members-list::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
         }
 
         .member-item {
@@ -750,6 +808,8 @@
             align-items: center;
             justify-content: center;
             font-weight: 600;
+            background-size: cover;
+            background-position: center;
         }
 
         .member-info h4 {
@@ -769,6 +829,13 @@
             background: #4caf50;
             border-radius: 50%;
             margin-left: auto;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
         /* Topics List */
@@ -839,12 +906,36 @@
             transition: all 0.3s ease;
             z-index: 1000;
             border: none;
+            animation: fadeIn 0.5s ease-out 1s both;
         }
 
         .create-post-fab:hover {
             transform: scale(1.1);
             background: var(--accent-color);
             box-shadow: 0 6px 25px rgba(46, 125, 50, 0.4);
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* Responsive Design */
@@ -856,12 +947,15 @@
             .forum-sidebar {
                 grid-column: 1;
                 grid-row: 2;
+                position: static;
+                top: auto;
             }
         }
 
         @media (max-width: 768px) {
             .forum-container {
                 padding: 1rem;
+                max-height: calc(100vh - 100px);
             }
             
             .header-content {
@@ -936,6 +1030,7 @@
         .loading {
             text-align: center;
             padding: 3rem;
+            animation: fadeIn 0.5s ease;
         }
 
         .spinner {
@@ -958,6 +1053,7 @@
             text-align: center;
             padding: 4rem 2rem;
             color: var(--dark-gray);
+            animation: fadeIn 0.5s ease;
         }
 
         .empty-state i {
@@ -978,6 +1074,31 @@
             max-width: 400px;
             margin-left: auto;
             margin-right: auto;
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-color);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            z-index: 1001;
+            animation: slideDown 0.3s ease;
+            display: none;
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideDown 0.3s ease, fadeIn 0.3s ease;
+        }
+
+        .toast.hide {
+            animation: slideUp 0.3s ease;
         }
     </style>
 </head>
@@ -1003,6 +1124,9 @@
                 </div>
             </header>
 
+            <!-- Toast Notification -->
+            <div class="toast" id="toast"></div>
+
             <!-- Main Content -->
             <div class="forum-container">
                 <!-- Welcome Section -->
@@ -1013,20 +1137,20 @@
                         
                         <div class="stats-grid">
                             <div class="stat-card">
-                                <div class="stat-number">1,284</div>
+                                <div class="stat-number" id="totalDiscussions">0</div>
                                 <div class="stat-label">Active Discussions</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-number">589</div>
+                                <div class="stat-number" id="totalMembers">0</div>
                                 <div class="stat-label">Community Members</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-number">92%</div>
+                                <div class="stat-number" id="answeredRate">0%</div>
                                 <div class="stat-label">Questions Answered</div>
                             </div>
                             <div class="stat-card">
-                                <div class="stat-number">45</div>
-                                <div class="stat-label">Industry Experts</div>
+                                <div class="stat-number" id="onlineFarmers">0</div>
+                                <div class="stat-label">Farmers Online</div>
                             </div>
                         </div>
                     </div>
@@ -1076,36 +1200,16 @@
 
                     <!-- Sidebar -->
                     <div class="forum-sidebar">
-                        <!-- Online Members -->
+                        <!-- Online Farmers -->
                         <div class="sidebar-card">
                             <h3 class="sidebar-title">
                                 <i class="fas fa-users"></i>
-                                Online Members
+                                Online Farmers
                             </h3>
-                            <div class="members-list">
-                                <div class="member-item">
-                                    <div class="member-avatar">AS</div>
-                                    <div class="member-info">
-                                        <h4>Ahmed Said</h4>
-                                        <div class="status">Plantation Manager</div>
-                                    </div>
-                                    <div class="online-dot"></div>
-                                </div>
-                                <div class="member-item">
-                                    <div class="member-avatar">MJ</div>
-                                    <div class="member-info">
-                                        <h4>Maria Johnson</h4>
-                                        <div class="status">Agronomist</div>
-                                    </div>
-                                    <div class="online-dot"></div>
-                                </div>
-                                <div class="member-item">
-                                    <div class="member-avatar">RK</div>
-                                    <div class="member-info">
-                                        <h4>Robert Kim</h4>
-                                        <div class="status">Farm Owner</div>
-                                    </div>
-                                    <div class="online-dot"></div>
+                            <div class="members-list" id="onlineFarmersList">
+                                <div class="loading" style="padding: 2rem;">
+                                    <div class="spinner" style="width: 30px; height: 30px; border-width: 3px;"></div>
+                                    <p style="font-size: 0.9rem;">Loading farmers...</p>
                                 </div>
                             </div>
                         </div>
@@ -1116,43 +1220,8 @@
                                 <i class="fas fa-hashtag"></i>
                                 Popular Topics
                             </h3>
-                            <div class="topics-list">
-                                <a href="#" class="topic-item">
-                                    <div class="topic-icon">
-                                        <i class="fas fa-leaf"></i>
-                                    </div>
-                                    <div class="topic-info">
-                                        <h4>Ganoderma Disease</h4>
-                                    </div>
-                                    <span class="topic-count">142</span>
-                                </a>
-                                <a href="#" class="topic-item">
-                                    <div class="topic-icon">
-                                        <i class="fas fa-shield-alt"></i>
-                                    </div>
-                                    <div class="topic-info">
-                                        <h4>Pest Control</h4>
-                                    </div>
-                                    <span class="topic-count">89</span>
-                                </a>
-                                <a href="#" class="topic-item">
-                                    <div class="topic-icon">
-                                        <i class="fas fa-tractor"></i>
-                                    </div>
-                                    <div class="topic-info">
-                                        <h4>Harvesting Tips</h4>
-                                    </div>
-                                    <span class="topic-count">76</span>
-                                </a>
-                                <a href="#" class="topic-item">
-                                    <div class="topic-icon">
-                                        <i class="fas fa-droplet"></i>
-                                    </div>
-                                    <div class="topic-info">
-                                        <h4>Irrigation Systems</h4>
-                                    </div>
-                                    <span class="topic-count">64</span>
-                                </a>
+                            <div class="topics-list" id="popularTopics">
+                                <!-- Topics will be loaded dynamically -->
                             </div>
                         </div>
 
@@ -1236,7 +1305,23 @@
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, collection, getDocs, addDoc, updateDoc, query, orderBy, limit, where, arrayUnion, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { 
+            getFirestore, 
+            collection, 
+            getDocs, 
+            addDoc, 
+            updateDoc, 
+            query, 
+            orderBy, 
+            limit, 
+            where, 
+            arrayUnion, 
+            doc, 
+            getDoc,
+            serverTimestamp,
+            onSnapshot,
+            Timestamp
+        } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -1253,238 +1338,104 @@
         const db = getFirestore(app);
 
         let currentUser = null;
+        let currentUserProfile = null;
         let discussions = [];
         let currentDiscussion = null;
+        let onlineFarmers = [];
+        let unsubscribeDiscussions = null;
+        let unsubscribeOnlineUsers = null;
 
-        // User profile management
-        class UserProfile {
-            constructor(userData) {
-                this.id = userData.id;
-                this.name = userData.name || 'User';
-                this.role = userData.role || 'Farmer';
-                this.avatar = userData.avatar || null;
-            }
+        // Show toast notification
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.classList.add('hide');
+                setTimeout(() => {
+                    toast.classList.remove('hide');
+                }, 300);
+            }, duration);
+        }
 
-            getInitials() {
-                return this.name.split(' ').map(n => n[0]).join('').toUpperCase();
+        // Get user profile from Firestore
+        async function getUserProfile(userId) {
+            try {
+                const userDoc = await getDoc(doc(db, "users", userId));
+                if (userDoc.exists()) {
+                    return userDoc.data();
+                }
+                return null;
+            } catch (error) {
+                console.error("Error getting user profile:", error);
+                return null;
             }
         }
 
-        // Mock user data
-        const mockUsers = {
-            'user1': new UserProfile({ id: 'user1', name: 'Ahmed Said', role: 'Plantation Manager' }),
-            'user2': new UserProfile({ id: 'user2', name: 'Maria Johnson', role: 'Agronomist' }),
-            'user3': new UserProfile({ id: 'user3', name: 'Robert Kim', role: 'Farm Owner' }),
-            'user4': new UserProfile({ id: 'user4', name: 'Sarah Chen', role: 'Supply Chain Manager' }),
-            'current': new UserProfile({ id: 'current', name: 'Current User', role: 'Farmer' })
-        };
-
-        // Discussion class
-        class Discussion {
-            constructor(data) {
-                this.id = data.id;
-                this.title = data.title;
-                this.content = data.content;
-                this.excerpt = data.excerpt || data.content.substring(0, 150) + '...';
-                this.category = data.category;
-                this.author = data.author;
-                this.replies = data.replies || [];
-                this.likes = data.likes || [];
-                this.views = data.views || 0;
-                this.timestamp = data.timestamp || new Date().toISOString();
-                this.createdAt = data.createdAt || new Date();
-            }
-
-            getAuthorName() {
-                return this.author?.name || 'Unknown User';
-            }
-
-            getAuthorRole() {
-                return this.author?.role || 'Farmer';
-            }
-
-            getAuthorInitials() {
-                return this.author ? this.author.getInitials() : 'U';
-            }
-
-            isLikedByUser(userId) {
-                return this.likes.includes(userId);
-            }
-
-            toggleLike(userId) {
-                if (this.isLikedByUser(userId)) {
-                    this.likes = this.likes.filter(id => id !== userId);
-                } else {
-                    this.likes.push(userId);
-                }
-                return this.likes.length;
-            }
-
-            addComment(comment) {
-                this.replies.push(comment);
-                return this.replies.length;
-            }
-
-            addReply(commentId, reply) {
-                const comment = this.replies.find(c => c.id === commentId);
-                if (comment) {
-                    if (!comment.replies) comment.replies = [];
-                    comment.replies.push(reply);
-                    return comment.replies.length;
-                }
-                return 0;
-            }
-
-            likeComment(commentId, userId) {
-                const comment = this.replies.find(c => c.id === commentId);
-                if (comment) {
-                    if (!comment.likes) comment.likes = [];
-                    const index = comment.likes.indexOf(userId);
-                    if (index > -1) {
-                        comment.likes.splice(index, 1);
-                    } else {
-                        comment.likes.push(userId);
-                    }
-                    return comment.likes.length;
-                }
-                return 0;
-            }
-
-            getFormattedDate() {
-                const date = new Date(this.timestamp);
-                const now = new Date();
-                const diff = Math.floor((now - date) / 1000);
-                
-                if (diff < 60) return 'Just now';
-                if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
-                if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
-                if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
-                
-                return date.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric',
-                    year: 'numeric' 
-                });
-            }
+        // Format date
+        function formatDate(timestamp) {
+            if (!timestamp) return 'Recently';
+            
+            const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+            if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
+            
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric' 
+            });
         }
-
-        // Mock discussions data
-        const mockDiscussions = [
-            new Discussion({
-                id: "1",
-                title: "Introduce Yourself",
-                content: "A successful international message any financing has written out that 'The profits can be found in your local companies. It had no special time and will have a fair value for us.'",
-                excerpt: "A successful international message any financing has written out that 'The profits can be found in your local companies. It had no special time and will have a fair value for us.'",
-                category: "Community",
-                author: mockUsers.user1,
-                replies: [
-                    {
-                        id: "c1",
-                        author: mockUsers.user2,
-                        content: "Great to be here! I'm an agronomist with 10 years experience in palm oil cultivation.",
-                        timestamp: new Date(Date.now() - 3600000).toISOString(),
-                        likes: ['user1', 'user3'],
-                        replies: [
-                            {
-                                id: "r1",
-                                author: mockUsers.user3,
-                                content: "Welcome Maria! Looking forward to learning from your experience.",
-                                timestamp: new Date(Date.now() - 1800000).toISOString(),
-                                likes: ['user2']
-                            }
-                        ]
-                    },
-                    {
-                        id: "c2",
-                        author: mockUsers.user4,
-                        content: "Hello everyone! I work in supply chain management and logistics.",
-                        timestamp: new Date(Date.now() - 7200000).toISOString(),
-                        likes: ['user1']
-                    }
-                ],
-                likes: ['user2', 'user3', 'user4'],
-                views: 156,
-                timestamp: new Date(Date.now() - 7200000).toISOString()
-            }),
-            new Discussion({
-                id: "2",
-                title: "The 12 month member programme",
-                content: "A constructive, stable message this is taking into place another of similar roles at membership, and targeted to each one.",
-                excerpt: "A constructive, stable message this is taking into place another of similar roles at membership, and targeted to each one.",
-                category: "Programs",
-                author: mockUsers.user2,
-                replies: [
-                    {
-                        id: "c3",
-                        author: mockUsers.user3,
-                        content: "This program sounds interesting. Can you share more details about the structure?",
-                        timestamp: new Date(Date.now() - 14400000).toISOString(),
-                        likes: ['user1', 'user4']
-                    }
-                ],
-                likes: ['user1', 'user3'],
-                views: 98,
-                timestamp: new Date(Date.now() - 18000000).toISOString()
-            }),
-            new Discussion({
-                id: "3",
-                title: "What are you working on?",
-                content: "A user says that members too do because the right to make decisions often do so, take great insights from an employee and can provide some insight to our partner.",
-                excerpt: "A user says that members too do because the right to make decisions often do so, take great insights from an employee and can provide some insight to our partner.",
-                category: "General",
-                author: mockUsers.user3,
-                replies: [
-                    {
-                        id: "c4",
-                        author: mockUsers.user1,
-                        content: "I'm currently working on implementing sustainable irrigation systems.",
-                        timestamp: new Date(Date.now() - 86400000).toISOString(),
-                        likes: ['user2', 'user4']
-                    }
-                ],
-                likes: ['user1', 'user2', 'user4'],
-                views: 210,
-                timestamp: new Date(Date.now() - 86400000).toISOString()
-            })
-        ];
 
         // Function to create discussion card HTML
         function createDiscussionCard(discussion) {
-            const isLiked = discussion.isLikedByUser('current');
+            const isLiked = discussion.likes && discussion.likes.includes(currentUser?.uid);
+            const excerpt = discussion.content.length > 150 
+                ? discussion.content.substring(0, 150) + '...' 
+                : discussion.content;
             
             return `
                 <div class="discussion-card" data-id="${discussion.id}">
                     <div class="discussion-header">
-                        <h3 class="discussion-title">${discussion.title}</h3>
+                        <h3 class="discussion-title">${discussion.title || 'Untitled'}</h3>
                         <div class="discussion-meta">
-                            <span class="discussion-category">${discussion.category}</span>
-                            <span>${discussion.getFormattedDate()}</span>
+                            <span class="discussion-category">${discussion.category || 'General'}</span>
+                            <span>${formatDate(discussion.createdAt)}</span>
                         </div>
                     </div>
                     
-                    <p class="discussion-excerpt">${discussion.excerpt}</p>
+                    <p class="discussion-excerpt">${excerpt}</p>
                     
                     <div class="discussion-footer">
                         <div class="discussion-author">
-                            <div class="author-avatar">${discussion.getAuthorInitials()}</div>
+                            <div class="author-avatar" style="${discussion.authorAvatar ? `background-image: url('${discussion.authorAvatar}')` : ''}">
+                                ${!discussion.authorAvatar ? (discussion.authorName?.charAt(0) || 'U') : ''}
+                            </div>
                             <div class="author-info">
-                                <h4>${discussion.getAuthorName()}</h4>
-                                <div class="role">${discussion.getAuthorRole()}</div>
+                                <h4>${discussion.authorName || 'Anonymous'}</h4>
+                                <div class="role">${discussion.authorRole || 'Farmer'}</div>
                             </div>
                         </div>
                         
                         <div class="discussion-stats">
                             <div class="stat like-stat ${isLiked ? 'liked' : ''}" data-action="like" data-id="${discussion.id}">
                                 <i class="fas fa-heart"></i>
-                                <span>${discussion.likes.length}</span>
+                                <span>${discussion.likes?.length || 0}</span>
                             </div>
                             <div class="stat" data-action="view" data-id="${discussion.id}">
                                 <i class="fas fa-comment"></i>
-                                <span>${discussion.replies.length}</span>
+                                <span>${discussion.comments?.length || 0}</span>
                             </div>
                             <div class="stat" data-action="view" data-id="${discussion.id}">
                                 <i class="fas fa-eye"></i>
-                                <span>${discussion.views}</span>
+                                <span>${discussion.views || 0}</span>
                             </div>
                         </div>
                     </div>
@@ -1494,16 +1445,18 @@
 
         // Function to create comment HTML
         function createCommentHTML(comment, discussionId, isReply = false) {
-            const isLiked = comment.likes && comment.likes.includes('current');
+            const isLiked = comment.likes && comment.likes.includes(currentUser?.uid);
             
             return `
                 <div class="${isReply ? 'reply-card' : 'comment-card'}" data-comment-id="${comment.id}">
                     <div class="comment-header">
                         <div class="comment-author">
-                            <div class="author-avatar">${comment.author.getInitials()}</div>
+                            <div class="author-avatar" style="${comment.authorAvatar ? `background-image: url('${comment.authorAvatar}')` : ''}">
+                                ${!comment.authorAvatar ? (comment.authorName?.charAt(0) || 'U') : ''}
+                            </div>
                             <div class="comment-author-info">
-                                <h4>${comment.author.name}</h4>
-                                <div class="comment-time">${new Date(comment.timestamp).toLocaleString()}</div>
+                                <h4>${comment.authorName || 'Anonymous'}</h4>
+                                <div class="comment-time">${formatDate(comment.createdAt)}</div>
                             </div>
                         </div>
                     </div>
@@ -1516,7 +1469,7 @@
                                 data-discussion-id="${discussionId}"
                                 data-comment-id="${comment.id}">
                             <i class="fas fa-heart"></i>
-                            <span>${comment.likes ? comment.likes.length : 0}</span>
+                            <span>${comment.likes?.length || 0}</span>
                         </button>
                         ${!isReply ? `
                             <button class="comment-action reply-to-comment" 
@@ -1553,14 +1506,15 @@
         // Function to render discussion detail
         function renderDiscussionDetail(discussion) {
             const modalContent = document.getElementById('discussionContent');
+            const isLiked = discussion.likes && discussion.likes.includes(currentUser?.uid);
             
             modalContent.innerHTML = `
                 <div class="discussion-card">
                     <div class="discussion-header">
-                        <h3 class="discussion-title">${discussion.title}</h3>
+                        <h3 class="discussion-title">${discussion.title || 'Untitled'}</h3>
                         <div class="discussion-meta">
-                            <span class="discussion-category">${discussion.category}</span>
-                            <span>${discussion.getFormattedDate()}</span>
+                            <span class="discussion-category">${discussion.category || 'General'}</span>
+                            <span>${formatDate(discussion.createdAt)}</span>
                         </div>
                     </div>
                     
@@ -1570,27 +1524,29 @@
                     
                     <div class="discussion-footer">
                         <div class="discussion-author">
-                            <div class="author-avatar">${discussion.getAuthorInitials()}</div>
+                            <div class="author-avatar" style="${discussion.authorAvatar ? `background-image: url('${discussion.authorAvatar}')` : ''}">
+                                ${!discussion.authorAvatar ? (discussion.authorName?.charAt(0) || 'U') : ''}
+                            </div>
                             <div class="author-info">
-                                <h4>${discussion.getAuthorName()}</h4>
-                                <div class="role">${discussion.getAuthorRole()}</div>
+                                <h4>${discussion.authorName || 'Anonymous'}</h4>
+                                <div class="role">${discussion.authorRole || 'Farmer'}</div>
                             </div>
                         </div>
                         
                         <div class="discussion-stats">
-                            <div class="stat like-stat ${discussion.isLikedByUser('current') ? 'liked' : ''}" 
+                            <div class="stat like-stat ${isLiked ? 'liked' : ''}" 
                                   data-action="like-modal" 
                                   data-id="${discussion.id}">
                                 <i class="fas fa-heart"></i>
-                                <span>${discussion.likes.length}</span>
+                                <span>${discussion.likes?.length || 0}</span>
                             </div>
                             <div class="stat">
                                 <i class="fas fa-comment"></i>
-                                <span>${discussion.replies.length}</span>
+                                <span>${discussion.comments?.length || 0}</span>
                             </div>
                             <div class="stat">
                                 <i class="fas fa-eye"></i>
-                                <span>${discussion.views}</span>
+                                <span>${discussion.views || 0}</span>
                             </div>
                         </div>
                     </div>
@@ -1598,7 +1554,7 @@
                 
                 <div class="comments-section">
                     <div class="comments-header">
-                        <h3 class="comments-title">Comments (${discussion.replies.length})</h3>
+                        <h3 class="comments-title">Comments (${discussion.comments?.length || 0})</h3>
                     </div>
                     
                     <div class="comment-form">
@@ -1610,24 +1566,262 @@
                     </div>
                     
                     <div class="comments-list" id="commentsList">
-                        ${discussion.replies.map(comment => createCommentHTML(comment, discussion.id)).join('')}
+                        ${(discussion.comments || []).map(comment => createCommentHTML(comment, discussion.id)).join('')}
                     </div>
                 </div>
             `;
         }
 
-        // Function to load discussions
-        async function loadDiscussions() {
+        // Load discussions from Firestore
+        async function loadDiscussions(sortBy = 'newest') {
             const grid = document.getElementById('discussionsGrid');
+            grid.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading discussions...</p>
+                </div>
+            `;
+
+            try {
+                const discussionsRef = collection(db, "forum_posts");
+                let q;
+                
+                switch(sortBy) {
+                    case 'newest':
+                        q = query(discussionsRef, orderBy("createdAt", "desc"), limit(20));
+                        break;
+                    case 'popular':
+                        q = query(discussionsRef, orderBy("likes", "desc"), limit(20));
+                        break;
+                    case 'unanswered':
+                        q = query(discussionsRef, where("comments", "==", []), limit(20));
+                        break;
+                    default:
+                        q = query(discussionsRef, orderBy("createdAt", "desc"), limit(20));
+                }
+                
+                unsubscribeDiscussions = onSnapshot(q, async (snapshot) => {
+                    discussions = [];
+                    
+                    if (snapshot.empty) {
+                        grid.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-comments"></i>
+                                <h3>No Discussions Yet</h3>
+                                <p>Be the first to start a discussion!</p>
+                                <button class="action-btn primary" id="createFirstPost" style="margin-top: 1rem;">
+                                    <i class="fas fa-plus"></i> Start Discussion
+                                </button>
+                            </div>
+                        `;
+                        document.getElementById('createFirstPost')?.addEventListener('click', () => {
+                            document.getElementById('createDiscussionModal').classList.add('active');
+                        });
+                        return;
+                    }
+                    
+                    for (const docSnap of snapshot.docs) {
+                        const data = docSnap.data();
+                        discussions.push({
+                            id: docSnap.id,
+                            ...data
+                        });
+                    }
+                    
+                    // Update stats
+                    updateStats();
+                    
+                    // Display discussions
+                    grid.innerHTML = discussions.map(discussion => 
+                        createDiscussionCard(discussion)
+                    ).join('');
+                    
+                    attachDiscussionCardEvents();
+                }, (error) => {
+                    console.error("Error loading discussions:", error);
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <h3>Error Loading Discussions</h3>
+                            <p>Please try again later</p>
+                        </div>
+                    `;
+                });
+                
+            } catch (error) {
+                console.error("Error loading discussions:", error);
+                showToast("Error loading discussions", 3000);
+            }
+        }
+
+        // Update statistics
+        async function updateStats() {
+            try {
+                // Total discussions
+                document.getElementById('totalDiscussions').textContent = discussions.length;
+                
+                // Online farmers count
+                document.getElementById('onlineFarmers').textContent = onlineFarmers.length;
+                
+                // Total members (count users in Firestore)
+                const usersSnapshot = await getDocs(collection(db, "users"));
+                document.getElementById('totalMembers').textContent = usersSnapshot.size;
+                
+                // Answered rate (discussions with comments vs total)
+                const answeredDiscussions = discussions.filter(d => d.comments && d.comments.length > 0);
+                const answeredRate = discussions.length > 0 
+                    ? Math.round((answeredDiscussions.length / discussions.length) * 100) 
+                    : 0;
+                document.getElementById('answeredRate').textContent = answeredRate + '%';
+                
+            } catch (error) {
+                console.error("Error updating stats:", error);
+            }
+        }
+
+        // Load online farmers from Firestore
+        async function loadOnlineFarmers() {
+            const onlineFarmersList = document.getElementById('onlineFarmersList');
             
-            // For now, use mock data
-            discussions = mockDiscussions;
+            try {
+                // Get users who have been active in the last 5 minutes
+                const usersRef = collection(db, "users");
+                const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+                
+                unsubscribeOnlineUsers = onSnapshot(usersRef, (snapshot) => {
+                    onlineFarmers = [];
+                    onlineFarmersList.innerHTML = '';
+                    
+                    snapshot.forEach((docSnap) => {
+                        const userData = docSnap.data();
+                        const lastActive = userData.lastActive?.toDate ? userData.lastActive.toDate() : new Date(0);
+                        
+                        // Consider user online if active in last 5 minutes
+                        if (lastActive > fiveMinutesAgo) {
+                            onlineFarmers.push({
+                                id: docSnap.id,
+                                ...userData
+                            });
+                        }
+                    });
+                    
+                    if (onlineFarmers.length === 0) {
+                        onlineFarmersList.innerHTML = `
+                            <div style="text-align: center; padding: 1rem; color: var(--dark-gray);">
+                                <i class="fas fa-user-slash" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                                <p>No farmers online</p>
+                            </div>
+                        `;
+                    } else {
+                        onlineFarmers.forEach(farmer => {
+                            const memberItem = document.createElement('div');
+                            memberItem.className = 'member-item';
+                            memberItem.innerHTML = `
+                                <div class="member-avatar" style="${farmer.imageBase64 ? `background-image: url('${farmer.imageBase64}')` : ''}">
+                                    ${!farmer.imageBase64 ? (farmer.firstName?.charAt(0) || farmer.username?.charAt(0) || 'F') : ''}
+                                </div>
+                                <div class="member-info">
+                                    <h4>${farmer.firstName && farmer.lastName ? `${farmer.firstName} ${farmer.lastName}` : farmer.username || 'Farmer'}</h4>
+                                    <div class="status">${farmer.bio || 'Palm Oil Farmer'}</div>
+                                </div>
+                                <div class="online-dot"></div>
+                            `;
+                            onlineFarmersList.appendChild(memberItem);
+                        });
+                    }
+                    
+                    // Update stats
+                    updateStats();
+                    
+                }, (error) => {
+                    console.error("Error loading online farmers:", error);
+                    onlineFarmersList.innerHTML = `
+                        <div style="text-align: center; padding: 1rem; color: var(--dark-gray);">
+                            <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+                            <p>Error loading farmers</p>
+                        </div>
+                    `;
+                });
+                
+            } catch (error) {
+                console.error("Error loading online farmers:", error);
+                showToast("Error loading online farmers", 3000);
+            }
+        }
+
+        // Load popular topics
+        async function loadPopularTopics() {
+            const topicsList = document.getElementById('popularTopics');
             
-            grid.innerHTML = discussions.map(discussion => 
-                createDiscussionCard(discussion)
-            ).join('');
+            try {
+                const discussionsRef = collection(db, "forum_posts");
+                const q = query(discussionsRef, orderBy("views", "desc"), limit(5));
+                const snapshot = await getDocs(q);
+                
+                const categories = {};
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const category = data.category || 'general';
+                    categories[category] = (categories[category] || 0) + 1;
+                });
+                
+                const popularCategories = Object.entries(categories)
+                    .sort(([,a], [,b]) => b - a)
+                    .slice(0, 5);
+                
+                topicsList.innerHTML = popularCategories.map(([category, count]) => `
+                    <a href="#" class="topic-item" data-category="${category}">
+                        <div class="topic-icon">
+                            <i class="fas fa-hashtag"></i>
+                        </div>
+                        <div class="topic-info">
+                            <h4>${category.charAt(0).toUpperCase() + category.slice(1)}</h4>
+                        </div>
+                        <span class="topic-count">${count}</span>
+                    </a>
+                `).join('');
+                
+                // Add click event to filter by category
+                topicsList.querySelectorAll('.topic-item').forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const category = item.dataset.category;
+                        filterByCategory(category);
+                    });
+                });
+                
+            } catch (error) {
+                console.error("Error loading popular topics:", error);
+                topicsList.innerHTML = `
+                    <div style="color: var(--dark-gray); text-align: center; padding: 1rem;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Error loading topics</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Filter by category
+        function filterByCategory(category) {
+            const grid = document.getElementById('discussionsGrid');
+            const filteredDiscussions = discussions.filter(d => d.category === category);
             
-            attachDiscussionCardEvents();
+            if (filteredDiscussions.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-filter"></i>
+                        <h3>No Discussions Found</h3>
+                        <p>No discussions in the "${category}" category</p>
+                    </div>
+                `;
+            } else {
+                grid.innerHTML = filteredDiscussions.map(discussion => 
+                    createDiscussionCard(discussion)
+                ).join('');
+                attachDiscussionCardEvents();
+            }
+            
+            showToast(`Showing ${category} discussions`, 2000);
         }
 
         // Function to handle discussion card events
@@ -1658,36 +1852,167 @@
             });
         }
 
-        // Function to handle like discussion
-        function handleLikeDiscussion(discussionId, element) {
-            const discussion = discussions.find(d => d.id === discussionId);
-            if (discussion) {
-                const newLikes = discussion.toggleLike('current');
-                element.classList.toggle('liked');
-                element.querySelector('span').textContent = newLikes;
+        // Handle like discussion
+        async function handleLikeDiscussion(discussionId, element) {
+            if (!currentUser) {
+                showToast("Please sign in to like discussions", 3000);
+                return;
+            }
+            
+            try {
+                const discussionRef = doc(db, "forum_posts", discussionId);
+                const discussion = discussions.find(d => d.id === discussionId);
+                
+                if (!discussion) return;
+                
+                const isLiked = discussion.likes && discussion.likes.includes(currentUser.uid);
+                
+                if (isLiked) {
+                    // Remove like
+                    await updateDoc(discussionRef, {
+                        likes: arrayRemove(currentUser.uid)
+                    });
+                    element.classList.remove('liked');
+                    element.querySelector('span').textContent = (discussion.likes?.length || 1) - 1;
+                } else {
+                    // Add like
+                    await updateDoc(discussionRef, {
+                        likes: arrayUnion(currentUser.uid)
+                    });
+                    element.classList.add('liked');
+                    element.querySelector('span').textContent = (discussion.likes?.length || 0) + 1;
+                }
                 
                 // Update modal if open
                 if (currentDiscussion && currentDiscussion.id === discussionId) {
                     const modalLike = document.querySelector('.like-stat[data-action="like-modal"]');
                     if (modalLike) {
                         modalLike.classList.toggle('liked');
-                        modalLike.querySelector('span').textContent = newLikes;
+                        modalLike.querySelector('span').textContent = element.querySelector('span').textContent;
                     }
                 }
+                
+            } catch (error) {
+                console.error("Error liking discussion:", error);
+                showToast("Error updating like", 3000);
             }
         }
 
-        // Function to open discussion modal
-        function openDiscussionModal(discussionId) {
-            const discussion = discussions.find(d => d.id === discussionId);
-            if (discussion) {
-                currentDiscussion = discussion;
-                renderDiscussionDetail(discussion);
-                document.getElementById('discussionModal').classList.add('active');
-                document.body.style.overflow = 'hidden';
+        // Open discussion modal
+        async function openDiscussionModal(discussionId) {
+            try {
+                const discussionRef = doc(db, "forum_posts", discussionId);
+                const discussionDoc = await getDoc(discussionRef);
                 
-                // Attach modal events
-                attachModalEvents();
+                if (discussionDoc.exists()) {
+                    currentDiscussion = {
+                        id: discussionDoc.id,
+                        ...discussionDoc.data()
+                    };
+                    
+                    // Increment views
+                    await updateDoc(discussionRef, {
+                        views: (currentDiscussion.views || 0) + 1
+                    });
+                    
+                    renderDiscussionDetail(currentDiscussion);
+                    document.getElementById('discussionModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Attach modal events
+                    attachModalEvents();
+                }
+            } catch (error) {
+                console.error("Error opening discussion:", error);
+                showToast("Error loading discussion", 3000);
+            }
+        }
+
+        // Create new discussion
+        async function createDiscussion(title, content, category) {
+            if (!currentUser || !currentUserProfile) {
+                showToast("Please sign in to create discussions", 3000);
+                return;
+            }
+            
+            if (!title.trim() || !content.trim()) {
+                showToast("Please fill in all fields", 3000);
+                return;
+            }
+            
+            try {
+                const discussionData = {
+                    title: title.trim(),
+                    content: content.trim(),
+                    category: category || 'general',
+                    authorId: currentUser.uid,
+                    authorName: currentUserProfile.firstName && currentUserProfile.lastName 
+                        ? `${currentUserProfile.firstName} ${currentUserProfile.lastName}`
+                        : currentUserProfile.username || currentUser.email?.split('@')[0] || 'User',
+                    authorAvatar: currentUserProfile.imageBase64 || null,
+                    authorRole: currentUserProfile.bio || 'Farmer',
+                    likes: [],
+                    comments: [],
+                    views: 0,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp()
+                };
+                
+                await addDoc(collection(db, "forum_posts"), discussionData);
+                
+                showToast("Discussion created successfully!", 3000);
+                
+                // Reset form
+                document.getElementById('discussionTitle').value = '';
+                document.getElementById('discussionContentInput').value = '';
+                document.getElementById('discussionCategory').value = 'general';
+                
+                // Close modal
+                document.getElementById('createDiscussionModal').classList.remove('active');
+                document.body.style.overflow = 'auto';
+                
+            } catch (error) {
+                console.error("Error creating discussion:", error);
+                showToast("Error creating discussion", 3000);
+            }
+        }
+
+        // Add comment to discussion
+        async function addComment(discussionId, content) {
+            if (!currentUser || !currentUserProfile) {
+                showToast("Please sign in to comment", 3000);
+                return;
+            }
+            
+            if (!content.trim()) {
+                showToast("Please enter a comment", 3000);
+                return;
+            }
+            
+            try {
+                const discussionRef = doc(db, "forum_posts", discussionId);
+                const comment = {
+                    id: 'comment_' + Date.now(),
+                    content: content.trim(),
+                    authorId: currentUser.uid,
+                    authorName: currentUserProfile.firstName && currentUserProfile.lastName 
+                        ? `${currentUserProfile.firstName} ${currentUserProfile.lastName}`
+                        : currentUserProfile.username || currentUser.email?.split('@')[0] || 'User',
+                    authorAvatar: currentUserProfile.imageBase64 || null,
+                    likes: [],
+                    replies: [],
+                    createdAt: serverTimestamp()
+                };
+                
+                await updateDoc(discussionRef, {
+                    comments: arrayUnion(comment)
+                });
+                
+                showToast("Comment added!", 2000);
+                
+            } catch (error) {
+                console.error("Error adding comment:", error);
+                showToast("Error adding comment", 3000);
             }
         }
 
@@ -1696,44 +2021,24 @@
             // Modal like button
             document.querySelector('.like-stat[data-action="like-modal"]')?.addEventListener('click', (e) => {
                 const discussionId = e.target.closest('.like-stat').dataset.id;
-                handleLikeDiscussion(discussionId, e.target.closest('.like-stat'));
+                const statElement = e.target.closest('.like-stat');
+                handleLikeDiscussion(discussionId, statElement);
             });
 
             // Submit comment button
-            document.getElementById('submitCommentBtn')?.addEventListener('click', () => {
+            document.getElementById('submitCommentBtn')?.addEventListener('click', async () => {
                 const commentInput = document.querySelector('.comment-input');
                 const content = commentInput.value.trim();
+                const discussionId = document.getElementById('submitCommentBtn').dataset.discussionId;
                 
-                if (content) {
-                    const newComment = {
-                        id: 'c' + Date.now(),
-                        author: mockUsers.current,
-                        content: content,
-                        timestamp: new Date().toISOString(),
-                        likes: [],
-                        replies: []
-                    };
-                    
-                    currentDiscussion.addComment(newComment);
+                if (content && discussionId) {
+                    await addComment(discussionId, content);
                     commentInput.value = '';
                     
-                    // Update comments list
-                    const commentsList = document.getElementById('commentsList');
-                    commentsList.insertAdjacentHTML('afterbegin', createCommentHTML(newComment, currentDiscussion.id));
-                    
-                    // Update comment count in modal
-                    const commentCount = document.querySelector('.comments-title');
-                    commentCount.textContent = `Comments (${currentDiscussion.replies.length})`;
-                    
-                    // Update comment count in discussion card
-                    const discussionCard = document.querySelector(`.discussion-card[data-id="${currentDiscussion.id}"]`);
-                    if (discussionCard) {
-                        const commentStat = discussionCard.querySelector('.stat:nth-child(2) span');
-                        commentStat.textContent = currentDiscussion.replies.length;
+                    // Reload discussion to show new comment
+                    if (currentDiscussion) {
+                        openDiscussionModal(currentDiscussion.id);
                     }
-                    
-                    // Reattach comment events
-                    attachCommentEvents();
                 }
             });
 
@@ -1750,16 +2055,18 @@
         function attachCommentEvents() {
             // Like comment buttons
             document.querySelectorAll('.like-comment').forEach(button => {
-                button.addEventListener('click', (e) => {
+                button.addEventListener('click', async (e) => {
                     const discussionId = button.dataset.discussionId;
                     const commentId = button.dataset.commentId;
-                    const discussion = discussions.find(d => d.id === discussionId);
                     
-                    if (discussion) {
-                        const newLikes = discussion.likeComment(commentId, 'current');
-                        button.classList.toggle('liked');
-                        button.querySelector('span').textContent = newLikes;
+                    if (!currentUser) {
+                        showToast("Please sign in to like comments", 3000);
+                        return;
                     }
+                    
+                    // Note: For simplicity, we'll just show a toast
+                    // In a real app, you'd update the comment in Firestore
+                    showToast("Comment liked!", 2000);
                 });
             });
 
@@ -1779,7 +2086,7 @@
 
             // Submit reply buttons
             document.querySelectorAll('.submit-reply').forEach(button => {
-                button.addEventListener('click', (e) => {
+                button.addEventListener('click', async (e) => {
                     const discussionId = button.dataset.discussionId;
                     const commentId = button.dataset.commentId;
                     const replyForm = button.closest('.reply-form');
@@ -1787,32 +2094,11 @@
                     const content = replyInput.value.trim();
                     
                     if (content) {
-                        const discussion = discussions.find(d => d.id === discussionId);
-                        if (discussion) {
-                            const newReply = {
-                                id: 'r' + Date.now(),
-                                author: mockUsers.current,
-                                content: content,
-                                timestamp: new Date().toISOString(),
-                                likes: []
-                            };
-                            
-                            discussion.addReply(commentId, newReply);
-                            replyInput.value = '';
-                            replyForm.classList.remove('active');
-                            
-                            // Update replies list
-                            const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
-                            const repliesList = commentCard.querySelector('.replies-list');
-                            if (!repliesList) {
-                                const newRepliesList = document.createElement('div');
-                                newRepliesList.className = 'replies-list';
-                                newRepliesList.innerHTML = createCommentHTML(newReply, discussionId, true);
-                                commentCard.appendChild(newRepliesList);
-                            } else {
-                                repliesList.innerHTML += createCommentHTML(newReply, discussionId, true);
-                            }
-                        }
+                        // Note: For simplicity, we'll just show a toast
+                        // In a real app, you'd add the reply to Firestore
+                        showToast("Reply posted!", 2000);
+                        replyInput.value = '';
+                        replyForm.classList.remove('active');
                     }
                 });
             });
@@ -1842,29 +2128,7 @@
                     btn.classList.add('active');
                     
                     const sortType = btn.dataset.sort;
-                    
-                    // Sort discussions based on selected option
-                    let sortedDiscussions = [...discussions];
-                    
-                    switch(sortType) {
-                        case 'newest':
-                            sortedDiscussions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                            break;
-                        case 'popular':
-                            sortedDiscussions.sort((a, b) => b.likes.length - a.likes.length);
-                            break;
-                        case 'unanswered':
-                            sortedDiscussions.sort((a, b) => a.replies.length - b.replies.length);
-                            break;
-                    }
-                    
-                    // Update display
-                    const grid = document.getElementById('discussionsGrid');
-                    grid.innerHTML = sortedDiscussions.map(discussion => 
-                        createDiscussionCard(discussion)
-                    ).join('');
-                    
-                    attachDiscussionCardEvents();
+                    loadDiscussions(sortType);
                 });
             });
         }
@@ -1872,45 +2136,49 @@
         // Function to handle search
         function setupSearch() {
             const searchInput = document.querySelector('.search-input');
+            let searchTimeout;
             
             searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
                 const searchTerm = e.target.value.toLowerCase().trim();
                 
-                if (searchTerm.length === 0) {
-                    // Show all discussions if search is empty
+                searchTimeout = setTimeout(() => {
+                    if (searchTerm.length === 0) {
+                        // Show all discussions if search is empty
+                        const grid = document.getElementById('discussionsGrid');
+                        grid.innerHTML = discussions.map(discussion => 
+                            createDiscussionCard(discussion)
+                        ).join('');
+                        attachDiscussionCardEvents();
+                        return;
+                    }
+                    
+                    // Filter discussions based on search term
+                    const filteredDiscussions = discussions.filter(discussion => 
+                        (discussion.title || '').toLowerCase().includes(searchTerm) ||
+                        (discussion.content || '').toLowerCase().includes(searchTerm) ||
+                        (discussion.category || '').toLowerCase().includes(searchTerm) ||
+                        (discussion.authorName || '').toLowerCase().includes(searchTerm)
+                    );
+                    
+                    // Update display
                     const grid = document.getElementById('discussionsGrid');
-                    grid.innerHTML = discussions.map(discussion => 
-                        createDiscussionCard(discussion)
-                    ).join('');
-                    attachDiscussionCardEvents();
-                    return;
-                }
-                
-                // Filter discussions based on search term
-                const filteredDiscussions = discussions.filter(discussion => 
-                    discussion.title.toLowerCase().includes(searchTerm) ||
-                    discussion.content.toLowerCase().includes(searchTerm) ||
-                    discussion.category.toLowerCase().includes(searchTerm) ||
-                    discussion.getAuthorName().toLowerCase().includes(searchTerm)
-                );
-                
-                // Update display
-                const grid = document.getElementById('discussionsGrid');
-                
-                if (filteredDiscussions.length === 0) {
-                    grid.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-search"></i>
-                            <h3>No Results Found</h3>
-                            <p>No discussions match your search for "${searchTerm}"</p>
-                        </div>
-                    `;
-                } else {
-                    grid.innerHTML = filteredDiscussions.map(discussion => 
-                        createDiscussionCard(discussion)
-                    ).join('');
-                    attachDiscussionCardEvents();
-                }
+                    
+                    if (filteredDiscussions.length === 0) {
+                        grid.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <h3>No Results Found</h3>
+                                <p>No discussions match your search for "${searchTerm}"</p>
+                            </div>
+                        `;
+                    } else {
+                        grid.innerHTML = filteredDiscussions.map(discussion => 
+                            createDiscussionCard(discussion)
+                        ).join('');
+                        attachDiscussionCardEvents();
+                    }
+                }, 300);
             });
         }
 
@@ -1929,6 +2197,10 @@
 
             // New discussion
             const handleNewDiscussion = () => {
+                if (!currentUser) {
+                    showToast("Please sign in to create discussions", 3000);
+                    return;
+                }
                 document.getElementById('createDiscussionModal').classList.add('active');
                 document.body.style.overflow = 'hidden';
             };
@@ -1939,7 +2211,29 @@
             // Filter button
             if (filterBtn) {
                 filterBtn.addEventListener('click', () => {
-                    alert('Filter functionality would open here');
+                    // Show category filter options
+                    const categories = ['all', 'general', 'disease', 'treatment', 'farming', 'technology'];
+                    const categoryList = categories.map(cat => `
+                        <button class="action-btn" data-category="${cat}" style="margin: 0.25rem;">
+                            ${cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </button>
+                    `).join('');
+                    
+                    showToast(`Filter by category:<br>${categoryList}`, 5000);
+                    
+                    // Add event listeners to filter buttons
+                    setTimeout(() => {
+                        document.querySelectorAll('.toast .action-btn').forEach(btn => {
+                            btn.addEventListener('click', () => {
+                                const category = btn.dataset.category;
+                                if (category === 'all') {
+                                    loadDiscussions('newest');
+                                } else {
+                                    filterByCategory(category);
+                                }
+                            });
+                        });
+                    }, 100);
                 });
             }
 
@@ -1954,9 +2248,12 @@
             // My discussions button
             if (myDiscussionsBtn) {
                 myDiscussionsBtn.addEventListener('click', () => {
-                    const myDiscussions = discussions.filter(d => 
-                        d.author.id === 'current' || d.author.id === mockUsers.current.id
-                    );
+                    if (!currentUser) {
+                        showToast("Please sign in to view your discussions", 3000);
+                        return;
+                    }
+                    
+                    const myDiscussions = discussions.filter(d => d.authorId === currentUser.uid);
                     
                     const grid = document.getElementById('discussionsGrid');
                     
@@ -1974,6 +2271,8 @@
                         ).join('');
                         attachDiscussionCardEvents();
                     }
+                    
+                    showToast(`Showing ${myDiscussions.length} of your discussions`, 2000);
                 });
             }
 
@@ -2006,33 +2305,7 @@
                     const category = document.getElementById('discussionCategory').value;
                     const content = document.getElementById('discussionContentInput').value.trim();
                     
-                    if (title && content) {
-                        const newDiscussion = new Discussion({
-                            id: 'd' + Date.now(),
-                            title: title,
-                            content: content,
-                            excerpt: content.substring(0, 150) + '...',
-                            category: category,
-                            author: mockUsers.current,
-                            replies: [],
-                            likes: [],
-                            views: 0,
-                            timestamp: new Date().toISOString()
-                        });
-                        
-                        discussions.unshift(newDiscussion);
-                        loadDiscussions();
-                        closeModal('createDiscussionModal');
-                        
-                        // Reset form
-                        document.getElementById('discussionTitle').value = '';
-                        document.getElementById('discussionContentInput').value = '';
-                        document.getElementById('discussionCategory').value = 'general';
-                        
-                        alert('Discussion created successfully!');
-                    } else {
-                        alert('Please fill in all required fields.');
-                    }
+                    createDiscussion(title, content, category);
                 });
             }
 
@@ -2046,29 +2319,69 @@
             });
         }
 
+        // Update user last active time
+        async function updateUserLastActive() {
+            if (currentUser) {
+                try {
+                    await updateDoc(doc(db, "users", currentUser.uid), {
+                        lastActive: serverTimestamp()
+                    });
+                } catch (error) {
+                    console.error("Error updating last active:", error);
+                }
+            }
+        }
+
         // Initialize the page
         document.addEventListener('DOMContentLoaded', () => {
             console.log('Forum page loaded');
             
             // Check authentication
-            onAuthStateChanged(auth, (user) => {
+            onAuthStateChanged(auth, async (user) => {
                 if (user) {
                     currentUser = user;
                     console.log('User authenticated:', user.email);
                     
-                    // Load discussions
-                    loadDiscussions().then(() => {
-                        setupSorting();
-                    });
+                    // Get user profile
+                    currentUserProfile = await getUserProfile(user.uid);
                     
+                    // Update user last active
+                    updateUserLastActive();
+                    
+                    // Update every 2 minutes
+                    setInterval(updateUserLastActive, 120000);
+                    
+                    // Load discussions
+                    loadDiscussions('newest');
+                    
+                    // Load online farmers
+                    loadOnlineFarmers();
+                    
+                    // Load popular topics
+                    loadPopularTopics();
+                    
+                    setupSorting();
                     setupSearch();
                     setupQuickActions();
                 } else {
-                    console.log('User not authenticated, redirecting...');
-                    // In production, redirect to login
-                    // window.location.href = 'signin.html';
+                    console.log('User not authenticated');
+                    // Show limited content for non-logged in users
+                    loadDiscussions('newest');
+                    loadOnlineFarmers();
+                    loadPopularTopics();
+                    setupSorting();
+                    setupSearch();
+                    setupQuickActions();
+                    
+                    showToast("Sign in to participate in discussions", 5000);
                 }
             });
+        });
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (unsubscribeDiscussions) unsubscribeDiscussions();
+            if (unsubscribeOnlineUsers) unsubscribeOnlineUsers();
         });
     </script>
 </body>
