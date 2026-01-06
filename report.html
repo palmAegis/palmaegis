@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Treatment | Palm Aegis</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Reports | Palm Aegis</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/homepage.css">
     <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/treatment.css">
     <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
     <link rel="shortcut icon" href="images/logo1.png">
     <meta name="theme-color" content="#2e7d32">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
+        /* Light theme color palette */
         :root {
             --primary-color: #2e7d32;
             --primary-light: #4caf50;
@@ -30,11 +35,6 @@
             --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
             --gradient: linear-gradient(135deg, #2e7d32, #4caf50);
-            --danger-color: #f44336;
-            --warning-color: #ff9800;
-            --info-color: #2196f3;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
         }
 
         * {
@@ -47,21 +47,293 @@
         body {
             background: linear-gradient(135deg, #eafbea, #c8f0c8);
             color: var(--text-color);
-            min-height: 100vh;
+            display: block;
+            height: 100vh;
+            overflow: hidden;
         }
 
+        /* Dashboard Container */
         .dashboard-container {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
 
+        /* Sidebar Styles */
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow);
+            position: fixed;
+            height: 100%;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            overflow-y: auto;
+            transition: all var(--transition-speed);
+            border-right: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+            overflow: visible;
+        }
+
+        .sidebar.collapsed .logo h1,
+        .sidebar.collapsed .sidebar-nav a span,
+        .sidebar.collapsed .user-info,
+        .sidebar.collapsed .logout-btn span {
+            opacity: 0;
+            visibility: hidden;
+            width: 0;
+            height: 0;
+            margin: 0;
+        }
+
+        .sidebar.collapsed .logo {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logo img {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .sidebar-nav a {
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .sidebar.collapsed .sidebar-nav a i {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .user-profile-mini {
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .user-avatar {
+            margin-right: 0;
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+
+        .sidebar.collapsed .logout-btn {
+            padding: 0.7rem;
+            justify-content: center;
+        }
+
+        .sidebar.collapsed .logout-btn i {
+            margin-right: 0;
+        }
+
+        .sidebar.collapsed .sidebar-nav li {
+            position: relative;
+        }
+
+        .sidebar.collapsed .sidebar-nav a::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--sidebar-bg);
+            color: var(--text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            z-index: 1001;
+            box-shadow: var(--shadow);
+            font-size: 0.9rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .sidebar.collapsed .sidebar-nav a:hover::after {
+            opacity: 1;
+            visibility: visible;
+            left: 110%;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            border-bottom: 1px solid var(--border-color);
+            min-height: 80px;
+            position: relative;
+        }
+
+        .sidebar-toggle {
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--gradient);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 1002;
+            box-shadow: var(--shadow);
+        }
+
+        .sidebar-toggle:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+        }
+
+        .logo img {
+            width: 40px;
+            height: 40px;
+            margin-right: 12px;
+            border-radius: 8px;
+            transition: all var(--transition-speed);
+        }
+
+        .logo h1 {
+            color: var(--primary-color);
+            font-size: 1.4rem;
+            font-weight: 600;
+            transition: all var(--transition-speed);
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 1.5rem 0;
+        }
+
+        .sidebar-nav ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-nav li {
+            margin: 0.3rem 0;
+        }
+
+        .sidebar-nav a {
+            color: var(--text-light);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.5rem;
+            border-left: 4px solid transparent;
+            transition: all var(--transition-speed);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .sidebar-nav a i {
+            margin-right: 15px;
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+            transition: margin-right var(--transition-speed);
+        }
+
+        .sidebar-nav a:hover {
+            background: rgba(46, 125, 50, 0.05);
+            color: var(--primary-color);
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .sidebar-nav .nav-item.active a {
+            background: rgba(46, 125, 50, 0.1);
+            color: var(--primary-color);
+            border-left: 4px solid var(--primary-color);
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1.2rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+            transition: all var(--transition-speed);
+        }
+
+        .user-profile-mini {
+            display: flex;
+            align-items: center;
+            transition: all var(--transition-speed);
+        }
+
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            margin-right: 12px;
+            border: 2px solid var(--accent-color);
+            background: var(--gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transition: all var(--transition-speed);
+            overflow: hidden;
+        }
+
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .user-info {
+            line-height: 1.3;
+            transition: all var(--transition-speed);
+            overflow: hidden;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+
+        .user-role {
+            font-size: 0.8rem;
+            color: var(--text-lighter);
+        }
+
+        /* Main Content */
         .main-content {
             flex: 1;
             margin-left: 260px;
             padding: 1.5rem;
             overflow-y: auto;
             transition: margin-left var(--transition-speed);
+            background-color: var(--bg-color);
             width: calc(100% - 260px);
+        }
+
+        .main-content.expanded {
+            margin-left: 80px;
+            width: calc(100% - 80px);
         }
 
         /* Header */
@@ -80,9 +352,6 @@
             font-size: 1.5rem;
             color: var(--primary-color);
             font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
         .header-actions {
@@ -114,6 +383,26 @@
             color: white;
         }
 
+        .report-btn {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+            box-shadow: var(--shadow);
+        }
+
+        .report-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
         .filter-btn {
             background: white;
             color: var(--primary-color);
@@ -132,230 +421,7 @@
             background: rgba(46, 125, 50, 0.1);
         }
 
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 25px;
-            padding: 0.7rem 1.2rem;
-            min-width: 250px;
-        }
-
-        .search-box i {
-            color: var(--text-lighter);
-            margin-right: 10px;
-        }
-
-        .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 100%;
-            color: var(--text-color);
-        }
-
-        /* Content Layout */
-        .container {
-            padding: 0;
-        }
-
-        .layout {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        /* Search Section */
-        .search-section {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-        }
-
-        .search-section h2 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            font-size: 1.3rem;
-        }
-
-        .search-container {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .search-container input {
-            flex: 1;
-            padding: 0.8rem 1.2rem;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-
-        .search-container button {
-            background: var(--gradient);
-            color: white;
-            border: none;
-            padding: 0.8rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .search-container button:hover {
-            opacity: 0.9;
-        }
-
-        .filter-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.8rem;
-            margin-top: 0.5rem;
-        }
-
-        .filter-buttons .filter-btn {
-            padding: 0.5rem 1.2rem;
-            border: 1px solid var(--border-color);
-            background: white;
-            color: var(--text-light);
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .filter-buttons .filter-btn.active {
-            background: var(--gradient);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .filter-buttons .filter-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        /* Treatment Cards View */
-        .treatment-list {
-            display: block;
-        }
-
-        .treatment-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1rem;
-        }
-
-        .treatment-card {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            transition: all 0.3s;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .treatment-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
-        }
-
-        .treatment-image {
-            height: 200px;
-            overflow: hidden;
-        }
-
-        .treatment-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s;
-        }
-
-        .treatment-card:hover .treatment-image img {
-            transform: scale(1.05);
-        }
-
-        .treatment-info {
-            padding: 1.5rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .treatment-name {
-            font-size: 1.2rem;
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .treatment-plant-part {
-            background: rgba(46, 125, 50, 0.1);
-            color: var(--primary-color);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
-        .treatment-symptoms {
-            color: var(--text-light);
-            font-size: 0.95rem;
-            margin: 1rem 0;
-            flex: 1;
-            display: -webkit-box;
-            -webkit-line-clamp: 3;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-
-        .treatment-actions {
-            display: flex;
-            gap: 0.8rem;
-            margin-top: 1rem;
-        }
-
-        .treatment-actions button {
-            flex: 1;
-            padding: 0.7rem;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            transition: all 0.3s;
-        }
-
-        .view-details {
-            background: rgba(46, 125, 50, 0.1);
-            color: var(--primary-color);
-        }
-
-        .view-details:hover {
-            background: rgba(46, 125, 50, 0.2);
-        }
-
-        .apply-treatment {
-            background: var(--gradient);
-            color: white;
-        }
-
-        .apply-treatment:hover {
-            opacity: 0.9;
-        }
-
-        /* Table View */
+        /* Data Tables */
         .data-tables {
             display: none;
         }
@@ -414,7 +480,7 @@
             border-bottom: none;
         }
 
-        .severity-badge {
+        .status-badge {
             padding: 0.3rem 0.8rem;
             border-radius: 20px;
             font-size: 0.85rem;
@@ -422,19 +488,35 @@
             display: inline-block;
         }
 
-        .severity-low {
+        .status-healthy {
             background: #e8f5e9;
             color: #2e7d32;
         }
 
-        .severity-medium {
+        .status-infected {
+            background: #ffebee;
+            color: #e53935;
+        }
+
+        .status-warning {
             background: #fff3e0;
             color: #f57c00;
         }
 
-        .severity-high {
-            background: #ffebee;
-            color: #e53935;
+        .image-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .image-preview:hover {
+            transform: scale(1.5);
+            box-shadow: var(--shadow-hover);
+            z-index: 10;
+            position: relative;
         }
 
         .action-buttons {
@@ -442,7 +524,7 @@
             gap: 0.5rem;
         }
 
-        .table-action-btn {
+        .action-btn {
             padding: 0.4rem 0.8rem;
             border-radius: 6px;
             border: none;
@@ -459,18 +541,166 @@
             color: #1976d2;
         }
 
-        .apply-action {
+        .edit-action {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        /* Reports Grid Styles */
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .report-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .report-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .report-title {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .report-date {
+            color: var(--text-lighter);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        .health-score {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .report-content {
+            flex: 1;
+            margin-bottom: 1.5rem;
+        }
+
+        .report-field {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .report-field:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
+        .field-label {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .field-value {
+            color: var(--text-color);
+            text-align: right;
+            max-width: 60%;
+        }
+
+        .report-actions {
+            display: flex;
+            gap: 0.8rem;
+        }
+
+        .report-actions button {
+            flex: 1;
+            padding: 0.7rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .view-btn {
             background: rgba(46, 125, 50, 0.1);
             color: var(--primary-color);
+        }
+
+        .view-btn:hover {
+            background: rgba(46, 125, 50, 0.2);
+        }
+
+        .download-btn {
+            background: var(--gradient);
+            color: white;
+        }
+
+        .download-btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Charts Section - HIDDEN */
+        .charts-section {
+            display: none !important;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chart-header h3 {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
         }
 
         /* Loading State */
         .loading {
             text-align: center;
-            padding: 3rem;
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
+            padding: 2rem;
         }
 
         .loading-spinner {
@@ -489,41 +719,32 @@
         }
 
         /* No Data Message */
-        .no-results {
+        .no-data {
             text-align: center;
             padding: 3rem;
             background: var(--card-bg);
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
+            display: none;
         }
 
-        .no-results i {
+        .no-data i {
             font-size: 3rem;
             color: var(--accent-color);
             margin-bottom: 1rem;
         }
 
-        .no-results h3 {
+        .no-data h3 {
             color: var(--primary-color);
             margin-bottom: 0.5rem;
         }
 
-        .no-results p {
+        .no-data p {
             color: var(--text-light);
         }
 
-        /* Error Message */
-        .error-message {
-            text-align: center;
-            padding: 2rem;
-            background: #ffebee;
-            border-radius: var(--border-radius);
-            color: #e53935;
-            margin: 1rem 0;
-        }
-
-        /* Modal */
-        .modal {
+        /* Filter Modal */
+        .filter-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -534,177 +755,108 @@
             z-index: 1002;
             align-items: center;
             justify-content: center;
-            padding: 1rem;
         }
 
-        .modal-content {
+        .filter-modal.active {
+            display: flex;
+        }
+
+        .filter-content {
             background: white;
+            padding: 2rem;
             border-radius: var(--border-radius);
             width: 90%;
-            max-width: 800px;
-            max-height: 90vh;
-            overflow-y: auto;
+            max-width: 500px;
             box-shadow: var(--shadow-hover);
-            animation: modalFadeIn 0.3s;
         }
 
-        @keyframes modalFadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .close-modal {
-            position: absolute;
-            right: 20px;
-            top: 15px;
-            font-size: 1.5rem;
-            color: var(--text-light);
-            cursor: pointer;
-            z-index: 1;
-        }
-
-        .close-modal:hover {
-            color: var(--primary-color);
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        .modal-header {
+        .filter-header {
             display: flex;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-            align-items: flex-start;
-        }
-
-        .modal-image {
-            width: 200px;
-            height: 150px;
-            border-radius: 8px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .modal-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .modal-title {
-            flex: 1;
-        }
-
-        .modal-title h2 {
-            color: var(--primary-color);
-            margin-bottom: 0.5rem;
-        }
-
-        .modal-title p {
-            color: var(--text-light);
-            line-height: 1.6;
-        }
-
-        .treatment-details {
-            display: grid;
-            gap: 1.5rem;
-        }
-
-        .treatment-section {
-            background: rgba(46, 125, 50, 0.05);
-            padding: 1.5rem;
-            border-radius: 8px;
-        }
-
-        .treatment-section h3 {
-            color: var(--primary-color);
-            margin-bottom: 1rem;
-            font-size: 1.1rem;
-            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 0.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        .treatment-section h3 i {
-            color: var(--primary-light);
+        .filter-header h3 {
+            color: var(--primary-color);
         }
 
-        .treatment-section p {
-            line-height: 1.6;
+        .close-filter {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
             color: var(--text-color);
         }
 
-        .treatment-section ul {
-            list-style: none;
-            padding: 0;
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
         }
 
-        .treatment-section li {
-            margin-bottom: 0.8rem;
-            padding-left: 1.5rem;
-            position: relative;
-            line-height: 1.6;
-        }
-
-        .treatment-section li:before {
-            content: "•";
-            color: var(--primary-color);
-            position: absolute;
-            left: 0;
+        .filter-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
         }
 
         /* Responsive Design */
         @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                width: 260px;
+                z-index: 1001;
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
             .main-content {
                 margin-left: 0;
                 width: 100%;
                 padding: 1rem;
             }
-
+            .header-actions {
+                flex-direction: column;
+                width: 100%;
+            }
+            .view-toggle {
+                width: 100%;
+                justify-content: center;
+            }
+            .report-btn, .filter-btn {
+                width: 100%;
+                justify-content: center;
+            }
             .top-header {
                 flex-direction: column;
                 gap: 1rem;
                 align-items: flex-start;
             }
-
-            .header-actions {
-                flex-direction: column;
-                width: 100%;
+            .data-table {
+                font-size: 0.9rem;
             }
-
-            .search-box {
-                width: 100%;
-                min-width: auto;
+            .data-table th,
+            .data-table td {
+                padding: 0.6rem;
             }
-
-            .view-toggle {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .filter-btn {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .treatment-grid {
+            .reports-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .modal-header {
-                flex-direction: column;
-            }
-
-            .modal-image {
-                width: 100%;
-                height: 200px;
             }
         }
     </style>
@@ -713,103 +865,149 @@
 <body>
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
-        <script src="js/sidebar-loader.js"></script>
 
         <main class="main-content">
-            <div class="top-header">
+            <header class="top-header">
                 <div class="header-left">
-                    <h1><i class="fas fa-clinic-medical"></i> Treatment Management</h1>
+                    <h1><i class="fas fa-chart-bar"></i> Farm Reports</h1>
                 </div>
                 <div class="header-actions">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="searchInput" placeholder="Search treatments...">
-                    </div>
                     <div class="view-toggle">
                         <button class="view-btn active" id="viewCardsBtn">
                             <i class="fas fa-th-large"></i> Cards
                         </button>
                         <button class="view-btn" id="viewTablesBtn">
-                            <i class="fas fa-table"></i> Table
+                            <i class="fas fa-table"></i> Tables
                         </button>
+                    </div>
+                    <button class="filter-btn" id="filterBtn">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                    <button class="report-btn" id="downloadAllBtn">
+                        <i class="fas fa-download"></i> Download PDF
+                    </button>
+                </div>
+            </header>
+
+            <div class="loading" id="loadingState">
+                <div class="loading-spinner"></div>
+                <p>Loading farm reports...</p>
+            </div>
+
+            <section class="charts-section" id="chartsSection">
+                </section>
+
+            <section id="reportsSection" style="display: none;">
+                <h2 style="margin-bottom: 1.5rem; color: var(--primary-color);">
+                    <i class="fas fa-file-alt"></i> Recent Assessments
+                </h2>
+                <div class="reports-grid" id="reportsGrid">
+                    </div>
+            </section>
+
+            <div class="data-tables" id="dataTablesSection">
+                <div class="table-container">
+                    <h3><i class="fas fa-clipboard-check"></i> Assessment Records</h3>
+                    <div class="table-responsive">
+                        <table class="data-table" id="assessmentsTable">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Disease</th>
+                                    <th>Health Status</th>
+                                    <th>Detection Count</th>
+                                    <th>Image</th>
+                                    <th>Location</th>
+                                    <th>Treatment</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assessmentsTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3><i class="fas fa-tractor"></i> Farm Records</h3>
+                    <div class="table-responsive">
+                        <table class="data-table" id="farmsTable">
+                            <thead>
+                                <tr>
+                                    <th>Farm Name</th>
+                                    <th>Location</th>
+                                    <th>Area</th>
+                                    <th>Crops</th>
+                                    <th>Soil Type</th>
+                                    <th>Status</th>
+                                    <th>Images</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="farmsTableBody">
+                                </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <div class="container">
-                <div class="layout">
-                    <section class="search-section">
-                        <h2>Find Treatment for Plant Diseases</h2>
-                        <div class="search-container">
-                            <input type="text" id="searchInputMain" placeholder="Search by disease name, symptom, or plant part...">
-                            <button id="searchBtn">
-                                <i class="fas fa-search"></i> Search
-                            </button>
-                        </div>
-                        <h3>Filter by Plant Part</h3>
-                        <div class="filter-buttons">
-                            <button class="filter-btn active" data-filter="all">All Parts</button>
-                            <button class="filter-btn" data-filter="Leaves">Leaves</button>
-                            <button class="filter-btn" data-filter="Fruits">Fruits</button>
-                            <button class="filter-btn" data-filter="Stems">Stems</button>
-                            <button class="filter-btn" data-filter="Roots">Roots</button>
-                            <button class="filter-btn" data-filter="Trunk">Trunk</button>
-                        </div>
-                    </section>
-
-                    <section class="treatment-list active" id="cardsView">
-                        <div class="loading" id="loadingMessage">
-                            <div class="loading-spinner"></div>
-                            <p>Loading treatments...</p>
-                        </div>
-                        <div id="errorMessage" class="error-message" style="display: none;"></div>
-                        <div id="treatmentContainer" class="treatment-grid">
-                            <!-- Treatments will be loaded here dynamically from Firebase -->
-                        </div>
-                    </section>
-
-                    <section class="data-tables" id="tableView">
-                        <div class="table-container">
-                            <h3><i class="fas fa-pills"></i> Available Treatments</h3>
-                            <div class="table-responsive">
-                                <table class="data-table" id="treatmentsTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Disease</th>
-                                            <th>Plant Part</th>
-                                            <th>Severity</th>
-                                            <th>Primary Symptoms</th>
-                                            <th>Treatment Type</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="treatmentsTableBody">
-                                        <!-- Table rows will be loaded here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </section>
-                </div>
+            <div class="no-data" id="noDataMessage" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                <h3>No Reports Found</h3>
+                <p>Start by adding assessments to your farms to generate reports.</p>
             </div>
         </main>
     </div>
 
-    <!-- Treatment Details Modal -->
-    <div id="treatmentModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <div id="modalContent" class="modal-body">
-                <!-- Modal content will be loaded here -->
+    <div class="filter-modal" id="filterModal">
+        <div class="filter-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-filter"></i> Filter Reports</h3>
+                <button class="close-filter" id="closeFilter">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-group">
+                <label for="dateFilter">Date Range</label>
+                <select id="dateFilter">
+                    <option value="all">All Time</option>
+                    <option value="week">Last 7 Days</option>
+                    <option value="month">Last 30 Days</option>
+                    <option value="quarter">Last 3 Months</option>
+                    <option value="year">Last Year</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="healthFilter">Health Status</label>
+                <select id="healthFilter">
+                    <option value="all">All Status</option>
+                    <option value="Healthy">Healthy</option>
+                    <option value="Infected">Infected</option>
+                    <option value="Warning">Warning</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="diseaseFilter">Disease Type</label>
+                <select id="diseaseFilter">
+                    <option value="all">All Diseases</option>
+                    </select>
+            </div>
+            <div class="filter-actions">
+                <button class="filter-btn" id="clearFilters">
+                    Clear Filters
+                </button>
+                <button class="report-btn" id="applyFilters">
+                    Apply Filters
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, collection, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { getStorage, ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -826,465 +1024,777 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
+        // Global variables
+        let currentUser = null;
+        let allFarms = [];
+        let allAssessments = [];
+        let filteredAssessments = [];
+        let healthChart = null;
+        let timelineChart = null;
+
         // DOM elements
-        const searchInput = document.getElementById('searchInputMain');
-        const headerSearch = document.getElementById('searchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const filterBtns = document.querySelectorAll('.filter-btn');
-        const treatmentContainer = document.getElementById('treatmentContainer');
-        const treatmentModal = document.getElementById('treatmentModal');
-        const modalContent = document.getElementById('modalContent');
-        const closeModal = document.querySelector('.close-modal');
-        const loadingMessage = document.getElementById('loadingMessage');
-        const errorMessage = document.getElementById('errorMessage');
+        const loadingState = document.getElementById('loadingState');
+        const chartsSection = document.getElementById('chartsSection');
+        const reportsSection = document.getElementById('reportsSection');
+        const reportsGrid = document.getElementById('reportsGrid');
+        const noDataMessage = document.getElementById('noDataMessage');
+        const dataTablesSection = document.getElementById('dataTablesSection');
+        const assessmentsTableBody = document.getElementById('assessmentsTableBody');
+        const farmsTableBody = document.getElementById('farmsTableBody');
+        const filterModal = document.getElementById('filterModal');
+        const filterBtn = document.getElementById('filterBtn');
+        const closeFilter = document.getElementById('closeFilter');
+        const applyFilters = document.getElementById('applyFilters');
+        const clearFilters = document.getElementById('clearFilters');
+        const dateFilter = document.getElementById('dateFilter');
+        const healthFilter = document.getElementById('healthFilter');
+        const diseaseFilter = document.getElementById('diseaseFilter');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
         const viewCardsBtn = document.getElementById('viewCardsBtn');
         const viewTablesBtn = document.getElementById('viewTablesBtn');
-        const cardsView = document.getElementById('cardsView');
-        const tableView = document.getElementById('tableView');
-        const treatmentsTableBody = document.getElementById('treatmentsTableBody');
-
-        // Current filter state
-        let currentFilter = 'all';
-        let currentSearchTerm = '';
-        let allDiseases = [];
-        let filteredDiseases = [];
 
         // Check authentication state
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 console.log('User is signed in:', user.email);
-                window.currentUser = user;
-
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        window.userData = userData;
-                        updateUserProfile(user, userData);
-                    } else {
-                        updateUserProfile(user, {});
-                    }
-
-                    // Load treatment data
-                    loadTreatmentsFromFirebase();
-                } catch (error) {
-                    console.error('Error loading user data:', error);
-                    updateUserProfile(user, {});
-                    showError("Failed to load user data. Please try again.");
-                }
+                currentUser = user;
+                await loadUserData();
+                await loadFarmReports();
             } else {
                 console.log('User is not signed in');
                 window.location.href = 'signin.html';
             }
         });
 
-        function updateUserProfile(user, userData) {
-            const userNameElement = document.querySelector('.user-name');
-            const userRoleElement = document.querySelector('.user-role');
-
-            const displayName = userData.firstName && userData.lastName
-                ? `${userData.firstName} ${userData.lastName}`
-                : userData.username
-                    ? userData.username
-                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-
-            if (userNameElement) userNameElement.textContent = displayName;
-            if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
-
-            // set avatar(s) safely (use base64/photoURL/picture or fall back to default)
-            const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
-            const avatars = document.querySelectorAll('.user-avatar');
-            avatars.forEach(img => {
-                if (img) {
-                    img.src = avatarSrc;
-                    img.onerror = () => { img.src = 'images/default-avatar.png'; };
-                }
-            });
-
-            // store for later in case sidebar is loaded after profile
-            window.userData = userData;
-        }
-
-        // If sidebar is loaded after user data, re-apply avatar when sidebar is inserted
-        if (window.__sidebarLoaded) {
-            // sidebar might already be present
-            if (window.userData) updateUserProfile(window.currentUser, window.userData);
-        } else {
-            window.addEventListener('sidebar:loaded', () => {
-                if (window.currentUser) updateUserProfile(window.currentUser, window.userData || {});
-            }, { once: true });
-        }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function () {
-            setupEventListeners();
-        });
-
-        // Set up event listeners
-        function setupEventListeners() {
-            // View toggle
-            viewCardsBtn.addEventListener('click', () => {
-                viewCardsBtn.classList.add('active');
-                viewTablesBtn.classList.remove('active');
-                cardsView.style.display = 'block';
-                tableView.style.display = 'none';
-                updateTableView();
-            });
-
-            viewTablesBtn.addEventListener('click', () => {
-                viewTablesBtn.classList.add('active');
-                viewCardsBtn.classList.remove('active');
-                cardsView.style.display = 'none';
-                tableView.style.display = 'block';
-                updateTableView();
-            });
-
-            // Search functionality
-            searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keyup', function (event) {
-                if (event.key === 'Enter') {
-                    performSearch();
-                }
-            });
-
-            // Header search
-            headerSearch.addEventListener('input', function (event) {
-                currentSearchTerm = event.target.value.trim().toLowerCase();
-                filterAndDisplayTreatments();
-            });
-
-            // Filter buttons
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', function () {
-                    // Update active button
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-
-                    // Update filter and display treatments
-                    currentFilter = this.getAttribute('data-filter');
-                    filterAndDisplayTreatments();
-                });
-            });
-
-            // Modal close button
-            closeModal.addEventListener('click', function () {
-                treatmentModal.style.display = 'none';
-            });
-
-            // Close modal when clicking outside
-            window.addEventListener('click', function (event) {
-                if (event.target === treatmentModal) {
-                    treatmentModal.style.display = 'none';
-                }
-            });
-
-            // Logout functionality
-            document.addEventListener('click', function (e) {
-                if (e.target.id === 'logoutBtn') {
-                    e.preventDefault();
-                    signOut(auth).then(() => {
-                        window.location.href = 'signin.html';
-                    }).catch((error) => {
-                        console.error('Logout error:', error);
-                    });
-                }
-            });
-        }
-
-        // Show error message
-        function showError(message) {
-            errorMessage.style.display = 'block';
-            errorMessage.textContent = message;
-            loadingMessage.style.display = 'none';
-            treatmentContainer.style.display = 'none';
-            treatmentsTableBody.innerHTML = '<tr><td colspan="6" class="no-results">' + message + '</td></tr>';
-        }
-
-        // Load treatments from Firebase
-        async function loadTreatmentsFromFirebase() {
-            loadingMessage.style.display = 'flex';
-            loadingMessage.style.flexDirection = 'column';
-            loadingMessage.style.alignItems = 'center';
-            treatmentContainer.style.display = 'none';
-            errorMessage.style.display = 'none';
-
+        async function loadUserData() {
             try {
-                const querySnapshot = await getDocs(collection(db, 'treatments'));
+                const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    console.log('User data loaded:', userData);
+                    updateUserProfile(userData);
+                } else {
+                    console.log('No user document found');
+                    updateUserProfile({});
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                updateUserProfile({});
+            }
+        }
 
-                loadingMessage.style.display = 'none';
-                treatmentContainer.style.display = 'grid';
+        function updateUserProfile(userData) {
+            console.log('Updating user profile with:', userData);
+            
+            const userNameElements = document.querySelectorAll('.user-name');
+            const userRoleElements = document.querySelectorAll('.user-role');
+            const userAvatarElements = document.querySelectorAll('.user-avatar');
+            
+            // Update user name
+            let displayName = 'User';
+            if (userData.firstName || userData.lastName) {
+                displayName = `${userData.firstName || ''} ${userData.lastName || ''}`.trim();
+            } else if (userData.username) {
+                displayName = userData.username;
+            } else if (userData.displayName) {
+                displayName = userData.displayName;
+            } else {
+                displayName = currentUser.displayName || currentUser.email.split('@')[0];
+            }
+            
+            console.log('Display name set to:', displayName);
+            
+            userNameElements.forEach(el => {
+                el.textContent = displayName;
+            });
 
-                if (querySnapshot.empty) {
-                    treatmentContainer.innerHTML = `
-                        <div class="no-results">
-                            <i class="fas fa-seedling"></i>
-                            <h3>No Treatments Available</h3>
-                            <p>Please check back later or contact support to add treatments.</p>
-                        </div>
-                    `;
-                    return;
+            // Update user role/bio
+            const role = userData.role || userData.bio || userData.position || 'Farmer';
+            console.log('User role set to:', role);
+            
+            userRoleElements.forEach(el => {
+                el.textContent = role;
+            });
+
+            // --- FIXED: Update user avatar with "Pre-loading" Logic ---
+            userAvatarElements.forEach(avatar => {
+                // 1. FIRST: Always show Initials immediately.
+                // This ensures UI looks good while loading or if it fails.
+                showAvatarInitials(avatar, displayName);
+                
+                // 2. Identify possible image sources
+                let imageSrc = '';
+                const imageSources = [
+                    userData.profileImage,
+                    userData.imageBase64,
+                    userData.picture,
+                    userData.photoURL,
+                    userData.avatar,
+                    userData.profilePicture
+                ];
+
+                for (const source of imageSources) {
+                    if (source && typeof source === 'string' && source.trim() !== '') {
+                        const trimmedSource = source.trim();
+                        if (trimmedSource.startsWith('http') || trimmedSource.startsWith('data:image')) {
+                            imageSrc = trimmedSource;
+                            console.log('Found potential image source:', source);
+                            break;
+                        }
+                    }
                 }
 
-                allDiseases = [];
-                querySnapshot.forEach((doc) => {
+                if (!imageSrc && currentUser.photoURL) {
+                    imageSrc = currentUser.photoURL;
+                }
+
+                if (imageSrc) {
+                    // 3. Pre-load the image in JavaScript memory
+                    const img = new Image();
+                    
+                    img.onload = function() {
+                        // 4. Success: Clear initials and show the image
+                        console.log('User image loaded successfully');
+                        avatar.innerHTML = ''; 
+                        
+                        // Re-create the img element for the DOM
+                        const domImg = document.createElement('img');
+                        domImg.src = imageSrc;
+                        domImg.alt = 'User Avatar';
+                        domImg.style.width = '100%';
+                        domImg.style.height = '100%';
+                        domImg.style.objectFit = 'cover';
+                        
+                        avatar.appendChild(domImg);
+                    };
+
+                    img.onerror = function() {
+                        // 5. Failure: Do nothing.
+                        // The initials are already showing. 
+                        // We swallow the visual error so the user sees a nice UI.
+                        console.warn('Profile image failed to load (404), keeping initials.');
+                    };
+
+                    // Trigger the load
+                    img.src = imageSrc;
+                }
+            });
+
+            function showAvatarInitials(avatar, name) {
+                avatar.innerHTML = '';
+                let initials = 'U';
+                const nameParts = name.trim().split(' ');
+                if (nameParts.length >= 2) {
+                    initials = (nameParts[0].charAt(0) + nameParts[1].charAt(0)).toUpperCase();
+                } else if (name.length > 0) {
+                    initials = name.charAt(0).toUpperCase();
+                }
+                
+                avatar.textContent = initials;
+                avatar.style.background = 'var(--gradient)';
+                avatar.style.color = 'white';
+                avatar.style.display = 'flex';
+                avatar.style.alignItems = 'center';
+                avatar.style.justifyContent = 'center';
+                avatar.style.fontWeight = 'bold';
+                avatar.style.fontSize = '1.1rem';
+            }
+        }
+
+        async function loadFarmReports() {
+            try {
+                // Load farms
+                const farmsQuery = query(
+                    collection(db, "farms"),
+                    where("userId", "==", currentUser.uid)
+                );
+                
+                const farmsSnapshot = await getDocs(farmsQuery);
+                allFarms = [];
+                farmsSnapshot.forEach(doc => {
                     const data = doc.data();
-                    allDiseases.push({
+                    allFarms.push({
                         id: doc.id,
-                        name: data.name || 'Unknown Disease',
-                        plantPart: data.plantPart || 'Unknown',
-                        severity: data.severity || 'Medium',
-                        image: data.image || 'https://via.placeholder.com/400x300?text=No+Image',
-                        symptoms: data.symptoms || 'No symptoms description available.',
-                        description: data.description || 'No description available.',
-                        treatment: data.treatment || ['No treatment information available.'],
-                        prevention: data.prevention || ['No prevention information available.'],
-                        treatmentType: data.treatmentType || 'Chemical',
-                        applicationMethod: data.applicationMethod || 'Spray',
-                        frequency: data.frequency || 'Weekly'
+                        ...data,
+                        createdAt: data.createdAt?.toDate() || new Date()
                     });
                 });
 
-                filterAndDisplayTreatments();
-            } catch (error) {
-                console.error("Error getting documents: ", error);
-                showError('Error loading treatments: ' + error.message);
-            }
-        }
+                console.log(`Loaded ${allFarms.length} farms`);
 
-        // Perform search
-        function performSearch() {
-            currentSearchTerm = searchInput.value.trim().toLowerCase();
-            filterAndDisplayTreatments();
-        }
-
-        // Filter and display treatments based on current filter and search term
-        function filterAndDisplayTreatments() {
-            filteredDiseases = allDiseases;
-
-            // Apply search filter
-            if (currentSearchTerm) {
-                filteredDiseases = filteredDiseases.filter(disease =>
-                    disease.name.toLowerCase().includes(currentSearchTerm) ||
-                    (disease.symptoms && disease.symptoms.toLowerCase().includes(currentSearchTerm)) ||
-                    disease.plantPart.toLowerCase().includes(currentSearchTerm) ||
-                    disease.treatmentType.toLowerCase().includes(currentSearchTerm)
+                // Load assessments
+                const assessmentsQuery = query(
+                    collection(db, "assessments"),
+                    where("userId", "==", currentUser.uid)
                 );
-            }
-
-            // Apply plant part filter
-            if (currentFilter !== 'all') {
-                filteredDiseases = filteredDiseases.filter(disease =>
-                    disease.plantPart === currentFilter
-                );
-            }
-
-            displayTreatments(filteredDiseases);
-            updateTableView();
-        }
-
-        // Display treatments in the container
-        function displayTreatments(diseasesToShow) {
-            if (diseasesToShow.length === 0) {
-                treatmentContainer.innerHTML = `
-                    <div class="no-results">
-                        <i class="fas fa-search"></i>
-                        <h3>No Treatments Found</h3>
-                        <p>Try adjusting your search or filter criteria.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            treatmentContainer.innerHTML = '';
-            
-            diseasesToShow.forEach(disease => {
-                const treatmentCard = document.createElement('div');
-                treatmentCard.className = 'treatment-card';
-                treatmentCard.setAttribute('data-id', disease.id);
-
-                // Determine severity badge class
-                let severityClass = 'severity-medium';
-                if (disease.severity === 'Low') severityClass = 'severity-low';
-                else if (disease.severity === 'High') severityClass = 'severity-high';
-
-                treatmentCard.innerHTML = `
-                    <div class="treatment-image">
-                        <img src="${disease.image}" alt="${disease.name}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
-                    </div>
-                    <div class="treatment-info">
-                        <h3 class="treatment-name">
-                            ${disease.name}
-                            <span class="treatment-plant-part">${disease.plantPart}</span>
-                        </h3>
-                        <div style="margin-bottom: 0.5rem;">
-                            <span class="severity-badge ${severityClass}">${disease.severity} Severity</span>
-                        </div>
-                        <p class="treatment-symptoms">${disease.symptoms}</p>
-                        <div class="treatment-actions">
-                            <button class="view-details" data-id="${disease.id}">
-                                <i class="fas fa-eye"></i> View Details
-                            </button>
-                            <button class="apply-treatment" onclick="applyTreatment('${disease.id}')">
-                                <i class="fas fa-check-circle"></i> Apply
-                            </button>
-                        </div>
-                    </div>
-                `;
-
-                treatmentContainer.appendChild(treatmentCard);
-            });
-
-            // Add event listeners to view details buttons
-            document.querySelectorAll('.view-details').forEach(btn => {
-                btn.addEventListener('click', function () {
-                    const diseaseId = this.getAttribute('data-id');
-                    showTreatmentDetails(diseaseId);
+                
+                const assessmentsSnapshot = await getDocs(assessmentsQuery);
+                allAssessments = [];
+                assessmentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    allAssessments.push({
+                        id: doc.id,
+                        ...data,
+                        date: data.date || data.timestamp?.toDate() || new Date(),
+                        timestamp: data.timestamp?.toDate() || new Date()
+                    });
                 });
+
+                console.log(`Loaded ${allAssessments.length} assessments`);
+
+                // Populate disease filter
+                populateDiseaseFilter();
+
+                // Apply initial filters
+                applyFilter();
+
+                // Update tables
+                updateTables();
+
+                // Hide loading state
+                loadingState.style.display = 'none';
+
+            } catch (error) {
+                console.error('Error loading farm reports:', error);
+                loadingState.innerHTML = `
+                    <div style="color: #e53935;">
+                        <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <h3>Error Loading Reports</h3>
+                        <p>${error.message}</p>
+                        <button onclick="location.reload()" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--primary-color); color: white; border: none; border-radius: 5px; cursor: pointer;">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function populateDiseaseFilter() {
+            const diseases = [...new Set(allAssessments.map(a => a.disease).filter(d => d))];
+            diseaseFilter.innerHTML = '<option value="all">All Diseases</option>';
+            diseases.forEach(disease => {
+                const option = document.createElement('option');
+                option.value = disease;
+                option.textContent = disease;
+                diseaseFilter.appendChild(option);
             });
         }
 
-        // Update table view
-        function updateTableView() {
-            if (filteredDiseases.length === 0) {
-                treatmentsTableBody.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="text-align: center; padding: 2rem;">
-                            <div class="no-results">
-                                <i class="fas fa-search"></i>
-                                <h3>No Treatments Found</h3>
-                                <p>Try adjusting your search or filter criteria.</p>
-                            </div>
-                        </td>
-                    </tr>
-                `;
+        function applyFilter() {
+            const dateRange = dateFilter.value;
+            const healthStatus = healthFilter.value;
+            const diseaseType = diseaseFilter.value;
+
+            filteredAssessments = allAssessments.filter(assessment => {
+                // Filter by date range
+                if (dateRange !== 'all') {
+                    const now = new Date();
+                    const assessmentDate = assessment.timestamp;
+                    let cutoffDate = new Date();
+
+                    switch (dateRange) {
+                        case 'week':
+                            cutoffDate.setDate(now.getDate() - 7);
+                            break;
+                        case 'month':
+                            cutoffDate.setDate(now.getDate() - 30);
+                            break;
+                        case 'quarter':
+                            cutoffDate.setDate(now.getDate() - 90);
+                            break;
+                        case 'year':
+                            cutoffDate.setFullYear(now.getFullYear() - 1);
+                            break;
+                    }
+
+                    if (assessmentDate < cutoffDate) {
+                        return false;
+                    }
+                }
+
+                // Filter by health status
+                if (healthStatus !== 'all' && assessment.healthStatus !== healthStatus) {
+                    return false;
+                }
+
+                // Filter by disease type
+                if (diseaseType !== 'all' && assessment.disease !== diseaseType) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Sort by date (newest first)
+            filteredAssessments.sort((a, b) => b.timestamp - a.timestamp);
+
+            updateUI();
+        }
+
+        function updateUI() {
+            if (filteredAssessments.length === 0) {
+                chartsSection.style.display = 'none';
+                reportsSection.style.display = 'none';
+                dataTablesSection.style.display = 'none';
+                noDataMessage.style.display = 'block';
                 return;
             }
 
-            treatmentsTableBody.innerHTML = '';
+            // Charts are hidden as requested - don't show them
+            chartsSection.style.display = 'none';
             
-            filteredDiseases.forEach(disease => {
-                // Determine severity badge class
-                let severityClass = 'severity-medium';
-                if (disease.severity === 'Low') severityClass = 'severity-low';
-                else if (disease.severity === 'High') severityClass = 'severity-high';
+            reportsSection.style.display = 'block';
+            dataTablesSection.style.display = 'block';
+            noDataMessage.style.display = 'none';
 
+            // Don't update charts since they're hidden
+
+            // Update reports grid
+            updateReportsGrid();
+
+            // Update tables
+            updateTables();
+        }
+
+        function updateReportsGrid() {
+            reportsGrid.innerHTML = '';
+
+            filteredAssessments.slice(0, 6).forEach(assessment => {
+                const card = createReportCard(assessment);
+                reportsGrid.appendChild(card);
+            });
+        }
+
+        function createReportCard(assessment) {
+            const card = document.createElement('div');
+            card.className = 'report-card';
+
+            const date = new Date(assessment.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+
+            const healthStatus = assessment.healthStatus || 'Healthy';
+            let statusClass = 'status-healthy';
+            if (healthStatus === 'Infected') statusClass = 'status-infected';
+            else if (healthStatus === 'Warning') statusClass = 'status-warning';
+
+            card.innerHTML = `
+                <div class="report-header">
+                    <div>
+                        <div class="report-title">${date}</div>
+                        <div class="report-date">${assessment.time || ''}</div>
+                    </div>
+                    <div class="health-score ${statusClass}">
+                        ${healthStatus}
+                    </div>
+                </div>
+                <div class="report-content">
+                    <div class="report-field">
+                        <span class="field-label">Disease:</span>
+                        <span class="field-value">${assessment.disease || 'None detected'}</span>
+                    </div>
+                    <div class="report-field">
+                        <span class="field-label">Detection Count:</span>
+                        <span class="field-value">${assessment.detectionCount || 0}</span>
+                    </div>
+                    <div class="report-field">
+                        <span class="field-label">Confidence:</span>
+                        <span class="field-value">${assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'}</span>
+                    </div>
+                    <div class="report-field">
+                        <span class="field-label">Location:</span>
+                        <span class="field-value">${assessment.location || 'Not specified'}</span>
+                    </div>
+                    <div class="report-field">
+                        <span class="field-label">Treatment:</span>
+                        <span class="field-value">${assessment.treatment ? 'Recommended' : 'None'}</span>
+                    </div>
+                </div>
+                <div class="report-actions">
+                    <button class="action-btn view-btn" onclick="viewAssessment('${assessment.id}')">
+                        <i class="fas fa-eye"></i> View
+                    </button>
+                    <button class="action-btn download-btn" onclick="downloadReport('${assessment.id}')">
+                        <i class="fas fa-download"></i> PDF
+                    </button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function updateTables() {
+            // Update assessments table
+            assessmentsTableBody.innerHTML = '';
+            
+            filteredAssessments.forEach(assessment => {
                 const row = document.createElement('tr');
+                
+                const date = new Date(assessment.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                
+                const healthStatus = assessment.healthStatus || 'Healthy';
+                let statusClass = 'status-healthy';
+                if (healthStatus === 'Infected') statusClass = 'status-infected';
+                else if (healthStatus === 'Warning') statusClass = 'status-warning';
+
                 row.innerHTML = `
-                    <td><strong>${disease.name}</strong></td>
-                    <td>${disease.plantPart}</td>
-                    <td><span class="severity-badge ${severityClass}">${disease.severity}</span></td>
-                    <td>${disease.symptoms.substring(0, 100)}${disease.symptoms.length > 100 ? '...' : ''}</td>
-                    <td>${disease.treatmentType}</td>
+                    <td>
+                        <div>${date}</div>
+                        <small style="color: var(--text-lighter);">${assessment.time || ''}</small>
+                    </td>
+                    <td>${assessment.disease || 'None'}</td>
+                    <td><span class="status-badge ${statusClass}">${healthStatus}</span></td>
+                    <td>${assessment.detectionCount || 0}</td>
+                    <td>
+                        ${assessment.image ? 
+                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="viewImage('${assessment.image}')">` : 
+                            '<span style="color: var(--text-lighter);">No image</span>'
+                        }
+                    </td>
+                    <td>${assessment.location || 'Not specified'}</td>
+                    <td>${assessment.treatment || 'None'}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="table-action-btn view-action" onclick="showTreatmentDetails('${disease.id}')">
-                                <i class="fas fa-eye"></i> View
+                            <button class="action-btn view-action" onclick="viewAssessment('${assessment.id}')">
+                                <i class="fas fa-eye"></i>
                             </button>
-                            <button class="table-action-btn apply-action" onclick="applyTreatment('${disease.id}')">
-                                <i class="fas fa-check-circle"></i> Apply
+                            <button class="action-btn edit-action" onclick="editAssessment('${assessment.id}')">
+                                <i class="fas fa-edit"></i>
                             </button>
                         </div>
                     </td>
                 `;
                 
-                treatmentsTableBody.appendChild(row);
+                assessmentsTableBody.appendChild(row);
+            });
+
+            // Update farms table
+            farmsTableBody.innerHTML = '';
+            
+            allFarms.forEach(farm => {
+                const row = document.createElement('tr');
+                
+                // Get images if available
+                let imagesHtml = '<span style="color: var(--text-lighter);">No images</span>';
+                if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
+                    imagesHtml = farm.images.slice(0, 3).map((img, index) => 
+                        `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="viewImage('${img}')">`
+                    ).join(' ');
+                    if (farm.images.length > 3) {
+                        imagesHtml += ` <span style="color: var(--text-lighter);">+${farm.images.length - 3} more</span>`;
+                    }
+                }
+
+                row.innerHTML = `
+                    <td><strong>${farm.name || 'Unnamed Farm'}</strong></td>
+                    <td>${farm.location || 'Not specified'}</td>
+                    <td>${farm.area || 'N/A'}</td>
+                    <td>${farm.crops || 'Oil Palm'}</td>
+                    <td>${farm.soilType || 'Not specified'}</td>
+                    <td><span class="status-badge ${farm.status === 'Active' ? 'status-healthy' : 'status-warning'}">${farm.status || 'Active'}</span></td>
+                    <td>${imagesHtml}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn view-action" onclick="viewFarm('${farm.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="action-btn edit-action" onclick="editFarm('${farm.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                farmsTableBody.appendChild(row);
             });
         }
 
-        // Show treatment details in modal
-        function showTreatmentDetails(diseaseId) {
-            const disease = filteredDiseases.find(d => d.id === diseaseId);
+        // Event Listeners
+        filterBtn.addEventListener('click', () => {
+            filterModal.classList.add('active');
+        });
 
-            if (!disease) return;
+        closeFilter.addEventListener('click', () => {
+            filterModal.classList.remove('active');
+        });
 
-            // Ensure treatment and prevention are arrays
-            const treatmentItems = Array.isArray(disease.treatment) ? disease.treatment : [disease.treatment];
-            const preventionItems = Array.isArray(disease.prevention) ? disease.prevention : [disease.prevention];
+        applyFilters.addEventListener('click', () => {
+            applyFilter();
+            filterModal.classList.remove('active');
+        });
 
-            // Determine severity badge class
-            let severityClass = 'severity-medium';
-            if (disease.severity === 'Low') severityClass = 'severity-low';
-            else if (disease.severity === 'High') severityClass = 'severity-high';
+        clearFilters.addEventListener('click', () => {
+            dateFilter.value = 'all';
+            healthFilter.value = 'all';
+            diseaseFilter.value = 'all';
+            applyFilter();
+        });
 
-            modalContent.innerHTML = `
-                <div class="modal-header">
-                    <div class="modal-image">
-                        <img src="${disease.image}" alt="${disease.name}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
-                    </div>
-                    <div class="modal-title">
-                        <h2>${disease.name}</h2>
-                        <div style="display: flex; gap: 1rem; margin: 0.5rem 0 1rem;">
-                            <span class="treatment-plant-part">${disease.plantPart}</span>
-                            <span class="severity-badge ${severityClass}">${disease.severity} Severity</span>
-                        </div>
-                        <p>${disease.description}</p>
-                        <div style="margin-top: 1rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
-                            <div style="text-align: center;">
-                                <div style="color: var(--text-light); font-size: 0.9rem;">Treatment Type</div>
-                                <div style="color: var(--primary-color); font-weight: 500;">${disease.treatmentType}</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="color: var(--text-light); font-size: 0.9rem;">Application</div>
-                                <div style="color: var(--primary-color); font-weight: 500;">${disease.applicationMethod}</div>
-                            </div>
-                            <div style="text-align: center;">
-                                <div style="color: var(--text-light); font-size: 0.9rem;">Frequency</div>
-                                <div style="color: var(--primary-color); font-weight: 500;">${disease.frequency}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="treatment-details">
-                    <div class="treatment-section">
-                        <h3><i class="fas fa-stethoscope"></i> Symptoms</h3>
-                        <p>${disease.symptoms}</p>
-                    </div>
-                    <div class="treatment-section">
-                        <h3><i class="fas fa-pills"></i> Treatment</h3>
-                        <ul>
-                            ${treatmentItems.map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                    <div class="treatment-section">
-                        <h3><i class="fas fa-shield-alt"></i> Prevention</h3>
-                        <ul>
-                            ${preventionItems.map(item => `<li>${item}</li>`).join('')}
-                        </ul>
-                    </div>
-                </div>
-                <div style="margin-top: 2rem; padding: 1rem; background: rgba(46, 125, 50, 0.1); border-radius: 8px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h4 style="color: var(--primary-color); margin-bottom: 0.5rem;">Ready to apply this treatment?</h4>
-                            <p style="color: var(--text-light); font-size: 0.9rem;">Apply this treatment to affected plants in your farm.</p>
-                        </div>
-                        <button onclick="applyTreatment('${disease.id}')" style="background: var(--gradient); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
-                            <i class="fas fa-check-circle"></i> Apply Treatment
-                        </button>
-                    </div>
-                </div>
-            `;
+        downloadAllBtn.addEventListener('click', downloadAllReports);
 
-            treatmentModal.style.display = 'flex';
-        }
+        // View toggle
+        viewCardsBtn.addEventListener('click', () => {
+            viewCardsBtn.classList.add('active');
+            viewTablesBtn.classList.remove('active');
+            reportsSection.style.display = 'block';
+            dataTablesSection.style.display = 'none';
+        });
 
-        // Apply treatment function
-        window.applyTreatment = function(diseaseId) {
-            const disease = filteredDiseases.find(d => d.id === diseaseId);
-            if (disease) {
-                // Store treatment in session storage for use in application form
-                sessionStorage.setItem('selectedTreatment', JSON.stringify(disease));
-                
-                // Show confirmation
-                if (confirm(`Apply "${disease.name}" treatment to your farm?`)) {
-                    // Redirect to treatment application form or open a modal
-                    window.location.href = 'apply-treatment.html?disease=' + encodeURIComponent(disease.id);
-                }
+        viewTablesBtn.addEventListener('click', () => {
+            viewTablesBtn.classList.add('active');
+            viewCardsBtn.classList.remove('active');
+            reportsSection.style.display = 'none';
+            dataTablesSection.style.display = 'block';
+        });
+
+        // Close modal when clicking outside
+        filterModal.addEventListener('click', (e) => {
+            if (e.target === filterModal) {
+                filterModal.classList.remove('active');
+            }
+        });
+
+        // Functions for buttons
+        window.viewAssessment = function(assessmentId) {
+            const assessment = filteredAssessments.find(a => a.id === assessmentId);
+            if (assessment) {
+                sessionStorage.setItem('currentAssessment', JSON.stringify(assessment));
+                window.open('assessment-detail.html', '_blank');
             }
         };
 
-        // Initialize with cards view
-        viewCardsBtn.click();
+        window.viewFarm = function(farmId) {
+            const farm = allFarms.find(f => f.id === farmId);
+            if (farm) {
+                sessionStorage.setItem('currentFarm', JSON.stringify(farm));
+                window.open('farm-detail.html', '_blank');
+            }
+        };
+
+        window.editAssessment = function(assessmentId) {
+            const assessment = filteredAssessments.find(a => a.id === assessmentId);
+            if (assessment) {
+                sessionStorage.setItem('editAssessment', JSON.stringify(assessment));
+                window.location.href = 'assessment-edit.html';
+            }
+        };
+
+        window.editFarm = function(farmId) {
+            const farm = allFarms.find(f => f.id === farmId);
+            if (farm) {
+                sessionStorage.setItem('editFarm', JSON.stringify(farm));
+                window.location.href = 'farm-edit.html';
+            }
+        };
+
+        window.viewImage = function(imageUrl) {
+            if (imageUrl) {
+                window.open(imageUrl, '_blank');
+            }
+        };
+
+        window.downloadReport = async function(assessmentId) {
+            const assessment = filteredAssessments.find(a => a.id === assessmentId);
+            if (assessment) {
+                await generatePDF(assessment, false);
+            }
+        };
+
+        async function downloadAllReports() {
+            if (filteredAssessments.length === 0) {
+                alert('No reports available to download.');
+                return;
+            }
+
+            const confirmed = confirm(`Do you want to download all ${filteredAssessments.length} reports as a single PDF?`);
+            if (confirmed) {
+                await generatePDF(filteredAssessments, true);
+            }
+        }
+
+        async function generatePDF(data, isMultiple) {
+            try {
+                // Check if jsPDF is loaded
+                if (typeof window.jspdf === 'undefined') {
+                    throw new Error('jsPDF library not loaded. Please check your internet connection.');
+                }
+
+                const { jsPDF } = window.jspdf;
+                
+                // Create PDF document
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                let yOffset = 20;
+                const pageWidth = doc.internal.pageSize.width;
+                const margin = 20;
+                const contentWidth = pageWidth - (2 * margin);
+
+                if (isMultiple) {
+                    // Generate PDF for multiple reports
+                    doc.setFontSize(20);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('Palm Aegis - Assessment Reports', pageWidth / 2, yOffset, { align: 'center' });
+                    yOffset += 15;
+
+                    doc.setFontSize(12);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset, { align: 'center' });
+                    yOffset += 7;
+                    doc.text(`Total Reports: ${data.length}`, pageWidth / 2, yOffset, { align: 'center' });
+                    yOffset += 20;
+
+                    // Add a page for each report
+                    data.forEach((assessment, index) => {
+                        if (index > 0) {
+                            doc.addPage();
+                            yOffset = 20;
+                        }
+
+                        addAssessmentToPDF(doc, assessment, yOffset);
+                    });
+                } else {
+                    // Generate PDF for single report
+                    addAssessmentToPDF(doc, data, yOffset);
+                }
+
+                // Save the PDF
+                const fileName = isMultiple 
+                    ? `Palm-Aegis-Reports-${new Date().toISOString().slice(0,10)}.pdf`
+                    : `Assessment-${data.id || 'report'}-${new Date().toISOString().slice(0,10)}.pdf`;
+                
+                doc.save(fileName);
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert(`Failed to generate PDF: ${error.message}\n\nPlease make sure you have a stable internet connection.`);
+            }
+        }
+
+        function addAssessmentToPDF(doc, assessment, yOffset) {
+            const pageWidth = doc.internal.pageSize.width;
+            const margin = 20;
+            const contentWidth = pageWidth - (2 * margin);
+            
+            // Header
+            doc.setFontSize(18);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Palm Aegis Assessment Report', margin, yOffset);
+            yOffset += 10;
+
+            doc.setFontSize(11);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Report ID: ${assessment.id || 'N/A'}`, margin, yOffset);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - margin, yOffset, { align: 'right' });
+            yOffset += 15;
+
+            // Assessment Details - FIXED: Convert all values to strings
+            doc.setFontSize(14);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Assessment Details', margin, yOffset);
+            yOffset += 10;
+
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            
+            // Convert all values to strings explicitly to avoid jsPDF error
+            const details = [
+                ['Date:', assessment.date ? new Date(assessment.date).toLocaleDateString() : 'N/A'],
+                ['Time:', assessment.time || 'N/A'],
+                ['Disease:', assessment.disease || 'None detected'],
+                ['Health Status:', assessment.healthStatus || 'Healthy'],
+                ['Detection Count:', String(assessment.detectionCount || 0)], // Convert number to string
+                ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
+                ['Location:', assessment.location || 'Not specified'],
+                ['Treatment:', assessment.treatment || 'None'],
+                ['User:', assessment.userName || assessment.userEmail || 'N/A']
+            ];
+
+            details.forEach(([label, value]) => {
+                // Check if we need a new page
+                if (yOffset > 250) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                
+                doc.text(label, margin, yOffset);
+                doc.text(String(value), margin + 50, yOffset); // Ensure value is string
+                yOffset += 7;
+            });
+
+            yOffset += 5;
+
+            // Detections
+            if (assessment.detections && Array.isArray(assessment.detections) && assessment.detections.length > 0) {
+                if (yOffset > 230) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                
+                doc.setFontSize(14);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Detections', margin, yOffset);
+                yOffset += 10;
+
+                doc.setFontSize(11);
+                assessment.detections.forEach((det, index) => {
+                    const detectionText = `Detection ${index + 1}: ${det.disease || 'Unknown'} (${det.confidence ? Math.round(det.confidence * 100) : 0}%)`;
+                    const lines = doc.splitTextToSize(detectionText, contentWidth);
+                    lines.forEach(line => {
+                        if (yOffset > 250) {
+                            doc.addPage();
+                            yOffset = 20;
+                        }
+                        doc.text(line, margin, yOffset);
+                        yOffset += 7;
+                    });
+                });
+                yOffset += 3;
+            }
+
+            // Next Assessment
+            if (assessment.nextAssessment) {
+                if (yOffset > 230) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+                
+                yOffset += 5;
+                doc.setFontSize(14);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Next Assessment Due', margin, yOffset);
+                yOffset += 10;
+
+                doc.setFontSize(11);
+                const nextDate = new Date(assessment.nextAssessment).toLocaleDateString();
+                doc.text(`Recommended date: ${nextDate}`, margin, yOffset);
+                yOffset += 7;
+            }
+
+            // Footer
+            const finalY = doc.internal.pageSize.height - 10;
+            doc.setFontSize(10);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
+        }
+
+        // Initialize on DOM load
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Reports page loaded');
+            // Set default view to cards
+            viewCardsBtn.click();
+        });
     </script>
+
+    <script src="js/sidebar-loader.js"></script>
 </body>
 </html>
