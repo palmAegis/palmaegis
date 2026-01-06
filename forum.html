@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Forum | Palm Aegis</title>
+    <title>Community Forum | Palm Aegis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/homepage.css">
     <link rel="stylesheet" href="css/sidebar.css">
@@ -15,1028 +15,646 @@
         :root {
             --primary-color: #2e7d32;
             --secondary-color: #4caf50;
-            --danger-color: #f44336;
-            --warning-color: #ff9800;
-            --info-color: #2196f3;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
+            --accent-color: #388e3c;
+            --light-green: #e8f5e9;
+            --white: #ffffff;
+            --light-gray: #f5f5f5;
+            --medium-gray: #e0e0e0;
+            --dark-gray: #757575;
+            --text-color: #333333;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background-color: #c8f0c8;
-            color: #333;
+            background: linear-gradient(135deg, #f8fff8 0%, #e8f5e9 100%);
+            color: var(--text-color);
+            min-height: 100vh;
             overflow-x: hidden;
         }
 
         .dashboard-container {
             display: flex;
             min-height: 100vh;
-            overflow: hidden;
         }
 
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            width: 100%;
-            overflow: hidden;
+            background: transparent;
         }
 
-        .top-header {
-            background-color: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        /* Header Styles */
+        .forum-header {
+            background: var(--white);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--medium-gray);
+            box-shadow: var(--shadow);
             position: sticky;
             top: 0;
             z-index: 100;
-            flex-shrink: 0;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
         }
 
         .header-left h1 {
-            font-size: 1.8rem;
+            font-size: 2rem;
+            font-weight: 700;
             color: var(--primary-color);
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            background-color: #f5f5f5;
-            border-radius: 20px;
-            padding: 8px 15px;
-            width: 300px;
-        }
-
-        .search-box i {
-            color: #777;
-            margin-right: 10px;
-        }
-
-        .search-box input {
-            border: none;
-            background: transparent;
-            outline: none;
-            width: 100%;
-            font-size: 1rem;
-        }
-
-        .container {
-            flex: 1;
-            padding: 30px;
-            overflow-y: auto;
-            width: 100%;
-            max-height: calc(100vh - 70px); /* Ensure it doesn't exceed viewport */
-        }
-
-        /* Add scrollbar styling */
-        .container::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        .container::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-        }
-
-        .container::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
-
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .page-title {
-            font-size: 1.8rem;
-            color: var(--primary-color);
-        }
-
-        .page-actions {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            font-size: 1rem;
-            min-height: 44px;
-        }
-
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #1b5e20;
-            transform: translateY(-2px);
-        }
-
-        .btn-primary:disabled {
-            background-color: #a5d6a7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-secondary {
-            background-color: #e0e0e0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background-color: #d6d6d6;
-            transform: translateY(-2px);
-        }
-
-        /* Forum Styles */
-        .forum-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .category-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            overflow-x: auto;
-            padding-bottom: 10px;
-            scrollbar-width: thin;
-            flex-shrink: 0;
-        }
-
-        .category-tabs::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .category-tabs::-webkit-scrollbar-thumb {
-            background-color: var(--primary-color);
-            border-radius: 3px;
-        }
-
-        .category-tab {
-            padding: 10px 20px;
-            background-color: white;
-            border-radius: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            white-space: nowrap;
-            border: 2px solid transparent;
-            flex-shrink: 0;
-        }
-
-        .category-tab:hover {
-            background-color: #f0f0f0;
-            border-color: var(--primary-color);
-        }
-
-        .category-tab.active {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-
-        .category-tag {
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: inline-block;
-        }
-
-        .tag-disease {
-            background-color: #ffebee;
-            color: #d32f2f;
-        }
-
-        .tag-treatment {
-            background-color: #e8f5e9;
-            color: var(--primary-color);
-        }
-
-        .tag-general {
-            background-color: #e3f2fd;
-            color: #1976d2;
-        }
-
-        .tag-farming {
-            background-color: #fff3e0;
-            color: #f57c00;
-        }
-
-        /* Create Post Section */
-        .create-post {
-            background-color: white;
-            border-radius: 10px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e0e0e0;
-        }
-
-        .post-input {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            margin-bottom: 15px;
-            resize: vertical;
-            min-height: 100px;
-            transition: border-color 0.3s;
-        }
-
-        .post-input:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
-        }
-
-        .post-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .post-tags {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        /* Enhanced Image Upload Styles */
-        .image-upload-section {
-            margin-bottom: 20px;
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px dashed #ddd;
-            display: none;
-        }
-
-        .image-upload-section.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .image-upload-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .image-upload-header h4 {
-            color: #555;
-            font-size: 1rem;
             margin: 0;
         }
 
-        .image-preview {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #eee;
+        .header-tagline {
+            color: var(--dark-gray);
+            font-size: 1rem;
+            font-weight: 500;
         }
 
-        .image-preview img {
-            width: 120px;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .upload-options {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .upload-btn {
-            padding: 10px 15px;
-            background-color: #e0e0e0;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+        .header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            font-size: 0.9rem;
+            gap: 1rem;
         }
 
-        .upload-btn:hover {
-            background-color: #d0d0d0;
-            transform: translateY(-2px);
-        }
-
-        .upload-btn.primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .upload-btn.primary:hover {
-            background-color: #1b5e20;
-        }
-
-        .upload-btn.camera {
-            background-color: #2196f3;
-            color: white;
-        }
-
-        .upload-btn.camera:hover {
-            background-color: #1976d2;
-        }
-
-        .upload-btn.danger {
-            background-color: #f44336;
-            color: white;
-        }
-
-        .upload-btn.danger:hover {
-            background-color: #d32f2f;
-        }
-
-        .image-item {
+        .search-container {
             position: relative;
-            display: inline-block;
+            width: 300px;
         }
 
-        .remove-image {
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            border: 1px solid var(--medium-gray);
+            border-radius: 25px;
+            font-size: 0.95rem;
+            background: var(--light-gray);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--white);
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
+
+        .search-icon {
             position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 24px;
-            height: 24px;
-            background: #f44336;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            transition: all 0.3s;
-            z-index: 10;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--dark-gray);
         }
 
-        .remove-image:hover {
-            background: #d32f2f;
-            transform: scale(1.1);
-        }
-
-        .image-count {
-            position: absolute;
-            top: -8px;
-            left: -8px;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            font-size: 11px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-        }
-
-        /* Posts Grid */
-        .posts-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .post-card {
-            background-color: white;
-            border-radius: 10px;
-            padding: 25px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s, box-shadow 0.3s;
-            border: 1px solid #e0e0e0;
-        }
-
-        .post-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-        }
-
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .post-author {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        /* Main Container */
+        .forum-container {
             flex: 1;
-        }
-
-        .author-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background-color: #2e7d32;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            flex-shrink: 0;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .author-avatar img {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
             width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
         }
 
-        .avatar-initial {
+        /* Welcome Section */
+        .welcome-section {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
             color: white;
-            font-weight: 600;
-            font-size: 1.5rem;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 2.5rem;
+            border-radius: 16px;
+            margin-bottom: 2.5rem;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
         }
 
-        .author-info h4 {
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            border-radius: 50%;
+        }
+
+        .welcome-content h2 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        .welcome-content p {
             font-size: 1.1rem;
-            margin-bottom: 4px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .author-info .post-time {
-            font-size: 0.85rem;
-            color: #777;
-        }
-
-        .post-category {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .post-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: var(--dark-color);
-            margin-bottom: 15px;
-            line-height: 1.3;
-        }
-
-        .post-content {
-            color: #555;
+            opacity: 0.95;
+            max-width: 600px;
             line-height: 1.6;
-            margin-bottom: 20px;
-            white-space: pre-wrap;
-            word-break: break-word;
         }
 
-        .post-images {
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1.5rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        /* Quick Actions */
+        .quick-actions {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .post-image {
-            max-width: 200px;
-            max-height: 200px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.3s;
-            object-fit: cover;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .post-image:hover {
-            transform: scale(1.05);
-        }
-
-        .post-stats {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-
-        .stat {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #777;
-            font-size: 0.9rem;
-        }
-
-        .stat i {
-            font-size: 1.1rem;
-        }
-
-        .post-actions-footer {
-            display: flex;
-            gap: 10px;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
+            gap: 1rem;
+            margin-bottom: 2rem;
             flex-wrap: wrap;
         }
 
         .action-btn {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            border: none;
-            background: none;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background: var(--white);
+            border: 2px solid var(--medium-gray);
+            border-radius: 12px;
+            font-weight: 600;
+            color: var(--text-color);
             cursor: pointer;
-            border-radius: 5px;
-            color: #777;
-            transition: all 0.3s;
-            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            text-decoration: none;
         }
 
         .action-btn:hover {
-            background-color: #f5f5f5;
-            color: var(--primary-color);
             transform: translateY(-2px);
-        }
-
-        .action-btn.liked {
-            color: #f44336;
-        }
-
-        .action-btn.upvoted {
-            color: var(--primary-color);
-        }
-
-        .action-btn.downvoted {
-            color: #2196f3;
-        }
-
-        .action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        /* Enhanced Replies Section */
-        .replies-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .reply-form {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #e0e0e0;
-        }
-
-        .reply-form h4 {
-            margin-bottom: 10px;
-            color: #555;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .reply-input-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .reply-input-container textarea {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            resize: vertical;
-            min-height: 80px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-            font-family: inherit;
-        }
-
-        .reply-input-container textarea:focus {
             border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+            box-shadow: var(--card-shadow);
         }
 
-        .reply-form-actions {
+        .action-btn.primary {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .action-btn.primary:hover {
+            background: var(--accent-color);
+        }
+
+        /* Forum Layout */
+        .forum-layout {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+        }
+
+        /* Discussion Cards */
+        .discussions-section {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-gray);
         }
 
-        .reply-form-buttons {
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .sort-options {
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 0.5rem;
         }
 
-        .reply-attachment-btn {
+        .sort-btn {
+            padding: 0.5rem 1rem;
+            background: var(--light-gray);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .sort-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .discussions-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .discussion-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.75rem;
+            border: 1px solid var(--medium-gray);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .discussion-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--card-shadow);
+            border-color: var(--primary-color);
+        }
+
+        .discussion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.25rem;
+        }
+
+        .discussion-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-color);
+            line-height: 1.4;
+            margin: 0;
+            flex: 1;
+        }
+
+        .discussion-meta {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            background-color: #e0e0e0;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            color: #555;
-            transition: all 0.3s;
+            gap: 1rem;
+            color: var(--dark-gray);
             font-size: 0.9rem;
         }
 
-        .reply-attachment-btn:hover {
-            background-color: #d0d0d0;
-        }
-
-        .reply-attachment-btn.has-images {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        .reply-images-preview {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #eee;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-
-        .reply-image-item {
-            position: relative;
-            width: 80px;
-            height: 80px;
-        }
-
-        .reply-image-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 2px solid white;
-        }
-
-        .remove-reply-image {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            width: 20px;
-            height: 20px;
-            background: #f44336;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            transition: all 0.3s;
-            z-index: 10;
-        }
-
-        .remove-reply-image:hover {
-            background: #d32f2f;
-            transform: scale(1.1);
-        }
-
-        .replies-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .reply-card {
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            padding: 15px;
-            border-left: 4px solid var(--primary-color);
-            animation: slideIn 0.3s ease;
-        }
-
-        .reply-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .reply-author {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .reply-author .author-avatar {
-            width: 35px;
-            height: 35px;
-        }
-
-        .expert-tag {
-            background-color: #fff3e0;
-            color: #f57c00;
-            padding: 3px 10px;
-            border-radius: 10px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .reply-content {
-            color: #555;
-            line-height: 1.5;
-            margin-bottom: 10px;
-            white-space: pre-wrap;
-        }
-
-        .reply-images {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .reply-image {
-            max-width: 120px;
-            max-height: 120px;
-            border-radius: 6px;
-            cursor: pointer;
-            border: 2px solid white;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .reply-time {
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Toast Notification */
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            animation: slideIn 0.3s ease, slideOut 0.3s ease 2.7s;
-            max-width: 400px;
-        }
-
-        .toast-success {
-            background-color: #4caf50;
-        }
-
-        .toast-error {
-            background-color: #f44336;
-        }
-
-        .toast-info {
-            background-color: #2196f3;
-        }
-
-        @keyframes slideOut {
-            from {
-                transform: translateX(0);
-                opacity: 1;
-            }
-            to {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-        }
-
-        /* Modal Styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
-            max-height: 90vh;
-            overflow-y: auto;
-            animation: modalSlideIn 0.3s ease;
-        }
-
-        @keyframes modalSlideIn {
-            from {
-                transform: translateY(-20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
+        .discussion-category {
+            background: var(--light-green);
             color: var(--primary-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .discussion-excerpt {
+            color: var(--dark-gray);
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .discussion-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1.25rem;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .discussion-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .author-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .author-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
             margin: 0;
         }
 
-        .close-modal {
-            background: none;
-            border: none;
+        .author-info .role {
+            font-size: 0.85rem;
+            color: var(--dark-gray);
+        }
+
+        .discussion-stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--dark-gray);
+            font-size: 0.9rem;
+        }
+
+        .stat i {
+            color: var(--primary-color);
+        }
+
+        /* Sidebar */
+        .forum-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .sidebar-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 1.75rem;
+            box-shadow: var(--card-shadow);
+        }
+
+        .sidebar-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .members-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+        }
+
+        .member-item:hover {
+            background: var(--light-gray);
+        }
+
+        .member-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--light-green);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .member-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .member-info .status {
+            font-size: 0.85rem;
+            color: var(--dark-gray);
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            margin-left: auto;
+        }
+
+        /* Topics List */
+        .topics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .topic-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            transition: background 0.3s ease;
+            text-decoration: none;
+            color: var(--text-color);
+        }
+
+        .topic-item:hover {
+            background: var(--light-gray);
+            color: var(--primary-color);
+        }
+
+        .topic-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: var(--light-green);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .topic-info h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .topic-count {
+            margin-left: auto;
+            background: var(--light-gray);
+            color: var(--dark-gray);
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+        }
+
+        /* Create Post Button */
+        .create-post-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.5rem;
             cursor: pointer;
-            color: #777;
-            transition: color 0.3s;
-            padding: 5px;
-            line-height: 1;
+            box-shadow: 0 4px 20px rgba(46, 125, 50, 0.3);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: none;
         }
 
-        .close-modal:hover {
-            color: #f44336;
+        .create-post-fab:hover {
+            transform: scale(1.1);
+            background: var(--accent-color);
+            box-shadow: 0 6px 25px rgba(46, 125, 50, 0.4);
         }
 
-        .modal-body {
-            margin-bottom: 20px;
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .forum-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .forum-sidebar {
+                grid-column: 1;
+                grid-row: 2;
+            }
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        @media (max-width: 768px) {
+            .forum-container {
+                padding: 1rem;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+            
+            .search-container {
+                width: 100%;
+            }
+            
+            .welcome-section {
+                padding: 1.5rem;
+            }
+            
+            .welcome-content h2 {
+                font-size: 1.75rem;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .quick-actions {
+                flex-direction: column;
+            }
+            
+            .action-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .sort-options {
+                width: 100%;
+                justify-content: space-between;
+            }
         }
 
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #555;
-            font-size: 0.95rem;
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .discussion-footer {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .discussion-stats {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .forum-header {
+                padding: 1rem;
+            }
+            
+            .forum-container {
+                padding: 1rem;
+            }
         }
 
-        .form-input,
-        .form-textarea,
-        .form-select {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-
-        .form-input:focus,
-        .form-textarea:focus,
-        .form-select:focus {
-            border-color: var(--primary-color);
-            outline: none;
-            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
-        }
-
-        .form-textarea {
-            min-height: 150px;
-            resize: vertical;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        /* Loading States */
+        /* Loading State */
         .loading {
             text-align: center;
-            padding: 60px 20px;
+            padding: 3rem;
         }
 
         .spinner {
-            border: 4px solid #f3f3f3;
+            border: 4px solid var(--light-gray);
             border-top: 4px solid var(--primary-color);
             border-radius: 50%;
             width: 50px;
             height: 50px;
             animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+            margin: 0 auto 1.5rem;
         }
 
         @keyframes spin {
@@ -1044,457 +662,240 @@
             100% { transform: rotate(360deg); }
         }
 
-        .no-data {
+        /* Empty State */
+        .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #777;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 4rem 2rem;
+            color: var(--dark-gray);
         }
 
-        .no-data i {
+        .empty-state i {
             font-size: 4rem;
-            margin-bottom: 20px;
-            color: #e0e0e0;
+            color: var(--medium-gray);
+            margin-bottom: 1.5rem;
         }
 
-        .no-data h3 {
+        .empty-state h3 {
             font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #555;
+            margin-bottom: 0.75rem;
+            color: var(--text-color);
         }
 
-        .no-data p {
+        .empty-state p {
             font-size: 1.1rem;
-            margin-bottom: 25px;
-            color: #777;
-        }
-
-        /* Image Preview Modal */
-        .image-modal {
-            background-color: rgba(0, 0, 0, 0.9);
-        }
-
-        .image-modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            background: transparent;
-            padding: 0;
-            box-shadow: none;
-        }
-
-        .image-modal-content img {
-            max-width: 100%;
-            max-height: 90vh;
-            border-radius: 8px;
-            display: block;
-        }
-
-        .close-image-modal {
-            position: absolute;
-            top: 20px;
-            right: 30px;
-            color: white;
-            font-size: 40px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            transition: color 0.3s;
-            z-index: 1001;
-        }
-
-        .close-image-modal:hover {
-            color: #f44336;
-        }
-
-        /* Responsive Design */
-        @media (max-width: 768px) {
-            .dashboard-container {
-                flex-direction: column;
-            }
-
-            .main-content {
-                width: 100%;
-            }
-
-            .top-header {
-                padding: 12px 20px;
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .search-box {
-                width: 100%;
-                max-width: 400px;
-            }
-
-            .container {
-                padding: 20px;
-                max-height: calc(100vh - 120px);
-            }
-
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .page-actions {
-                width: 100%;
-                justify-content: flex-start;
-            }
-
-            .create-post {
-                padding: 20px;
-            }
-
-            .post-actions {
-                flex-direction: column;
-                gap: 15px;
-                align-items: stretch;
-            }
-
-            .post-tags {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .post-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .post-images {
-                justify-content: center;
-            }
-
-            .post-image {
-                max-width: 100%;
-                max-height: 300px;
-            }
-
-            .post-actions-footer {
-                justify-content: center;
-            }
-
-            .action-btn {
-                flex: 1;
-                justify-content: center;
-                min-width: 100px;
-            }
-
-            .reply-input-container {
-                flex-direction: column;
-            }
-
-            .reply-form-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .reply-form-buttons {
-                justify-content: space-between;
-            }
-
-            .modal-content {
-                width: 95%;
-                padding: 20px;
-                margin: 10px;
-            }
-
-            .upload-options {
-                flex-direction: column;
-            }
-
-            .upload-btn {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .btn {
-                padding: 8px 16px;
-                font-size: 0.9rem;
-            }
-
-            .post-card {
-                padding: 20px;
-            }
-
-            .post-title {
-                font-size: 1.3rem;
-            }
-
-            .author-avatar {
-                width: 40px;
-                height: 40px;
-            }
-
-            .stat {
-                font-size: 0.8rem;
-            }
-
-            .action-btn {
-                padding: 6px 12px;
-                font-size: 0.8rem;
-            }
-
-            .image-preview img {
-                width: 80px;
-                height: 80px;
-            }
+            margin-bottom: 2rem;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
         }
     </style>
 </head>
-
 <body>
     <div class="dashboard-container">
         <div id="sidebarPlaceholder"></div>
         <script src="js/sidebar-loader.js"></script>
 
         <main class="main-content">
-            <div class="top-header">
-                <div class="header-left">
-                    <h1>Community Forum</h1>
+            <!-- Header -->
+            <header class="forum-header">
+                <div class="header-content">
+                    <div class="header-left">
+                        <h1>Community Forum</h1>
+                        <span class="header-tagline">Connect, Share & Grow Together</span>
+                    </div>
+                    <div class="header-actions">
+                        <div class="search-container">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="search-input" placeholder="Search discussions, topics, or members...">
+                        </div>
+                    </div>
                 </div>
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search discussions...">
+            </header>
+
+            <!-- Main Content -->
+            <div class="forum-container">
+                <!-- Welcome Section -->
+                <section class="welcome-section">
+                    <div class="welcome-content">
+                        <h2>Welcome to the Community!</h2>
+                        <p>Join thousands of farmers and experts sharing knowledge, experiences, and solutions for sustainable palm oil cultivation.</p>
+                        
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">1,284</div>
+                                <div class="stat-label">Active Discussions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">589</div>
+                                <div class="stat-label">Community Members</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">92%</div>
+                                <div class="stat-label">Questions Answered</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">45</div>
+                                <div class="stat-label">Industry Experts</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="action-btn primary" id="newDiscussionBtn">
+                        <i class="fas fa-plus-circle"></i>
+                        Start New Discussion
+                    </button>
+                    <button class="action-btn" id="filterBtn">
+                        <i class="fas fa-filter"></i>
+                        Filter Topics
+                    </button>
+                    <button class="action-btn" id="trendingBtn">
+                        <i class="fas fa-fire"></i>
+                        Trending Now
+                    </button>
+                    <button class="action-btn" id="myDiscussionsBtn">
+                        <i class="fas fa-user"></i>
+                        My Discussions
+                    </button>
+                </div>
+
+                <!-- Forum Layout -->
+                <div class="forum-layout">
+                    <!-- Main Discussions -->
+                    <div class="discussions-section">
+                        <div class="section-header">
+                            <h2 class="section-title">Latest Discussions</h2>
+                            <div class="sort-options">
+                                <button class="sort-btn active" data-sort="newest">Newest</button>
+                                <button class="sort-btn" data-sort="popular">Popular</button>
+                                <button class="sort-btn" data-sort="unanswered">Unanswered</button>
+                            </div>
+                        </div>
+
+                        <div class="discussions-grid" id="discussionsGrid">
+                            <!-- Discussion Cards will be loaded here -->
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <p>Loading discussions...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="forum-sidebar">
+                        <!-- Online Members -->
+                        <div class="sidebar-card">
+                            <h3 class="sidebar-title">
+                                <i class="fas fa-users"></i>
+                                Online Members
+                            </h3>
+                            <div class="members-list">
+                                <div class="member-item">
+                                    <div class="member-avatar">AS</div>
+                                    <div class="member-info">
+                                        <h4>Ahmed Said</h4>
+                                        <div class="status">Plantation Manager</div>
+                                    </div>
+                                    <div class="online-dot"></div>
+                                </div>
+                                <div class="member-item">
+                                    <div class="member-avatar">MJ</div>
+                                    <div class="member-info">
+                                        <h4>Maria Johnson</h4>
+                                        <div class="status">Agronomist</div>
+                                    </div>
+                                    <div class="online-dot"></div>
+                                </div>
+                                <div class="member-item">
+                                    <div class="member-avatar">RK</div>
+                                    <div class="member-info">
+                                        <h4>Robert Kim</h4>
+                                        <div class="status">Farm Owner</div>
+                                    </div>
+                                    <div class="online-dot"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Popular Topics -->
+                        <div class="sidebar-card">
+                            <h3 class="sidebar-title">
+                                <i class="fas fa-hashtag"></i>
+                                Popular Topics
+                            </h3>
+                            <div class="topics-list">
+                                <a href="#" class="topic-item">
+                                    <div class="topic-icon">
+                                        <i class="fas fa-leaf"></i>
+                                    </div>
+                                    <div class="topic-info">
+                                        <h4>Ganoderma Disease</h4>
+                                    </div>
+                                    <span class="topic-count">142</span>
+                                </a>
+                                <a href="#" class="topic-item">
+                                    <div class="topic-icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="topic-info">
+                                        <h4>Pest Control</h4>
+                                    </div>
+                                    <span class="topic-count">89</span>
+                                </a>
+                                <a href="#" class="topic-item">
+                                    <div class="topic-icon">
+                                        <i class="fas fa-tractor"></i>
+                                    </div>
+                                    <div class="topic-info">
+                                        <h4>Harvesting Tips</h4>
+                                    </div>
+                                    <span class="topic-count">76</span>
+                                </a>
+                                <a href="#" class="topic-item">
+                                    <div class="topic-icon">
+                                        <i class="fas fa-droplet"></i>
+                                    </div>
+                                    <div class="topic-info">
+                                        <h4>Irrigation Systems</h4>
+                                    </div>
+                                    <span class="topic-count">64</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Community Guidelines -->
+                        <div class="sidebar-card">
+                            <h3 class="sidebar-title">
+                                <i class="fas fa-star"></i>
+                                Community Tips
+                            </h3>
+                            <ul style="padding-left: 1.5rem; color: var(--dark-gray); line-height: 1.6;">
+                                <li style="margin-bottom: 0.5rem;">Be respectful and constructive</li>
+                                <li style="margin-bottom: 0.5rem;">Share evidence-based solutions</li>
+                                <li style="margin-bottom: 0.5rem;">Tag your posts appropriately</li>
+                                <li style="margin-bottom: 0.5rem;">Help others when you can</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="container">
-                <div class="page-header">
-                    <h2 class="page-title">Community Discussions</h2>
-                    <div class="page-actions">
-                        <button class="btn btn-secondary" id="filterBtn">
-                            <i class="fas fa-filter"></i> Filter
-                        </button>
-                        <button class="btn btn-primary" id="newPostBtn">
-                            <i class="fas fa-plus"></i> New Discussion
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Category Tabs -->
-                <div class="category-tabs">
-                    <div class="category-tab active" data-category="all">
-                        <i class="fas fa-globe"></i>
-                        <span>All Topics</span>
-                    </div>
-                    <div class="category-tab" data-category="disease">
-                        <i class="fas fa-virus"></i>
-                        <span>Diseases</span>
-                    </div>
-                    <div class="category-tab" data-category="treatment">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Treatments</span>
-                    </div>
-                    <div class="category-tab" data-category="farming">
-                        <i class="fas fa-tractor"></i>
-                        <span>General Farming</span>
-                    </div>
-                    <div class="category-tab" data-category="question">
-                        <i class="fas fa-question-circle"></i>
-                        <span>Questions</span>
-                    </div>
-                </div>
-
-                <!-- Create Post Section -->
-                <div class="create-post" id="createPostSection" style="display: none;">
-                    <input type="text" id="postTitleInput" class="post-input" placeholder="Title of your discussion" required>
-                    <textarea class="post-input" id="postContentInput"
-                        placeholder="What would you like to discuss? Be descriptive so others can help!" required></textarea>
-                    
-                    <!-- Image Upload Section -->
-                    <div class="image-upload-section" id="imageUploadSection">
-                        <div class="image-upload-header">
-                            <h4><i class="fas fa-images"></i> Attach Images</h4>
-                            <button type="button" class="upload-btn danger" id="clearImagesBtn">
-                                <i class="fas fa-trash"></i> Clear All
-                            </button>
-                        </div>
-                        <div class="upload-options">
-                            <label class="upload-btn primary">
-                                <i class="fas fa-image"></i> Upload Images
-                                <input type="file" id="imageUpload" accept="image/*" style="display: none;" multiple>
-                            </label>
-                            <button type="button" class="upload-btn camera" id="cameraBtn">
-                                <i class="fas fa-camera"></i> Take Photo
-                            </button>
-                        </div>
-                        <div class="image-preview" id="imagePreview">
-                            <p style="color: #777; text-align: center; padding: 20px; width: 100%;">No images selected</p>
-                        </div>
-                    </div>
-                    
-                    <div class="post-actions">
-                        <div class="post-tags">
-                            <select id="postCategorySelect" class="category-tab" style="padding: 10px 15px; border: 2px solid #ddd;">
-                                <option value="disease">Disease Discussion</option>
-                                <option value="treatment">Treatment Methods</option>
-                                <option value="farming">General Farming</option>
-                                <option value="question">Ask Question</option>
-                            </select>
-                            <input type="text" id="postTagsInput" placeholder="Add tags (comma separated)"
-                                style="padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; min-width: 200px;">
-                            <button type="button" class="btn btn-secondary" id="toggleImageBtn">
-                                <i class="fas fa-image"></i> Attach Images
-                            </button>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-secondary" id="cancelPostBtn">Cancel</button>
-                            <button type="button" class="btn btn-primary" id="submitPostBtn">
-                                <i class="fas fa-paper-plane"></i> Post Discussion
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Posts Grid -->
-                <div class="posts-grid" id="postsGrid">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading discussions...</p>
-                    </div>
-                </div>
-            </div>
+            <!-- Floating Action Button -->
+            <button class="create-post-fab" id="createPostFab">
+                <i class="fas fa-edit"></i>
+            </button>
         </main>
     </div>
 
-    <!-- Post Detail Modal -->
-    <div class="modal" id="postDetailModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Discussion Details</h2>
-                <button class="close-modal" id="closePostModal">&times;</button>
-            </div>
-            <div class="modal-body" id="postDetailContent">
-                <!-- Post details will be loaded here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Post Modal -->
-    <div class="modal" id="editPostModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Edit Discussion</h2>
-                <button class="close-modal" id="closeEditModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form id="editPostForm">
-                    <div class="form-group">
-                        <label class="form-label">Title</label>
-                        <input type="text" id="editPostTitle" class="form-input" required>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Content</label>
-                        <textarea id="editPostContent" class="form-textarea" required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Category</label>
-                        <select id="editPostCategory" class="form-select">
-                            <option value="disease">Disease Discussion</option>
-                            <option value="treatment">Treatment Methods</option>
-                            <option value="farming">General Farming</option>
-                            <option value="question">Ask Question</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Tags</label>
-                        <input type="text" id="editPostTags" class="form-input"
-                            placeholder="e.g., ganoderma, fertilizer, pests">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
-                <button class="btn btn-primary" id="saveEditBtn">Save Changes</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filter Modal -->
-    <div class="modal" id="filterModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Filter Discussions</h2>
-                <button class="close-modal" id="closeFilterBtn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Category</label>
-                    <select id="filterCategory" class="form-select">
-                        <option value="all">All Categories</option>
-                        <option value="disease">Disease Discussion</option>
-                        <option value="treatment">Treatment Methods</option>
-                        <option value="farming">General Farming</option>
-                        <option value="question">Ask Question</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Sort By</label>
-                    <select id="filterSort" class="form-select">
-                        <option value="newest">Newest First</option>
-                        <option value="oldest">Oldest First</option>
-                        <option value="mostLiked">Most Liked</option>
-                        <option value="mostReplies">Most Replies</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Time Range</label>
-                    <select id="filterTime" class="form-select">
-                        <option value="all">All Time</option>
-                        <option value="today">Today</option>
-                        <option value="week">This Week</option>
-                        <option value="month">This Month</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" id="clearFiltersBtn">Clear Filters</button>
-                <button class="btn btn-primary" id="applyFiltersBtn">Apply Filters</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Image Preview Modal -->
-    <div class="modal image-modal" id="imagePreviewModal">
-        <button class="close-image-modal" id="closeImageModal">&times;</button>
-        <div class="image-modal-content">
-            <img id="fullSizeImage" src="" alt="Full size image">
-        </div>
-    </div>
-
-    <!-- Camera Modal -->
-    <div class="modal" id="cameraModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Take Photo</h2>
-                <button class="close-modal" id="closeCameraBtn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="cameraContainer" style="text-align: center;">
-                    <video id="cameraView" autoplay playsinline style="width: 100%; max-width: 500px; border-radius: 8px;"></video>
-                </div>
-                <canvas id="cameraCanvas" style="display: none;"></canvas>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-secondary" id="retakeBtn">Retake</button>
-                <button class="btn btn-primary" id="captureBtn">Capture Photo</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- JavaScript for dynamic content -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy, limit, serverTimestamp, arrayUnion, arrayRemove } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-        import { getStorage, ref, uploadString, getDownloadURL, deleteObject } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+        import { getFirestore, collection, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-        // Firebase configuration
+        // Firebase configuration (same as before)
         const firebaseConfig = {
             apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
             authDomain: "palmaegis-setup.firebaseapp.com",
@@ -1504,1451 +905,275 @@
             appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
         };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app);
 
-        // Global variables
         let currentUser = null;
-        let currentFilters = {
-            category: 'all',
-            sort: 'newest',
-            time: 'all'
-        };
-        let posts = [];
-        let currentPostId = null;
-        let selectedImages = [];
-        let replyImages = new Map(); // Store reply images per post
-        let mediaStream = null;
+        let discussions = [];
 
-        // Toast notification function
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-                <span>${message}</span>
-            `;
-            
-            document.body.appendChild(toast);
-            
-            // Remove toast after 3 seconds
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
-        }
-
-        // Check authentication state
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                currentUser = user;
-                window.currentUser = user;
-                console.log('User signed in:', user.email);
-
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        window.userData = userData;
-                        updateUserProfile(user, userData);
-                    }
-
-                    // Load posts data
-                    await loadPosts();
-
-                } catch (error) {
-                    console.error('Error loading user data:', error);
-                    showToast("Failed to load forum data. Please try again.", "error");
-                }
-            } else {
-                console.log('User not signed in');
-                window.location.href = 'signin.html';
+        // Mock discussion data based on screenshot
+        const mockDiscussions = [
+            {
+                id: "1",
+                title: "Introduce Yourself",
+                excerpt: "A successful international message any financing has written out that 'The profits can be found in your local companies. It had no special time and will have a fair value for us.'",
+                category: "Community",
+                author: "Ahmed Said",
+                role: "Plantation Manager",
+                replies: 12,
+                likes: 24,
+                views: 156,
+                timestamp: "2 hours ago"
+            },
+            {
+                id: "2",
+                title: "The 12 month member programme",
+                excerpt: "A constructive, stable message this is taking into place another of similar roles at membership, and targeted to each one.",
+                category: "Programs",
+                author: "Maria Johnson",
+                role: "Agronomist",
+                replies: 8,
+                likes: 18,
+                views: 98,
+                timestamp: "5 hours ago"
+            },
+            {
+                id: "3",
+                title: "What are you working on?",
+                excerpt: "A user says that members too do because the right to make decisions often do so, take great insights from an employee and can provide some insight to our partner.",
+                category: "General",
+                author: "Robert Kim",
+                role: "Farm Owner",
+                replies: 15,
+                likes: 32,
+                views: 210,
+                timestamp: "1 day ago"
+            },
+            {
+                id: "4",
+                title: "Use a new airline app, help needed!",
+                excerpt: "Looking for recommendations and experiences with airline mobile applications for frequent travelers in the agriculture sector.",
+                category: "Technology",
+                author: "Sarah Chen",
+                role: "Supply Chain Manager",
+                replies: 6,
+                likes: 14,
+                views: 87,
+                timestamp: "2 days ago"
             }
-        });
+        ];
 
-        function updateUserProfile(user, userData) {
-            const userNameElement = document.querySelector('.user-name');
-            const userRoleElement = document.querySelector('.user-role');
-            const userAvatarElement = document.getElementById('sidebarUserAvatar');
-
-            const displayName = userData.firstName && userData.lastName
-                ? `${userData.firstName} ${userData.lastName}`
-                : userData.username
-                    ? userData.username
-                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-
-            if (userNameElement) userNameElement.textContent = displayName;
-            if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
-
-            if (userAvatarElement) {
-                const profileImageUrl = userData.imageBase64 || userData.picture || user.photoURL;
-                if (profileImageUrl) {
-                    userAvatarElement.src = profileImageUrl;
-                    userAvatarElement.onerror = () => {
-                        userAvatarElement.onerror = null;
-                        userAvatarElement.src = 'images/user-avatar.jpg';
-                    };
-                }
-            }
-        }
-
-        // Get user's profile data
-        async function getUserProfile(userId) {
-            try {
-                const userDoc = await getDoc(doc(db, "users", userId));
-                if (userDoc.exists()) {
-                    const userData = userDoc.data();
-                    
-                    const fullName = userData.firstName && userData.lastName
-                        ? `${userData.firstName} ${userData.lastName}`
-                        : userData.username || 'User';
-                    const profileImage = userData.imageBase64 || userData.profileImage || userData.avatar || null;
-                    
-                    return {
-                        fullName: fullName,
-                        profileImage: profileImage,
-                        isExpert: userData.isExpert || false
-                    };
-                }
-                return null;
-            } catch (error) {
-                console.error('Error getting user profile:', error);
-                return null;
-            }
-        }
-
-        // Convert File/Blob to Base64
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        // Upload image to Firebase Storage
-        async function uploadImageToStorage(imageBase64, isReply = false, postId = null) {
-            try {
-                const timestamp = Date.now();
-                const randomString = Math.random().toString(36).substr(2, 9);
-                const userId = currentUser.uid;
-                
-                let folder = 'forum_post_images';
-                let imageName = `forum_post_images/${userId}_${timestamp}_${randomString}.jpg`;
-                
-                if (isReply && postId) {
-                    folder = 'forum_reply_images';
-                    imageName = `forum_reply_images/${postId}/${userId}_${timestamp}_${randomString}.jpg`;
-                }
-                
-                const storageRef = ref(storage, imageName);
-                
-                console.log(`Uploading image to: ${imageName}`);
-                
-                const snapshot = await uploadString(storageRef, imageBase64, 'data_url');
-                const downloadURL = await getDownloadURL(snapshot.ref);
-                
-                console.log(`Image uploaded successfully: ${downloadURL}`);
-                return downloadURL;
-            } catch (error) {
-                console.error('Error uploading image:', error);
-                throw error;
-            }
-        }
-
-        // Delete images from storage
-        async function deletePostImages(imageUrls) {
-            try {
-                for (const imageUrl of imageUrls) {
-                    try {
-                        // Extract the path from the URL
-                        const urlParts = imageUrl.split('/');
-                        const encodedPath = urlParts.slice(urlParts.indexOf('o') + 1).join('/');
-                        const decodedPath = decodeURIComponent(encodedPath.split('?')[0]);
-                        
-                        const imageRef = ref(storage, decodedPath);
-                        await deleteObject(imageRef);
-                        console.log("Image deleted:", decodedPath);
-                    } catch (error) {
-                        console.error("Error deleting image:", error);
-                        // Continue with other images even if one fails
-                    }
-                }
-            } catch (error) {
-                console.error("Error in deletePostImages:", error);
-            }
-        }
-
-        // Load posts from Firebase
-        async function loadPosts() {
-            try {
-                const postsGrid = document.getElementById('postsGrid');
-                postsGrid.innerHTML = `
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading discussions...</p>
-                    </div>
-                `;
-
-                const postsRef = collection(db, "forum_posts");
-                const q = query(postsRef, orderBy("createdAt", "desc"), limit(100));
-                const querySnapshot = await getDocs(q);
-
-                const allPosts = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    allPosts.push({
-                        id: doc.id,
-                        ...data,
-                        createdAtDate: data.createdAt?.toDate() || new Date()
-                    });
-                });
-
-                // Apply filters client-side
-                let filtered = allPosts;
-
-                if (currentFilters.category && currentFilters.category !== 'all') {
-                    filtered = filtered.filter(p => p.category === currentFilters.category);
-                }
-
-                if (currentFilters.time && currentFilters.time !== 'all') {
-                    const now = new Date();
-                    let startDate = null;
-                    switch (currentFilters.time) {
-                        case 'today':
-                            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                            break;
-                        case 'week':
-                            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-                            break;
-                        case 'month':
-                            startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-                            break;
-                    }
-                    if (startDate) {
-                        filtered = filtered.filter(p => p.createdAtDate >= startDate);
-                    }
-                }
-
-                const searchEl = document.getElementById('searchInput');
-                const searchTerm = searchEl && searchEl.value ? searchEl.value.trim().toLowerCase() : '';
-                if (searchTerm) {
-                    filtered = filtered.filter(p => {
-                        const title = (p.title || '').toLowerCase();
-                        const content = (p.content || '').toLowerCase();
-                        const author = (p.authorName || '').toLowerCase();
-                        const tags = (p.tags || []).join(' ').toLowerCase();
-                        return title.includes(searchTerm) || content.includes(searchTerm) || author.includes(searchTerm) || tags.includes(searchTerm);
-                    });
-                }
-
-                // Sorting
-                switch (currentFilters.sort) {
-                    case 'newest':
-                        filtered.sort((a, b) => b.createdAtDate - a.createdAtDate);
-                        break;
-                    case 'oldest':
-                        filtered.sort((a, b) => a.createdAtDate - b.createdAtDate);
-                        break;
-                    case 'mostLiked':
-                        filtered.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0));
-                        break;
-                    case 'mostReplies':
-                        filtered.sort((a, b) => (b.repliesCount || 0) - (a.repliesCount || 0));
-                        break;
-                }
-
-                posts = filtered;
-                if (posts.length === 0) {
-                    showNoPosts();
-                    return;
-                }
-                displayPosts();
-            } catch (error) {
-                console.error("Error loading posts:", error);
-                showToast("Unable to load discussions. Please try again.", "error");
-            }
-        }
-
-        // Display posts in grid
-        function displayPosts() {
-            const postsGrid = document.getElementById('postsGrid');
-            postsGrid.innerHTML = '';
-
-            posts.forEach(post => {
-                createPostCard(post);
-            });
-        }
-
-        // Create a post card
-        function createPostCard(post) {
-            const postsGrid = document.getElementById('postsGrid');
-
-            const postDate = post.createdAtDate ? post.createdAtDate.toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            }) : 'Recent';
-            
-            const tags = post.tags || [];
-            const likesCount = post.likes ? post.likes.length : 0;
-            const repliesCount = post.replies ? post.replies.length : 0;
-            const images = post.images || [];
-
-            let categoryTag = '';
-            switch (post.category) {
-                case 'disease':
-                    categoryTag = '<span class="category-tag tag-disease">Disease</span>';
-                    break;
-                case 'treatment':
-                    categoryTag = '<span class="category-tag tag-treatment">Treatment</span>';
-                    break;
-                case 'farming':
-                    categoryTag = '<span class="category-tag tag-farming">Farming</span>';
-                    break;
-                case 'question':
-                    categoryTag = '<span class="category-tag tag-general">Question</span>';
-                    break;
-            }
-
-            const isLiked = post.likes && post.likes.includes(currentUser.uid);
-            const isUpvoted = post.upvotes && post.upvotes.includes(currentUser.uid);
-            const isDownvoted = post.downvotes && post.downvotes.includes(currentUser.uid);
-
-            let avatarHtml = '';
-            if (post.authorAvatar) {
-                avatarHtml = `<img src="${post.authorAvatar}" alt="${post.authorName || 'User'}" 
-                                 onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>';" />`;
-            } else {
-                avatarHtml = `<div class="avatar-initial">${post.authorName ? post.authorName.charAt(0).toUpperCase() : 'U'}</div>`;
-            }
-
-            // Create images HTML
-            let imagesHtml = '';
-            if (images.length > 0) {
-                imagesHtml = `<div class="post-images">`;
-                images.forEach((imageUrl, index) => {
-                    imagesHtml += `
-                        <img src="${imageUrl}" 
-                             alt="Post image ${index + 1}" 
-                             class="post-image"
-                             onclick="viewFullImage('${imageUrl}')"
-                             onerror="this.style.display='none'">
-                    `;
-                });
-                imagesHtml += `</div>`;
-            }
-
-            const postCard = document.createElement('div');
-            postCard.className = 'post-card';
-            postCard.setAttribute('data-id', post.id);
-
-            postCard.innerHTML = `
-                <div class="post-header">
-                    <div class="post-author">
-                        <div class="author-avatar">
-                            ${avatarHtml}
-                        </div>
-                        <div class="author-info">
-                            <h4>${post.authorName || 'Anonymous'} 
-                                ${post.isExpert ? '<span class="expert-tag">Expert</span>' : ''}
-                            </h4>
-                            <div class="post-time">${postDate}</div>
+        // Function to create discussion card HTML
+        function createDiscussionCard(discussion) {
+            return `
+                <div class="discussion-card" data-id="${discussion.id}">
+                    <div class="discussion-header">
+                        <h3 class="discussion-title">${discussion.title}</h3>
+                        <div class="discussion-meta">
+                            <span class="discussion-category">${discussion.category}</span>
+                            <span>${discussion.timestamp}</span>
                         </div>
                     </div>
-                    <div class="post-category">
-                        ${categoryTag}
-                        ${tags.map(tag => `<span class="category-tag tag-general">${tag}</span>`).join('')}
-                    </div>
-                </div>
-                
-                <h3 class="post-title">${post.title || 'Untitled'}</h3>
-                <div class="post-content">${post.content}</div>
-                
-                ${imagesHtml}
-                
-                <div class="post-stats">
-                    <div class="stat">
-                        <i class="fas fa-heart"></i>
-                        <span>${likesCount}</span>
-                    </div>
-                    <div class="stat">
-                        <i class="fas fa-comment"></i>
-                        <span>${repliesCount}</span>
-                    </div>
-                    <div class="stat">
-                        <i class="fas fa-thumbs-up"></i>
-                        <span>${post.upvotes ? post.upvotes.length : 0}</span>
-                    </div>
-                    <div class="stat">
-                        <i class="fas fa-thumbs-down"></i>
-                        <span>${post.downvotes ? post.downvotes.length : 0}</span>
-                    </div>
-                </div>
-                
-                <div class="post-actions-footer">
-                    <button class="action-btn like-btn ${isLiked ? 'liked' : ''}" data-action="like">
-                        <i class="fas fa-heart"></i>
-                        <span>Like</span>
-                    </button>
-                    <button class="action-btn upvote-btn ${isUpvoted ? 'upvoted' : ''}" data-action="upvote">
-                        <i class="fas fa-thumbs-up"></i>
-                        <span>Upvote</span>
-                    </button>
-                    <button class="action-btn downvote-btn ${isDownvoted ? 'downvoted' : ''}" data-action="downvote">
-                        <i class="fas fa-thumbs-down"></i>
-                        <span>Downvote</span>
-                    </button>
-                    <button class="action-btn reply-btn" data-action="reply">
-                        <i class="fas fa-reply"></i>
-                        <span>Reply</span>
-                    </button>
-                    ${post.authorId === currentUser.uid ? `
-                        <button class="action-btn edit-btn" data-action="edit">
-                            <i class="fas fa-edit"></i>
-                            <span>Edit</span>
-                        </button>
-                        <button class="action-btn delete-btn" data-action="delete">
-                            <i class="fas fa-trash"></i>
-                            <span>Delete</span>
-                        </button>
-                    ` : ''}
-                    <button class="action-btn view-btn" data-action="view">
-                        <i class="fas fa-expand"></i>
-                        <span>View Details</span>
-                    </button>
-                </div>
-            `;
-
-            postsGrid.appendChild(postCard);
-            attachPostEventListeners(postCard, post.id);
-        }
-
-        // View full size image
-        window.viewFullImage = function(imageUrl) {
-            const modal = document.getElementById('imagePreviewModal');
-            const img = document.getElementById('fullSizeImage');
-            img.src = imageUrl;
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-
-        // Attach event listeners to post card buttons
-        function attachPostEventListeners(postCard, postId) {
-            const likeBtn = postCard.querySelector('.like-btn');
-            const upvoteBtn = postCard.querySelector('.upvote-btn');
-            const downvoteBtn = postCard.querySelector('.downvote-btn');
-            const replyBtn = postCard.querySelector('.reply-btn');
-            const editBtn = postCard.querySelector('.edit-btn');
-            const deleteBtn = postCard.querySelector('.delete-btn');
-            const viewBtn = postCard.querySelector('.view-btn');
-
-            if (likeBtn) likeBtn.addEventListener('click', () => toggleLike(postId));
-            if (upvoteBtn) upvoteBtn.addEventListener('click', () => toggleVote(postId, 'upvote'));
-            if (downvoteBtn) downvoteBtn.addEventListener('click', () => toggleVote(postId, 'downvote'));
-            if (replyBtn) replyBtn.addEventListener('click', () => showReplySection(postId));
-            if (editBtn) editBtn.addEventListener('click', () => openEditPostModal(postId));
-            if (deleteBtn) deleteBtn.addEventListener('click', () => deletePost(postId));
-            if (viewBtn) viewBtn.addEventListener('click', () => viewPostDetails(postId));
-        }
-
-        // Toggle like on a post
-        async function toggleLike(postId) {
-            try {
-                const postRef = doc(db, "forum_posts", postId);
-                const post = posts.find(p => p.id === postId);
-
-                if (post.likes && post.likes.includes(currentUser.uid)) {
-                    await updateDoc(postRef, {
-                        likes: arrayRemove(currentUser.uid),
-                        likesCount: (post.likesCount || 0) - 1
-                    });
-                    showToast("Like removed");
-                } else {
-                    await updateDoc(postRef, {
-                        likes: arrayUnion(currentUser.uid),
-                        likesCount: (post.likesCount || 0) + 1
-                    });
-                    showToast("Post liked!");
-                }
-
-                await loadPosts();
-
-            } catch (error) {
-                console.error("Error toggling like:", error);
-                showToast("Failed to update like", "error");
-            }
-        }
-
-        // Toggle vote (upvote/downvote)
-        async function toggleVote(postId, voteType) {
-            try {
-                const postRef = doc(db, "forum_posts", postId);
-                const post = posts.find(p => p.id === postId);
-
-                const oppositeVoteType = voteType === 'upvote' ? 'downvote' : 'upvote';
-                const oppositeArray = oppositeVoteType + 's';
-
-                if (post[voteType + 's'] && post[voteType + 's'].includes(currentUser.uid)) {
-                    await updateDoc(postRef, {
-                        [voteType + 's']: arrayRemove(currentUser.uid)
-                    });
-                    showToast(`${voteType === 'upvote' ? 'Upvote' : 'Downvote'} removed`);
-                } else {
-                    const updates = {
-                        [voteType + 's']: arrayUnion(currentUser.uid)
-                    };
-
-                    if (post[oppositeArray] && post[oppositeArray].includes(currentUser.uid)) {
-                        updates[oppositeArray] = arrayRemove(currentUser.uid);
-                    }
-
-                    await updateDoc(postRef, updates);
-                    showToast(voteType === 'upvote' ? 'Upvoted!' : 'Downvoted!');
-                }
-
-                await loadPosts();
-
-            } catch (error) {
-                console.error("Error toggling vote:", error);
-                showToast("Failed to update vote", "error");
-            }
-        }
-
-        // Create a new post with images
-        async function createPost(title, content, category, tags, images) {
-            try {
-                if (!content.trim()) {
-                    showToast("Please enter some content for your discussion.", "error");
-                    return;
-                }
-
-                if (!title.trim()) {
-                    title = content.substring(0, 100) + (content.length > 100 ? '...' : '');
-                }
-
-                // Show loading state
-                const submitBtn = document.getElementById('submitPostBtn');
-                const originalText = submitBtn.innerHTML;
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
-                submitBtn.disabled = true;
-
-                const userProfile = await getUserProfile(currentUser.uid);
-                
-                if (!userProfile) {
-                    throw new Error("User profile not found");
-                }
-
-                // Upload images to storage and get URLs
-                const imageUrls = [];
-                if (images && images.length > 0) {
-                    showToast(`Uploading ${images.length} image(s)...`, "info");
                     
-                    for (let i = 0; i < images.length; i++) {
-                        try {
-                            const imageBase64 = images[i];
-                            const downloadURL = await uploadImageToStorage(imageBase64, false);
-                            imageUrls.push(downloadURL);
-                            showToast(`Image ${i+1}/${images.length} uploaded`, "info");
-                        } catch (error) {
-                            console.error('Error uploading image:', error);
-                            showToast(`Error uploading image ${i+1}. Please try again.`, "error");
-                        }
-                    }
-                }
-
-                // Create post data with image URLs
-                const postData = {
-                    title: title,
-                    content: content,
-                    category: category,
-                    tags: tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
-                    images: imageUrls, // This now contains Firebase Storage URLs
-                    authorId: currentUser.uid,
-                    authorName: userProfile.fullName || currentUser.email.split('@')[0],
-                    authorAvatar: userProfile.profileImage || null,
-                    isExpert: userProfile.isExpert || false,
-                    createdAt: serverTimestamp(),
-                    likes: [],
-                    likesCount: 0,
-                    upvotes: [],
-                    downvotes: [],
-                    replies: [],
-                    repliesCount: 0,
-                    updatedAt: serverTimestamp()
-                };
-
-                // Save post to Firestore
-                const postRef = await addDoc(collection(db, "forum_posts"), postData);
-                console.log("Post created with ID:", postRef.id);
-
-                // Clear form and reset
-                document.getElementById('postTitleInput').value = '';
-                document.getElementById('postContentInput').value = '';
-                document.getElementById('postTagsInput').value = '';
-                selectedImages = [];
-                updateImagePreview();
-                document.getElementById('createPostSection').style.display = 'none';
-                document.getElementById('imageUploadSection').classList.remove('active');
-
-                // Reset button
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-
-                // Reload posts
-                await loadPosts();
-                
-                showToast("Discussion posted successfully!", "success");
-                
-                return postRef.id;
-
-            } catch (error) {
-                console.error("Error creating post:", error);
-                
-                // Reset button
-                const submitBtn = document.getElementById('submitPostBtn');
-                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Post Discussion';
-                submitBtn.disabled = false;
-                
-                showToast("Failed to create discussion. Please try again.", "error");
-                throw error;
-            }
-        }
-
-        // Update an existing post
-        async function updatePost(postId, title, content, category, tags) {
-            try {
-                const postRef = doc(db, "forum_posts", postId);
-
-                await updateDoc(postRef, {
-                    title: title,
-                    content: content,
-                    category: category,
-                    tags: tags ? tags.split(',').map(tag => tag.trim()).filter(tag => tag) : [],
-                    updatedAt: serverTimestamp()
-                });
-
-                closeModal('editPostModal');
-                await loadPosts();
-                showToast("Discussion updated successfully!", "success");
-
-            } catch (error) {
-                console.error("Error updating post:", error);
-                showToast("Failed to update discussion", "error");
-            }
-        }
-
-        // Delete a post and its images
-        async function deletePost(postId) {
-            if (!confirm("Are you sure you want to delete this discussion? This action cannot be undone.")) {
-                return;
-            }
-
-            try {
-                // Get the post first to get image URLs
-                const postRef = doc(db, "forum_posts", postId);
-                const postDoc = await getDoc(postRef);
-                
-                if (postDoc.exists()) {
-                    const postData = postDoc.data();
+                    <p class="discussion-excerpt">${discussion.excerpt}</p>
                     
-                    // Delete post images from storage
-                    if (postData.images && postData.images.length > 0) {
-                        await deletePostImages(postData.images);
-                    }
-                    
-                    // Delete reply images from storage
-                    if (postData.replies && postData.replies.length > 0) {
-                        for (const reply of postData.replies) {
-                            if (reply.images && reply.images.length > 0) {
-                                await deletePostImages(reply.images);
-                            }
-                        }
-                    }
-                }
-                
-                // Delete the post document from Firestore
-                await deleteDoc(postRef);
-                await loadPosts();
-                showToast("Discussion deleted successfully!", "success");
-
-            } catch (error) {
-                console.error("Error deleting post:", error);
-                showToast("Failed to delete discussion", "error");
-            }
-        }
-
-        // Show reply section for a post with image attachment capability
-        function showReplySection(postId) {
-            const postCard = document.querySelector(`.post-card[data-id="${postId}"]`);
-            let replySection = postCard.querySelector('.replies-section');
-
-            if (!replySection) {
-                // Initialize images array for this reply if not exists
-                if (!replyImages.has(postId)) {
-                    replyImages.set(postId, []);
-                }
-
-                replySection = document.createElement('div');
-                replySection.className = 'replies-section';
-                replySection.innerHTML = `
-                    <div class="reply-form">
-                        <h4><i class="fas fa-reply"></i> Write a Reply</h4>
-                        <div class="reply-input-container">
-                            <textarea placeholder="Type your reply here..." class="reply-textarea" rows="3"></textarea>
-                        </div>
-                        
-                        <div class="reply-images-preview" id="reply-images-${postId}" style="${replyImages.get(postId).length > 0 ? '' : 'display: none;'}">
-                            ${replyImages.get(postId).map((image, index) => `
-                                <div class="reply-image-item">
-                                    <img src="${image}" alt="Reply image ${index + 1}">
-                                    <button type="button" class="remove-reply-image" onclick="removeReplyImage('${postId}', ${index})">
-                                        ×
-                                    </button>
-                                </div>
-                            `).join('')}
-                        </div>
-                        
-                        <div class="reply-form-actions">
-                            <div class="reply-form-buttons">
-                                <label class="reply-attachment-btn ${replyImages.get(postId).length > 0 ? 'has-images' : ''}">
-                                    <i class="fas fa-image"></i>
-                                    ${replyImages.get(postId).length > 0 ? `${replyImages.get(postId).length} Image(s)` : 'Add Images'}
-                                    <input type="file" id="reply-image-upload-${postId}" accept="image/*" style="display: none;" multiple>
-                                </label>
+                    <div class="discussion-footer">
+                        <div class="discussion-author">
+                            <div class="author-avatar">${discussion.author.split(' ').map(n => n[0]).join('')}</div>
+                            <div class="author-info">
+                                <h4>${discussion.author}</h4>
+                                <div class="role">${discussion.role}</div>
                             </div>
-                            <button class="btn btn-primary submit-reply">Post Reply</button>
+                        </div>
+                        
+                        <div class="discussion-stats">
+                            <div class="stat">
+                                <i class="fas fa-comment"></i>
+                                <span>${discussion.replies}</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-heart"></i>
+                                <span>${discussion.likes}</span>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-eye"></i>
+                                <span>${discussion.views}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="replies-list" id="replies-${postId}">
-                        <p style="text-align: center; color: #777; padding: 20px;">Loading replies...</p>
-                    </div>
-                `;
-
-                postCard.appendChild(replySection);
-                
-                // Attach event listeners for this reply form
-                const submitBtn = replySection.querySelector('.submit-reply');
-                const textarea = replySection.querySelector('.reply-textarea');
-                const uploadLabel = replySection.querySelector('.reply-attachment-btn');
-                const fileInput = replySection.querySelector(`#reply-image-upload-${postId}`);
-                const imagesPreview = replySection.querySelector(`#reply-images-${postId}`);
-
-                submitBtn.addEventListener('click', () => submitReply(postId, textarea.value.trim()));
-                
-                // Textarea enter key to submit
-                textarea.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && e.ctrlKey) {
-                        e.preventDefault();
-                        submitReply(postId, textarea.value.trim());
-                    }
-                });
-
-                // Image upload
-                uploadLabel.addEventListener('click', (e) => {
-                    if (e.target !== fileInput) {
-                        fileInput.click();
-                    }
-                });
-
-                fileInput.addEventListener('change', async (e) => {
-                    const files = e.target.files;
-                    if (!files || files.length === 0) return;
-
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        if (!file.type.match('image.*')) {
-                            showToast('Please select only image files.', 'error');
-                            continue;
-                        }
-
-                        if (file.size > 5 * 1024 * 1024) {
-                            showToast('Image size should be less than 5MB.', 'error');
-                            continue;
-                        }
-
-                        try {
-                            const base64 = await fileToBase64(file);
-                            const currentImages = replyImages.get(postId) || [];
-                            currentImages.push(base64);
-                            replyImages.set(postId, currentImages);
-                            
-                            // Update preview
-                            updateReplyImagesPreview(postId);
-                            
-                            // Update button text
-                            uploadLabel.innerHTML = `<i class="fas fa-image"></i> ${currentImages.length} Image(s)`;
-                            uploadLabel.classList.add('has-images');
-                            
-                        } catch (error) {
-                            console.error('Error processing image:', error);
-                            showToast('Error processing image.', 'error');
-                        }
-                    }
-                    
-                    // Reset file input
-                    fileInput.value = '';
-                });
-
-                loadReplies(postId);
-            } else {
-                replySection.style.display = replySection.style.display === 'none' ? 'block' : 'none';
-            }
-        }
-
-        // Update reply images preview
-        window.updateReplyImagesPreview = function(postId) {
-            const images = replyImages.get(postId) || [];
-            const previewContainer = document.getElementById(`reply-images-${postId}`);
-            
-            if (!previewContainer) return;
-            
-            if (images.length === 0) {
-                previewContainer.style.display = 'none';
-                previewContainer.innerHTML = '';
-            } else {
-                previewContainer.style.display = 'flex';
-                previewContainer.innerHTML = images.map((image, index) => `
-                    <div class="reply-image-item">
-                        <img src="${image}" alt="Reply image ${index + 1}">
-                        <button type="button" class="remove-reply-image" onclick="removeReplyImage('${postId}', ${index})">
-                            ×
-                        </button>
-                    </div>
-                `).join('');
-            }
-        };
-
-        // Remove reply image
-        window.removeReplyImage = function(postId, index) {
-            const images = replyImages.get(postId) || [];
-            images.splice(index, 1);
-            replyImages.set(postId, images);
-            
-            updateReplyImagesPreview(postId);
-            
-            // Update button text
-            const uploadLabel = document.querySelector(`#reply-images-${postId}`)?.closest('.reply-form')?.querySelector('.reply-attachment-btn');
-            if (uploadLabel) {
-                if (images.length > 0) {
-                    uploadLabel.innerHTML = `<i class="fas fa-image"></i> ${images.length} Image(s)`;
-                    uploadLabel.classList.add('has-images');
-                } else {
-                    uploadLabel.innerHTML = `<i class="fas fa-image"></i> Add Images`;
-                    uploadLabel.classList.remove('has-images');
-                }
-            }
-        };
-
-        // Submit a reply to a post with images
-        async function submitReply(postId, replyContent) {
-            if (!replyContent && (!replyImages.get(postId) || replyImages.get(postId).length === 0)) {
-                showToast("Please enter a reply or attach an image.", "error");
-                return;
-            }
-
-            try {
-                const userProfile = await getUserProfile(currentUser.uid);
-                const postRef = doc(db, "forum_posts", postId);
-                const post = posts.find(p => p.id === postId);
-
-                // Upload reply images if any
-                const replyImageUrls = [];
-                const images = replyImages.get(postId) || [];
-                
-                if (images.length > 0) {
-                    showToast(`Uploading ${images.length} image(s)...`, "info");
-                    
-                    for (let i = 0; i < images.length; i++) {
-                        try {
-                            const imageBase64 = images[i];
-                            const downloadURL = await uploadImageToStorage(imageBase64, true, postId);
-                            replyImageUrls.push(downloadURL);
-                            showToast(`Image ${i+1}/${images.length} uploaded`, "info");
-                        } catch (error) {
-                            console.error('Error uploading reply image:', error);
-                            showToast(`Error uploading image ${i+1}. Please try again.`, "error");
-                        }
-                    }
-                }
-
-                const replyData = {
-                    content: replyContent || '',
-                    authorId: currentUser.uid,
-                    authorName: userProfile?.fullName || currentUser.email.split('@')[0],
-                    authorAvatar: userProfile?.profileImage || null,
-                    createdAt: serverTimestamp(),
-                    isExpert: userProfile?.isExpert || false,
-                    images: replyImageUrls // This now contains Firebase Storage URLs
-                };
-
-                await updateDoc(postRef, {
-                    replies: arrayUnion(replyData),
-                    repliesCount: (post.repliesCount || 0) + 1
-                });
-
-                // Clear reply form
-                const replySection = document.querySelector(`.post-card[data-id="${postId}"] .replies-section`);
-                if (replySection) {
-                    const textarea = replySection.querySelector('.reply-textarea');
-                    if (textarea) textarea.value = '';
-                    
-                    // Clear images
-                    replyImages.set(postId, []);
-                    updateReplyImagesPreview(postId);
-                    
-                    // Reset upload button
-                    const uploadLabel = replySection.querySelector('.reply-attachment-btn');
-                    if (uploadLabel) {
-                        uploadLabel.innerHTML = `<i class="fas fa-image"></i> Add Images`;
-                        uploadLabel.classList.remove('has-images');
-                    }
-                }
-
-                showToast("Reply posted!", "success");
-                loadReplies(postId);
-
-            } catch (error) {
-                console.error("Error submitting reply:", error);
-                showToast("Failed to submit reply", "error");
-            }
-        }
-
-        // Load replies for a post
-        async function loadReplies(postId) {
-            try {
-                const postRef = doc(db, "forum_posts", postId);
-                const postDoc = await getDoc(postRef);
-
-                if (postDoc.exists()) {
-                    const postData = postDoc.data();
-                    const replies = postData.replies || [];
-
-                    const repliesList = document.getElementById(`replies-${postId}`);
-                    if (!repliesList) return;
-                    
-                    repliesList.innerHTML = '';
-
-                    if (replies.length === 0) {
-                        repliesList.innerHTML = '<p style="text-align: center; color: #777; padding: 20px;">No replies yet. Be the first to reply!</p>';
-                        return;
-                    }
-
-                    // Sort replies by date (newest first)
-                    replies.sort((a, b) => {
-                        const dateA = a.createdAt?.toDate() || new Date(0);
-                        const dateB = b.createdAt?.toDate() || new Date(0);
-                        return dateB - dateA;
-                    });
-
-                    replies.forEach(reply => {
-                        const replyDate = reply.createdAt ? reply.createdAt.toDate().toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        }) : 'Recent';
-
-                        let replyAvatarHtml = '';
-                        if (reply.authorAvatar) {
-                            replyAvatarHtml = `<img src="${reply.authorAvatar}" alt="${reply.authorName || 'User'}" 
-                                               onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'avatar-initial\'>${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>';" />`;
-                        } else {
-                            replyAvatarHtml = `<div class="avatar-initial">${reply.authorName ? reply.authorName.charAt(0).toUpperCase() : 'R'}</div>`;
-                        }
-
-                        // Create reply images HTML
-                        let replyImagesHtml = '';
-                        if (reply.images && reply.images.length > 0) {
-                            replyImagesHtml = `<div class="reply-images">`;
-                            reply.images.forEach((imageUrl, index) => {
-                                replyImagesHtml += `
-                                    <img src="${imageUrl}" 
-                                         alt="Reply image ${index + 1}" 
-                                         class="reply-image"
-                                         onclick="viewFullImage('${imageUrl}')"
-                                         onerror="this.style.display='none'">
-                                `;
-                            });
-                            replyImagesHtml += `</div>`;
-                        }
-
-                        const replyCard = document.createElement('div');
-                        replyCard.className = 'reply-card';
-                        replyCard.innerHTML = `
-                            <div class="reply-header">
-                                <div class="reply-author">
-                                    <div class="author-avatar" style="width: 35px; height: 35px;">
-                                        ${replyAvatarHtml}
-                                    </div>
-                                    <div>
-                                        <strong>${reply.authorName || 'Anonymous'}</strong>
-                                        ${reply.isExpert ? '<span class="expert-tag">Expert</span>' : ''}
-                                        <div class="reply-time">${replyDate}</div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="reply-content">${reply.content}</div>
-                            ${replyImagesHtml}
-                        `;
-
-                        repliesList.appendChild(replyCard);
-                    });
-                }
-
-            } catch (error) {
-                console.error("Error loading replies:", error);
-            }
-        }
-
-        // Handle image upload for posts
-        function handleImageUpload(event) {
-            const files = event.target.files;
-            if (!files || files.length === 0) return;
-
-            const maxImages = 5;
-            const remainingSlots = maxImages - selectedImages.length;
-            
-            if (files.length > remainingSlots) {
-                showToast(`You can only upload up to ${maxImages} images total.`, "error");
-                return;
-            }
-
-            const validImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg'];
-            
-            for (let i = 0; i < Math.min(files.length, remainingSlots); i++) {
-                const file = files[i];
-                
-                // Validate file type
-                if (!validImageTypes.includes(file.type.toLowerCase())) {
-                    showToast(`File "${file.name}" is not a valid image type. Please use JPEG, PNG, GIF, or WebP.`, "error");
-                    continue;
-                }
-
-                // Validate file size (5MB max)
-                if (file.size > 5 * 1024 * 1024) {
-                    showToast(`Image "${file.name}" is too large. Maximum size is 5MB.`, "error");
-                    continue;
-                }
-
-                // Convert to base64
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        const base64 = e.target.result;
-                        
-                        // Validate base64 string
-                        if (!base64.startsWith('data:image/')) {
-                            throw new Error('Invalid image data');
-                        }
-                        
-                        selectedImages.push(base64);
-                        updateImagePreview();
-                        
-                        const imageCount = selectedImages.length;
-                        showToast(`Image ${imageCount}/${maxImages} added`, "info");
-                        
-                    } catch (error) {
-                        console.error('Error processing image:', error);
-                        showToast('Error processing image. Please try again.', 'error');
-                    }
-                };
-                
-                reader.onerror = function(error) {
-                    console.error('Error reading file:', error);
-                    showToast('Error reading image file.', 'error');
-                };
-                
-                reader.readAsDataURL(file);
-            }
-            
-            // Reset file input
-            event.target.value = '';
-        }
-
-        function updateImagePreview() {
-            const previewContainer = document.getElementById('imagePreview');
-            previewContainer.innerHTML = '';
-            
-            if (selectedImages.length === 0) {
-                previewContainer.innerHTML = '<p style="color: #777; text-align: center; padding: 20px;">No images selected</p>';
-                return;
-            }
-            
-            selectedImages.forEach((imageBase64, index) => {
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'image-item';
-                
-                const img = document.createElement('img');
-                img.src = imageBase64;
-                img.alt = `Image ${index + 1}`;
-                
-                const removeBtn = document.createElement('button');
-                removeBtn.className = 'remove-image';
-                removeBtn.innerHTML = '×';
-                removeBtn.title = 'Remove image';
-                removeBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    removeImage(index);
-                };
-                
-                const countBadge = document.createElement('div');
-                countBadge.className = 'image-count';
-                countBadge.textContent = index + 1;
-                
-                imgContainer.appendChild(img);
-                imgContainer.appendChild(removeBtn);
-                imgContainer.appendChild(countBadge);
-                previewContainer.appendChild(imgContainer);
-            });
-        }
-
-        function removeImage(index) {
-            selectedImages.splice(index, 1);
-            updateImagePreview();
-            showToast("Image removed", "info");
-        }
-
-        async function startCamera() {
-            try {
-                const constraints = {
-                    video: {
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    }
-                };
-                
-                mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
-                const video = document.getElementById('cameraView');
-                video.srcObject = mediaStream;
-                openModal('cameraModal');
-            } catch (error) {
-                console.error('Error accessing camera:', error);
-                showToast('Could not access camera. Please check permissions.', 'error');
-            }
-        }
-
-        function capturePhoto() {
-            try {
-                const video = document.getElementById('cameraView');
-                const canvas = document.getElementById('cameraCanvas');
-                const context = canvas.getContext('2d');
-                
-                // Ensure video is ready
-                if (!video.videoWidth || !video.videoHeight) {
-                    showToast("Camera is not ready. Please try again.", "error");
-                    return;
-                }
-                
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                
-                // Convert to base64 with quality compression
-                const imageData = canvas.toDataURL('image/jpeg', 0.7); // 70% quality
-                
-                // Check if we can add more images
-                if (selectedImages.length >= 5) {
-                    showToast("Maximum 5 images allowed.", "error");
-                    return;
-                }
-                
-                selectedImages.push(imageData);
-                updateImagePreview();
-                
-                stopCamera();
-                closeModal('cameraModal');
-                showToast("Photo captured!", "success");
-                
-            } catch (error) {
-                console.error('Error capturing photo:', error);
-                showToast("Failed to capture photo. Please try again.", "error");
-            }
-        }
-
-        function stopCamera() {
-            if (mediaStream) {
-                mediaStream.getTracks().forEach(track => track.stop());
-                mediaStream = null;
-            }
-        }
-
-        // Show no posts message
-        function showNoPosts() {
-            const postsGrid = document.getElementById('postsGrid');
-            postsGrid.innerHTML = `
-                <div class="no-data">
-                    <i class="fas fa-comments"></i>
-                    <h3>No Discussions Yet</h3>
-                    <p>Be the first to start a discussion and share your knowledge!</p>
-                    <button class="btn btn-primary" id="createFirstPostBtn" style="margin-top: 15px;">
-                        <i class="fas fa-plus"></i> Start Discussion
-                    </button>
                 </div>
             `;
-
-            document.getElementById('createFirstPostBtn').addEventListener('click', () => {
-                document.getElementById('createPostSection').style.display = 'block';
-                document.getElementById('postTitleInput').focus();
-                document.getElementById('createFirstPostBtn').scrollIntoView({ behavior: 'smooth' });
-            });
         }
 
-        // Modal functions
-        function openModal(modalId) {
-            document.getElementById(modalId).style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-
-        // Initialize everything when DOM is loaded
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log("Forum page loaded, initializing...");
+        // Function to load discussions
+        async function loadDiscussions() {
+            const grid = document.getElementById('discussionsGrid');
             
-            // New post button
-            document.getElementById('newPostBtn').addEventListener('click', () => {
-                const createPostSection = document.getElementById('createPostSection');
-                const isVisible = createPostSection.style.display === 'block';
-                createPostSection.style.display = isVisible ? 'none' : 'block';
-                if (!isVisible) {
-                    document.getElementById('postTitleInput').focus();
-                    createPostSection.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
+            // For now, use mock data
+            discussions = mockDiscussions;
+            
+            grid.innerHTML = discussions.map(discussion => 
+                createDiscussionCard(discussion)
+            ).join('');
+        }
 
-            // Submit post button
-            document.getElementById('submitPostBtn').addEventListener('click', async (e) => {
-                e.preventDefault();
-                
-                const title = document.getElementById('postTitleInput').value.trim();
-                const content = document.getElementById('postContentInput').value.trim();
-                const category = document.getElementById('postCategorySelect').value;
-                const tags = document.getElementById('postTagsInput').value.trim();
-                
-                // Validation
-                if (!content) {
-                    showToast("Please enter some content for your discussion.", "error");
-                    document.getElementById('postContentInput').focus();
-                    return;
-                }
-                
-                try {
-                    await createPost(title, content, category, tags, selectedImages);
-                } catch (error) {
-                    console.error("Error posting discussion:", error);
-                }
-            });
-
-            // Cancel post button
-            document.getElementById('cancelPostBtn').addEventListener('click', () => {
-                document.getElementById('createPostSection').style.display = 'none';
-                document.getElementById('postTitleInput').value = '';
-                document.getElementById('postContentInput').value = '';
-                document.getElementById('postTagsInput').value = '';
-                selectedImages = [];
-                updateImagePreview();
-                document.getElementById('imageUploadSection').classList.remove('active');
-                showToast("Post cancelled", "info");
-            });
-
-            // Toggle image upload section
-            document.getElementById('toggleImageBtn').addEventListener('click', () => {
-                const imageSection = document.getElementById('imageUploadSection');
-                imageSection.classList.toggle('active');
-                if (imageSection.classList.contains('active')) {
-                    imageSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    showToast("You can upload up to 5 images", "info");
-                }
-            });
-
-            // Image upload
-            document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
-
-            // Camera button
-            document.getElementById('cameraBtn').addEventListener('click', startCamera);
-
-            // Clear images button
-            document.getElementById('clearImagesBtn').addEventListener('click', () => {
-                if (selectedImages.length > 0) {
-                    if (confirm(`Clear all ${selectedImages.length} images?`)) {
-                        selectedImages = [];
-                        updateImagePreview();
-                        showToast("All images cleared", "info");
+        // Function to handle sorting
+        function setupSorting() {
+            const sortBtns = document.querySelectorAll('.sort-btn');
+            
+            sortBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    sortBtns.forEach(b => b.classList.remove('active'));
+                    // Add active class to clicked button
+                    btn.classList.add('active');
+                    
+                    const sortType = btn.dataset.sort;
+                    
+                    // Sort discussions based on selected option
+                    let sortedDiscussions = [...discussions];
+                    
+                    switch(sortType) {
+                        case 'newest':
+                            // Already sorted by timestamp in mock data
+                            break;
+                        case 'popular':
+                            sortedDiscussions.sort((a, b) => b.likes - a.likes);
+                            break;
+                        case 'unanswered':
+                            sortedDiscussions.sort((a, b) => a.replies - b.replies);
+                            break;
                     }
-                } else {
-                    showToast("No images to clear", "info");
-                }
-            });
-
-            // Capture photo
-            document.getElementById('captureBtn').addEventListener('click', capturePhoto);
-
-            // Retake photo
-            document.getElementById('retakeBtn').addEventListener('click', () => {
-                stopCamera();
-                startCamera();
-            });
-
-            // Close camera modal
-            document.getElementById('closeCameraBtn').addEventListener('click', () => {
-                stopCamera();
-                closeModal('cameraModal');
-            });
-
-            // Close image preview modal
-            document.getElementById('closeImageModal').addEventListener('click', () => {
-                closeModal('imagePreviewModal');
-                document.body.style.overflow = 'auto';
-            });
-
-            // Close all modals when clicking outside
-            document.querySelectorAll('.modal').forEach(modal => {
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) {
-                        closeModal(modal.id);
-                        if (modal.id === 'cameraModal') {
-                            stopCamera();
-                        }
-                    }
+                    
+                    // Update display
+                    const grid = document.getElementById('discussionsGrid');
+                    grid.innerHTML = sortedDiscussions.map(discussion => 
+                        createDiscussionCard(discussion)
+                    ).join('');
                 });
             });
+        }
 
-            // Category tabs
-            document.querySelectorAll('.category-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    currentFilters.category = tab.dataset.category;
-                    loadPosts();
-                });
-            });
-
-            // Search functionality
-            document.getElementById('searchInput').addEventListener('input', (e) => {
+        // Function to handle search
+        function setupSearch() {
+            const searchInput = document.querySelector('.search-input');
+            
+            searchInput.addEventListener('input', (e) => {
                 const searchTerm = e.target.value.toLowerCase().trim();
                 
-                if (searchTerm.length >= 2) {
-                    const filteredPosts = posts.filter(post => {
-                        const title = (post.title || '').toLowerCase();
-                        const content = (post.content || '').toLowerCase();
-                        const author = (post.authorName || '').toLowerCase();
-                        const tags = (post.tags || []).join(' ').toLowerCase();
-                        return title.includes(searchTerm) || 
-                               content.includes(searchTerm) || 
-                               author.includes(searchTerm) || 
-                               tags.includes(searchTerm);
-                    });
-                    
-                    const postsGrid = document.getElementById('postsGrid');
-                    postsGrid.innerHTML = '';
-                    
-                    if (filteredPosts.length === 0) {
-                        postsGrid.innerHTML = `
-                            <div class="no-data">
-                                <i class="fas fa-search"></i>
-                                <h3>No Results Found</h3>
-                                <p>No discussions match your search for "${searchTerm}"</p>
-                            </div>
-                        `;
-                    } else {
-                        filteredPosts.forEach(post => createPostCard(post));
-                    }
-                } else if (searchTerm.length === 0) {
-                    displayPosts();
-                }
-            });
-
-            // Filter modal
-            document.getElementById('filterBtn').addEventListener('click', () => openModal('filterModal'));
-            document.getElementById('closeFilterBtn').addEventListener('click', () => closeModal('filterModal'));
-            document.getElementById('closePostModal').addEventListener('click', () => closeModal('postDetailModal'));
-            document.getElementById('closeEditModal').addEventListener('click', () => closeModal('editPostModal'));
-            document.getElementById('cancelEditBtn').addEventListener('click', () => closeModal('editPostModal'));
-
-            // Apply filters
-            document.getElementById('applyFiltersBtn').addEventListener('click', () => {
-                currentFilters.category = document.getElementById('filterCategory').value;
-                currentFilters.sort = document.getElementById('filterSort').value;
-                currentFilters.time = document.getElementById('filterTime').value;
-
-                closeModal('filterModal');
-                loadPosts();
-            });
-
-            // Clear filters
-            document.getElementById('clearFiltersBtn').addEventListener('click', () => {
-                document.getElementById('filterCategory').value = 'all';
-                document.getElementById('filterSort').value = 'newest';
-                document.getElementById('filterTime').value = 'all';
-
-                currentFilters = {
-                    category: 'all',
-                    sort: 'newest',
-                    time: 'all'
-                };
-
-                // Reset category tabs
-                document.querySelectorAll('.category-tab').forEach(tab => {
-                    tab.classList.remove('active');
-                    if (tab.dataset.category === 'all') {
-                        tab.classList.add('active');
-                    }
-                });
-
-                closeModal('filterModal');
-                loadPosts();
-            });
-
-            // Save edit
-            document.getElementById('saveEditBtn').addEventListener('click', () => {
-                const title = document.getElementById('editPostTitle').value.trim();
-                const content = document.getElementById('editPostContent').value.trim();
-                const category = document.getElementById('editPostCategory').value;
-                const tags = document.getElementById('editPostTags').value.trim();
-
-                if (!content) {
-                    showToast("Please enter content for your discussion.", "error");
+                if (searchTerm.length === 0) {
+                    // Show all discussions if search is empty
+                    const grid = document.getElementById('discussionsGrid');
+                    grid.innerHTML = discussions.map(discussion => 
+                        createDiscussionCard(discussion)
+                    ).join('');
                     return;
                 }
-
-                if (currentPostId) {
-                    updatePost(currentPostId, title, content, category, tags);
+                
+                // Filter discussions based on search term
+                const filteredDiscussions = discussions.filter(discussion => 
+                    discussion.title.toLowerCase().includes(searchTerm) ||
+                    discussion.excerpt.toLowerCase().includes(searchTerm) ||
+                    discussion.category.toLowerCase().includes(searchTerm) ||
+                    discussion.author.toLowerCase().includes(searchTerm)
+                );
+                
+                // Update display
+                const grid = document.getElementById('discussionsGrid');
+                
+                if (filteredDiscussions.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-search"></i>
+                            <h3>No Results Found</h3>
+                            <p>No discussions match your search for "${searchTerm}"</p>
+                        </div>
+                    `;
+                } else {
+                    grid.innerHTML = filteredDiscussions.map(discussion => 
+                        createDiscussionCard(discussion)
+                    ).join('');
                 }
             });
+        }
 
-            // Logout functionality
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    signOut(auth).then(() => {
-                        window.location.href = 'signin.html';
-                    }).catch((error) => {
-                        console.error('Logout error:', error);
-                        showToast("Logout failed", "error");
-                    });
+        // Function to handle quick action buttons
+        function setupQuickActions() {
+            const newDiscussionBtn = document.getElementById('newDiscussionBtn');
+            const filterBtn = document.getElementById('filterBtn');
+            const trendingBtn = document.getElementById('trendingBtn');
+            const myDiscussionsBtn = document.getElementById('myDiscussionsBtn');
+            const createPostFab = document.getElementById('createPostFab');
+
+            const handleNewPost = () => {
+                alert('Redirecting to new discussion form...');
+                // In production, this would redirect to the create post page
+                // window.location.href = 'create-post.html';
+            };
+
+            if (newDiscussionBtn) newDiscussionBtn.addEventListener('click', handleNewPost);
+            if (createPostFab) createPostFab.addEventListener('click', handleNewPost);
+
+            if (filterBtn) {
+                filterBtn.addEventListener('click', () => {
+                    alert('Filter options will appear here');
+                    // Implement filter modal functionality
                 });
             }
 
-            // Test button functionality
-            console.log("All event listeners attached successfully");
-            
-            // Show welcome message
-            setTimeout(() => {
-                if (currentUser) {
-                    console.log(`Welcome ${currentUser.email}! Forum ready.`);
+            if (trendingBtn) {
+                trendingBtn.addEventListener('click', () => {
+                    // Sort by popularity
+                    const sortBtn = document.querySelector('.sort-btn[data-sort="popular"]');
+                    if (sortBtn) sortBtn.click();
+                });
+            }
+
+            if (myDiscussionsBtn) {
+                myDiscussionsBtn.addEventListener('click', () => {
+                    alert('Showing your discussions...');
+                    // Filter to show only user's discussions
+                });
+            }
+        }
+
+        // Function to handle discussion card clicks
+        function setupDiscussionClicks() {
+            document.addEventListener('click', (e) => {
+                const discussionCard = e.target.closest('.discussion-card');
+                if (discussionCard) {
+                    const discussionId = discussionCard.dataset.id;
+                    alert(`Opening discussion ${discussionId}...`);
+                    // In production, this would open the discussion detail view
+                    // window.location.href = `discussion.html?id=${discussionId}`;
                 }
-            }, 1000);
+            });
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Forum page loaded');
+            
+            // Check authentication
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUser = user;
+                    console.log('User authenticated:', user.email);
+                    
+                    // Load discussions
+                    loadDiscussions().then(() => {
+                        setupSorting();
+                        setupDiscussionClicks();
+                    });
+                    
+                    setupSearch();
+                    setupQuickActions();
+                } else {
+                    console.log('User not authenticated, redirecting...');
+                    // window.location.href = 'signin.html';
+                }
+            });
         });
     </script>
 </body>
