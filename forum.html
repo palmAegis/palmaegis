@@ -37,24 +37,32 @@
     font-family: 'Segoe UI', system-ui, sans-serif;
 }
 
+html, body {
+    height: 100%;
+    overflow-x: hidden;
+}
+
 body {
     background: linear-gradient(135deg, #f8fff8 0%, #e8f5e9 100%);
     color: var(--text-color);
     min-height: 100vh;
     line-height: 1.5;
+    overflow-y: auto;
 }
 
 /* ================= LAYOUT ================= */
 .dashboard-container {
     display: flex;
     min-height: 100vh;
+    width: 100%;
 }
 
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100vh;
 }
 
 /* ================= HEADER ================= */
@@ -66,6 +74,7 @@ body {
     position: sticky;
     top: 0;
     z-index: 100;
+    flex-shrink: 0;
 }
 
 .header-content {
@@ -76,6 +85,7 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 1rem;
+    width: 100%;
 }
 
 .header-left h1 {
@@ -125,6 +135,8 @@ body {
     margin: 0 auto;
     padding: 2rem;
     width: 100%;
+    flex: 1;
+    overflow-y: visible;
 }
 
 /* ================= WELCOME SECTION ================= */
@@ -232,6 +244,7 @@ body {
     border-radius: var(--border-radius);
     padding: 2rem;
     box-shadow: var(--card-shadow);
+    min-height: 500px;
 }
 
 .section-header {
@@ -390,12 +403,18 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    min-height: 200px;
 }
 
 .loading {
     text-align: center;
     padding: 3rem;
     color: var(--dark-gray);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .spinner {
@@ -418,6 +437,11 @@ body {
     text-align: center;
     padding: 3rem;
     color: var(--dark-gray);
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .empty-state i {
@@ -434,10 +458,13 @@ body {
 /* ================= SIDEBAR ================= */
 .forum-sidebar {
     position: sticky;
-    top: 2rem;
+    top: 120px;
     display: flex;
     flex-direction: column;
     gap: 2rem;
+    height: fit-content;
+    max-height: calc(100vh - 140px);
+    overflow-y: auto;
 }
 
 .sidebar-card {
@@ -630,6 +657,7 @@ body {
     justify-content: center;
     z-index: 1001;
     padding: 1rem;
+    overflow-y: auto;
 }
 
 .modal-overlay.active {
@@ -664,6 +692,10 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: sticky;
+    top: 0;
+    background: var(--white);
+    z-index: 1;
 }
 
 .modal-title {
@@ -696,7 +728,6 @@ body {
 
 .modal-content {
     padding: 1.5rem;
-    max-height: calc(90vh - 130px);
     overflow-y: auto;
 }
 
@@ -706,6 +737,9 @@ body {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
+    position: sticky;
+    bottom: 0;
+    background: var(--white);
 }
 
 /* ================= COMMENTS SECTION ================= */
@@ -833,6 +867,7 @@ body {
 
     .forum-sidebar {
         position: static;
+        max-height: none;
     }
 }
 
@@ -853,6 +888,7 @@ body {
 @media (max-width: 768px) {
     .forum-header {
         padding: 1rem;
+        position: sticky;
     }
 
     .header-content {
@@ -955,6 +991,62 @@ body {
 
     .action-btn {
         width: 100%;
+    }
+}
+
+/* ================= SCROLLABLE CONTENT AREA ================= */
+.scrollable-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Ensure body and html allow scrolling */
+body.scroll-lock {
+    overflow: hidden;
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Better scrollbar for main content */
+.main-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.main-content::-webkit-scrollbar-track {
+    background: var(--light-gray);
+}
+
+.main-content::-webkit-scrollbar-thumb {
+    background: var(--medium-gray);
+    border-radius: 4px;
+}
+
+.main-content::-webkit-scrollbar-thumb:hover {
+    background: var(--dark-gray);
+}
+
+/* Forum container specific scroll */
+.forum-container {
+    overflow-y: visible;
+}
+
+/* Ensure discussions grid can grow */
+.discussions-grid {
+    min-height: 300px;
+}
+
+/* Sidebar adjustments for better scrolling */
+.forum-sidebar {
+    overflow-y: visible;
+}
+
+@media (max-width: 1200px) {
+    .forum-sidebar {
+        overflow-y: visible;
     }
 }
 </style>
