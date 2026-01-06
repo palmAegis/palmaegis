@@ -299,7 +299,6 @@
             padding: 1.75rem;
             border: 1px solid var(--medium-gray);
             transition: all 0.3s ease;
-            cursor: pointer;
         }
 
         .discussion-card:hover {
@@ -400,10 +399,302 @@
             gap: 0.5rem;
             color: var(--dark-gray);
             font-size: 0.9rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .stat:hover {
+            color: var(--primary-color);
         }
 
         .stat i {
+            color: inherit;
+        }
+
+        .stat.liked {
+            color: #e91e63;
+        }
+
+        /* Comments/Replies Section */
+        .comments-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .comments-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .comments-title {
+            font-size: 1.2rem;
+            font-weight: 600;
             color: var(--primary-color);
+        }
+
+        .comment-form {
+            background: var(--light-gray);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .comment-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 1rem;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--white);
+        }
+
+        .comment-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .comment-btn {
+            padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .comment-btn:hover {
+            background: var(--accent-color);
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .comment-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--medium-gray);
+        }
+
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .comment-author .author-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 0.8rem;
+        }
+
+        .comment-author-info h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .comment-time {
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+        }
+
+        .comment-content {
+            color: var(--text-color);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .comment-action {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--dark-gray);
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+            background: none;
+            border: none;
+        }
+
+        .comment-action:hover {
+            color: var(--primary-color);
+        }
+
+        .comment-action.liked {
+            color: #e91e63;
+        }
+
+        .reply-form {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .reply-form.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .reply-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 0.75rem;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .reply-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--white);
+        }
+
+        .reply-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 0.75rem;
+        }
+
+        .reply-btn {
+            padding: 0.5rem 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .reply-btn:hover {
+            background: var(--accent-color);
+        }
+
+        .replies-list {
+            margin-left: 2rem;
+            margin-top: 1rem;
+            border-left: 2px solid var(--light-gray);
+            padding-left: 1rem;
+        }
+
+        .reply-card {
+            background: var(--light-gray);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--card-shadow);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark-gray);
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: var(--primary-color);
+        }
+
+        .modal-content {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
         }
 
         /* Sidebar */
@@ -886,16 +1177,68 @@
             <button class="create-post-fab" id="createPostFab">
                 <i class="fas fa-edit"></i>
             </button>
+
+            <!-- Discussion Detail Modal -->
+            <div class="modal-overlay" id="discussionModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Discussion Details</h2>
+                        <button class="close-modal" id="closeModal">&times;</button>
+                    </div>
+                    <div class="modal-content" id="discussionContent">
+                        <!-- Discussion content will be loaded here -->
+                    </div>
+                    <div class="modal-footer">
+                        <button class="action-btn" id="closeDiscussionBtn">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Discussion Modal -->
+            <div class="modal-overlay" id="createDiscussionModal">
+                <div class="modal">
+                    <div class="modal-header">
+                        <h2 class="modal-title">Create New Discussion</h2>
+                        <button class="close-modal" id="closeCreateModal">&times;</button>
+                    </div>
+                    <div class="modal-content">
+                        <form id="createDiscussionForm">
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Title</label>
+                                <input type="text" id="discussionTitle" placeholder="Enter discussion title" style="width: 100%; padding: 0.75rem; border: 2px solid var(--medium-gray); border-radius: 8px; font-size: 1rem;">
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Category</label>
+                                <select id="discussionCategory" style="width: 100%; padding: 0.75rem; border: 2px solid var(--medium-gray); border-radius: 8px; font-size: 1rem;">
+                                    <option value="general">General</option>
+                                    <option value="disease">Disease Discussion</option>
+                                    <option value="treatment">Treatment Methods</option>
+                                    <option value="farming">Farming Tips</option>
+                                    <option value="technology">Technology</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom: 1.5rem;">
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Content</label>
+                                <textarea id="discussionContentInput" placeholder="Describe your discussion..." rows="6" style="width: 100%; padding: 0.75rem; border: 2px solid var(--medium-gray); border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="action-btn" id="cancelCreateBtn">Cancel</button>
+                        <button class="action-btn primary" id="submitDiscussionBtn">Create Discussion</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
-    <!-- JavaScript for dynamic content -->
+    <!-- JavaScript -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, collection, getDocs, query, orderBy, limit, where } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, addDoc, updateDoc, query, orderBy, limit, where, arrayUnion, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-        // Firebase configuration (same as before)
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
             authDomain: "palmaegis-setup.firebaseapp.com",
@@ -911,68 +1254,211 @@
 
         let currentUser = null;
         let discussions = [];
+        let currentDiscussion = null;
 
-        // Mock discussion data based on screenshot
+        // User profile management
+        class UserProfile {
+            constructor(userData) {
+                this.id = userData.id;
+                this.name = userData.name || 'User';
+                this.role = userData.role || 'Farmer';
+                this.avatar = userData.avatar || null;
+            }
+
+            getInitials() {
+                return this.name.split(' ').map(n => n[0]).join('').toUpperCase();
+            }
+        }
+
+        // Mock user data
+        const mockUsers = {
+            'user1': new UserProfile({ id: 'user1', name: 'Ahmed Said', role: 'Plantation Manager' }),
+            'user2': new UserProfile({ id: 'user2', name: 'Maria Johnson', role: 'Agronomist' }),
+            'user3': new UserProfile({ id: 'user3', name: 'Robert Kim', role: 'Farm Owner' }),
+            'user4': new UserProfile({ id: 'user4', name: 'Sarah Chen', role: 'Supply Chain Manager' }),
+            'current': new UserProfile({ id: 'current', name: 'Current User', role: 'Farmer' })
+        };
+
+        // Discussion class
+        class Discussion {
+            constructor(data) {
+                this.id = data.id;
+                this.title = data.title;
+                this.content = data.content;
+                this.excerpt = data.excerpt || data.content.substring(0, 150) + '...';
+                this.category = data.category;
+                this.author = data.author;
+                this.replies = data.replies || [];
+                this.likes = data.likes || [];
+                this.views = data.views || 0;
+                this.timestamp = data.timestamp || new Date().toISOString();
+                this.createdAt = data.createdAt || new Date();
+            }
+
+            getAuthorName() {
+                return this.author?.name || 'Unknown User';
+            }
+
+            getAuthorRole() {
+                return this.author?.role || 'Farmer';
+            }
+
+            getAuthorInitials() {
+                return this.author ? this.author.getInitials() : 'U';
+            }
+
+            isLikedByUser(userId) {
+                return this.likes.includes(userId);
+            }
+
+            toggleLike(userId) {
+                if (this.isLikedByUser(userId)) {
+                    this.likes = this.likes.filter(id => id !== userId);
+                } else {
+                    this.likes.push(userId);
+                }
+                return this.likes.length;
+            }
+
+            addComment(comment) {
+                this.replies.push(comment);
+                return this.replies.length;
+            }
+
+            addReply(commentId, reply) {
+                const comment = this.replies.find(c => c.id === commentId);
+                if (comment) {
+                    if (!comment.replies) comment.replies = [];
+                    comment.replies.push(reply);
+                    return comment.replies.length;
+                }
+                return 0;
+            }
+
+            likeComment(commentId, userId) {
+                const comment = this.replies.find(c => c.id === commentId);
+                if (comment) {
+                    if (!comment.likes) comment.likes = [];
+                    const index = comment.likes.indexOf(userId);
+                    if (index > -1) {
+                        comment.likes.splice(index, 1);
+                    } else {
+                        comment.likes.push(userId);
+                    }
+                    return comment.likes.length;
+                }
+                return 0;
+            }
+
+            getFormattedDate() {
+                const date = new Date(this.timestamp);
+                const now = new Date();
+                const diff = Math.floor((now - date) / 1000);
+                
+                if (diff < 60) return 'Just now';
+                if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+                if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+                if (diff < 604800) return `${Math.floor(diff / 86400)} days ago`;
+                
+                return date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric' 
+                });
+            }
+        }
+
+        // Mock discussions data
         const mockDiscussions = [
-            {
+            new Discussion({
                 id: "1",
                 title: "Introduce Yourself",
+                content: "A successful international message any financing has written out that 'The profits can be found in your local companies. It had no special time and will have a fair value for us.'",
                 excerpt: "A successful international message any financing has written out that 'The profits can be found in your local companies. It had no special time and will have a fair value for us.'",
                 category: "Community",
-                author: "Ahmed Said",
-                role: "Plantation Manager",
-                replies: 12,
-                likes: 24,
+                author: mockUsers.user1,
+                replies: [
+                    {
+                        id: "c1",
+                        author: mockUsers.user2,
+                        content: "Great to be here! I'm an agronomist with 10 years experience in palm oil cultivation.",
+                        timestamp: new Date(Date.now() - 3600000).toISOString(),
+                        likes: ['user1', 'user3'],
+                        replies: [
+                            {
+                                id: "r1",
+                                author: mockUsers.user3,
+                                content: "Welcome Maria! Looking forward to learning from your experience.",
+                                timestamp: new Date(Date.now() - 1800000).toISOString(),
+                                likes: ['user2']
+                            }
+                        ]
+                    },
+                    {
+                        id: "c2",
+                        author: mockUsers.user4,
+                        content: "Hello everyone! I work in supply chain management and logistics.",
+                        timestamp: new Date(Date.now() - 7200000).toISOString(),
+                        likes: ['user1']
+                    }
+                ],
+                likes: ['user2', 'user3', 'user4'],
                 views: 156,
-                timestamp: "2 hours ago"
-            },
-            {
+                timestamp: new Date(Date.now() - 7200000).toISOString()
+            }),
+            new Discussion({
                 id: "2",
                 title: "The 12 month member programme",
+                content: "A constructive, stable message this is taking into place another of similar roles at membership, and targeted to each one.",
                 excerpt: "A constructive, stable message this is taking into place another of similar roles at membership, and targeted to each one.",
                 category: "Programs",
-                author: "Maria Johnson",
-                role: "Agronomist",
-                replies: 8,
-                likes: 18,
+                author: mockUsers.user2,
+                replies: [
+                    {
+                        id: "c3",
+                        author: mockUsers.user3,
+                        content: "This program sounds interesting. Can you share more details about the structure?",
+                        timestamp: new Date(Date.now() - 14400000).toISOString(),
+                        likes: ['user1', 'user4']
+                    }
+                ],
+                likes: ['user1', 'user3'],
                 views: 98,
-                timestamp: "5 hours ago"
-            },
-            {
+                timestamp: new Date(Date.now() - 18000000).toISOString()
+            }),
+            new Discussion({
                 id: "3",
                 title: "What are you working on?",
+                content: "A user says that members too do because the right to make decisions often do so, take great insights from an employee and can provide some insight to our partner.",
                 excerpt: "A user says that members too do because the right to make decisions often do so, take great insights from an employee and can provide some insight to our partner.",
                 category: "General",
-                author: "Robert Kim",
-                role: "Farm Owner",
-                replies: 15,
-                likes: 32,
+                author: mockUsers.user3,
+                replies: [
+                    {
+                        id: "c4",
+                        author: mockUsers.user1,
+                        content: "I'm currently working on implementing sustainable irrigation systems.",
+                        timestamp: new Date(Date.now() - 86400000).toISOString(),
+                        likes: ['user2', 'user4']
+                    }
+                ],
+                likes: ['user1', 'user2', 'user4'],
                 views: 210,
-                timestamp: "1 day ago"
-            },
-            {
-                id: "4",
-                title: "Use a new airline app, help needed!",
-                excerpt: "Looking for recommendations and experiences with airline mobile applications for frequent travelers in the agriculture sector.",
-                category: "Technology",
-                author: "Sarah Chen",
-                role: "Supply Chain Manager",
-                replies: 6,
-                likes: 14,
-                views: 87,
-                timestamp: "2 days ago"
-            }
+                timestamp: new Date(Date.now() - 86400000).toISOString()
+            })
         ];
 
         // Function to create discussion card HTML
         function createDiscussionCard(discussion) {
+            const isLiked = discussion.isLikedByUser('current');
+            
             return `
                 <div class="discussion-card" data-id="${discussion.id}">
                     <div class="discussion-header">
                         <h3 class="discussion-title">${discussion.title}</h3>
                         <div class="discussion-meta">
                             <span class="discussion-category">${discussion.category}</span>
-                            <span>${discussion.timestamp}</span>
+                            <span>${discussion.getFormattedDate()}</span>
                         </div>
                     </div>
                     
@@ -980,27 +1466,151 @@
                     
                     <div class="discussion-footer">
                         <div class="discussion-author">
-                            <div class="author-avatar">${discussion.author.split(' ').map(n => n[0]).join('')}</div>
+                            <div class="author-avatar">${discussion.getAuthorInitials()}</div>
                             <div class="author-info">
-                                <h4>${discussion.author}</h4>
-                                <div class="role">${discussion.role}</div>
+                                <h4>${discussion.getAuthorName()}</h4>
+                                <div class="role">${discussion.getAuthorRole()}</div>
                             </div>
                         </div>
                         
                         <div class="discussion-stats">
-                            <div class="stat">
+                            <div class="stat like-stat ${isLiked ? 'liked' : ''}" data-action="like" data-id="${discussion.id}">
+                                <i class="fas fa-heart"></i>
+                                <span>${discussion.likes.length}</span>
+                            </div>
+                            <div class="stat" data-action="view" data-id="${discussion.id}">
                                 <i class="fas fa-comment"></i>
-                                <span>${discussion.replies}</span>
+                                <span>${discussion.replies.length}</span>
+                            </div>
+                            <div class="stat" data-action="view" data-id="${discussion.id}">
+                                <i class="fas fa-eye"></i>
+                                <span>${discussion.views}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Function to create comment HTML
+        function createCommentHTML(comment, discussionId, isReply = false) {
+            const isLiked = comment.likes && comment.likes.includes('current');
+            
+            return `
+                <div class="${isReply ? 'reply-card' : 'comment-card'}" data-comment-id="${comment.id}">
+                    <div class="comment-header">
+                        <div class="comment-author">
+                            <div class="author-avatar">${comment.author.getInitials()}</div>
+                            <div class="comment-author-info">
+                                <h4>${comment.author.name}</h4>
+                                <div class="comment-time">${new Date(comment.timestamp).toLocaleString()}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="comment-content">${comment.content}</div>
+                    
+                    <div class="comment-actions">
+                        <button class="comment-action like-comment ${isLiked ? 'liked' : ''}" 
+                                data-action="like-comment" 
+                                data-discussion-id="${discussionId}"
+                                data-comment-id="${comment.id}">
+                            <i class="fas fa-heart"></i>
+                            <span>${comment.likes ? comment.likes.length : 0}</span>
+                        </button>
+                        ${!isReply ? `
+                            <button class="comment-action reply-to-comment" 
+                                    data-action="reply" 
+                                    data-discussion-id="${discussionId}"
+                                    data-comment-id="${comment.id}">
+                                <i class="fas fa-reply"></i>
+                                <span>Reply</span>
+                            </button>
+                        ` : ''}
+                    </div>
+                    
+                    ${!isReply && comment.replies && comment.replies.length > 0 ? `
+                        <div class="replies-list">
+                            ${comment.replies.map(reply => createCommentHTML(reply, discussionId, true)).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${!isReply ? `
+                        <div class="reply-form" id="reply-form-${comment.id}">
+                            <textarea class="reply-input" placeholder="Write a reply..." rows="3"></textarea>
+                            <div class="reply-form-actions">
+                                <button class="action-btn cancel-reply" data-comment-id="${comment.id}">Cancel</button>
+                                <button class="action-btn primary submit-reply" 
+                                        data-discussion-id="${discussionId}"
+                                        data-comment-id="${comment.id}">Post Reply</button>
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // Function to render discussion detail
+        function renderDiscussionDetail(discussion) {
+            const modalContent = document.getElementById('discussionContent');
+            
+            modalContent.innerHTML = `
+                <div class="discussion-card">
+                    <div class="discussion-header">
+                        <h3 class="discussion-title">${discussion.title}</h3>
+                        <div class="discussion-meta">
+                            <span class="discussion-category">${discussion.category}</span>
+                            <span>${discussion.getFormattedDate()}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="discussion-content" style="margin-bottom: 2rem; line-height: 1.6;">
+                        ${discussion.content}
+                    </div>
+                    
+                    <div class="discussion-footer">
+                        <div class="discussion-author">
+                            <div class="author-avatar">${discussion.getAuthorInitials()}</div>
+                            <div class="author-info">
+                                <h4>${discussion.getAuthorName()}</h4>
+                                <div class="role">${discussion.getAuthorRole()}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="discussion-stats">
+                            <div class="stat like-stat ${discussion.isLikedByUser('current') ? 'liked' : ''}" 
+                                  data-action="like-modal" 
+                                  data-id="${discussion.id}">
+                                <i class="fas fa-heart"></i>
+                                <span>${discussion.likes.length}</span>
                             </div>
                             <div class="stat">
-                                <i class="fas fa-heart"></i>
-                                <span>${discussion.likes}</span>
+                                <i class="fas fa-comment"></i>
+                                <span>${discussion.replies.length}</span>
                             </div>
                             <div class="stat">
                                 <i class="fas fa-eye"></i>
                                 <span>${discussion.views}</span>
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <div class="comments-section">
+                    <div class="comments-header">
+                        <h3 class="comments-title">Comments (${discussion.replies.length})</h3>
+                    </div>
+                    
+                    <div class="comment-form">
+                        <textarea class="comment-input" placeholder="Add a comment..." rows="4"></textarea>
+                        <div class="comment-form-actions">
+                            <button class="action-btn" id="cancelCommentBtn">Cancel</button>
+                            <button class="action-btn primary" id="submitCommentBtn" data-discussion-id="${discussion.id}">Post Comment</button>
+                        </div>
+                    </div>
+                    
+                    <div class="comments-list" id="commentsList">
+                        ${discussion.replies.map(comment => createCommentHTML(comment, discussion.id)).join('')}
                     </div>
                 </div>
             `;
@@ -1016,6 +1626,208 @@
             grid.innerHTML = discussions.map(discussion => 
                 createDiscussionCard(discussion)
             ).join('');
+            
+            attachDiscussionCardEvents();
+        }
+
+        // Function to handle discussion card events
+        function attachDiscussionCardEvents() {
+            document.querySelectorAll('.discussion-card').forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('.stat')) {
+                        const discussionId = card.dataset.id;
+                        openDiscussionModal(discussionId);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.stat[data-action="like"]').forEach(stat => {
+                stat.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const discussionId = stat.dataset.id;
+                    handleLikeDiscussion(discussionId, stat);
+                });
+            });
+
+            document.querySelectorAll('.stat[data-action="view"]').forEach(stat => {
+                stat.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const discussionId = stat.dataset.id;
+                    openDiscussionModal(discussionId);
+                });
+            });
+        }
+
+        // Function to handle like discussion
+        function handleLikeDiscussion(discussionId, element) {
+            const discussion = discussions.find(d => d.id === discussionId);
+            if (discussion) {
+                const newLikes = discussion.toggleLike('current');
+                element.classList.toggle('liked');
+                element.querySelector('span').textContent = newLikes;
+                
+                // Update modal if open
+                if (currentDiscussion && currentDiscussion.id === discussionId) {
+                    const modalLike = document.querySelector('.like-stat[data-action="like-modal"]');
+                    if (modalLike) {
+                        modalLike.classList.toggle('liked');
+                        modalLike.querySelector('span').textContent = newLikes;
+                    }
+                }
+            }
+        }
+
+        // Function to open discussion modal
+        function openDiscussionModal(discussionId) {
+            const discussion = discussions.find(d => d.id === discussionId);
+            if (discussion) {
+                currentDiscussion = discussion;
+                renderDiscussionDetail(discussion);
+                document.getElementById('discussionModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Attach modal events
+                attachModalEvents();
+            }
+        }
+
+        // Function to attach modal events
+        function attachModalEvents() {
+            // Modal like button
+            document.querySelector('.like-stat[data-action="like-modal"]')?.addEventListener('click', (e) => {
+                const discussionId = e.target.closest('.like-stat').dataset.id;
+                handleLikeDiscussion(discussionId, e.target.closest('.like-stat'));
+            });
+
+            // Submit comment button
+            document.getElementById('submitCommentBtn')?.addEventListener('click', () => {
+                const commentInput = document.querySelector('.comment-input');
+                const content = commentInput.value.trim();
+                
+                if (content) {
+                    const newComment = {
+                        id: 'c' + Date.now(),
+                        author: mockUsers.current,
+                        content: content,
+                        timestamp: new Date().toISOString(),
+                        likes: [],
+                        replies: []
+                    };
+                    
+                    currentDiscussion.addComment(newComment);
+                    commentInput.value = '';
+                    
+                    // Update comments list
+                    const commentsList = document.getElementById('commentsList');
+                    commentsList.insertAdjacentHTML('afterbegin', createCommentHTML(newComment, currentDiscussion.id));
+                    
+                    // Update comment count in modal
+                    const commentCount = document.querySelector('.comments-title');
+                    commentCount.textContent = `Comments (${currentDiscussion.replies.length})`;
+                    
+                    // Update comment count in discussion card
+                    const discussionCard = document.querySelector(`.discussion-card[data-id="${currentDiscussion.id}"]`);
+                    if (discussionCard) {
+                        const commentStat = discussionCard.querySelector('.stat:nth-child(2) span');
+                        commentStat.textContent = currentDiscussion.replies.length;
+                    }
+                    
+                    // Reattach comment events
+                    attachCommentEvents();
+                }
+            });
+
+            // Cancel comment button
+            document.getElementById('cancelCommentBtn')?.addEventListener('click', () => {
+                document.querySelector('.comment-input').value = '';
+            });
+
+            // Attach comment events
+            attachCommentEvents();
+        }
+
+        // Function to attach comment events
+        function attachCommentEvents() {
+            // Like comment buttons
+            document.querySelectorAll('.like-comment').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const discussionId = button.dataset.discussionId;
+                    const commentId = button.dataset.commentId;
+                    const discussion = discussions.find(d => d.id === discussionId);
+                    
+                    if (discussion) {
+                        const newLikes = discussion.likeComment(commentId, 'current');
+                        button.classList.toggle('liked');
+                        button.querySelector('span').textContent = newLikes;
+                    }
+                });
+            });
+
+            // Reply buttons
+            document.querySelectorAll('.reply-to-comment').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const commentId = button.dataset.commentId;
+                    const replyForm = document.getElementById(`reply-form-${commentId}`);
+                    if (replyForm) {
+                        replyForm.classList.toggle('active');
+                        if (replyForm.classList.contains('active')) {
+                            replyForm.querySelector('.reply-input').focus();
+                        }
+                    }
+                });
+            });
+
+            // Submit reply buttons
+            document.querySelectorAll('.submit-reply').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const discussionId = button.dataset.discussionId;
+                    const commentId = button.dataset.commentId;
+                    const replyForm = button.closest('.reply-form');
+                    const replyInput = replyForm.querySelector('.reply-input');
+                    const content = replyInput.value.trim();
+                    
+                    if (content) {
+                        const discussion = discussions.find(d => d.id === discussionId);
+                        if (discussion) {
+                            const newReply = {
+                                id: 'r' + Date.now(),
+                                author: mockUsers.current,
+                                content: content,
+                                timestamp: new Date().toISOString(),
+                                likes: []
+                            };
+                            
+                            discussion.addReply(commentId, newReply);
+                            replyInput.value = '';
+                            replyForm.classList.remove('active');
+                            
+                            // Update replies list
+                            const commentCard = document.querySelector(`[data-comment-id="${commentId}"]`);
+                            const repliesList = commentCard.querySelector('.replies-list');
+                            if (!repliesList) {
+                                const newRepliesList = document.createElement('div');
+                                newRepliesList.className = 'replies-list';
+                                newRepliesList.innerHTML = createCommentHTML(newReply, discussionId, true);
+                                commentCard.appendChild(newRepliesList);
+                            } else {
+                                repliesList.innerHTML += createCommentHTML(newReply, discussionId, true);
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Cancel reply buttons
+            document.querySelectorAll('.cancel-reply').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const commentId = button.dataset.commentId;
+                    const replyForm = document.getElementById(`reply-form-${commentId}`);
+                    if (replyForm) {
+                        replyForm.classList.remove('active');
+                        replyForm.querySelector('.reply-input').value = '';
+                    }
+                });
+            });
         }
 
         // Function to handle sorting
@@ -1036,13 +1848,13 @@
                     
                     switch(sortType) {
                         case 'newest':
-                            // Already sorted by timestamp in mock data
+                            sortedDiscussions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                             break;
                         case 'popular':
-                            sortedDiscussions.sort((a, b) => b.likes - a.likes);
+                            sortedDiscussions.sort((a, b) => b.likes.length - a.likes.length);
                             break;
                         case 'unanswered':
-                            sortedDiscussions.sort((a, b) => a.replies - b.replies);
+                            sortedDiscussions.sort((a, b) => a.replies.length - b.replies.length);
                             break;
                     }
                     
@@ -1051,6 +1863,8 @@
                     grid.innerHTML = sortedDiscussions.map(discussion => 
                         createDiscussionCard(discussion)
                     ).join('');
+                    
+                    attachDiscussionCardEvents();
                 });
             });
         }
@@ -1068,15 +1882,16 @@
                     grid.innerHTML = discussions.map(discussion => 
                         createDiscussionCard(discussion)
                     ).join('');
+                    attachDiscussionCardEvents();
                     return;
                 }
                 
                 // Filter discussions based on search term
                 const filteredDiscussions = discussions.filter(discussion => 
                     discussion.title.toLowerCase().includes(searchTerm) ||
-                    discussion.excerpt.toLowerCase().includes(searchTerm) ||
+                    discussion.content.toLowerCase().includes(searchTerm) ||
                     discussion.category.toLowerCase().includes(searchTerm) ||
-                    discussion.author.toLowerCase().includes(searchTerm)
+                    discussion.getAuthorName().toLowerCase().includes(searchTerm)
                 );
                 
                 // Update display
@@ -1094,6 +1909,7 @@
                     grid.innerHTML = filteredDiscussions.map(discussion => 
                         createDiscussionCard(discussion)
                     ).join('');
+                    attachDiscussionCardEvents();
                 }
             });
         }
@@ -1105,49 +1921,128 @@
             const trendingBtn = document.getElementById('trendingBtn');
             const myDiscussionsBtn = document.getElementById('myDiscussionsBtn');
             const createPostFab = document.getElementById('createPostFab');
+            const closeModalBtn = document.getElementById('closeModal');
+            const closeDiscussionBtn = document.getElementById('closeDiscussionBtn');
+            const closeCreateModalBtn = document.getElementById('closeCreateModal');
+            const cancelCreateBtn = document.getElementById('cancelCreateBtn');
+            const submitDiscussionBtn = document.getElementById('submitDiscussionBtn');
 
-            const handleNewPost = () => {
-                alert('Redirecting to new discussion form...');
-                // In production, this would redirect to the create post page
-                // window.location.href = 'create-post.html';
+            // New discussion
+            const handleNewDiscussion = () => {
+                document.getElementById('createDiscussionModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
             };
 
-            if (newDiscussionBtn) newDiscussionBtn.addEventListener('click', handleNewPost);
-            if (createPostFab) createPostFab.addEventListener('click', handleNewPost);
+            if (newDiscussionBtn) newDiscussionBtn.addEventListener('click', handleNewDiscussion);
+            if (createPostFab) createPostFab.addEventListener('click', handleNewDiscussion);
 
+            // Filter button
             if (filterBtn) {
                 filterBtn.addEventListener('click', () => {
-                    alert('Filter options will appear here');
-                    // Implement filter modal functionality
+                    alert('Filter functionality would open here');
                 });
             }
 
+            // Trending button
             if (trendingBtn) {
                 trendingBtn.addEventListener('click', () => {
-                    // Sort by popularity
                     const sortBtn = document.querySelector('.sort-btn[data-sort="popular"]');
                     if (sortBtn) sortBtn.click();
                 });
             }
 
+            // My discussions button
             if (myDiscussionsBtn) {
                 myDiscussionsBtn.addEventListener('click', () => {
-                    alert('Showing your discussions...');
-                    // Filter to show only user's discussions
+                    const myDiscussions = discussions.filter(d => 
+                        d.author.id === 'current' || d.author.id === mockUsers.current.id
+                    );
+                    
+                    const grid = document.getElementById('discussionsGrid');
+                    
+                    if (myDiscussions.length === 0) {
+                        grid.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fas fa-user"></i>
+                                <h3>No Discussions Found</h3>
+                                <p>You haven't created any discussions yet.</p>
+                            </div>
+                        `;
+                    } else {
+                        grid.innerHTML = myDiscussions.map(discussion => 
+                            createDiscussionCard(discussion)
+                        ).join('');
+                        attachDiscussionCardEvents();
+                    }
                 });
             }
-        }
 
-        // Function to handle discussion card clicks
-        function setupDiscussionClicks() {
-            document.addEventListener('click', (e) => {
-                const discussionCard = e.target.closest('.discussion-card');
-                if (discussionCard) {
-                    const discussionId = discussionCard.dataset.id;
-                    alert(`Opening discussion ${discussionId}...`);
-                    // In production, this would open the discussion detail view
-                    // window.location.href = `discussion.html?id=${discussionId}`;
-                }
+            // Close modal buttons
+            const closeModal = (modalId) => {
+                document.getElementById(modalId).classList.remove('active');
+                document.body.style.overflow = 'auto';
+            };
+
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', () => closeModal('discussionModal'));
+            }
+
+            if (closeDiscussionBtn) {
+                closeDiscussionBtn.addEventListener('click', () => closeModal('discussionModal'));
+            }
+
+            if (closeCreateModalBtn) {
+                closeCreateModalBtn.addEventListener('click', () => closeModal('createDiscussionModal'));
+            }
+
+            if (cancelCreateBtn) {
+                cancelCreateBtn.addEventListener('click', () => closeModal('createDiscussionModal'));
+            }
+
+            // Submit new discussion
+            if (submitDiscussionBtn) {
+                submitDiscussionBtn.addEventListener('click', () => {
+                    const title = document.getElementById('discussionTitle').value.trim();
+                    const category = document.getElementById('discussionCategory').value;
+                    const content = document.getElementById('discussionContentInput').value.trim();
+                    
+                    if (title && content) {
+                        const newDiscussion = new Discussion({
+                            id: 'd' + Date.now(),
+                            title: title,
+                            content: content,
+                            excerpt: content.substring(0, 150) + '...',
+                            category: category,
+                            author: mockUsers.current,
+                            replies: [],
+                            likes: [],
+                            views: 0,
+                            timestamp: new Date().toISOString()
+                        });
+                        
+                        discussions.unshift(newDiscussion);
+                        loadDiscussions();
+                        closeModal('createDiscussionModal');
+                        
+                        // Reset form
+                        document.getElementById('discussionTitle').value = '';
+                        document.getElementById('discussionContentInput').value = '';
+                        document.getElementById('discussionCategory').value = 'general';
+                        
+                        alert('Discussion created successfully!');
+                    } else {
+                        alert('Please fill in all required fields.');
+                    }
+                });
+            }
+
+            // Close modal when clicking outside
+            document.querySelectorAll('.modal-overlay').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeModal(modal.id);
+                    }
+                });
             });
         }
 
@@ -1164,13 +2059,13 @@
                     // Load discussions
                     loadDiscussions().then(() => {
                         setupSorting();
-                        setupDiscussionClicks();
                     });
                     
                     setupSearch();
                     setupQuickActions();
                 } else {
                     console.log('User not authenticated, redirecting...');
+                    // In production, redirect to login
                     // window.location.href = 'signin.html';
                 }
             });
