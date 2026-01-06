@@ -273,15 +273,9 @@
     grid-template-columns: 1fr 350px;
     gap: 2rem;
     animation: slideUp 0.6s ease-out 0.5s both;
-}
-
-@media (min-width: 1400px) {
-    .forum-layout {
-        grid-template-columns: 850px 350px;
-        justify-content: center;
-        max-width: 1400px;
-        margin: 0 auto;
-    }
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
 }
 
 /* Main Discussions */
@@ -292,7 +286,7 @@
     box-shadow: var(--card-shadow);
     min-height: 500px;
     width: 100%;
-    justify-content: center;
+    max-width: 850px;
 }
 
 /* For larger screens */
@@ -300,6 +294,36 @@
     .forum-layout {
         grid-template-columns: 850px 350px;
         justify-content: center;
+    }
+}
+
+/* Adjust for smaller screens */
+@media (max-width: 1200px) {
+    .forum-layout {
+        grid-template-columns: 1fr;
+        max-width: 100%;
+    }
+    
+    .discussions-section {
+        max-width: 100%;
+    }
+    
+    .forum-sidebar {
+        grid-column: 1;
+        grid-row: 2;
+        position: static;
+        top: auto;
+    }
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .forum-layout {
+        gap: 1rem;
+    }
+    
+    .discussions-section {
+        padding: 1.5rem;
     }
 }
 
