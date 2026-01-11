@@ -1188,8 +1188,15 @@
                 </div>
                 
                 <div class="form-group">
-                    <label class="form-label" for="farmCrops">Crops (comma separated)</label>
-                    <input type="text" class="form-input" id="farmCrops" placeholder="e.g., Oil Palm, Coconut, Banana">
+                    <label class="form-label" for="farmCrops">Crops</label>
+                    <select class="form-select" id="farmCrops" multiple style="height: 120px;">
+                        <option value="oil palm">Oil Palm Plant</option>
+                        <option value="coconut">Coconut Plant</option>
+                        <option value="banana">Banana Plant</option>
+                    </select>
+                    <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+                        Hold Ctrl (Cmd on Mac) to select multiple crops
+                    </small>
                 </div>
                 
                 <div class="form-group">
@@ -1869,11 +1876,9 @@
             farmData.userId = window.currentUser.uid;
             farmData.createdAt = new Date();
             
-            if (farmData.crops) {
-                farmData.crops = farmData.crops.split(',').map(crop => crop.trim()).filter(crop => crop.length > 0);
-            } else {
-                farmData.crops = [];
-            }
+const cropsSelect = document.getElementById('farmCrops');
+const selectedCrops = Array.from(cropsSelect.selectedOptions).map(option => option.value);
+farmData.crops = selectedCrops;
             
             // Handle image upload if exists
             if (imageFile) {
