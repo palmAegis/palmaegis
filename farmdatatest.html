@@ -1882,10 +1882,10 @@
             farmData.userId = window.currentUser.uid;
             farmData.createdAt = new Date();
             
-// Get selected crops from checkboxes
-const cropCheckboxes = document.querySelectorAll('input[name="crops"]:checked');
-const selectedCrops = Array.from(cropCheckboxes).map(cb => cb.value);
-farmData.crops = selectedCrops;
+            // Get selected crops from checkboxes
+            const cropCheckboxes = document.querySelectorAll('input[name="crops"]:checked');
+            const selectedCrops = Array.from(cropCheckboxes).map(cb => cb.value);
+            farmData.crops = selectedCrops;
             
             // Handle image upload if exists
             if (imageFile) {
