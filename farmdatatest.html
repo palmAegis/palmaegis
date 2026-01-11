@@ -2024,11 +2024,360 @@
         }
     }
 
-    // Edit farm function
-    function editFarm(farm, docId) {
-        showFarmDetails(farm, docId);
-        document.getElementById('editFarmBtn').style.display = 'block';
+// Replace the existing editFarm function with this:
+function editFarm(farm, docId) {
+    openEditFarmModal(farm, docId);
+}
+
+// Replace the existing edit farm button event listener:
+document.getElementById('editFarmBtn').addEventListener('click', () => {
+    if (window.currentFarm && window.currentFarmId) {
+        openEditFarmModal(window.currentFarm, window.currentFarmId);
     }
+});
+
+// Add this new function after the showFarmDetails function:
+function openEditFarmModal(farm, docId) {
+    const modal = document.getElementById('editFarmModal');
+    if (!modal) {
+        createEditFarmModal();
+        openEditFarmModal(farm, docId);
+        return;
+    }
+    
+    // Set current farm for editing
+    window.editingFarmId = docId;
+    window.editingFarm = farm;
+    
+    // Populate form with existing data
+    document.getElementById('editFarmName').value = farm.name || '';
+    document.getElementById('editFarmLocation').value = farm.location || '';
+    document.getElementById('editFarmArea').value = farm.area || '';
+    document.getElementById('editFarmStatus').value = farm.status || 'active';
+    document.getElementById('editSoilType').value = farm.soilType || 'clay';
+    document.getElementById('editFarmNotes').value = farm.notes || '';
+    
+    // Set crops checkboxes
+    const cropCheckboxes = document.querySelectorAll('#editFarmForm input[name="editCrops"]');
+    cropCheckboxes.forEach(checkbox => {
+        checkbox.checked = farm.crops ? farm.crops.includes(checkbox.value) : false;
+    });
+    
+    // Handle images
+    window.editingFarmImages = farm.images ? [...farm.images] : [];
+    updateEditImagePreview();
+    
+    // Show modal
+    modal.style.display = 'flex';
+}
+
+// Add this function to create the edit farm modal:
+function createEditFarmModal() {
+    const modal = document.createElement('div');
+    modal.className = 'add-farm-modal';
+    modal.id = 'editFarmModal';
+    modal.innerHTML = `
+        <div class="add-farm-modal-content">
+            <div class="add-farm-header">
+                <h2 class="add-farm-title">Edit Farm</h2>
+                <button class="close-add-farm" id="closeEditFarmBtn">&times;</button>
+            </div>
+            <form id="editFarmForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="editFarmName">Farm Name *</label>
+                        <input type="text" class="form-input" id="editFarmName" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editFarmLocation">Location *</label>
+                        <input type="text" class="form-input" id="editFarmLocation" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="editFarmArea">Total Area (acres) *</label>
+                        <input type="number" class="form-input" id="editFarmArea" min="0" step="0.1" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="editFarmStatus">Status</label>
+                        <select class="form-select" id="editFarmStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="editSoilType">Soil Type</label>
+                        <select class="form-select" id="editSoilType">
+                            <option value="clay">Clay Soil</option>
+                            <option value="sandy">Sandy Soil</option>
+                            <option value="loam">Peat Soil</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group image-upload-container">
+                    <label class="form-label">Farm Images</label>
+                    <div class="images-preview" id="editImagesPreview" style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
+                        <!-- Existing images will be shown here -->
+                    </div>
+                    <div class="image-upload-buttons">
+                        <button type="button" class="btn btn-secondary image-upload-btn" id="editUploadImageBtn">
+                            <i class="fas fa-upload"></i> Upload Image
+                        </button>
+                        <button type="button" class="btn btn-secondary image-upload-btn" id="editCaptureImageBtn">
+                            <i class="fas fa-camera"></i> Take Photo
+                        </button>
+                        <input type="file" id="editImageInput" accept="image/*" style="display: none;" multiple>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Crops</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="editCrops" value="oil palm">
+                            <span>Oil Palm Plant</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="editCrops" value="coconut">
+                            <span>Coconut Plant</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="editCrops" value="banana">
+                            <span>Banana Plant</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="editFarmNotes">Notes</label>
+                    <textarea class="form-textarea" id="editFarmNotes" placeholder="Additional notes about the farm..."></textarea>
+                </div>
+                
+                <div class="filter-actions">
+                    <button type="button" class="btn btn-outline" id="cancelEditFarmBtn">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Farm</button>
+                </div>
+            </form>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Add event listeners for edit modal
+    document.getElementById('closeEditFarmBtn').addEventListener('click', closeEditFarmModal);
+    document.getElementById('cancelEditFarmBtn').addEventListener('click', closeEditFarmModal);
+    
+    document.getElementById('editFarmForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        await updateFarm();
+    });
+    
+    // Image upload for edit modal
+    document.getElementById('editUploadImageBtn').addEventListener('click', () => {
+        document.getElementById('editImageInput').click();
+    });
+    
+    document.getElementById('editImageInput').addEventListener('change', function(e) {
+        const files = e.target.files;
+        if (files.length > 0) {
+            Array.from(files).forEach(file => {
+                // Validate file type
+                if (!file.type.startsWith('image/')) {
+                    alert('Please select only image files.');
+                    return;
+                }
+                
+                // Validate file size (max 5MB)
+                const maxSize = 5 * 1024 * 1024;
+                if (file.size > maxSize) {
+                    alert(`Image "${file.name}" is too large. Please select images less than 5MB.`);
+                    return;
+                }
+                
+                // Add to editing images array
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    window.editingFarmImages.push(e.target.result);
+                    updateEditImagePreview();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+    });
+    
+    // Close modal when clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target.id === 'editFarmModal') {
+            closeEditFarmModal();
+        }
+    });
+}
+
+// Add this function to update image preview in edit modal:
+function updateEditImagePreview() {
+    const previewContainer = document.getElementById('editImagesPreview');
+    if (!previewContainer) return;
+    
+    previewContainer.innerHTML = '';
+    
+    if (window.editingFarmImages && window.editingFarmImages.length > 0) {
+        window.editingFarmImages.forEach((imageSrc, index) => {
+            const imgWrapper = document.createElement('div');
+            imgWrapper.style.position = 'relative';
+            imgWrapper.style.width = '100px';
+            imgWrapper.style.height = '100px';
+            
+            const img = document.createElement('img');
+            img.src = imageSrc;
+            img.alt = `Farm Image ${index + 1}`;
+            img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; border-radius: 8px;';
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.style.cssText = `
+                position: absolute;
+                top: -8px;
+                right: -8px;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background-color: #f44336;
+                color: white;
+                border: none;
+                font-size: 12px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                window.editingFarmImages.splice(index, 1);
+                updateEditImagePreview();
+            });
+            
+            imgWrapper.appendChild(img);
+            imgWrapper.appendChild(removeBtn);
+            previewContainer.appendChild(imgWrapper);
+        });
+        
+        previewContainer.style.display = 'flex';
+    } else {
+        previewContainer.innerHTML = '<p>No images uploaded yet.</p>';
+        previewContainer.style.display = 'block';
+    }
+}
+
+// Add this function to close the edit farm modal:
+function closeEditFarmModal() {
+    const modal = document.getElementById('editFarmModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.getElementById('editFarmForm').reset();
+        window.editingFarmId = null;
+        window.editingFarm = null;
+        window.editingFarmImages = [];
+    }
+}
+
+// Add this function to update the farm in Firebase:
+async function updateFarm() {
+    try {
+        // Get form data
+        const farmName = document.getElementById('editFarmName').value.trim();
+        const farmLocation = document.getElementById('editFarmLocation').value.trim();
+        const farmArea = document.getElementById('editFarmArea').value;
+        const farmStatus = document.getElementById('editFarmStatus').value;
+        const soilType = document.getElementById('editSoilType').value;
+        const farmNotes = document.getElementById('editFarmNotes').value.trim();
+        
+        // Validate required fields
+        if (!farmName || !farmLocation || !farmArea) {
+            showToast('Please fill in all required fields (Farm Name, Location, and Area).', 'error');
+            return;
+        }
+        
+        // Validate area is a positive number
+        if (parseFloat(farmArea) <= 0) {
+            showToast('Area must be a positive number.', 'error');
+            return;
+        }
+        
+        // Get selected crops from checkboxes
+        const cropCheckboxes = document.querySelectorAll('#editFarmForm input[name="editCrops"]:checked');
+        const selectedCrops = Array.from(cropCheckboxes).map(cb => cb.value);
+        
+        // Create updated farm data
+        const updatedFarmData = {
+            name: farmName,
+            location: farmLocation,
+            area: parseFloat(farmArea),
+            status: farmStatus,
+            soilType: soilType,
+            notes: farmNotes,
+            crops: selectedCrops,
+            images: window.editingFarmImages || [],
+            updatedAt: new Date()
+        };
+        
+        // Show loading state
+        const submitBtn = document.querySelector('#editFarmForm button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating Farm...';
+        submitBtn.disabled = true;
+        
+        // Get the farm document reference
+        const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js');
+        const farmDocRef = doc(db, "farms", window.editingFarmId);
+        
+        // Update the farm in Firestore
+        await updateDoc(farmDocRef, updatedFarmData);
+        
+        // Update local data
+        const farmIndex = window.allFarms.findIndex(farm => farm.docId === window.editingFarmId);
+        if (farmIndex !== -1) {
+            window.allFarms[farmIndex].farm = {
+                ...window.allFarms[farmIndex].farm,
+                ...updatedFarmData
+            };
+        }
+        
+        // Update current farm if it's the one being viewed
+        if (window.currentFarmId === window.editingFarmId) {
+            window.currentFarm = updatedFarmData;
+            showFarmDetails(updatedFarmData, window.editingFarmId);
+        }
+        
+        // Refresh farm list
+        applyFilters();
+        updateStats(window.allFarms);
+        
+        // Close modal and show success message
+        closeEditFarmModal();
+        showToast('Farm updated successfully!');
+        
+    } catch (error) {
+        console.error('Error updating farm:', error);
+        showToast('Failed to update farm. Please try again.', 'error');
+    } finally {
+        // Reset button state
+        const submitBtn = document.querySelector('#editFarmForm button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.innerHTML = 'Update Farm';
+            submitBtn.disabled = false;
+        }
+    }
+}
+
+// Also add these imports at the top of your Firebase imports:
+// Add updateDoc to the Firestore imports:
+// Change the import line to include updateDoc:
+// import { getFirestore, doc, getDoc, collection, getDocs, addDoc, deleteDoc, query, where, orderBy, updateDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
     // Delete farm function
     async function deleteFarm(docId) {
@@ -2357,9 +2706,9 @@
     });
 
     // Edit farm button
-    document.getElementById('editFarmBtn').addEventListener('click', () => {
-        showToast('Edit functionality will be implemented in a future version.', 'info');
-    });
+    // document.getElementById('editFarmBtn').addEventListener('click', () => {
+    //     showToast('Edit functionality will be implemented in a future version.', 'info');
+    // });
 
     // Close modals when clicking outside
     document.getElementById('filterModal').addEventListener('click', (e) => {
