@@ -755,6 +755,35 @@
             gap: 15px;
         }
 
+        /* Checkbox styling */
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .checkbox-group label:hover {
+            background-color: #f5f5f5;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary-color);
+        }
+
         /* Back to Top Button */
         .back-to-top {
             position: fixed;
@@ -785,6 +814,51 @@
         .back-to-top:hover {
             background-color: #1b5e20;
             transform: scale(1.1);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            z-index: 9999;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease-out;
+            display: none;
+        }
+
+        .toast.error {
+            background-color: #f44336;
+        }
+
+        .toast.info {
+            background-color: #2196F3;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
         }
 
         /* Mobile Responsive Styles */
@@ -1187,23 +1261,23 @@
                     <input type="file" id="imageInput" accept="image/*" style="display: none;">
                 </div>
                 
-<div class="form-group">
-    <label class="form-label">Crops</label>
-    <div class="checkbox-group" style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
-        <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" name="crops" value="oil palm" style="width: 18px; height: 18px;">
-            <span>Oil Palm Plant</span>
-        </label>
-        <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" name="crops" value="coconut" style="width: 18px; height: 18px;">
-            <span>Coconut Plant</span>
-        </label>
-        <label style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" name="crops" value="banana" style="width: 18px; height: 18px;">
-            <span>Banana Plant</span>
-        </label>
-    </div>
-</div>
+                <div class="form-group">
+                    <label class="form-label">Crops</label>
+                    <div class="checkbox-group">
+                        <label>
+                            <input type="checkbox" name="crops" value="oil palm">
+                            <span>Oil Palm Plant</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="crops" value="coconut">
+                            <span>Coconut Plant</span>
+                        </label>
+                        <label>
+                            <input type="checkbox" name="crops" value="banana">
+                            <span>Banana Plant</span>
+                        </label>
+                    </div>
+                </div>
                 
                 <div class="form-group">
                     <label class="form-label" for="farmNotes">Notes</label>
@@ -1230,10 +1304,13 @@
         <canvas id="cameraCanvas" style="display: none;"></canvas>
     </div>
 
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
     <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+    import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+    import { getFirestore, doc, getDoc, collection, getDocs, addDoc, deleteDoc, query, where, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
     import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
     // Firebase configuration
@@ -1270,6 +1347,22 @@
     backToTopBtn.id = 'backToTop';
     backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
     document.body.appendChild(backToTopBtn);
+
+    // Toast notification function
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        toast.style.display = 'block';
+        
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                toast.style.display = 'none';
+                toast.style.animation = '';
+            }, 300);
+        }, 3000);
+    }
 
     // Handle back to top button visibility
     const mainContainer = document.getElementById('mainContainer');
@@ -1610,6 +1703,8 @@
     function openAddFarmModal() {
         document.getElementById('addFarmModal').style.display = 'flex';
         resetImagePreview();
+        // Clear checkboxes
+        document.querySelectorAll('input[name="crops"]').forEach(cb => cb.checked = false);
     }
 
     // Close add farm modal
@@ -1627,6 +1722,87 @@
         document.getElementById('imagePreview').style.display = 'none';
         document.getElementById('previewImage').src = '';
         document.getElementById('imageInput').value = '';
+    }
+
+    // Helper function to convert Blob to Base64
+    function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // Upload image to Firebase Storage with fallback
+    async function uploadImageToStorage(imageBlob, imageName) {
+        try {
+            console.log("Attempting to upload image to Firebase Storage...");
+            
+            // Create storage reference
+            const storageRef = ref(storage, `farm-images/${window.currentUser.uid}/${Date.now()}_${imageName}`);
+            
+            // Try to upload with timeout
+            const uploadPromise = uploadBytes(storageRef, imageBlob);
+            const timeoutPromise = new Promise((_, reject) => {
+                setTimeout(() => reject(new Error("Upload timeout after 30 seconds")), 30000);
+            });
+            
+            const snapshot = await Promise.race([uploadPromise, timeoutPromise]);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            console.log("Image uploaded successfully to Firebase Storage");
+            return downloadURL;
+            
+        } catch (storageError) {
+            console.warn("Firebase Storage upload failed, using Base64 fallback:", storageError);
+            
+            // Fallback to Base64
+            const base64Image = await blobToBase64(imageBlob);
+            console.log("Image converted to Base64");
+            return base64Image; // Return Base64 string
+        }
+    }
+
+    // Resize image to reduce size
+    function resizeImage(blob, maxWidth = 800, maxHeight = 600, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            const url = URL.createObjectURL(blob);
+            
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+                
+                // Calculate new dimensions maintaining aspect ratio
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width = Math.round((width * maxHeight) / height);
+                        height = maxHeight;
+                    }
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                canvas.toBlob((resizedBlob) => {
+                    resolve(resizedBlob);
+                }, 'image/jpeg', quality);
+            };
+            
+            img.onerror = reject;
+            img.src = url;
+        });
     }
 
     // Create a farm card for each farm
@@ -1656,10 +1832,15 @@
         farmCard.className = 'farm-card';
         farmCard.setAttribute('data-id', docId);
         
-        // Check if farm has image
+        // Check if farm has image (handle both Firebase URLs and Base64)
         let farmImageHTML = '';
         if (farm.images && farm.images.length > 0) {
-            farmImageHTML = `<div style="margin-top: 10px;"><img src="${farm.images[0]}" alt="Farm Image" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px;"></div>`;
+            // Check if it's a Base64 image
+            const imageSrc = farm.images[0].startsWith('data:') ? farm.images[0] : farm.images[0];
+            farmImageHTML = `<div style="margin-top: 10px;"><img src="${imageSrc}" alt="Farm Image" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px;"></div>`;
+        } else if (farm.imageBase64) {
+            // Support for older format
+            farmImageHTML = `<div style="margin-top: 10px;"><img src="${farm.imageBase64}" alt="Farm Image" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px;"></div>`;
         }
         
         farmCard.innerHTML = `
@@ -1770,20 +1951,44 @@
             cropsList.innerHTML = '<li class="crop-item">No crops recorded</li>';
         }
         
-        // Populate farm images
+        // Populate farm images (handle both Firebase URLs and Base64)
         const imagesContainer = document.getElementById('detailImages');
         imagesContainer.innerHTML = '';
         
+        // Check for images in different formats
+        const images = [];
+        
         if (farm.images && farm.images.length > 0) {
-            farm.images.forEach((imageUrl, index) => {
+            // New format: images array
+            farm.images.forEach(img => images.push(img));
+        } else if (farm.imageBase64) {
+            // Old format: single Base64 image
+            images.push(farm.imageBase64);
+        }
+        
+        if (images.length > 0) {
+            console.log("Displaying farm images:", images.length);
+            
+            images.forEach((imageSrc, index) => {
                 const imgWrapper = document.createElement('div');
                 imgWrapper.style.marginBottom = '15px';
-                imgWrapper.innerHTML = `
-                    <img src="${imageUrl}" alt="Farm Image ${index + 1}" style="width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover;">
-                `;
+                
+                const img = document.createElement('img');
+                img.src = imageSrc;
+                img.alt = `Farm Image ${index + 1}`;
+                img.style.cssText = 'width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover;';
+                
+                // Add error handling
+                img.onerror = function() {
+                    console.error('Failed to load image:', imageSrc);
+                    this.src = 'https://via.placeholder.com/300x200?text=Image+Not+Loaded';
+                };
+                
+                imgWrapper.appendChild(img);
                 imagesContainer.appendChild(imgWrapper);
             });
         } else {
+            console.log("No images found for farm");
             imagesContainer.innerHTML = '<p>No images available for this farm.</p>';
         }
         
@@ -1842,43 +2047,18 @@
                     document.getElementById('farmsGrid').style.display = 'grid';
                 }
                 
-                alert('Farm deleted successfully.');
+                showToast('Farm deleted successfully!');
             } catch (error) {
                 console.error('Error deleting farm:', error);
-                alert('Failed to delete farm. Please try again.');
+                showToast('Failed to delete farm. Please try again.', 'error');
             }
         }
     }
 
-    // Convert data URL to Blob
-    function dataURLtoBlob(dataURL) {
-        const arr = dataURL.split(',');
-        const mime = arr[0].match(/:(.*?);/)[1];
-        const bstr = atob(arr[1]);
-        let n = bstr.length;
-        const u8arr = new Uint8Array(n);
-        while (n--) {
-            u8arr[n] = bstr.charCodeAt(n);
-        }
-        return new Blob([u8arr], { type: mime });
-    }
-
-    // Upload image to Firebase Storage
-    async function uploadImageToStorage(imageBlob, imageName) {
-        try {
-            const storageRef = ref(storage, `farm-images/${window.currentUser.uid}/${Date.now()}_${imageName}`);
-            const snapshot = await uploadBytes(storageRef, imageBlob);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            return downloadURL;
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            throw error;
-        }
-    }
-
-    // Add new farm
+    // Add new farm with image handling
     async function addNewFarm(farmData, imageFile) {
         try {
+            console.log("Starting addNewFarm...");
             farmData.userId = window.currentUser.uid;
             farmData.createdAt = new Date();
             
@@ -1886,32 +2066,50 @@
             const cropCheckboxes = document.querySelectorAll('input[name="crops"]:checked');
             const selectedCrops = Array.from(cropCheckboxes).map(cb => cb.value);
             farmData.crops = selectedCrops;
+            console.log("Selected crops:", selectedCrops);
             
             // Handle image upload if exists
             if (imageFile) {
+                console.log("Processing image file...");
                 try {
+                    // Resize large images first
+                    let processedImage = imageFile;
+                    if (imageFile.size > 1024 * 1024) { // If > 1MB
+                        console.log("Resizing large image...");
+                        processedImage = await resizeImage(imageFile, 800, 600, 0.7);
+                    }
+                    
+                    // Upload to Firebase Storage (with Base64 fallback)
                     const imageName = `farm_${Date.now()}.jpg`;
-                    const imageUrl = await uploadImageToStorage(imageFile, imageName);
+                    const imageUrl = await uploadImageToStorage(processedImage, imageName);
+                    
+                    // Store image in array format (compatible with both URL and Base64)
                     farmData.images = [imageUrl];
-                } catch (uploadError) {
-                    console.error('Failed to upload image:', uploadError);
-                    farmData.images = [];
+                    console.log("Image stored successfully");
+                    
+                } catch (imageError) {
+                    console.error('Image processing failed:', imageError);
                     // Continue without image
+                    farmData.images = [];
                 }
             } else {
+                console.log("No image provided");
                 farmData.images = [];
             }
             
+            console.log("Saving farm to Firestore:", farmData);
             const docRef = await addDoc(collection(db, "farms"), farmData);
             console.log("Farm added with ID: ", docRef.id);
             
             await loadFarmData(window.currentUser.uid);
             closeAddFarmModal();
             
-            alert('Farm added successfully!');
+            showToast('Farm added successfully!');
+            
         } catch (error) {
             console.error('Error adding farm:', error);
-            alert('Failed to add farm. Please check your internet connection and try again.');
+            showToast('Failed to add farm. Error: ' + error.message, 'error');
+            throw error;
         }
     }
 
@@ -1920,37 +2118,41 @@
         document.getElementById('imageInput').click();
     });
 
-document.getElementById('imageInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please select an image file (JPEG, PNG, etc.).');
-            this.value = '';
-            return;
+    document.getElementById('imageInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validate file type
+            if (!file.type.startsWith('image/')) {
+                alert('Please select an image file (JPEG, PNG, etc.).');
+                this.value = '';
+                return;
+            }
+            
+            // Validate file size (max 5MB)
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.size > maxSize) {
+                alert('Image size should be less than 5MB. Please select a smaller image.');
+                this.value = '';
+                return;
+            }
+            
+            selectedImageFile = file;
+            console.log("Selected file:", file.name, file.size, file.type);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImage').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.onerror = function() {
+                console.error("FileReader error:", reader.error);
+                alert('Failed to read the image file. Please try another file.');
+                document.getElementById('imageInput').value = '';
+                selectedImageFile = null;
+            };
+            reader.readAsDataURL(file);
         }
-        
-        // Validate file size (max 10MB)
-        const maxSize = 10 * 1024 * 1024; // 10MB
-        if (file.size > maxSize) {
-            alert('Image size should be less than 10MB.');
-            this.value = '';
-            return;
-        }
-        
-        selectedImageFile = file;
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('previewImage').src = e.target.result;
-            document.getElementById('imagePreview').style.display = 'block';
-        };
-        reader.onerror = function() {
-            alert('Failed to read the image file. Please try another file.');
-            document.getElementById('imageInput').value = '';
-        };
-        reader.readAsDataURL(file);
-    }
-});
+    });
 
     // Handle camera capture
     document.getElementById('captureImageBtn').addEventListener('click', async () => {
@@ -1973,58 +2175,60 @@ document.getElementById('imageInput').addEventListener('change', function(e) {
             stream = await navigator.mediaDevices.getUserMedia(constraints);
             cameraPreview.srcObject = stream;
             
-            // Auto-focus camera
-            try {
-                const track = stream.getVideoTracks()[0];
-                if (track && track.getCapabilities().focusDistance) {
-                    await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
-                }
-            } catch (focusError) {
-                console.log('Auto-focus not supported:', focusError);
-            }
         } catch (error) {
             console.error('Error accessing camera:', error);
             alert('Could not access camera. Please check permissions and try again.');
+            closeCameraModal();
         }
     });
 
-// Handle capture button
-document.getElementById('captureBtn').addEventListener('click', () => {
-    const cameraPreview = document.getElementById('cameraPreview');
-    const canvas = document.getElementById('cameraCanvas');
-    const context = canvas.getContext('2d');
-    
-    // Set canvas dimensions to match video
-    canvas.width = cameraPreview.videoWidth;
-    canvas.height = cameraPreview.videoHeight;
-    
-    // Draw the video frame to canvas
-    context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
-    
-    // Convert canvas to blob
-    canvas.toBlob((blob) => {
-        if (blob) {
-            selectedImageFile = blob;
-            // Create object URL for preview
-            const objectUrl = URL.createObjectURL(blob);
-            document.getElementById('previewImage').src = objectUrl;
-            document.getElementById('imagePreview').style.display = 'block';
-            
-            // Clean up the object URL when done
-            setTimeout(() => {
-                URL.revokeObjectURL(objectUrl);
-            }, 1000);
-        } else {
-            alert('Failed to capture image. Please try again.');
-        }
-    }, 'image/jpeg', 0.8); // Quality: 0.8 (80%)
-    
-    closeCameraModal();
-});
+    // Handle capture button
+    document.getElementById('captureBtn').addEventListener('click', () => {
+        const cameraPreview = document.getElementById('cameraPreview');
+        const canvas = document.getElementById('cameraCanvas');
+        const context = canvas.getContext('2d');
+        
+        // Set canvas dimensions to match video
+        canvas.width = cameraPreview.videoWidth;
+        canvas.height = cameraPreview.videoHeight;
+        
+        // Draw the video frame to canvas
+        context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+        
+        // Convert canvas to blob
+        canvas.toBlob((blob) => {
+            if (blob) {
+                // Create a proper File object from the blob
+                selectedImageFile = new File([blob], `capture_${Date.now()}.jpg`, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                });
+                
+                console.log("Captured image:", selectedImageFile);
+                
+                // Create object URL for preview
+                const objectUrl = URL.createObjectURL(selectedImageFile);
+                document.getElementById('previewImage').src = objectUrl;
+                document.getElementById('imagePreview').style.display = 'block';
+                
+                // Clean up the object URL when done
+                setTimeout(() => {
+                    URL.revokeObjectURL(objectUrl);
+                }, 1000);
+                
+            } else {
+                console.error("Failed to create blob from canvas");
+                alert('Failed to capture image. Please try again.');
+            }
+        }, 'image/jpeg', 0.8); // Quality: 0.8 (80%)
+        
+        closeCameraModal();
+    });
 
     // Clear image
     document.getElementById('clearImageBtn').addEventListener('click', () => {
         resetImagePreview();
+        showToast('Image cleared', 'info');
     });
 
     // Close camera modal
@@ -2036,20 +2240,20 @@ document.getElementById('captureBtn').addEventListener('click', () => {
         stopCamera();
     }
 
-function stopCamera() {
-    if (stream) {
-        stream.getTracks().forEach(track => {
-            track.stop();
-        });
-        stream = null;
+    function stopCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => {
+                track.stop();
+            });
+            stream = null;
+        }
+        
+        // Clear the camera preview
+        const cameraPreview = document.getElementById('cameraPreview');
+        if (cameraPreview) {
+            cameraPreview.srcObject = null;
+        }
     }
-    
-    // Clear the camera preview
-    const cameraPreview = document.getElementById('cameraPreview');
-    if (cameraPreview) {
-        cameraPreview.srcObject = null;
-    }
-}
 
     // Close camera modal when clicking outside
     document.getElementById('cameraModal').addEventListener('click', (e) => {
@@ -2070,6 +2274,7 @@ function stopCamera() {
         
         applyFilters();
         closeFilterModal();
+        showToast('Filters applied', 'info');
     });
 
     // Add farm modal events
@@ -2091,13 +2296,13 @@ function stopCamera() {
         
         // Validate required fields
         if (!farmName || !farmLocation || !farmArea) {
-            alert('Please fill in all required fields (Farm Name, Location, and Area).');
+            showToast('Please fill in all required fields (Farm Name, Location, and Area).', 'error');
             return;
         }
         
         // Validate area is a positive number
         if (parseFloat(farmArea) <= 0) {
-            alert('Area must be a positive number.');
+            showToast('Area must be a positive number.', 'error');
             return;
         }
         
@@ -2109,7 +2314,6 @@ function stopCamera() {
             status: farmStatus,
             soilType: soilType,
             notes: farmNotes
-            // crops will be added in addNewFarm function from checkboxes
         };
         
         // Show loading state
@@ -2118,12 +2322,25 @@ function stopCamera() {
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding Farm...';
         submitBtn.disabled = true;
         
+        // Disable all form inputs during processing
+        const formInputs = document.querySelectorAll('#addFarmForm input, #addFarmForm select, #addFarmForm textarea, #addFarmForm button');
+        formInputs.forEach(input => {
+            if (input !== submitBtn) input.disabled = true;
+        });
+        
         try {
             await addNewFarm(farmData, selectedImageFile);
+        } catch (error) {
+            console.error("Form submission error:", error);
         } finally {
             // Reset button state
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
+            
+            // Re-enable all form inputs
+            formInputs.forEach(input => {
+                input.disabled = false;
+            });
         }
     });
 
@@ -2142,7 +2359,7 @@ function stopCamera() {
 
     // Edit farm button
     document.getElementById('editFarmBtn').addEventListener('click', () => {
-        alert('Edit functionality will be implemented in a future version.');
+        showToast('Edit functionality will be implemented in a future version.', 'info');
     });
 
     // Close modals when clicking outside
@@ -2181,6 +2398,67 @@ function stopCamera() {
     // Initialize on load
     window.addEventListener('load', initializeScrolling);
     initializeScrolling();
-</script>
+
+    // Make functions available globally for debugging
+    window.debugFunctions = {
+        checkAllFarms: async function() {
+            try {
+                const farmsRef = collection(db, "farms");
+                const q = query(farmsRef, where("userId", "==", window.currentUser.uid));
+                const querySnapshot = await getDocs(q);
+                
+                console.log("=== CHECKING ALL FARMS ===");
+                querySnapshot.forEach((doc) => {
+                    const farm = doc.data();
+                    console.log(`Farm: ${farm.name}`);
+                    console.log(`Images array: ${JSON.stringify(farm.images)}`);
+                    console.log(`Has imageBase64: ${!!farm.imageBase64}`);
+                    console.log("---");
+                });
+            } catch (error) {
+                console.error("Error checking farms:", error);
+            }
+        },
+        testImageUpload: async function() {
+            try {
+                // Create a simple test image
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(0, 0, 100, 100);
+                
+                canvas.toBlob(async (blob) => {
+                    const testFile = new File([blob], 'test.jpg', { type: 'image/jpeg' });
+                    console.log("Test file created:", testFile);
+                    
+                    try {
+                        const imageUrl = await uploadImageToStorage(testFile, 'test_image.jpg');
+                        console.log("Test upload result:", imageUrl);
+                        
+                        if (imageUrl.startsWith('data:')) {
+                            console.log("Using Base64 (Storage upload likely failed)");
+                        } else {
+                            console.log("Using Firebase Storage URL");
+                        }
+                        
+                        alert("Test completed! Check console.");
+                        
+                    } catch (error) {
+                        console.error("Test failed:", error);
+                        alert("Test failed: " + error.message);
+                    }
+                }, 'image/jpeg');
+                
+            } catch (error) {
+                console.error("Test error:", error);
+            }
+        }
+    };
+
+    console.log("Farm Data Management loaded successfully!");
+    console.log("Debug functions available: window.debugFunctions.checkAllFarms() and window.debugFunctions.testImageUpload()");
+    </script>
 </body>
 </html>
