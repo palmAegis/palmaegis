@@ -1187,17 +1187,23 @@
                     <input type="file" id="imageInput" accept="image/*" style="display: none;">
                 </div>
                 
-                <div class="form-group">
-                    <label class="form-label" for="farmCrops">Crops</label>
-                    <select class="form-select" id="farmCrops" multiple style="height: 120px;">
-                        <option value="oil palm">Oil Palm Plant</option>
-                        <option value="coconut">Coconut Plant</option>
-                        <option value="banana">Banana Plant</option>
-                    </select>
-                    <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
-                        Hold Ctrl (Cmd on Mac) to select multiple crops
-                    </small>
-                </div>
+<div class="form-group">
+    <label class="form-label">Crops</label>
+    <div class="checkbox-group" style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+        <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" name="crops" value="oil palm" style="width: 18px; height: 18px;">
+            <span>Oil Palm Plant</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" name="crops" value="coconut" style="width: 18px; height: 18px;">
+            <span>Coconut Plant</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" name="crops" value="banana" style="width: 18px; height: 18px;">
+            <span>Banana Plant</span>
+        </label>
+    </div>
+</div>
                 
                 <div class="form-group">
                     <label class="form-label" for="farmNotes">Notes</label>
@@ -1876,8 +1882,9 @@
             farmData.userId = window.currentUser.uid;
             farmData.createdAt = new Date();
             
-const cropsSelect = document.getElementById('farmCrops');
-const selectedCrops = Array.from(cropsSelect.selectedOptions).map(option => option.value);
+// Get selected crops from checkboxes
+const cropCheckboxes = document.querySelectorAll('input[name="crops"]:checked');
+const selectedCrops = Array.from(cropCheckboxes).map(cb => cb.value);
 farmData.crops = selectedCrops;
             
             // Handle image upload if exists
