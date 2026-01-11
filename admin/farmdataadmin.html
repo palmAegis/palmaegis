@@ -1154,13 +1154,6 @@
                             </div>
                             
                             <div class="details-section">
-                                <h3 class="section-title">Recent Activities</h3>
-                                <ul class="activity-list" id="detailActivities">
-                                    <!-- Activities will be populated here -->
-                                </ul>
-                            </div>
-                            
-                            <div class="details-section">
                                 <h3 class="section-title">Notes</h3>
                                 <div id="detailNotes">-</div>
                             </div>
@@ -1805,6 +1798,47 @@
             cropsList.innerHTML = '<li class="crop-item">No crops recorded</li>';
         }
         
+                // Populate farm images (handle both Firebase URLs and Base64)
+        const imagesContainer = document.getElementById('detailImages');
+        imagesContainer.innerHTML = '';
+        
+        // Check for images in different formats
+        const images = [];
+        
+        if (farm.images && farm.images.length > 0) {
+            // New format: images array
+            farm.images.forEach(img => images.push(img));
+        } else if (farm.imageBase64) {
+            // Old format: single Base64 image
+            images.push(farm.imageBase64);
+        }
+        
+        if (images.length > 0) {
+            console.log("Displaying farm images:", images.length);
+            
+            images.forEach((imageSrc, index) => {
+                const imgWrapper = document.createElement('div');
+                imgWrapper.style.marginBottom = '15px';
+                
+                const img = document.createElement('img');
+                img.src = imageSrc;
+                img.alt = `Farm Image ${index + 1}`;
+                img.style.cssText = 'width: 100%; border-radius: 8px; max-height: 200px; object-fit: cover;';
+                
+                // Add error handling
+                img.onerror = function() {
+                    console.error('Failed to load image:', imageSrc);
+                    this.src = 'https://via.placeholder.com/300x200?text=Image+Not+Loaded';
+                };
+                
+                imgWrapper.appendChild(img);
+                imagesContainer.appendChild(imgWrapper);
+            });
+        } else {
+            console.log("No images found for farm");
+            imagesContainer.innerHTML = '<p>No images available for this farm.</p>';
+        }
+
         // Populate activities list
         const activitiesList = document.getElementById('detailActivities');
         activitiesList.innerHTML = '';
