@@ -525,7 +525,7 @@
         document.getElementById('tree-health-count').textContent = allData.treeHealthReports.length;
 
         // Load farm data
-        const farmDataSnapshot = await db.collection('farmData').get();
+        const farmDataSnapshot = await db.collection('farms').get();
         allData.farmData = farmDataSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         document.getElementById('farm-data-count').textContent = allData.farmData.length;
 
