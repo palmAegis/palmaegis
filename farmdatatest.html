@@ -1920,30 +1920,37 @@
         document.getElementById('imageInput').click();
     });
 
-    document.getElementById('imageInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Validate file type
-            if (!file.type.startsWith('image/')) {
-                alert('Please select an image file.');
-                return;
-            }
-            
-            // Validate file size (max 5MB)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Image size should be less than 5MB.');
-                return;
-            }
-            
-            selectedImageFile = file;
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('previewImage').src = e.target.result;
-                document.getElementById('imagePreview').style.display = 'block';
-            };
-            reader.readAsDataURL(file);
+document.getElementById('imageInput').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file (JPEG, PNG, etc.).');
+            this.value = '';
+            return;
         }
-    });
+        
+        // Validate file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            alert('Image size should be less than 10MB.');
+            this.value = '';
+            return;
+        }
+        
+        selectedImageFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImage').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.onerror = function() {
+            alert('Failed to read the image file. Please try another file.');
+            document.getElementById('imageInput').value = '';
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
     // Handle camera capture
     document.getElementById('captureImageBtn').addEventListener('click', async () => {
@@ -1981,32 +1988,39 @@
         }
     });
 
-    // Handle capture button
-    document.getElementById('captureBtn').addEventListener('click', () => {
-        const cameraPreview = document.getElementById('cameraPreview');
-        const canvas = document.getElementById('cameraCanvas');
-        const context = canvas.getContext('2d');
-        
-        // Set canvas dimensions to match video
-        canvas.width = cameraPreview.videoWidth;
-        canvas.height = cameraPreview.videoHeight;
-        
-        // Draw the video frame to canvas
-        context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
-        
-        // Convert canvas to blob
-        canvas.toBlob((blob) => {
-            if (blob) {
-                selectedImageFile = blob;
-                // Create object URL for preview
-                const objectUrl = URL.createObjectURL(blob);
-                document.getElementById('previewImage').src = objectUrl;
-                document.getElementById('imagePreview').style.display = 'block';
-            }
-        }, 'image/jpeg', 0.8);
-        
-        closeCameraModal();
-    });
+// Handle capture button
+document.getElementById('captureBtn').addEventListener('click', () => {
+    const cameraPreview = document.getElementById('cameraPreview');
+    const canvas = document.getElementById('cameraCanvas');
+    const context = canvas.getContext('2d');
+    
+    // Set canvas dimensions to match video
+    canvas.width = cameraPreview.videoWidth;
+    canvas.height = cameraPreview.videoHeight;
+    
+    // Draw the video frame to canvas
+    context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+    
+    // Convert canvas to blob
+    canvas.toBlob((blob) => {
+        if (blob) {
+            selectedImageFile = blob;
+            // Create object URL for preview
+            const objectUrl = URL.createObjectURL(blob);
+            document.getElementById('previewImage').src = objectUrl;
+            document.getElementById('imagePreview').style.display = 'block';
+            
+            // Clean up the object URL when done
+            setTimeout(() => {
+                URL.revokeObjectURL(objectUrl);
+            }, 1000);
+        } else {
+            alert('Failed to capture image. Please try again.');
+        }
+    }, 'image/jpeg', 0.8); // Quality: 0.8 (80%)
+    
+    closeCameraModal();
+});
 
     // Clear image
     document.getElementById('clearImageBtn').addEventListener('click', () => {
@@ -2022,14 +2036,20 @@
         stopCamera();
     }
 
-    function stopCamera() {
-        if (stream) {
-            stream.getTracks().forEach(track => {
-                track.stop();
-            });
-            stream = null;
-        }
+function stopCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => {
+            track.stop();
+        });
+        stream = null;
     }
+    
+    // Clear the camera preview
+    const cameraPreview = document.getElementById('cameraPreview');
+    if (cameraPreview) {
+        cameraPreview.srcObject = null;
+    }
+}
 
     // Close camera modal when clicking outside
     document.getElementById('cameraModal').addEventListener('click', (e) => {
@@ -2067,7 +2087,6 @@
         const farmArea = document.getElementById('farmArea').value;
         const farmStatus = document.getElementById('farmStatus').value;
         const soilType = document.getElementById('soilType').value;
-        const farmCrops = document.getElementById('farmCrops').value.trim();
         const farmNotes = document.getElementById('farmNotes').value.trim();
         
         // Validate required fields
@@ -2089,8 +2108,8 @@
             area: parseFloat(farmArea),
             status: farmStatus,
             soilType: soilType,
-            crops: farmCrops,
             notes: farmNotes
+            // crops will be added in addNewFarm function from checkboxes
         };
         
         // Show loading state
