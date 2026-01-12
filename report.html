@@ -31,6 +31,7 @@
             --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
             --shadow-hover: 0 4px 20px rgba(0, 0, 0, 0.12);
             --gradient: linear-gradient(135deg, #2e7d32, #4caf50);
+            --invoice-gradient: linear-gradient(135deg, #ff9800, #ff5722);
         }
 
         * {
@@ -123,6 +124,10 @@
         .report-btn:hover {
             transform: translateY(-2px);
             box-shadow: var(--shadow-hover);
+        }
+
+        .report-btn.invoice {
+            background: var(--invoice-gradient);
         }
 
         .filter-btn {
@@ -312,6 +317,16 @@
         .edit-action {
             background: #f3e5f5;
             color: #7b1fa2;
+        }
+
+        .delete-action {
+            background: #ffebee;
+            color: #e53935;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         /* Reports Grid */
@@ -505,6 +520,71 @@
             margin-top: 2rem;
         }
 
+        /* Export Options Modal */
+        .export-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1003;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .export-modal.active {
+            display: flex;
+        }
+
+        .export-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 400px;
+            box-shadow: var(--shadow-hover);
+        }
+
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .export-option {
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .export-option:hover {
+            border-color: var(--primary-color);
+            background: rgba(46, 125, 50, 0.05);
+        }
+
+        .export-option i {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .export-option h4 {
+            margin-bottom: 0.2rem;
+            color: var(--primary-color);
+        }
+
+        .export-option p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -544,6 +624,7 @@
             .header-actions {
                 flex-direction: column;
                 width: 100%;
+                gap: 0.8rem;
             }
 
             .view-toggle {
@@ -574,8 +655,17 @@
             .reports-grid {
                 grid-template-columns: 1fr;
             }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .action-btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
         }
-        
     </style>
 </head>
 
@@ -603,6 +693,9 @@
                     </button>
                     <button class="report-btn" id="downloadAllBtn">
                         <i class="fas fa-download"></i> Download PDF
+                    </button>
+                    <button class="report-btn invoice" id="invoiceReportBtn">
+                        <i class="fas fa-file-invoice-dollar"></i> Invoice Report
                     </button>
                 </div>
             </header>
@@ -673,10 +766,14 @@
                 <i class="fas fa-inbox"></i>
                 <h3>No Reports Found</h3>
                 <p>Start by adding assessments to your farms to generate reports.</p>
+                <button class="report-btn" style="margin-top: 1rem;" onclick="window.location.href='assessment.html'">
+                    <i class="fas fa-plus"></i> Create Assessment
+                </button>
             </div>
         </main>
     </div>
 
+    <!-- Filter Modal -->
     <div class="filter-modal" id="filterModal">
         <div class="filter-content">
             <div class="filter-header">
@@ -722,14 +819,55 @@
         </div>
     </div>
 
+    <!-- Export Options Modal -->
+    <div class="export-modal" id="exportModal">
+        <div class="export-content">
+            <div class="filter-header">
+                <h3><i class="fas fa-download"></i> Export Options</h3>
+                <button class="close-filter" id="closeExport">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="export-options">
+                <div class="export-option" onclick="downloadSinglePDF()">
+                    <i class="fas fa-file-pdf"></i>
+                    <div>
+                        <h4>Current View PDF</h4>
+                        <p>Export filtered data as PDF</p>
+                    </div>
+                </div>
+                <div class="export-option" onclick="downloadAllPDF()">
+                    <i class="fas fa-file-archive"></i>
+                    <div>
+                        <h4>Complete Report PDF</h4>
+                        <p>All farms and assessments</p>
+                    </div>
+                </div>
+                <div class="export-option" onclick="generateInvoiceReport()">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                    <div>
+                        <h4>Invoice Report</h4>
+                        <p>Professional report with analysis</p>
+                    </div>
+                </div>
+            </div>
+            <div class="filter-actions">
+                <button class="filter-btn" id="closeExportBtn">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- jsPDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
         import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, collection, query, where, getDocs, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        import { getFirestore, collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
         // Firebase configuration
         const firebaseConfig = {
@@ -761,14 +899,18 @@
         const assessmentsTableBody = document.getElementById('assessmentsTableBody');
         const farmsTableBody = document.getElementById('farmsTableBody');
         const filterModal = document.getElementById('filterModal');
+        const exportModal = document.getElementById('exportModal');
         const filterBtn = document.getElementById('filterBtn');
         const closeFilter = document.getElementById('closeFilter');
+        const closeExport = document.getElementById('closeExport');
+        const closeExportBtn = document.getElementById('closeExportBtn');
         const applyFilters = document.getElementById('applyFilters');
         const clearFilters = document.getElementById('clearFilters');
         const dateFilter = document.getElementById('dateFilter');
         const healthFilter = document.getElementById('healthFilter');
         const diseaseFilter = document.getElementById('diseaseFilter');
         const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const invoiceReportBtn = document.getElementById('invoiceReportBtn');
         const viewCardsBtn = document.getElementById('viewCardsBtn');
         const viewTablesBtn = document.getElementById('viewTablesBtn');
 
@@ -879,13 +1021,32 @@
                 applyFilter();
             });
 
-            // Download PDF
-            downloadAllBtn.addEventListener('click', downloadAllReports);
+            // Export/Download buttons
+            downloadAllBtn.addEventListener('click', () => {
+                exportModal.classList.add('active');
+            });
 
-            // Close modal when clicking outside
+            invoiceReportBtn.addEventListener('click', generateInvoiceReport);
+
+            // Export modal
+            closeExport.addEventListener('click', () => {
+                exportModal.classList.remove('active');
+            });
+
+            closeExportBtn.addEventListener('click', () => {
+                exportModal.classList.remove('active');
+            });
+
+            // Close modals when clicking outside
             filterModal.addEventListener('click', (e) => {
                 if (e.target === filterModal) {
                     filterModal.classList.remove('active');
+                }
+            });
+
+            exportModal.addEventListener('click', (e) => {
+                if (e.target === exportModal) {
+                    exportModal.classList.remove('active');
                 }
             });
 
@@ -1060,7 +1221,7 @@
         }
 
         function updateUI() {
-            if (filteredAssessments.length === 0) {
+            if (filteredAssessments.length === 0 && allFarms.length === 0) {
                 reportsSection.style.display = 'none';
                 dataTablesSection.style.display = 'none';
                 noDataMessage.style.display = 'block';
@@ -1135,10 +1296,10 @@
                     </div>
                 </div>
                 <div class="report-actions">
-                    <button class="view-btn" onclick="window.viewAssessment('${assessment.id}')">
+                    <button class="view-btn" onclick="viewAssessment('${assessment.id}')">
                         <i class="fas fa-eye"></i> View
                     </button>
-                    <button class="download-btn" onclick="window.downloadReport('${assessment.id}')">
+                    <button class="download-btn" onclick="downloadSingleAssessment('${assessment.id}')">
                         <i class="fas fa-download"></i> PDF
                     </button>
                 </div>
@@ -1175,7 +1336,7 @@
                     <td>${assessment.detectionCount || 0}</td>
                     <td>
                         ${assessment.image ? 
-                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="window.viewImage('${assessment.image}')">` : 
+                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="viewImage('${assessment.image}')">` : 
                             '<span style="color: var(--text-lighter);">No image</span>'
                         }
                     </td>
@@ -1183,11 +1344,14 @@
                     <td>${assessment.treatment || 'None'}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view-action" onclick="window.viewAssessment('${assessment.id}')">
+                            <button class="action-btn view-action" onclick="viewAssessment('${assessment.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn edit-action" onclick="window.editAssessment('${assessment.id}')">
+                            <button class="action-btn edit-action" onclick="editAssessment('${assessment.id}')">
                                 <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-action" onclick="deleteAssessment('${assessment.id}')">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </td>
@@ -1206,7 +1370,7 @@
                 let imagesHtml = '<span style="color: var(--text-lighter);">No images</span>';
                 if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
                     imagesHtml = farm.images.slice(0, 3).map((img, index) => 
-                        `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="window.viewImage('${img}')">`
+                        `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="viewImage('${img}')">`
                     ).join(' ');
                     if (farm.images.length > 3) {
                         imagesHtml += ` <span style="color: var(--text-lighter);">+${farm.images.length - 3} more</span>`;
@@ -1223,11 +1387,14 @@
                     <td>${imagesHtml}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view-action" onclick="window.viewFarm('${farm.id}')">
+                            <button class="action-btn view-action" onclick="viewFarm('${farm.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn edit-action" onclick="window.editFarm('${farm.id}')">
+                            <button class="action-btn edit-action" onclick="editFarm('${farm.id}')">
                                 <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn delete-action" onclick="deleteFarm('${farm.id}')">
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </td>
@@ -1237,229 +1404,709 @@
             });
         }
 
-        // Functions for buttons
-        window.viewAssessment = function(assessmentId) {
+        // ==================== VIEW FUNCTIONS ====================
+        function viewAssessment(assessmentId) {
             const assessment = filteredAssessments.find(a => a.id === assessmentId);
             if (assessment) {
                 sessionStorage.setItem('currentAssessment', JSON.stringify(assessment));
-                window.open('assessment-detail.html', '_blank');
+                window.location.href = 'assessment-detail.html?id=' + assessmentId;
             }
-        };
+        }
 
-        window.viewFarm = function(farmId) {
+        function viewFarm(farmId) {
             const farm = allFarms.find(f => f.id === farmId);
             if (farm) {
                 sessionStorage.setItem('currentFarm', JSON.stringify(farm));
-                window.open('farm-detail.html', '_blank');
+                window.location.href = 'farm-detail.html?id=' + farmId;
             }
-        };
+        }
 
-        window.editAssessment = function(assessmentId) {
-            const assessment = filteredAssessments.find(a => a.id === assessmentId);
-            if (assessment) {
-                sessionStorage.setItem('editAssessment', JSON.stringify(assessment));
-                window.location.href = 'assessment-edit.html';
-            }
-        };
-
-        window.editFarm = function(farmId) {
-            const farm = allFarms.find(f => f.id === farmId);
-            if (farm) {
-                sessionStorage.setItem('editFarm', JSON.stringify(farm));
-                window.location.href = 'farm-edit.html';
-            }
-        };
-
-        window.viewImage = function(imageUrl) {
+        function viewImage(imageUrl) {
             if (imageUrl) {
                 window.open(imageUrl, '_blank');
             }
-        };
+        }
 
-        window.downloadReport = async function(assessmentId) {
+        // ==================== EDIT FUNCTIONS ====================
+        function editAssessment(assessmentId) {
             const assessment = filteredAssessments.find(a => a.id === assessmentId);
             if (assessment) {
-                await generatePDF(assessment, false);
+                sessionStorage.setItem('editAssessment', JSON.stringify(assessment));
+                window.location.href = 'edit-assessment.html?id=' + assessmentId;
             }
-        };
+        }
 
-        async function downloadAllReports() {
+        function editFarm(farmId) {
+            const farm = allFarms.find(f => f.id === farmId);
+            if (farm) {
+                sessionStorage.setItem('editFarm', JSON.stringify(farm));
+                window.location.href = 'edit-farm.html?id=' + farmId;
+            }
+        }
+
+        // ==================== DELETE FUNCTIONS ====================
+        async function deleteAssessment(assessmentId) {
+            if (confirm('Are you sure you want to delete this assessment?')) {
+                try {
+                    await deleteDoc(doc(db, "assessments", assessmentId));
+                    
+                    // Remove from local arrays
+                    const index = allAssessments.findIndex(a => a.id === assessmentId);
+                    if (index !== -1) {
+                        allAssessments.splice(index, 1);
+                    }
+                    
+                    const filteredIndex = filteredAssessments.findIndex(a => a.id === assessmentId);
+                    if (filteredIndex !== -1) {
+                        filteredAssessments.splice(filteredIndex, 1);
+                    }
+                    
+                    // Update UI
+                    updateUI();
+                    alert('Assessment deleted successfully!');
+                } catch (error) {
+                    console.error('Error deleting assessment:', error);
+                    alert('Failed to delete assessment. Please try again.');
+                }
+            }
+        }
+
+        async function deleteFarm(farmId) {
+            if (confirm('Are you sure you want to delete this farm? This will also delete all associated assessments.')) {
+                try {
+                    // Delete farm
+                    await deleteDoc(doc(db, "farms", farmId));
+                    
+                    // Delete associated assessments
+                    const assessmentsQuery = query(
+                        collection(db, "assessments"),
+                        where("farmId", "==", farmId)
+                    );
+                    const assessmentsSnapshot = await getDocs(assessmentsQuery);
+                    
+                    const deletePromises = assessmentsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+                    await Promise.all(deletePromises);
+                    
+                    // Remove from local arrays
+                    allFarms = allFarms.filter(f => f.id !== farmId);
+                    allAssessments = allAssessments.filter(a => a.farmId !== farmId);
+                    filteredAssessments = filteredAssessments.filter(a => a.farmId !== farmId);
+                    
+                    // Update UI
+                    updateUI();
+                    alert('Farm and associated assessments deleted successfully!');
+                } catch (error) {
+                    console.error('Error deleting farm:', error);
+                    alert('Failed to delete farm. Please try again.');
+                }
+            }
+        }
+
+        // ==================== PDF FUNCTIONS ====================
+        function downloadSingleAssessment(assessmentId) {
+            const assessment = filteredAssessments.find(a => a.id === assessmentId);
+            if (assessment) {
+                generateSingleAssessmentPDF(assessment);
+            }
+        }
+
+        function downloadSinglePDF() {
             if (filteredAssessments.length === 0) {
                 alert('No reports available to download.');
                 return;
             }
-
-            const confirmed = confirm(`Do you want to download all ${filteredAssessments.length} reports as a single PDF?`);
-            if (confirmed) {
-                await generatePDF(filteredAssessments, true);
-            }
+            generateCurrentViewPDF();
+            exportModal.classList.remove('active');
         }
 
-        async function generatePDF(data, isMultiple) {
+        function downloadAllPDF() {
+            if (allAssessments.length === 0 && allFarms.length === 0) {
+                alert('No data available to download.');
+                return;
+            }
+            generateCompleteReportPDF();
+            exportModal.classList.remove('active');
+        }
+
+        async function generateSingleAssessmentPDF(assessment) {
             try {
-                // Check if jsPDF is loaded
                 if (typeof window.jspdf === 'undefined') {
-                    throw new Error('jsPDF library not loaded. Please check your internet connection.');
+                    throw new Error('jsPDF library not loaded.');
                 }
 
                 const { jsPDF } = window.jspdf;
-                
-                // Create PDF document
                 const doc = new jsPDF({
                     orientation: 'portrait',
                     unit: 'mm',
                     format: 'a4'
                 });
-                
-                let yOffset = 20;
+
                 const pageWidth = doc.internal.pageSize.width;
                 const margin = 20;
                 const contentWidth = pageWidth - (2 * margin);
+                let yOffset = 20;
 
-                if (isMultiple) {
-                    // Generate PDF for multiple reports
-                    doc.setFontSize(20);
-                    doc.setTextColor(46, 125, 50);
-                    doc.text('Palm Aegis - Assessment Reports', pageWidth / 2, yOffset, { align: 'center' });
-                    yOffset += 15;
+                // Header
+                doc.setFontSize(20);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Palm Aegis - Assessment Report', pageWidth / 2, yOffset, { align: 'center' });
+                yOffset += 10;
 
-                    doc.setFontSize(12);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset, { align: 'center' });
+                doc.setFontSize(12);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset, { align: 'center' });
+                yOffset += 15;
+
+                // Assessment Details Box
+                doc.setFillColor(46, 125, 50, 10);
+                doc.rect(margin, yOffset, contentWidth, 80, 'F');
+                
+                yOffset += 10;
+                doc.setFontSize(16);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Assessment Details', margin + 10, yOffset);
+                yOffset += 15;
+
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+                
+                const details = [
+                    ['Date:', new Date(assessment.date).toLocaleDateString()],
+                    ['Time:', assessment.time || 'N/A'],
+                    ['Disease:', assessment.disease || 'None detected'],
+                    ['Health Status:', assessment.healthStatus || 'Healthy'],
+                    ['Detection Count:', String(assessment.detectionCount || 0)],
+                    ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
+                    ['Location:', assessment.location || 'Not specified'],
+                    ['Treatment:', assessment.treatment || 'None'],
+                    ['User:', assessment.userName || currentUser?.email || 'N/A']
+                ];
+
+                details.forEach(([label, value]) => {
+                    doc.text(label, margin + 15, yOffset);
+                    doc.text(String(value), margin + 60, yOffset);
                     yOffset += 7;
-                    doc.text(`Total Reports: ${data.length}`, pageWidth / 2, yOffset, { align: 'center' });
-                    yOffset += 20;
+                });
 
-                    // Add a page for each report
-                    data.forEach((assessment, index) => {
-                        if (index > 0) {
-                            doc.addPage();
-                            yOffset = 20;
-                        }
+                yOffset += 20;
 
-                        addAssessmentToPDF(doc, assessment, yOffset);
+                // Detections Section
+                if (assessment.detections && assessment.detections.length > 0) {
+                    doc.setFontSize(14);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('Detected Issues', margin, yOffset);
+                    yOffset += 10;
+
+                    doc.setFontSize(11);
+                    assessment.detections.forEach((det, index) => {
+                        const detectionText = `${index + 1}. ${det.disease || 'Unknown'}: ${det.confidence ? Math.round(det.confidence * 100) : 0}% confidence`;
+                        doc.text(detectionText, margin + 5, yOffset);
+                        yOffset += 6;
                     });
-                } else {
-                    // Generate PDF for single report
-                    addAssessmentToPDF(doc, data, yOffset);
+                    yOffset += 10;
                 }
 
+                // Recommendations
+                if (assessment.treatment) {
+                    doc.setFontSize(14);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('Treatment Recommendations', margin, yOffset);
+                    yOffset += 10;
+
+                    doc.setFontSize(11);
+                    const lines = doc.splitTextToSize(assessment.treatment, contentWidth);
+                    lines.forEach(line => {
+                        doc.text(line, margin + 5, yOffset);
+                        yOffset += 6;
+                    });
+                    yOffset += 10;
+                }
+
+                // Footer
+                const finalY = doc.internal.pageSize.height - 10;
+                doc.setFontSize(10);
+                doc.setTextColor(150, 150, 150);
+                doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
+
                 // Save the PDF
-                const fileName = isMultiple 
-                    ? `Palm-Aegis-Reports-${new Date().toISOString().slice(0,10)}.pdf`
-                    : `Assessment-${data.id || 'report'}-${new Date().toISOString().slice(0,10)}.pdf`;
-                
+                const fileName = `Assessment-${assessment.id || 'report'}-${new Date().toISOString().slice(0,10)}.pdf`;
                 doc.save(fileName);
 
             } catch (error) {
                 console.error('Error generating PDF:', error);
-                alert(`Failed to generate PDF: ${error.message}\n\nPlease make sure you have a stable internet connection.`);
+                alert(`Failed to generate PDF: ${error.message}`);
             }
         }
 
-        function addAssessmentToPDF(doc, assessment, yOffset) {
-            const pageWidth = doc.internal.pageSize.width;
-            const margin = 20;
-            const contentWidth = pageWidth - (2 * margin);
-            
-            // Header
-            doc.setFontSize(18);
-            doc.setTextColor(46, 125, 50);
-            doc.text('Palm Aegis Assessment Report', margin, yOffset);
-            yOffset += 10;
-
-            doc.setFontSize(11);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`Report ID: ${assessment.id || 'N/A'}`, margin, yOffset);
-            doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - margin, yOffset, { align: 'right' });
-            yOffset += 15;
-
-            // Assessment Details
-            doc.setFontSize(14);
-            doc.setTextColor(46, 125, 50);
-            doc.text('Assessment Details', margin, yOffset);
-            yOffset += 10;
-
-            doc.setFontSize(11);
-            doc.setTextColor(0, 0, 0);
-            
-            const details = [
-                ['Date:', assessment.date ? new Date(assessment.date).toLocaleDateString() : 'N/A'],
-                ['Time:', assessment.time || 'N/A'],
-                ['Disease:', assessment.disease || 'None detected'],
-                ['Health Status:', assessment.healthStatus || 'Healthy'],
-                ['Detection Count:', String(assessment.detectionCount || 0)],
-                ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
-                ['Location:', assessment.location || 'Not specified'],
-                ['Treatment:', assessment.treatment || 'None'],
-                ['User:', assessment.userName || assessment.userEmail || 'N/A']
-            ];
-
-            details.forEach(([label, value]) => {
-                if (yOffset > 250) {
-                    doc.addPage();
-                    yOffset = 20;
+        function generateCurrentViewPDF() {
+            try {
+                if (typeof window.jspdf === 'undefined') {
+                    throw new Error('jsPDF library not loaded.');
                 }
-                
-                doc.text(label, margin, yOffset);
-                doc.text(String(value), margin + 50, yOffset);
-                yOffset += 7;
-            });
 
-            yOffset += 5;
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
 
-            // Detections
-            if (assessment.detections && Array.isArray(assessment.detections) && assessment.detections.length > 0) {
-                if (yOffset > 230) {
-                    doc.addPage();
-                    yOffset = 20;
-                }
-                
+                const pageWidth = doc.internal.pageSize.width;
+                const margin = 20;
+                let yOffset = 20;
+
+                // Header
+                doc.setFontSize(20);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Palm Aegis - Current View Report', pageWidth / 2, yOffset, { align: 'center' });
+                yOffset += 10;
+
+                doc.setFontSize(12);
+                doc.setTextColor(100, 100, 100);
+                doc.text(`Filtered Results (${filteredAssessments.length} assessments)`, pageWidth / 2, yOffset, { align: 'center' });
+                doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset + 7, { align: 'center' });
+                yOffset += 20;
+
+                // Assessment Table
+                const tableData = filteredAssessments.map(assessment => [
+                    new Date(assessment.date).toLocaleDateString('short'),
+                    assessment.disease || 'None',
+                    assessment.healthStatus || 'Healthy',
+                    assessment.detectionCount || 0,
+                    assessment.location || 'N/A',
+                    assessment.treatment ? 'Yes' : 'No'
+                ]);
+
+                doc.autoTable({
+                    startY: yOffset,
+                    head: [['Date', 'Disease', 'Status', 'Count', 'Location', 'Treatment']],
+                    body: tableData,
+                    margin: { left: margin, right: margin },
+                    headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
+                    alternateRowStyles: { fillColor: [240, 255, 240] },
+                    styles: { fontSize: 9, cellPadding: 3 }
+                });
+
+                yOffset = doc.lastAutoTable.finalY + 10;
+
+                // Health Summary
+                const healthyCount = filteredAssessments.filter(a => a.healthStatus === 'Healthy').length;
+                const infectedCount = filteredAssessments.filter(a => a.healthStatus === 'Infected').length;
+                const warningCount = filteredAssessments.filter(a => a.healthStatus === 'Warning').length;
+
                 doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
-                doc.text('Detections', margin, yOffset);
+                doc.text('Health Summary', margin, yOffset);
                 yOffset += 10;
 
                 doc.setFontSize(11);
-                assessment.detections.forEach((det, index) => {
-                    const detectionText = `Detection ${index + 1}: ${det.disease || 'Unknown'} (${det.confidence ? Math.round(det.confidence * 100) : 0}%)`;
-                    const lines = doc.splitTextToSize(detectionText, contentWidth);
-                    lines.forEach(line => {
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Total Assessments: ${filteredAssessments.length}`, margin, yOffset);
+                yOffset += 6;
+                doc.text(`Healthy: ${healthyCount}`, margin, yOffset);
+                yOffset += 6;
+                doc.text(`Infected: ${infectedCount}`, margin, yOffset);
+                yOffset += 6;
+                doc.text(`Warning: ${warningCount}`, margin, yOffset);
+
+                // Footer
+                const finalY = doc.internal.pageSize.height - 10;
+                doc.setFontSize(10);
+                doc.setTextColor(150, 150, 150);
+                doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
+
+                // Save the PDF
+                const fileName = `Palm-Aegis-Current-View-${new Date().toISOString().slice(0,10)}.pdf`;
+                doc.save(fileName);
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert(`Failed to generate PDF: ${error.message}`);
+            }
+        }
+
+        function generateCompleteReportPDF() {
+            try {
+                if (typeof window.jspdf === 'undefined') {
+                    throw new Error('jsPDF library not loaded.');
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pageWidth = doc.internal.pageSize.width;
+                const margin = 20;
+                let yOffset = 20;
+
+                // Header
+                doc.setFontSize(24);
+                doc.setTextColor(46, 125, 50);
+                doc.text('PALM AEGIS', pageWidth / 2, yOffset, { align: 'center' });
+                
+                doc.setFontSize(14);
+                doc.setTextColor(100, 100, 100);
+                doc.text('Complete Farm Report', pageWidth / 2, yOffset + 10, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset + 18, { align: 'center' });
+                yOffset += 30;
+
+                // User Info
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+                doc.text(`User: ${window.userData?.firstName || ''} ${window.userData?.lastName || ''}`, margin, yOffset);
+                doc.text(`Email: ${currentUser?.email || 'N/A'}`, pageWidth / 2, yOffset);
+                yOffset += 15;
+
+                // Farms Section
+                if (allFarms.length > 0) {
+                    doc.setFontSize(16);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('Farm Records', margin, yOffset);
+                    yOffset += 10;
+
+                    allFarms.forEach((farm, index) => {
                         if (yOffset > 250) {
                             doc.addPage();
                             yOffset = 20;
                         }
-                        doc.text(line, margin, yOffset);
-                        yOffset += 7;
-                    });
-                });
-                yOffset += 3;
-            }
 
-            // Next Assessment
-            if (assessment.nextAssessment) {
-                if (yOffset > 230) {
-                    doc.addPage();
-                    yOffset = 20;
+                        doc.setFontSize(12);
+                        doc.setTextColor(46, 125, 50);
+                        doc.text(`${index + 1}. ${farm.name || 'Unnamed Farm'}`, margin, yOffset);
+                        yOffset += 7;
+
+                        doc.setFontSize(10);
+                        doc.setTextColor(0, 0, 0);
+                        const details = [
+                            `Location: ${farm.location || 'N/A'}`,
+                            `Area: ${farm.area || 'N/A'}`,
+                            `Crops: ${farm.crops || 'Oil Palm'}`,
+                            `Soil Type: ${farm.soilType || 'N/A'}`,
+                            `Status: ${farm.status || 'Active'}`,
+                            `Created: ${farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A'}`
+                        ];
+
+                        details.forEach(detail => {
+                            doc.text(detail, margin + 5, yOffset);
+                            yOffset += 5;
+                        });
+
+                        yOffset += 10;
+                    });
+
+                    yOffset += 10;
                 }
-                
-                yOffset += 5;
+
+                // Assessments Section
+                if (allAssessments.length > 0) {
+                    if (yOffset > 220) {
+                        doc.addPage();
+                        yOffset = 20;
+                    }
+
+                    doc.setFontSize(16);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('All Assessments', margin, yOffset);
+                    yOffset += 10;
+
+                    const tableData = allAssessments.map(assessment => [
+                        new Date(assessment.date).toLocaleDateString('short'),
+                        assessment.disease || 'None',
+                        assessment.healthStatus || 'Healthy',
+                        assessment.detectionCount || 0,
+                        assessment.location || 'N/A'
+                    ]);
+
+                    doc.autoTable({
+                        startY: yOffset,
+                        head: [['Date', 'Disease', 'Status', 'Count', 'Location']],
+                        body: tableData,
+                        margin: { left: margin, right: margin },
+                        headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
+                        alternateRowStyles: { fillColor: [240, 255, 240] },
+                        styles: { fontSize: 8, cellPadding: 2 }
+                    });
+
+                    yOffset = doc.lastAutoTable.finalY + 10;
+                }
+
+                // Statistics
+                const totalAssessments = allAssessments.length;
+                const totalFarms = allFarms.length;
+                const infectedCount = allAssessments.filter(a => a.healthStatus === 'Infected').length;
+                const healthyCount = allAssessments.filter(a => a.healthStatus === 'Healthy').length;
+
                 doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
-                doc.text('Next Assessment Due', margin, yOffset);
+                doc.text('Overall Statistics', margin, yOffset);
                 yOffset += 10;
 
                 doc.setFontSize(11);
-                const nextDate = new Date(assessment.nextAssessment).toLocaleDateString();
-                doc.text(`Recommended date: ${nextDate}`, margin, yOffset);
-                yOffset += 7;
+                doc.setTextColor(0, 0, 0);
+                doc.text(`Total Farms: ${totalFarms}`, margin, yOffset);
+                yOffset += 6;
+                doc.text(`Total Assessments: ${totalAssessments}`, margin, yOffset);
+                yOffset += 6;
+                doc.text(`Healthy Plants: ${healthyCount}`, margin, yOffset);
+                yOffset += 6;
+                doc.text(`Infected Plants: ${infectedCount}`, margin, yOffset);
+                yOffset += 6;
+                
+                const infectionRate = totalAssessments > 0 ? ((infectedCount / totalAssessments) * 100).toFixed(1) : 0;
+                doc.text(`Infection Rate: ${infectionRate}%`, margin, yOffset);
+
+                // Footer
+                const finalY = doc.internal.pageSize.height - 20;
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text('--- End of Complete Report ---', pageWidth / 2, finalY - 10, { align: 'center' });
+                doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
+
+                // Save the PDF
+                const fileName = `Palm-Aegis-Complete-Report-${new Date().toISOString().slice(0,10)}.pdf`;
+                doc.save(fileName);
+
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert(`Failed to generate PDF: ${error.message}`);
+            }
+        }
+
+        // ==================== INVOICE REPORT FUNCTION ====================
+        async function generateInvoiceReport() {
+            if (filteredAssessments.length === 0 && allFarms.length === 0) {
+                alert('No data available for invoice report.');
+                return;
             }
 
-            // Footer
-            const finalY = doc.internal.pageSize.height - 10;
-            doc.setFontSize(10);
-            doc.setTextColor(150, 150, 150);
-            doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
+            const confirmed = confirm('Generate comprehensive invoice report with all data?');
+            if (!confirmed) return;
+
+            try {
+                if (typeof window.jspdf === 'undefined') {
+                    throw new Error('jsPDF library not loaded.');
+                }
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                const pageWidth = doc.internal.pageSize.width;
+                const margin = 20;
+                const contentWidth = pageWidth - (2 * margin);
+                let yOffset = 20;
+
+                // Company Header
+                doc.setFontSize(24);
+                doc.setTextColor(46, 125, 50);
+                doc.text('PALM AEGIS', pageWidth / 2, yOffset, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.setTextColor(100, 100, 100);
+                doc.text('Smart Palm Farming System', pageWidth / 2, yOffset + 7, { align: 'center' });
+                doc.text('INVOICE REPORT', pageWidth / 2, yOffset + 15, { align: 'center' });
+                
+                yOffset += 30;
+
+                // User Information
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+                doc.text('User Information:', margin, yOffset);
+                yOffset += 7;
+                
+                doc.text(`Name: ${window.userData?.firstName || ''} ${window.userData?.lastName || ''}`, margin + 5, yOffset);
+                doc.text(`Email: ${currentUser?.email || 'N/A'}`, margin + 80, yOffset);
+                yOffset += 7;
+                doc.text(`Date: ${new Date().toLocaleDateString()}`, margin + 5, yOffset);
+                doc.text(`Time: ${new Date().toLocaleTimeString()}`, margin + 80, yOffset);
+                yOffset += 15;
+
+                // Summary Statistics
+                doc.setFillColor(46, 125, 50, 10);
+                doc.rect(margin, yOffset, contentWidth, 25, 'F');
+                
+                doc.setFontSize(12);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Report Summary', margin + 10, yOffset + 8);
+                
+                doc.setFontSize(10);
+                doc.setTextColor(0, 0, 0);
+                
+                const totalFarms = allFarms.length;
+                const totalAssessments = allAssessments.length;
+                const infectedCount = allAssessments.filter(a => a.healthStatus === 'Infected').length;
+                const healthyCount = allAssessments.filter(a => a.healthStatus === 'Healthy').length;
+                const warningCount = allAssessments.filter(a => a.healthStatus === 'Warning').length;
+
+                doc.text(`Total Farms: ${totalFarms}`, margin + 10, yOffset + 18);
+                doc.text(`Total Assessments: ${totalAssessments}`, margin + 60, yOffset + 18);
+                doc.text(`Healthy: ${healthyCount}`, margin + 120, yOffset + 18);
+                
+                doc.text(`Infected: ${infectedCount}`, margin + 10, yOffset + 28);
+                doc.text(`Warning: ${warningCount}`, margin + 60, yOffset + 28);
+                
+                yOffset += 40;
+
+                // Farm Records Section
+                if (allFarms.length > 0) {
+                    doc.setFontSize(14);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('Farm Records', margin, yOffset);
+                    yOffset += 10;
+
+                    allFarms.forEach((farm, index) => {
+                        if (yOffset > 250) {
+                            doc.addPage();
+                            yOffset = 20;
+                        }
+
+                        // Farm header
+                        doc.setFontSize(11);
+                        doc.setTextColor(46, 125, 50);
+                        doc.text(`Farm ${index + 1}: ${farm.name || 'Unnamed Farm'}`, margin, yOffset);
+                        yOffset += 7;
+
+                        // Farm details
+                        doc.setFontSize(10);
+                        doc.setTextColor(0, 0, 0);
+                        
+                        const details = [
+                            ['Location:', farm.location || 'Not specified'],
+                            ['Area:', farm.area || 'N/A'],
+                            ['Crops:', farm.crops || 'Oil Palm'],
+                            ['Soil Type:', farm.soilType || 'Not specified'],
+                            ['Status:', farm.status || 'Active'],
+                            ['Created:', farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A']
+                        ];
+
+                        details.forEach(([label, value]) => {
+                            doc.text(`${label} ${value}`, margin + 5, yOffset);
+                            yOffset += 5;
+                        });
+
+                        yOffset += 5;
+                    });
+
+                    yOffset += 10;
+                }
+
+                // Assessment Records Section
+                if (filteredAssessments.length > 0) {
+                    if (yOffset > 220) {
+                        doc.addPage();
+                        yOffset = 20;
+                    }
+
+                    doc.setFontSize(14);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('Assessment Records', margin, yOffset);
+                    yOffset += 10;
+
+                    // Create a table for assessments
+                    const headers = ['Date', 'Disease', 'Status', 'Count', 'Location'];
+                    const data = filteredAssessments.map(assessment => [
+                        new Date(assessment.date).toLocaleDateString('short'),
+                        assessment.disease || 'None',
+                        assessment.healthStatus || 'Healthy',
+                        assessment.detectionCount || '0',
+                        assessment.location || 'N/A'
+                    ]);
+
+                    // Draw table
+                    doc.autoTable({
+                        startY: yOffset,
+                        head: [headers],
+                        body: data,
+                        margin: { left: margin },
+                        headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
+                        alternateRowStyles: { fillColor: [240, 255, 240] },
+                        styles: { fontSize: 9, cellPadding: 3 }
+                    });
+
+                    yOffset = doc.lastAutoTable.finalY + 10;
+                }
+
+                // Health Analysis Section
+                if (yOffset > 200) {
+                    doc.addPage();
+                    yOffset = 20;
+                }
+
+                doc.setFontSize(14);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Health Analysis', margin, yOffset);
+                yOffset += 10;
+
+                const healthyPercentage = totalAssessments > 0 ? (healthyCount / totalAssessments * 100).toFixed(1) : 0;
+                const infectedPercentage = totalAssessments > 0 ? (infectedCount / totalAssessments * 100).toFixed(1) : 0;
+                const warningPercentage = totalAssessments > 0 ? (warningCount / totalAssessments * 100).toFixed(1) : 0;
+
+                doc.setFontSize(11);
+                doc.setTextColor(0, 0, 0);
+                
+                doc.text('Health Status Distribution:', margin, yOffset);
+                yOffset += 7;
+                doc.text(`• Healthy: ${healthyCount} (${healthyPercentage}%)`, margin + 10, yOffset);
+                yOffset += 6;
+                doc.text(`• Infected: ${infectedCount} (${infectedPercentage}%)`, margin + 10, yOffset);
+                yOffset += 6;
+                doc.text(`• Warning: ${warningCount} (${warningPercentage}%)`, margin + 10, yOffset);
+                yOffset += 15;
+
+                // Treatment Recommendations
+                if (filteredAssessments.some(a => a.treatment)) {
+                    const treatments = filteredAssessments.filter(a => a.treatment);
+                    
+                    doc.setFontSize(14);
+                    doc.setTextColor(46, 125, 50);
+                    doc.text('Treatment Recommendations', margin, yOffset);
+                    yOffset += 10;
+
+                    doc.setFontSize(11);
+                    doc.setTextColor(0, 0, 0);
+
+                    treatments.forEach((assessment, index) => {
+                        if (yOffset > 250) {
+                            doc.addPage();
+                            yOffset = 20;
+                        }
+
+                        doc.text(`${index + 1}. ${assessment.disease || 'Unknown Disease'}`, margin, yOffset);
+                        yOffset += 6;
+                        doc.text(`   Treatment: ${assessment.treatment}`, margin + 5, yOffset);
+                        yOffset += 6;
+                        doc.text(`   Date: ${new Date(assessment.date).toLocaleDateString()}`, margin + 5, yOffset);
+                        yOffset += 10;
+                    });
+                }
+
+                // Footer with totals
+                const finalY = doc.internal.pageSize.height - 20;
+                
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100);
+                doc.text('--- End of Report ---', pageWidth / 2, finalY - 10, { align: 'center' });
+                
+                doc.setFontSize(9);
+                doc.text(`Report generated by Palm Aegis on ${new Date().toLocaleString()}`, pageWidth / 2, finalY, { align: 'center' });
+                doc.text('For inquiries contact: support@palmaegis.com | www.palmaegis.com', pageWidth / 2, finalY + 5, { align: 'center' });
+
+                // Save the PDF
+                const fileName = `Palm-Aegis-Invoice-Report-${new Date().toISOString().slice(0,10)}.pdf`;
+                doc.save(fileName);
+
+            } catch (error) {
+                console.error('Error generating invoice report:', error);
+                alert(`Failed to generate invoice report: ${error.message}`);
+            }
         }
     </script>
 </body>
