@@ -667,7 +667,7 @@
             color: '#dc3545',
             badgeClass: 'blackspot-badge',
             defaultThreshold: 0.5
-        }
+        },
         'healthy': {
             name: 'Healthy Leaves Detection',
             url: 'https://serverless.roboflow.com/date-final/1',
@@ -924,89 +924,93 @@
 
     // Function to auto-generate assessment ID after detection
     async function autoGenerateAssessmentId() {
-        console.log('Auto-generating Assessment ID...');
-        console.log('hasProcessedImage:', hasProcessedImage);
-        console.log('Current detections:', currentDetections);
-        
-        // Check if an image has been processed
-        if (!hasProcessedImage) {
-            console.log('No image has been processed yet');
-            updateAssessmentIdStatus(false, 'Please process an image first');
-            return;
-        }
+    console.log('Auto-generating Assessment ID...');
+    console.log('hasProcessedImage:', hasProcessedImage);
+    console.log('Current detections:', currentDetections);
+    
+    if (!hasProcessedImage) {
+        console.log('No image has been processed yet');
+        updateAssessmentIdStatus(false, 'Please process an image first');
+        return;
+    }
 
-        // Even if no detections, we can still generate an ID (for healthy plants)
-        try {
-            // Determine disease type from detections
-            const detectedDiseases = new Set();
-            if (currentDetections && currentDetections.length > 0) {
-                currentDetections.forEach(det => {
-                    if (det.confidence >= confidenceThreshold) {
+    try {
+        const detectedDiseases = new Set();
+        if (currentDetections && currentDetections.length > 0) {
+            currentDetections.forEach(det => {
+                if (det.confidence >= confidenceThreshold) {
+                    // For healthy model, only count if class is in validClasses
+                    if (det.model === 'healthy') {
+                        if (models.healthy.validClasses.includes(det.class)) {
+                            detectedDiseases.add(det.model);
+                        }
+                    } else {
                         detectedDiseases.add(det.model);
                     }
-                });
-            }
-
-            console.log('Detected diseases:', Array.from(detectedDiseases));
-
-            let diseaseCode = diseaseCodes.healthy; // Default to healthy if no diseases detected
-            if (detectedDiseases.has('ganoderma')) {
-                diseaseCode = diseaseCodes.ganoderma;
-            } else if (detectedDiseases.has('blackspot')) {
-                diseaseCode = diseaseCodes.blackspot;
-            }
-
-            console.log('Selected disease code:', diseaseCode);
-
-            // Generate timestamp component
-            const now = new Date();
-            const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
-            const timeStr = now.getHours().toString().padStart(2, '0') + 
-                           now.getMinutes().toString().padStart(2, '0');
-
-            // User initials (first letter of first name and last name)
-            let userInitials = 'XX';
-            if (userData) {
-                const firstInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 'U';
-                const lastInitial = userData.lastName ? userData.lastName.charAt(0).toUpperCase() : 'S';
-                userInitials = firstInitial + lastInitial;
-            }
-
-            // Generate base ID
-            const baseId = `${diseaseCode}-${dateStr}-${userInitials}`;
-
-            // Check for existing IDs and find a unique sequence number
-            let sequence = 1;
-            let isUnique = false;
-            let maxAttempts = 100;
-
-            while (!isUnique && sequence <= maxAttempts) {
-                generatedAssessmentId = `${baseId}-${sequence.toString().padStart(3, '0')}`;
-                
-                // Check if this ID already exists in Firestore
-                const assessmentsRef = collection(db, "assessments");
-                const q = query(assessmentsRef, where("assessmentId", "==", generatedAssessmentId));
-                const querySnapshot = await getDocs(q);
-                
-                if (querySnapshot.empty) {
-                    isUnique = true;
-                } else {
-                    sequence++;
                 }
-            }
+            });
+        }
 
-            if (!isUnique) {
-                throw new Error('Could not generate unique Assessment ID');
-            }
+        console.log('Detected diseases:', Array.from(detectedDiseases));
 
-            // Update the input field
-            assessmentId.value = generatedAssessmentId;
-            updateAssessmentIdStatus(true, 'Unique Assessment ID generated');
-            console.log('Generated Assessment ID:', generatedAssessmentId);
+        let diseaseCode = diseaseCodes.healthy; // Default to healthy if no diseases detected
+        
+        // Priority: diseases over healthy detection
+        if (detectedDiseases.has('ganoderma')) {
+            diseaseCode = diseaseCodes.ganoderma;
+        } else if (detectedDiseases.has('blackspot')) {
+            diseaseCode = diseaseCodes.blackspot;
+        } else if (detectedDiseases.has('healthy')) {
+            diseaseCode = diseaseCodes.healthy;
+        } else if (detectedDiseases.size > 0) {
+            // If there are detections but not from our known models
+            diseaseCode = diseaseCodes.unknown;
+        }
+
+        console.log('Selected disease code:', diseaseCode);
+
+        // Generate timestamp component
+        const now = new Date();
+        const dateStr = now.toISOString().slice(2, 10).replace(/-/g, '');
+        const timeStr = now.getHours().toString().padStart(2, '0') + 
+                       now.getMinutes().toString().padStart(2, '0');
+
+        let userInitials = 'XX';
+        if (userData) {
+            const firstInitial = userData.firstName ? userData.firstName.charAt(0).toUpperCase() : 'U';
+            const lastInitial = userData.lastName ? userData.lastName.charAt(0).toUpperCase() : 'S';
+            userInitials = firstInitial + lastInitial;
+        }
+
+        const baseId = `${diseaseCode}-${dateStr}-${userInitials}`;
+        let sequence = 1;
+        let isUnique = false;
+        let maxAttempts = 100;
+
+        while (!isUnique && sequence <= maxAttempts) {
+            generatedAssessmentId = `${baseId}-${sequence.toString().padStart(3, '0')}`;
+            
+            const assessmentsRef = collection(db, "assessments");
+            const q = query(assessmentsRef, where("assessmentId", "==", generatedAssessmentId));
+            const querySnapshot = await getDocs(q);
+            
+            if (querySnapshot.empty) {
+                isUnique = true;
+            } else {
+                sequence++;
+            }
+        }
+
+        if (!isUnique) {
+            throw new Error('Could not generate unique Assessment ID');
+        }
+
+        assessmentId.value = generatedAssessmentId;
+        updateAssessmentIdStatus(true, 'Unique Assessment ID generated');
+        console.log('Generated Assessment ID:', generatedAssessmentId);
 
         } catch (error) {
             console.error('Error auto-generating Assessment ID:', error);
-            // Fallback to random ID
             generatedAssessmentId = `ASS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
             assessmentId.value = generatedAssessmentId;
             updateAssessmentIdStatus(true, 'Generated fallback ID');
@@ -1045,80 +1049,115 @@
 
     // Update disease field based on detection results
     function updateDiseaseField(detections) {
-        if (!detections || detections.length === 0) {
-            diseaseInput.value = "No disease detected";
-            diseaseInput.className = "form-input disease-input";
-            return;
-        }
+    if (!detections || detections.length === 0) {
+        diseaseInput.value = "No disease detected";
+        diseaseInput.className = "form-input disease-input";
+        return;
+    }
 
-        const uniqueDiseases = [...new Set(detections.map(detection => detection.class))];
-        if (uniqueDiseases.length === 1) {
-            diseaseInput.value = uniqueDiseases[0];
-            diseaseInput.className = "form-input disease-input auto-detected";
-        } else {
+    // Check for healthy detections
+    const hasHealthy = detections.some(d => 
+        d.model === 'healthy' && 
+        models.healthy.validClasses.includes(d.class) &&
+        d.confidence >= confidenceThreshold
+    );
+    
+    const hasDisease = detections.some(d => 
+        (d.model === 'ganoderma' || d.model === 'blackspot') &&
+        d.confidence >= confidenceThreshold
+    );
+
+    if (hasDisease) {
+        const uniqueDiseases = [...new Set(detections
+            .filter(d => (d.model === 'ganoderma' || d.model === 'blackspot'))
+            .map(detection => detection.class))];
+        
+        if (uniqueDiseases.length > 0) {
             diseaseInput.value = uniqueDiseases.join(", ");
             diseaseInput.className = "form-input disease-input auto-detected";
+        } else {
+            diseaseInput.value = "Disease detected";
+            diseaseInput.className = "form-input disease-input auto-detected";
         }
+    } else if (hasHealthy) {
+        diseaseInput.value = "Healthy Leaves";
+        diseaseInput.className = "form-input disease-input auto-detected";
+    } else {
+        diseaseInput.value = "Unknown condition";
+        diseaseInput.className = "form-input disease-input";
     }
+}
 
     // Update health status and treatment based on detection results
     function updateHealthStatus(detections) {
-        const hasDisease = detections && detections.length > 0;
+    // Check for healthy detections first
+    const hasHealthy = detections && detections.some(d => 
+        d.model === 'healthy' && 
+        models.healthy.validClasses.includes(d.class) &&
+        d.confidence >= confidenceThreshold
+    );
+    
+    const hasGanoderma = detections && detections.some(d => 
+        d.model === 'ganoderma' && d.confidence >= confidenceThreshold
+    );
+    const hasBlackspot = detections && detections.some(d => 
+        d.model === 'blackspot' && d.confidence >= confidenceThreshold
+    );
 
-        if (hasDisease) {
-            healthStatus.textContent = "Not Healthy";
-            healthStatus.className = "health-status not-healthy";
+    // Determine overall health status
+    const isHealthy = hasHealthy && !hasGanoderma && !hasBlackspot;
 
-            let treatment = "";
-            let nextAssessmentDate = "";
-            const today = new Date();
+    if (isHealthy) {
+        healthStatus.textContent = "Healthy";
+        healthStatus.className = "health-status healthy";
+        treatmentText.value = "No treatment needed. Plant appears healthy.";
+        const today = new Date();
+        const sixMonthsLater = new Date(today);
+        sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+        nextAssessment.value = sixMonthsLater.toISOString().split('T')[0];
+    } else {
+        healthStatus.textContent = "Not Healthy";
+        healthStatus.className = "health-status not-healthy";
 
-            const hasGanoderma = detections.some(d => d.model === 'ganoderma');
-            const hasBlackspot = detections.some(d => d.model === 'blackspot');
+        let treatment = "";
+        let nextAssessmentDate = "";
+        const today = new Date();
 
-            if (hasGanoderma) {
-                treatment += "Ganoderma Treatment:\n";
-                treatment += "- Remove and destroy infected plants\n";
-                treatment += "- Apply fungicide treatment\n";
-                treatment += "- Improve soil drainage\n";
-                treatment += "- Avoid wounding plants\n\n";
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                nextAssessmentDate = tomorrow.toISOString().split('T')[0];
-            }
+        if (hasGanoderma) {
+            treatment += "Ganoderma Treatment:\n";
+            treatment += "- Remove and destroy infected plants\n";
+            treatment += "- Apply fungicide treatment\n";
+            treatment += "- Improve soil drainage\n";
+            treatment += "- Avoid wounding plants\n\n";
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+        }
 
-            if (hasBlackspot) {
-                treatment += "Blackspot Treatment:\n";
-                treatment += "- Remove infected leaves\n";
-                treatment += "- Apply fungicide spray\n";
-                treatment += "- Improve air circulation\n";
-                treatment += "- Water at the base, not on leaves\n\n";
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                nextAssessmentDate = tomorrow.toISOString().split('T')[0];
-            }
+        if (hasBlackspot) {
+            treatment += "Blackspot Treatment:\n";
+            treatment += "- Remove infected leaves\n";
+            treatment += "- Apply fungicide spray\n";
+            treatment += "- Improve air circulation\n";
+            treatment += "- Water at the base, not on leaves\n\n";
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+        }
 
-            if (!hasGanoderma && !hasBlackspot) {
-                treatment = "General Plant Disease Treatment:\n";
-                treatment += "- Isolate affected plant\n";
-                treatment += "- Apply broad-spectrum fungicide\n";
-                treatment += "- Improve growing conditions\n";
-                treatment += "- Monitor daily for changes\n";
-                const tomorrow = new Date(today);
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                nextAssessmentDate = tomorrow.toISOString().split('T')[0];
-            }
+        if (!hasGanoderma && !hasBlackspot) {
+            treatment = "General Plant Care:\n";
+            treatment += "- Monitor plant health regularly\n";
+            treatment += "- Ensure proper watering and sunlight\n";
+            treatment += "- Check for pests and diseases\n";
+            treatment += "- Maintain soil nutrients\n";
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 7);
+            nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+        }
 
             treatmentText.value = treatment;
             nextAssessment.value = nextAssessmentDate;
-        } else {
-            healthStatus.textContent = "Healthy";
-            healthStatus.className = "health-status healthy";
-            treatmentText.value = "No treatment needed. Plant appears healthy.";
-            const today = new Date();
-            const sixMonthsLater = new Date(today);
-            sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
-            nextAssessment.value = sixMonthsLater.toISOString().split('T')[0];
         }
     }
 
