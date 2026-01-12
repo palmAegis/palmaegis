@@ -1061,210 +1061,253 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+<script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+    import { getFirestore, collection, query, where, getDocs, doc, getDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-            authDomain: "palmaegis-setup.firebaseapp.com",
-            projectId: "palmaegis-setup",
-            storageBucket: "palmaegis-setup.firebasestorage.app",
-            messagingSenderId: "445887502374",
-            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-        };
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+        authDomain: "palmaegis-setup.firebaseapp.com",
+        projectId: "palmaegis-setup",
+        storageBucket: "palmaegis-setup.firebasestorage.app",
+        messagingSenderId: "445887502374",
+        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+    };
 
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-        // Global variables
-        let currentUser = null;
-        let allFarms = [];
-        let allAssessments = [];
-        let filteredAssessments = [];
-        let currentModalData = null;
+    // Global variables
+    let currentUser = null;
+    let allFarms = [];
+    let allAssessments = [];
+    let filteredAssessments = [];
+    let currentModalData = null;
 
-        // DOM elements
-        const loadingState = document.getElementById('loadingState');
-        const reportsSection = document.getElementById('reportsSection');
-        const reportsGrid = document.getElementById('reportsGrid');
-        const noDataMessage = document.getElementById('noDataMessage');
-        const dataTablesSection = document.getElementById('dataTablesSection');
-        const assessmentsTableBody = document.getElementById('assessmentsTableBody');
-        const farmsTableBody = document.getElementById('farmsTableBody');
-        const filterModal = document.getElementById('filterModal');
-        const exportModal = document.getElementById('exportModal');
-        const viewModal = document.getElementById('viewModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalContent = document.getElementById('modalContent');
-        const editModalBtn = document.getElementById('editModalBtn');
-        const closeViewModal = document.getElementById('closeViewModal');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const filterBtn = document.getElementById('filterBtn');
-        const closeFilter = document.getElementById('closeFilter');
-        const closeExport = document.getElementById('closeExport');
-        const closeExportBtn = document.getElementById('closeExportBtn');
-        const applyFilters = document.getElementById('applyFilters');
-        const clearFilters = document.getElementById('clearFilters');
-        const dateFilter = document.getElementById('dateFilter');
-        const healthFilter = document.getElementById('healthFilter');
-        const diseaseFilter = document.getElementById('diseaseFilter');
-        const downloadAllBtn = document.getElementById('downloadAllBtn');
-        const invoiceReportBtn = document.getElementById('invoiceReportBtn');
-        const viewCardsBtn = document.getElementById('viewCardsBtn');
-        const viewTablesBtn = document.getElementById('viewTablesBtn');
+    // DOM elements - moved to global scope
+    let loadingState, reportsSection, reportsGrid, noDataMessage, dataTablesSection;
+    let assessmentsTableBody, farmsTableBody, filterModal, exportModal, viewModal;
+    let modalTitle, modalContent, editModalBtn, closeViewModal, closeModalBtn;
+    let filterBtn, closeFilter, closeExport, closeExportBtn, applyFilters;
+    let clearFilters, dateFilter, healthFilter, diseaseFilter, downloadAllBtn;
+    let invoiceReportBtn, viewCardsBtn, viewTablesBtn;
 
-        // Check authentication state
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                console.log('User is signed in:', user.email);
-                currentUser = user;
+    // Check authentication state
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            console.log('User is signed in:', user.email);
+            currentUser = user;
 
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        window.userData = userData;
-                        updateUserProfile(user, userData);
-                    } else {
-                        updateUserProfile(user, {});
-                    }
-
-                    // Load report data
-                    loadFarmReports();
-                } catch (error) {
-                    console.error('Error loading user data:', error);
+            try {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    window.userData = userData;
+                    updateUserProfile(user, userData);
+                } else {
                     updateUserProfile(user, {});
-                    showError("Failed to load user data. Please try again.");
                 }
-            } else {
-                console.log('User is not signed in');
-                window.location.href = 'signin.html';
+
+                // Initialize DOM elements AFTER they're loaded
+                initializeDOMElements();
+                
+                // Load report data
+                loadFarmReports();
+            } catch (error) {
+                console.error('Error loading user data:', error);
+                updateUserProfile(user, {});
+                showError("Failed to load user data. Please try again.");
+            }
+        } else {
+            console.log('User is not signed in');
+            window.location.href = 'signin.html';
+        }
+    });
+
+    function initializeDOMElements() {
+        // Initialize DOM elements
+        loadingState = document.getElementById('loadingState');
+        reportsSection = document.getElementById('reportsSection');
+        reportsGrid = document.getElementById('reportsGrid');
+        noDataMessage = document.getElementById('noDataMessage');
+        dataTablesSection = document.getElementById('dataTablesSection');
+        assessmentsTableBody = document.getElementById('assessmentsTableBody');
+        farmsTableBody = document.getElementById('farmsTableBody');
+        filterModal = document.getElementById('filterModal');
+        exportModal = document.getElementById('exportModal');
+        viewModal = document.getElementById('viewModal');
+        modalTitle = document.getElementById('modalTitle');
+        modalContent = document.getElementById('modalContent');
+        editModalBtn = document.getElementById('editModalBtn');
+        closeViewModal = document.getElementById('closeViewModal');
+        closeModalBtn = document.getElementById('closeModalBtn');
+        filterBtn = document.getElementById('filterBtn');
+        closeFilter = document.getElementById('closeFilter');
+        closeExport = document.getElementById('closeExport');
+        closeExportBtn = document.getElementById('closeExportBtn');
+        applyFilters = document.getElementById('applyFilters');
+        clearFilters = document.getElementById('clearFilters');
+        dateFilter = document.getElementById('dateFilter');
+        healthFilter = document.getElementById('healthFilter');
+        diseaseFilter = document.getElementById('diseaseFilter');
+        downloadAllBtn = document.getElementById('downloadAllBtn');
+        invoiceReportBtn = document.getElementById('invoiceReportBtn');
+        viewCardsBtn = document.getElementById('viewCardsBtn');
+        viewTablesBtn = document.getElementById('viewTablesBtn');
+
+        // Setup event listeners
+        setupEventListeners();
+    }
+
+    function updateUserProfile(user, userData) {
+        const userNameElement = document.querySelector('.user-name');
+        const userRoleElement = document.querySelector('.user-role');
+
+        const displayName = userData.firstName && userData.lastName
+            ? `${userData.firstName} ${userData.lastName}`
+            : userData.username
+                ? userData.username
+                : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+
+        if (userNameElement) userNameElement.textContent = displayName;
+        if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
+
+        // set avatar(s) safely
+        const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
+        const avatars = document.querySelectorAll('.user-avatar');
+        avatars.forEach(img => {
+            if (img) {
+                img.src = avatarSrc;
+                img.onerror = () => { img.src = 'images/default-avatar.png'; };
             }
         });
 
-        function updateUserProfile(user, userData) {
-            const userNameElement = document.querySelector('.user-name');
-            const userRoleElement = document.querySelector('.user-role');
+        // store for later in case sidebar is loaded after profile
+        window.userData = userData;
+    }
 
-            const displayName = userData.firstName && userData.lastName
-                ? `${userData.firstName} ${userData.lastName}`
-                : userData.username
-                    ? userData.username
-                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-
-            if (userNameElement) userNameElement.textContent = displayName;
-            if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
-
-            // set avatar(s) safely
-            const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
-            const avatars = document.querySelectorAll('.user-avatar');
-            avatars.forEach(img => {
-                if (img) {
-                    img.src = avatarSrc;
-                    img.onerror = () => { img.src = 'images/default-avatar.png'; };
-                }
-            });
-
-            // store for later in case sidebar is loaded after profile
-            window.userData = userData;
-        }
-
-        if (window.__sidebarLoaded) {
-            if (window.userData) updateUserProfile(window.currentUser, window.userData);
-        } else {
-            window.addEventListener('sidebar:loaded', () => {
-                if (window.currentUser) updateUserProfile(window.currentUser, window.userData || {});
-            }, { once: true });
-        }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function () {
-            setupEventListeners();
-        });
-
-        // Set up event listeners
-        function setupEventListeners() {
-            // View toggle
+    // Set up event listeners
+    function setupEventListeners() {
+        // View toggle
+        if (viewCardsBtn) {
             viewCardsBtn.addEventListener('click', () => {
                 viewCardsBtn.classList.add('active');
                 viewTablesBtn.classList.remove('active');
                 reportsSection.style.display = 'block';
                 dataTablesSection.style.display = 'none';
             });
+        }
 
+        if (viewTablesBtn) {
             viewTablesBtn.addEventListener('click', () => {
                 viewTablesBtn.classList.add('active');
                 viewCardsBtn.classList.remove('active');
                 reportsSection.style.display = 'none';
                 dataTablesSection.style.display = 'block';
             });
+        }
 
-            // Filter modal
+        // Filter modal
+        if (filterBtn) {
             filterBtn.addEventListener('click', () => {
+                filterModal.style.display = 'flex';
                 filterModal.classList.add('active');
             });
+        }
 
+        if (closeFilter) {
             closeFilter.addEventListener('click', () => {
+                filterModal.style.display = 'none';
                 filterModal.classList.remove('active');
             });
+        }
 
+        if (applyFilters) {
             applyFilters.addEventListener('click', () => {
                 applyFilter();
+                filterModal.style.display = 'none';
                 filterModal.classList.remove('active');
             });
+        }
 
+        if (clearFilters) {
             clearFilters.addEventListener('click', () => {
                 dateFilter.value = 'all';
                 healthFilter.value = 'all';
                 diseaseFilter.value = 'all';
                 applyFilter();
             });
+        }
 
-            // Export/Download buttons
+        // Export/Download buttons
+        if (downloadAllBtn) {
             downloadAllBtn.addEventListener('click', () => {
+                exportModal.style.display = 'flex';
                 exportModal.classList.add('active');
             });
+        }
 
+        if (invoiceReportBtn) {
             invoiceReportBtn.addEventListener('click', generateInvoiceReport);
+        }
 
-            // Export modal
+        // Export modal
+        if (closeExport) {
             closeExport.addEventListener('click', () => {
+                exportModal.style.display = 'none';
                 exportModal.classList.remove('active');
             });
+        }
 
+        if (closeExportBtn) {
             closeExportBtn.addEventListener('click', () => {
+                exportModal.style.display = 'none';
                 exportModal.classList.remove('active');
             });
+        }
 
-            // View modal
+        // View modal
+        if (closeViewModal) {
             closeViewModal.addEventListener('click', closeViewModalFunc);
+        }
+        
+        if (closeModalBtn) {
             closeModalBtn.addEventListener('click', closeViewModalFunc);
+        }
 
-            // Close modals when clicking outside
+        // Close modals when clicking outside
+        if (filterModal) {
             filterModal.addEventListener('click', (e) => {
                 if (e.target === filterModal) {
+                    filterModal.style.display = 'none';
                     filterModal.classList.remove('active');
                 }
             });
+        }
 
+        if (exportModal) {
             exportModal.addEventListener('click', (e) => {
                 if (e.target === exportModal) {
+                    exportModal.style.display = 'none';
                     exportModal.classList.remove('active');
                 }
             });
+        }
 
+        if (viewModal) {
             viewModal.addEventListener('click', (e) => {
                 if (e.target === viewModal) {
                     closeViewModalFunc();
                 }
             });
+        }
 
-            // Edit button in modal
+        // Edit button in modal
+        if (editModalBtn) {
             editModalBtn.addEventListener('click', () => {
                 if (currentModalData && currentModalData.type === 'assessment') {
                     editAssessment(currentModalData.id);
@@ -1272,46 +1315,24 @@
                     editFarm(currentModalData.id);
                 }
             });
-
-            // Sidebar Toggle Logic (Mobile Support)
-            const checkSidebar = setInterval(() => {
-                const sidebarToggle = document.getElementById('sidebarToggle');
-                const sidebar = document.querySelector('.sidebar');
-
-                if (sidebarToggle && sidebar) {
-                    clearInterval(checkSidebar);
-
-                    sidebarToggle.addEventListener('click', (e) => {
-                        if (window.innerWidth <= 768) {
-                            e.stopPropagation();
-                            sidebar.classList.toggle('active');
-
-                            const icon = sidebarToggle.querySelector('i');
-                            if (sidebar.classList.contains('active')) {
-                                icon.className = 'fas fa-chevron-left';
-                            } else {
-                                icon.className = 'fas fa-chevron-right';
-                            }
-                        }
-                    });
-                }
-            }, 100);
-
-            // Logout functionality
-            document.addEventListener('click', function (e) {
-                if (e.target.id === 'logoutBtn') {
-                    e.preventDefault();
-                    signOut(auth).then(() => {
-                        window.location.href = 'signin.html';
-                    }).catch((error) => {
-                        console.error('Logout error:', error);
-                    });
-                }
-            });
         }
 
-        // Show error message
-        function showError(message) {
+        // Logout functionality
+        document.addEventListener('click', function (e) {
+            if (e.target.id === 'logoutBtn') {
+                e.preventDefault();
+                signOut(auth).then(() => {
+                    window.location.href = 'signin.html';
+                }).catch((error) => {
+                    console.error('Logout error:', error);
+                });
+            }
+        });
+    }
+
+    // Show error message
+    function showError(message) {
+        if (loadingState) {
             loadingState.innerHTML = `
                 <div style="color: #e53935;">
                     <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
@@ -1323,216 +1344,224 @@
                 </div>
             `;
         }
+    }
 
-        // Load farm reports from Firebase
-        async function loadFarmReports() {
-            try {
-                // Load farms
-                const farmsQuery = query(
-                    collection(db, "farms"),
-                    where("userId", "==", currentUser.uid)
-                );
-                
-                const farmsSnapshot = await getDocs(farmsQuery);
-                allFarms = [];
-                farmsSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    allFarms.push({
-                        id: doc.id,
-                        ...data,
-                        createdAt: data.createdAt?.toDate() || new Date()
-                    });
-                });
-
-                console.log(`Loaded ${allFarms.length} farms`);
-
-                // Load assessments
-                const assessmentsQuery = query(
-                    collection(db, "assessments"),
-                    where("userId", "==", currentUser.uid)
-                );
-                
-                const assessmentsSnapshot = await getDocs(assessmentsQuery);
-                allAssessments = [];
-                assessmentsSnapshot.forEach(doc => {
-                    const data = doc.data();
-                    allAssessments.push({
-                        id: doc.id,
-                        ...data,
-                        date: data.date || data.timestamp?.toDate() || new Date(),
-                        timestamp: data.timestamp?.toDate() || new Date()
-                    });
-                });
-
-                console.log(`Loaded ${allAssessments.length} assessments`);
-
-                // Populate disease filter
-                populateDiseaseFilter();
-
-                // Apply initial filters
-                applyFilter();
-
-                // Hide loading state
-                loadingState.style.display = 'none';
-
-            } catch (error) {
-                console.error('Error loading farm reports:', error);
-                showError(error.message);
-            }
-        }
-
-        function populateDiseaseFilter() {
-            const diseases = [...new Set(allAssessments.map(a => a.disease).filter(d => d))];
-            diseaseFilter.innerHTML = '<option value="all">All Diseases</option>';
-            diseases.forEach(disease => {
-                const option = document.createElement('option');
-                option.value = disease;
-                option.textContent = disease;
-                diseaseFilter.appendChild(option);
-            });
-        }
-
-        function applyFilter() {
-            const dateRange = dateFilter.value;
-            const healthStatus = healthFilter.value;
-            const diseaseType = diseaseFilter.value;
-
-            filteredAssessments = allAssessments.filter(assessment => {
-                // Filter by date range
-                if (dateRange !== 'all') {
-                    const now = new Date();
-                    const assessmentDate = assessment.timestamp;
-                    let cutoffDate = new Date();
-
-                    switch (dateRange) {
-                        case 'week':
-                            cutoffDate.setDate(now.getDate() - 7);
-                            break;
-                        case 'month':
-                            cutoffDate.setDate(now.getDate() - 30);
-                            break;
-                        case 'quarter':
-                            cutoffDate.setDate(now.getDate() - 90);
-                            break;
-                        case 'year':
-                            cutoffDate.setFullYear(now.getFullYear() - 1);
-                            break;
-                    }
-
-                    if (assessmentDate < cutoffDate) {
-                        return false;
-                    }
-                }
-
-                // Filter by health status
-                if (healthStatus !== 'all' && assessment.healthStatus !== healthStatus) {
-                    return false;
-                }
-
-                // Filter by disease type
-                if (diseaseType !== 'all' && assessment.disease !== diseaseType) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            // Sort by date (newest first)
-            filteredAssessments.sort((a, b) => b.timestamp - a.timestamp);
-
-            updateUI();
-        }
-
-        function updateUI() {
-            if (filteredAssessments.length === 0 && allFarms.length === 0) {
-                reportsSection.style.display = 'none';
-                dataTablesSection.style.display = 'none';
-                noDataMessage.style.display = 'block';
-                return;
-            }
+    // Load farm reports from Firebase
+    async function loadFarmReports() {
+        try {
+            // Load farms
+            const farmsQuery = query(
+                collection(db, "farms"),
+                where("userId", "==", currentUser.uid)
+            );
             
-            reportsSection.style.display = 'block';
-            dataTablesSection.style.display = 'block';
-            noDataMessage.style.display = 'none';
-
-            // Update reports grid
-            updateReportsGrid();
-
-            // Update tables
-            updateTables();
-        }
-
-        function updateReportsGrid() {
-            reportsGrid.innerHTML = '';
-
-            filteredAssessments.slice(0, 6).forEach(assessment => {
-                const card = createReportCard(assessment);
-                reportsGrid.appendChild(card);
-            });
-        }
-
-        function createReportCard(assessment) {
-            const card = document.createElement('div');
-            card.className = 'report-card';
-
-            const date = new Date(assessment.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
+            const farmsSnapshot = await getDocs(farmsQuery);
+            allFarms = [];
+            farmsSnapshot.forEach(doc => {
+                const data = doc.data();
+                allFarms.push({
+                    id: doc.id,
+                    ...data,
+                    createdAt: data.createdAt?.toDate() || new Date()
+                });
             });
 
-            const healthStatus = assessment.healthStatus || 'Healthy';
-            let statusClass = 'status-healthy';
-            if (healthStatus === 'Infected') statusClass = 'status-infected';
-            else if (healthStatus === 'Warning') statusClass = 'status-warning';
+            console.log(`Loaded ${allFarms.length} farms`);
 
-            card.innerHTML = `
-                <div class="report-header">
-                    <div>
-                        <div class="report-title">${date}</div>
-                        <div class="report-date">${assessment.time || ''}</div>
-                    </div>
-                    <div class="health-score ${statusClass}">
-                        ${healthStatus}
-                    </div>
-                </div>
-                <div class="report-content">
-                    <div class="report-field">
-                        <span class="field-label">Disease:</span>
-                        <span class="field-value">${assessment.disease || 'None detected'}</span>
-                    </div>
-                    <div class="report-field">
-                        <span class="field-label">Detection Count:</span>
-                        <span class="field-value">${assessment.detectionCount || 0}</span>
-                    </div>
-                    <div class="report-field">
-                        <span class="field-label">Confidence:</span>
-                        <span class="field-value">${assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'}</span>
-                    </div>
-                    <div class="report-field">
-                        <span class="field-label">Location:</span>
-                        <span class="field-value">${assessment.location || 'Not specified'}</span>
-                    </div>
-                    <div class="report-field">
-                        <span class="field-label">Treatment:</span>
-                        <span class="field-value">${assessment.treatment ? 'Recommended' : 'None'}</span>
-                    </div>
-                </div>
-                <div class="report-actions">
-                    <button class="view-btn" onclick="viewAssessment('${assessment.id}')">
-                        <i class="fas fa-eye"></i> View
-                    </button>
-                    <button class="download-btn" onclick="downloadSingleAssessment('${assessment.id}')">
-                        <i class="fas fa-download"></i> PDF
-                    </button>
-                </div>
-            `;
+            // Load assessments
+            const assessmentsQuery = query(
+                collection(db, "assessments"),
+                where("userId", "==", currentUser.uid)
+            );
+            
+            const assessmentsSnapshot = await getDocs(assessmentsQuery);
+            allAssessments = [];
+            assessmentsSnapshot.forEach(doc => {
+                const data = doc.data();
+                allAssessments.push({
+                    id: doc.id,
+                    ...data,
+                    date: data.date || data.timestamp?.toDate() || new Date(),
+                    timestamp: data.timestamp?.toDate() || new Date()
+                });
+            });
 
-            return card;
+            console.log(`Loaded ${allAssessments.length} assessments`);
+
+            // Populate disease filter
+            populateDiseaseFilter();
+
+            // Apply initial filters
+            applyFilter();
+
+            // Hide loading state
+            if (loadingState) {
+                loadingState.style.display = 'none';
+            }
+
+        } catch (error) {
+            console.error('Error loading farm reports:', error);
+            showError(error.message);
         }
+    }
 
-        function updateTables() {
-            // Update assessments table
+    function populateDiseaseFilter() {
+        if (!diseaseFilter) return;
+        
+        const diseases = [...new Set(allAssessments.map(a => a.disease).filter(d => d))];
+        diseaseFilter.innerHTML = '<option value="all">All Diseases</option>';
+        diseases.forEach(disease => {
+            const option = document.createElement('option');
+            option.value = disease;
+            option.textContent = disease;
+            diseaseFilter.appendChild(option);
+        });
+    }
+
+    function applyFilter() {
+        const dateRange = dateFilter ? dateFilter.value : 'all';
+        const healthStatus = healthFilter ? healthFilter.value : 'all';
+        const diseaseType = diseaseFilter ? diseaseFilter.value : 'all';
+
+        filteredAssessments = allAssessments.filter(assessment => {
+            // Filter by date range
+            if (dateRange !== 'all') {
+                const now = new Date();
+                const assessmentDate = assessment.timestamp;
+                let cutoffDate = new Date();
+
+                switch (dateRange) {
+                    case 'week':
+                        cutoffDate.setDate(now.getDate() - 7);
+                        break;
+                    case 'month':
+                        cutoffDate.setDate(now.getDate() - 30);
+                        break;
+                    case 'quarter':
+                        cutoffDate.setDate(now.getDate() - 90);
+                        break;
+                    case 'year':
+                        cutoffDate.setFullYear(now.getFullYear() - 1);
+                        break;
+                }
+
+                if (assessmentDate < cutoffDate) {
+                    return false;
+                }
+            }
+
+            // Filter by health status
+            if (healthStatus !== 'all' && assessment.healthStatus !== healthStatus) {
+                return false;
+            }
+
+            // Filter by disease type
+            if (diseaseType !== 'all' && assessment.disease !== diseaseType) {
+                return false;
+            }
+
+            return true;
+        });
+
+        // Sort by date (newest first)
+        filteredAssessments.sort((a, b) => b.timestamp - a.timestamp);
+
+        updateUI();
+    }
+
+    function updateUI() {
+        if (filteredAssessments.length === 0 && allFarms.length === 0) {
+            if (reportsSection) reportsSection.style.display = 'none';
+            if (dataTablesSection) dataTablesSection.style.display = 'none';
+            if (noDataMessage) noDataMessage.style.display = 'block';
+            return;
+        }
+        
+        if (reportsSection) reportsSection.style.display = 'block';
+        if (dataTablesSection) dataTablesSection.style.display = 'block';
+        if (noDataMessage) noDataMessage.style.display = 'none';
+
+        // Update reports grid
+        updateReportsGrid();
+
+        // Update tables
+        updateTables();
+    }
+
+    function updateReportsGrid() {
+        if (!reportsGrid) return;
+        
+        reportsGrid.innerHTML = '';
+
+        filteredAssessments.slice(0, 6).forEach(assessment => {
+            const card = createReportCard(assessment);
+            reportsGrid.appendChild(card);
+        });
+    }
+
+    function createReportCard(assessment) {
+        const card = document.createElement('div');
+        card.className = 'report-card';
+
+        const date = new Date(assessment.date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+
+        const healthStatus = assessment.healthStatus || 'Healthy';
+        let statusClass = 'status-healthy';
+        if (healthStatus === 'Infected') statusClass = 'status-infected';
+        else if (healthStatus === 'Warning') statusClass = 'status-warning';
+
+        card.innerHTML = `
+            <div class="report-header">
+                <div>
+                    <div class="report-title">${date}</div>
+                    <div class="report-date">${assessment.time || ''}</div>
+                </div>
+                <div class="health-score ${statusClass}">
+                    ${healthStatus}
+                </div>
+            </div>
+            <div class="report-content">
+                <div class="report-field">
+                    <span class="field-label">Disease:</span>
+                    <span class="field-value">${assessment.disease || 'None detected'}</span>
+                </div>
+                <div class="report-field">
+                    <span class="field-label">Detection Count:</span>
+                    <span class="field-value">${assessment.detectionCount || 0}</span>
+                </div>
+                <div class="report-field">
+                    <span class="field-label">Confidence:</span>
+                    <span class="field-value">${assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'}</span>
+                </div>
+                <div class="report-field">
+                    <span class="field-label">Location:</span>
+                    <span class="field-value">${assessment.location || 'Not specified'}</span>
+                </div>
+                <div class="report-field">
+                    <span class="field-label">Treatment:</span>
+                    <span class="field-value">${assessment.treatment ? 'Recommended' : 'None'}</span>
+                </div>
+            </div>
+            <div class="report-actions">
+                <button class="view-btn" onclick="window.viewAssessment('${assessment.id}')">
+                    <i class="fas fa-eye"></i> View
+                </button>
+                <button class="download-btn" onclick="window.downloadSingleAssessment('${assessment.id}')">
+                    <i class="fas fa-download"></i> PDF
+                </button>
+            </div>
+        `;
+
+        return card;
+    }
+
+    function updateTables() {
+        // Update assessments table
+        if (assessmentsTableBody) {
             assessmentsTableBody.innerHTML = '';
             
             filteredAssessments.forEach(assessment => {
@@ -1559,7 +1588,7 @@
                     <td>${assessment.detectionCount || 0}</td>
                     <td>
                         ${assessment.image ? 
-                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="viewImage('${assessment.image}')">` : 
+                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="window.viewImage('${assessment.image}')">` : 
                             '<span style="color: var(--text-lighter);">No image</span>'
                         }
                     </td>
@@ -1567,13 +1596,13 @@
                     <td>${assessment.treatment || 'None'}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view-action" onclick="viewAssessment('${assessment.id}')">
+                            <button class="action-btn view-action" onclick="window.viewAssessment('${assessment.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn edit-action" onclick="editAssessment('${assessment.id}')">
+                            <button class="action-btn edit-action" onclick="window.editAssessment('${assessment.id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="action-btn delete-action" onclick="deleteAssessment('${assessment.id}')">
+                            <button class="action-btn delete-action" onclick="window.deleteAssessment('${assessment.id}')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -1582,8 +1611,10 @@
                 
                 assessmentsTableBody.appendChild(row);
             });
+        }
 
-            // Update farms table
+        // Update farms table
+        if (farmsTableBody) {
             farmsTableBody.innerHTML = '';
             
             allFarms.forEach(farm => {
@@ -1593,7 +1624,7 @@
                 let imagesHtml = '<span style="color: var(--text-lighter);">No images</span>';
                 if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
                     imagesHtml = farm.images.slice(0, 3).map((img, index) => 
-                        `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="viewImage('${img}')">`
+                        `<img src="${img}" alt="Farm ${index+1}" class="image-preview" onclick="window.viewImage('${img}')">`
                     ).join(' ');
                     if (farm.images.length > 3) {
                         imagesHtml += ` <span style="color: var(--text-lighter);">+${farm.images.length - 3} more</span>`;
@@ -1610,13 +1641,13 @@
                     <td>${imagesHtml}</td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn view-action" onclick="viewFarm('${farm.id}')">
+                            <button class="action-btn view-action" onclick="window.viewFarm('${farm.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="action-btn edit-action" onclick="editFarm('${farm.id}')">
+                            <button class="action-btn edit-action" onclick="window.editFarm('${farm.id}')">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="action-btn delete-action" onclick="deleteFarm('${farm.id}')">
+                            <button class="action-btn delete-action" onclick="window.deleteFarm('${farm.id}')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </div>
@@ -1626,345 +1657,356 @@
                 farmsTableBody.appendChild(row);
             });
         }
+    }
 
-        // ==================== VIEW FUNCTIONS ====================
-        function viewAssessment(assessmentId) {
-            console.log('View assessment called:', assessmentId);
-            const assessment = filteredAssessments.find(a => a.id === assessmentId);
-            if (assessment) {
-                // Save to sessionStorage as backup
-                sessionStorage.setItem('currentAssessment', JSON.stringify(assessment));
-                currentModalData = { type: 'assessment', id: assessmentId, data: assessment };
-                
-                // Show in modal
-                showAssessmentModal(assessment);
-            } else {
-                console.error('Assessment not found:', assessmentId);
-                alert('Assessment not found!');
-            }
-        }
-
-        function viewFarm(farmId) {
-            console.log('View farm called:', farmId);
-            const farm = allFarms.find(f => f.id === farmId);
-            if (farm) {
-                // Save to sessionStorage as backup
-                sessionStorage.setItem('currentFarm', JSON.stringify(farm));
-                currentModalData = { type: 'farm', id: farmId, data: farm };
-                
-                // Show in modal
-                showFarmModal(farm);
-            } else {
-                console.error('Farm not found:', farmId);
-                alert('Farm not found!');
-            }
-        }
-
-        function viewImage(imageUrl) {
-            if (imageUrl) {
-                window.open(imageUrl, '_blank');
-            }
-        }
-
-        // ==================== EDIT FUNCTIONS ====================
-        function editAssessment(assessmentId) {
-            console.log('Edit assessment called:', assessmentId);
-            const assessment = filteredAssessments.find(a => a.id === assessmentId);
-            if (assessment) {
-                sessionStorage.setItem('editAssessment', JSON.stringify(assessment));
-                
-                // Check if edit page exists, if not show modal
-                checkPageExists('edit-assessment.html', () => {
-                    window.location.href = 'edit-assessment.html?id=' + assessmentId;
-                }, () => {
-                    // If page doesn't exist, show edit in modal
-                    showAssessmentModal(assessment, true);
-                });
-            }
-        }
-
-        function editFarm(farmId) {
-            console.log('Edit farm called:', farmId);
-            const farm = allFarms.find(f => f.id === farmId);
-            if (farm) {
-                sessionStorage.setItem('editFarm', JSON.stringify(farm));
-                
-                // Check if edit page exists, if not show modal
-                checkPageExists('edit-farm.html', () => {
-                    window.location.href = 'edit-farm.html?id=' + farmId;
-                }, () => {
-                    // If page doesn't exist, show edit in modal
-                    showFarmModal(farm, true);
-                });
-            }
-        }
-
-        // ==================== MODAL FUNCTIONS ====================
-        function closeViewModalFunc() {
-            viewModal.style.display = 'none';
-            editModalBtn.style.display = 'none';
-            currentModalData = null;
-        }
-
-        function showAssessmentModal(assessment, isEditMode = false) {
-            const date = new Date(assessment.date).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric'
-            });
+    // ==================== VIEW FUNCTIONS ====================
+    window.viewAssessment = function(assessmentId) {
+        console.log('View assessment called:', assessmentId);
+        const assessment = filteredAssessments.find(a => a.id === assessmentId);
+        if (assessment) {
+            // Save to sessionStorage as backup
+            sessionStorage.setItem('currentAssessment', JSON.stringify(assessment));
+            currentModalData = { type: 'assessment', id: assessmentId, data: assessment };
             
-            const healthStatus = assessment.healthStatus || 'Healthy';
-            let statusClass = 'status-healthy';
-            if (healthStatus === 'Infected') statusClass = 'status-infected';
-            else if (healthStatus === 'Warning') statusClass = 'status-warning';
+            // Show in modal
+            showAssessmentModal(assessment);
+        } else {
+            console.error('Assessment not found:', assessmentId);
+            alert('Assessment not found!');
+        }
+    }
 
-            let imageHtml = '';
-            if (assessment.image) {
-                imageHtml = `
-                    <div style="margin:15px 0;">
-                        <strong class="modal-data-label">Image:</strong>
-                        <img src="${assessment.image}" alt="Assessment" class="modal-image" onclick="viewImage('${assessment.image}')">
-                    </div>
-                `;
-            }
+    window.viewFarm = function(farmId) {
+        console.log('View farm called:', farmId);
+        const farm = allFarms.find(f => f.id === farmId);
+        if (farm) {
+            // Save to sessionStorage as backup
+            sessionStorage.setItem('currentFarm', JSON.stringify(farm));
+            currentModalData = { type: 'farm', id: farmId, data: farm };
+            
+            // Show in modal
+            showFarmModal(farm);
+        } else {
+            console.error('Farm not found:', farmId);
+            alert('Farm not found!');
+        }
+    }
 
-            let detectionsHtml = '';
-            if (assessment.detections && Array.isArray(assessment.detections) && assessment.detections.length > 0) {
-                detectionsHtml = `
-                    <div style="margin:15px 0;">
-                        <strong class="modal-data-label">Detections:</strong>
-                        <ul class="modal-detection-list">
-                            ${assessment.detections.map((det, index) => `
-                                <li class="modal-detection-item">${index + 1}. ${det.disease || 'Unknown'}: ${det.confidence ? Math.round(det.confidence * 100) : 0}% confidence</li>
-                            `).join('')}
-                        </ul>
-                    </div>
-                `;
-            }
+    window.viewImage = function(imageUrl) {
+        if (imageUrl) {
+            window.open(imageUrl, '_blank');
+        }
+    }
 
-            const html = `
-                <div class="modal-data-grid">
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Date</span>
-                        <span class="modal-data-value">${date}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Time</span>
-                        <span class="modal-data-value">${assessment.time || 'N/A'}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Disease</span>
-                        <span class="modal-data-value">${assessment.disease || 'None detected'}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Health Status</span>
-                        <span class="modal-data-value">
-                            <span class="status-badge ${statusClass}">${healthStatus}</span>
-                        </span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Detection Count</span>
-                        <span class="modal-data-value">${assessment.detectionCount || 0}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Confidence</span>
-                        <span class="modal-data-value">${assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'}</span>
+    // ==================== EDIT FUNCTIONS ====================
+    window.editAssessment = function(assessmentId) {
+        console.log('Edit assessment called:', assessmentId);
+        const assessment = filteredAssessments.find(a => a.id === assessmentId);
+        if (assessment) {
+            sessionStorage.setItem('editAssessment', JSON.stringify(assessment));
+            
+            // Check if edit page exists, if not show modal
+            checkPageExists('edit-assessment.html', () => {
+                window.location.href = 'edit-assessment.html?id=' + assessmentId;
+            }, () => {
+                // If page doesn't exist, show edit in modal
+                showAssessmentModal(assessment, true);
+            });
+        }
+    }
+
+    window.editFarm = function(farmId) {
+        console.log('Edit farm called:', farmId);
+        const farm = allFarms.find(f => f.id === farmId);
+        if (farm) {
+            sessionStorage.setItem('editFarm', JSON.stringify(farm));
+            
+            // Check if edit page exists, if not show modal
+            checkPageExists('edit-farm.html', () => {
+                window.location.href = 'edit-farm.html?id=' + farmId;
+            }, () => {
+                // If page doesn't exist, show edit in modal
+                showFarmModal(farm, true);
+            });
+        }
+    }
+
+    // ==================== MODAL FUNCTIONS ====================
+    function closeViewModalFunc() {
+        if (viewModal) {
+            viewModal.style.display = 'none';
+        }
+        if (editModalBtn) {
+            editModalBtn.style.display = 'none';
+        }
+        currentModalData = null;
+    }
+
+    function showAssessmentModal(assessment, isEditMode = false) {
+        const date = new Date(assessment.date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        
+        const healthStatus = assessment.healthStatus || 'Healthy';
+        let statusClass = 'status-healthy';
+        if (healthStatus === 'Infected') statusClass = 'status-infected';
+        else if (healthStatus === 'Warning') statusClass = 'status-warning';
+
+        let imageHtml = '';
+        if (assessment.image) {
+            imageHtml = `
+                <div style="margin:15px 0;">
+                    <strong class="modal-data-label">Image:</strong>
+                    <img src="${assessment.image}" alt="Assessment" class="modal-image" onclick="window.viewImage('${assessment.image}')">
+                </div>
+            `;
+        }
+
+        let detectionsHtml = '';
+        if (assessment.detections && Array.isArray(assessment.detections) && assessment.detections.length > 0) {
+            detectionsHtml = `
+                <div style="margin:15px 0;">
+                    <strong class="modal-data-label">Detections:</strong>
+                    <ul class="modal-detection-list">
+                        ${assessment.detections.map((det, index) => `
+                            <li class="modal-detection-item">${index + 1}. ${det.disease || 'Unknown'}: ${det.confidence ? Math.round(det.confidence * 100) : 0}% confidence</li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        const html = `
+            <div class="modal-data-grid">
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Date</span>
+                    <span class="modal-data-value">${date}</span>
+                </div>
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Time</span>
+                    <span class="modal-data-value">${assessment.time || 'N/A'}</span>
+                </div>
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Disease</span>
+                    <span class="modal-data-value">${assessment.disease || 'None detected'}</span>
+                </div>
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Health Status</span>
+                    <span class="modal-data-value">
+                        <span class="status-badge ${statusClass}">${healthStatus}</span>
+                    </span>
+                </div>
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Detection Count</span>
+                    <span class="modal-data-value">${assessment.detectionCount || 0}</span>
+                </div>
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Confidence</span>
+                    <span class="modal-data-value">${assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'}</span>
+                </div>
+            </div>
+            
+            <div class="modal-data-item">
+                <span class="modal-data-label">Location</span>
+                <span class="modal-data-value">${assessment.location || 'Not specified'}</span>
+            </div>
+            
+            <div class="modal-data-item">
+                <span class="modal-data-label">Treatment</span>
+                <div class="modal-data-value" style="white-space: pre-wrap;">${assessment.treatment || 'None'}</div>
+            </div>
+            
+            ${imageHtml}
+            ${detectionsHtml}
+            
+            <div class="modal-id-badge">
+                <strong>Assessment ID:</strong> ${assessment.id || 'N/A'}
+            </div>
+        `;
+
+        if (modalTitle) modalTitle.textContent = 'Assessment Details';
+        if (modalContent) modalContent.innerHTML = html;
+        if (editModalBtn) editModalBtn.style.display = 'inline-block';
+        if (viewModal) viewModal.style.display = 'flex';
+    }
+
+    function showFarmModal(farm, isEditMode = false) {
+        let imagesHtml = '';
+        if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
+            imagesHtml = `
+                <div style="margin:15px 0;">
+                    <strong class="modal-data-label">Images (${farm.images.length}):</strong>
+                    <div class="modal-images-container">
+                        ${farm.images.slice(0, 4).map((img, index) => `
+                            <img src="${img}" alt="Farm Image ${index + 1}" class="modal-image" onclick="window.viewImage('${img}')">
+                        `).join('')}
+                        ${farm.images.length > 4 ? `
+                            <div style="width:80px; height:80px; background:#f0f0f0; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px dashed #ccc;">
+                                <span style="color:#666; font-size:0.9rem;">+${farm.images.length - 4}</span>
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
-                
+            `;
+        }
+
+        const createdAt = farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A';
+        const statusClass = farm.status === 'Active' ? 'status-healthy' : 'status-warning';
+
+        const html = `
+            <div class="modal-data-grid">
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Farm Name</span>
+                    <span class="modal-data-value">${farm.name || 'Unnamed Farm'}</span>
+                </div>
                 <div class="modal-data-item">
                     <span class="modal-data-label">Location</span>
-                    <span class="modal-data-value">${assessment.location || 'Not specified'}</span>
+                    <span class="modal-data-value">${farm.location || 'Not specified'}</span>
                 </div>
-                
                 <div class="modal-data-item">
-                    <span class="modal-data-label">Treatment</span>
-                    <div class="modal-data-value" style="white-space: pre-wrap;">${assessment.treatment || 'None'}</div>
+                    <span class="modal-data-label">Area</span>
+                    <span class="modal-data-value">${farm.area || 'N/A'}</span>
                 </div>
-                
-                ${imageHtml}
-                ${detectionsHtml}
-                
-                <div class="modal-id-badge">
-                    <strong>Assessment ID:</strong> ${assessment.id || 'N/A'}
-                </div>
-            `;
-
-            modalTitle.textContent = 'Assessment Details';
-            modalContent.innerHTML = html;
-            editModalBtn.style.display = 'inline-block';
-            viewModal.style.display = 'flex';
-        }
-
-        function showFarmModal(farm, isEditMode = false) {
-            let imagesHtml = '';
-            if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
-                imagesHtml = `
-                    <div style="margin:15px 0;">
-                        <strong class="modal-data-label">Images (${farm.images.length}):</strong>
-                        <div class="modal-images-container">
-                            ${farm.images.slice(0, 4).map((img, index) => `
-                                <img src="${img}" alt="Farm Image ${index + 1}" class="modal-image" onclick="viewImage('${img}')">
-                            `).join('')}
-                            ${farm.images.length > 4 ? `
-                                <div style="width:80px; height:80px; background:#f0f0f0; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px dashed #ccc;">
-                                    <span style="color:#666; font-size:0.9rem;">+${farm.images.length - 4}</span>
-                                </div>
-                            ` : ''}
-                        </div>
-                    </div>
-                `;
-            }
-
-            const createdAt = farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A';
-            const statusClass = farm.status === 'Active' ? 'status-healthy' : 'status-warning';
-
-            const html = `
-                <div class="modal-data-grid">
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Farm Name</span>
-                        <span class="modal-data-value">${farm.name || 'Unnamed Farm'}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Location</span>
-                        <span class="modal-data-value">${farm.location || 'Not specified'}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Area</span>
-                        <span class="modal-data-value">${farm.area || 'N/A'}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Crops</span>
-                        <span class="modal-data-value">${farm.crops || 'Oil Palm'}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Soil Type</span>
-                        <span class="modal-data-value">${farm.soilType || 'Not specified'}</span>
-                    </div>
-                    <div class="modal-data-item">
-                        <span class="modal-data-label">Status</span>
-                        <span class="modal-data-value">
-                            <span class="status-badge ${statusClass}">${farm.status || 'Active'}</span>
-                        </span>
-                    </div>
-                </div>
-                
                 <div class="modal-data-item">
-                    <span class="modal-data-label">Created</span>
-                    <span class="modal-data-value">${createdAt}</span>
+                    <span class="modal-data-label">Crops</span>
+                    <span class="modal-data-value">${farm.crops || 'Oil Palm'}</span>
                 </div>
-                
-                ${imagesHtml}
-                
-                <div class="modal-id-badge">
-                    <strong>Farm ID:</strong> ${farm.id || 'N/A'}
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Soil Type</span>
+                    <span class="modal-data-value">${farm.soilType || 'Not specified'}</span>
                 </div>
-            `;
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Status</span>
+                    <span class="modal-data-value">
+                        <span class="status-badge ${statusClass}">${farm.status || 'Active'}</span>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="modal-data-item">
+                <span class="modal-data-label">Created</span>
+                <span class="modal-data-value">${createdAt}</span>
+            </div>
+            
+            ${imagesHtml}
+            
+            <div class="modal-id-badge">
+                <strong>Farm ID:</strong> ${farm.id || 'N/A'}
+            </div>
+        `;
 
-            modalTitle.textContent = 'Farm Details';
-            modalContent.innerHTML = html;
-            editModalBtn.style.display = 'inline-block';
-            viewModal.style.display = 'flex';
-        }
+        if (modalTitle) modalTitle.textContent = 'Farm Details';
+        if (modalContent) modalContent.innerHTML = html;
+        if (editModalBtn) editModalBtn.style.display = 'inline-block';
+        if (viewModal) viewModal.style.display = 'flex';
+    }
 
-        // Helper function to check if a page exists
-        function checkPageExists(url, successCallback, fallbackCallback) {
-            fetch(url, { method: 'HEAD' })
-                .then(response => {
-                    if (response.ok) {
-                        successCallback();
-                    } else {
-                        fallbackCallback();
-                    }
-                })
-                .catch(() => {
+    // Helper function to check if a page exists
+    function checkPageExists(url, successCallback, fallbackCallback) {
+        fetch(url, { method: 'HEAD' })
+            .then(response => {
+                if (response.ok) {
+                    successCallback();
+                } else {
                     fallbackCallback();
-                });
-        }
-
-        // ==================== DELETE FUNCTIONS ====================
-        async function deleteAssessment(assessmentId) {
-            if (confirm('Are you sure you want to delete this assessment?')) {
-                try {
-                    await deleteDoc(doc(db, "assessments", assessmentId));
-                    
-                    // Remove from local arrays
-                    const index = allAssessments.findIndex(a => a.id === assessmentId);
-                    if (index !== -1) {
-                        allAssessments.splice(index, 1);
-                    }
-                    
-                    const filteredIndex = filteredAssessments.findIndex(a => a.id === assessmentId);
-                    if (filteredIndex !== -1) {
-                        filteredAssessments.splice(filteredIndex, 1);
-                    }
-                    
-                    // Update UI
-                    updateUI();
-                    alert('Assessment deleted successfully!');
-                } catch (error) {
-                    console.error('Error deleting assessment:', error);
-                    alert('Failed to delete assessment. Please try again.');
                 }
-            }
-        }
+            })
+            .catch(() => {
+                fallbackCallback();
+            });
+    }
 
-        async function deleteFarm(farmId) {
-            if (confirm('Are you sure you want to delete this farm? This will also delete all associated assessments.')) {
-                try {
-                    // Delete farm
-                    await deleteDoc(doc(db, "farms", farmId));
-                    
-                    // Delete associated assessments
-                    const assessmentsQuery = query(
-                        collection(db, "assessments"),
-                        where("farmId", "==", farmId)
-                    );
-                    const assessmentsSnapshot = await getDocs(assessmentsQuery);
-                    
-                    const deletePromises = assessmentsSnapshot.docs.map(doc => deleteDoc(doc.ref));
-                    await Promise.all(deletePromises);
-                    
-                    // Remove from local arrays
-                    allFarms = allFarms.filter(f => f.id !== farmId);
-                    allAssessments = allAssessments.filter(a => a.farmId !== farmId);
-                    filteredAssessments = filteredAssessments.filter(a => a.farmId !== farmId);
-                    
-                    // Update UI
-                    updateUI();
-                    alert('Farm and associated assessments deleted successfully!');
-                } catch (error) {
-                    console.error('Error deleting farm:', error);
-                    alert('Failed to delete farm. Please try again.');
+    // ==================== DELETE FUNCTIONS ====================
+    window.deleteAssessment = async function(assessmentId) {
+        if (confirm('Are you sure you want to delete this assessment?')) {
+            try {
+                await deleteDoc(doc(db, "assessments", assessmentId));
+                
+                // Remove from local arrays
+                const index = allAssessments.findIndex(a => a.id === assessmentId);
+                if (index !== -1) {
+                    allAssessments.splice(index, 1);
                 }
+                
+                const filteredIndex = filteredAssessments.findIndex(a => a.id === assessmentId);
+                if (filteredIndex !== -1) {
+                    filteredAssessments.splice(filteredIndex, 1);
+                }
+                
+                // Update UI
+                updateUI();
+                alert('Assessment deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting assessment:', error);
+                alert('Failed to delete assessment. Please try again.');
             }
         }
+    }
 
-        // ==================== PDF FUNCTIONS ====================
-        function downloadSingleAssessment(assessmentId) {
-            const assessment = filteredAssessments.find(a => a.id === assessmentId);
-            if (assessment) {
-                generateSingleAssessmentPDF(assessment);
+    window.deleteFarm = async function(farmId) {
+        if (confirm('Are you sure you want to delete this farm? This will also delete all associated assessments.')) {
+            try {
+                // Delete farm
+                await deleteDoc(doc(db, "farms", farmId));
+                
+                // Delete associated assessments
+                const assessmentsQuery = query(
+                    collection(db, "assessments"),
+                    where("farmId", "==", farmId)
+                );
+                const assessmentsSnapshot = await getDocs(assessmentsQuery);
+                
+                const deletePromises = assessmentsSnapshot.docs.map(doc => deleteDoc(doc.ref));
+                await Promise.all(deletePromises);
+                
+                // Remove from local arrays
+                allFarms = allFarms.filter(f => f.id !== farmId);
+                allAssessments = allAssessments.filter(a => a.farmId !== farmId);
+                filteredAssessments = filteredAssessments.filter(a => a.farmId !== farmId);
+                
+                // Update UI
+                updateUI();
+                alert('Farm and associated assessments deleted successfully!');
+            } catch (error) {
+                console.error('Error deleting farm:', error);
+                alert('Failed to delete farm. Please try again.');
             }
         }
+    }
 
-        function downloadSinglePDF() {
-            if (filteredAssessments.length === 0) {
-                alert('No reports available to download.');
-                return;
-            }
-            generateCurrentViewPDF();
+    // ==================== PDF FUNCTIONS ====================
+    window.downloadSingleAssessment = function(assessmentId) {
+        const assessment = filteredAssessments.find(a => a.id === assessmentId);
+        if (assessment) {
+            generateSingleAssessmentPDF(assessment);
+        }
+    }
+
+    window.downloadSinglePDF = function() {
+        if (filteredAssessments.length === 0) {
+            alert('No reports available to download.');
+            return;
+        }
+        generateCurrentViewPDF();
+        if (exportModal) {
+            exportModal.style.display = 'none';
             exportModal.classList.remove('active');
         }
+    }
 
-        function downloadAllPDF() {
-            if (allAssessments.length === 0 && allFarms.length === 0) {
-                alert('No data available to download.');
-                return;
-            }
-            generateCompleteReportPDF();
+    window.downloadAllPDF = function() {
+        if (allAssessments.length === 0 && allFarms.length === 0) {
+            alert('No data available to download.');
+            return;
+        }
+        generateCompleteReportPDF();
+        if (exportModal) {
+            exportModal.style.display = 'none';
             exportModal.classList.remove('active');
         }
+    }
 
         async function generateSingleAssessmentPDF(assessment) {
             try {
