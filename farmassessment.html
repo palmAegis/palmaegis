@@ -668,6 +668,15 @@
             badgeClass: 'blackspot-badge',
             defaultThreshold: 0.5
         }
+        'healthy': {
+            name: 'Healthy Leaves Detection',
+            url: 'https://serverless.roboflow.com/date-final/1',
+            apiKey: 'KOIYcp3E5rAFhgSploex',
+            color: '#3B82F6',
+            badgeClass: 'healthy-badge',
+            defaultThreshold: 0.5,
+            validClasses: ['Healthy', 'healthy', 'normal', 'good', 'leaf', 'leaves']
+        }
     };
 
     // Disease codes for ID generation
@@ -1135,6 +1144,10 @@
             confidenceThreshold = models.blackspot.defaultThreshold;
             confidenceSlider.value = models.blackspot.defaultThreshold * 100;
             confidenceValue.textContent = Math.round(models.blackspot.defaultThreshold * 100) + '%';
+        } else if (diseaseType === 'healthy') {
+            confidenceThreshold = models.healthy.defaultThreshold;
+            confidenceSlider.value = models.healthy.defaultThreshold * 100;
+            confidenceValue.textContent = Math.round(models.healthy.defaultThreshold * 100) + '%';
         }
     }
 
@@ -1340,11 +1353,17 @@
         const hasBlackspot = detections.some(pred =>
             pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
         );
+        const hasHealthy = detections.some(pred =>
+            pred.model === 'healthy' && pred.confidence >= models.healthy.defaultThreshold &&
+            models.healthy.validClasses.includes(pred.class)
+        );
 
         if (hasGanoderma) {
             setThresholdByDisease('ganoderma');
         } else if (hasBlackspot) {
             setThresholdByDisease('blackspot');
+        } else if (hasHealthy) {
+            setThresholdByDisease('healthy');
         } else {
             currentDiseaseType = null;
         }
