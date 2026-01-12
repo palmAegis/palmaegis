@@ -623,310 +623,313 @@
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     
     <script type="module">
-    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-    import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
-    import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js'; 
+import { getFirestore, doc, getDoc, collection, addDoc, serverTimestamp, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
 
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-        authDomain: "palmaegis-setup.firebaseapp.com",
-        projectId: "palmaegis-setup",
-        storageBucket: "palmaegis-setup.firebasestorage.app",
-        messagingSenderId: "445887502374",
-        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-    };
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+    authDomain: "palmaegis-setup.firebaseapp.com",
+    projectId: "palmaegis-setup",
+    storageBucket: "palmaegis-setup.firebasestorage.app",
+    messagingSenderId: "445887502374",
+    appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+};
 
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-    // Global variables
-    window.firebaseApp = app;
-    window.firebaseAuth = auth;
-    window.firestoreDb = db;
-    window.firebaseAddDoc = addDoc;
-    window.firebaseCollection = collection;
-    window.firebaseServerTimestamp = serverTimestamp;
+// Global variables
+window.firebaseApp = app;
+window.firebaseAuth = auth;
+window.firestoreDb = db;
+window.firebaseAddDoc = addDoc;
+window.firebaseCollection = collection;
+window.firebaseServerTimestamp = serverTimestamp;
 
-    // Configuration for multiple models
-    const models = {
-        'ganoderma': {
-            name: 'Ganoderma Detection',
-            url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
-            apiKey: 'KOIYcp3E5rAFhgSploex',
-            color: '#28a745',
-            badgeClass: 'ganoderma-badge',
-            defaultThreshold: 0.7
-        },
-        'blackspot': {
-            name: 'Blackspot Disease Detection',
-            url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
-            apiKey: 'KOIYcp3E5rAFhgSploex',
-            color: '#dc3545',
-            badgeClass: 'blackspot-badge',
-            defaultThreshold: 0.5
-        },
-        'healthy': {
-            name: 'Healthy Leaves Detection',
-            url: 'https://serverless.roboflow.com/date-final/1',
-            apiKey: 'KOIYcp3E5rAFhgSploex',
-            color: '#3B82F6',
-            badgeClass: 'healthy-badge',
-            defaultThreshold: 0.5,
-            validClasses: ['Healthy', 'healthy', 'normal', 'good', 'leaf', 'leaves']
-        }
-    };
+// Configuration for multiple models
+const models = {
+    'ganoderma': {
+        name: 'Ganoderma Detection',
+        url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
+        apiKey: 'KOIYcp3E5rAFhgSploex',
+        color: '#28a745',
+        badgeClass: 'ganoderma-badge',
+        defaultThreshold: 0.7
+    },
+    'blackspot': {
+        name: 'Blackspot Disease Detection',
+        url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
+        apiKey: 'KOIYcp3E5rAFhgSploex',
+        color: '#dc3545',
+        badgeClass: 'blackspot-badge',
+        defaultThreshold: 0.5
+    },
+    'healthy': {
+        name: 'Healthy Leaves Detection',
+        url: 'https://serverless.roboflow.com/date-final/1',
+        apiKey: 'KOIYcp3E5rAFhgSploex',
+        color: '#3B82F6',
+        badgeClass: 'healthy-badge',
+        defaultThreshold: 0.5,
+        validClasses: ['Healthy', 'healthy', 'normal', 'good', 'leaf', 'leaves']
+    }
+};
 
-    // Disease codes for ID generation
-    const diseaseCodes = {
-        'ganoderma': 'GAN',
-        'blackspot': 'BLS',
-        'healthy': 'HLT',
-        'unknown': 'UNK'
-    };
+// Disease codes for ID generation
+const diseaseCodes = {
+    'ganoderma': 'GAN',
+    'blackspot': 'BLS',
+    'healthy': 'HLT',
+    'unknown': 'UNK',
+    'no_palm': 'NOP'
+};
 
-    // Variables
-    const fileInput = document.getElementById('fileInput');
-    const loading = document.getElementById('loading');
-    const noImage = document.getElementById('noImage');
-    const previewCanvas = document.getElementById('previewCanvas');
-    const imageContainer = document.getElementById('imageContainer');
-    const detectionsList = document.getElementById('detectionsList');
-    const objectsCount = document.getElementById('objectsCount');
-    const confidenceSlider = document.getElementById('confidenceSlider');
-    const confidenceValue = document.getElementById('confidenceValue');
-    const cameraContainer = document.getElementById('cameraContainer');
-    const cameraVideo = document.getElementById('cameraVideo');
+// Variables
+const fileInput = document.getElementById('fileInput');
+const loading = document.getElementById('loading');
+const noImage = document.getElementById('noImage');
+const previewCanvas = document.getElementById('previewCanvas');
+const imageContainer = document.getElementById('imageContainer');
+const detectionsList = document.getElementById('detectionsList');
+const objectsCount = document.getElementById('objectsCount');
+const confidenceSlider = document.getElementById('confidenceSlider');
+const confidenceValue = document.getElementById('confidenceValue');
+const cameraContainer = document.getElementById('cameraContainer');
+const cameraVideo = document.getElementById('cameraVideo');
 
-    // Form elements
-    const assessmentId = document.getElementById('assessmentId');
-    const assessmentIdStatus = document.getElementById('assessmentIdStatus');
-    const locationInput = document.getElementById('locationInput');
-    const assessmentDate = document.getElementById('assessmentDate');
-    const assessmentTime = document.getElementById('assessmentTime');
-    const diseaseInput = document.getElementById('diseaseInput');
-    const healthStatus = document.getElementById('healthStatus');
-    const treatmentText = document.getElementById('treatmentText');
-    const nextAssessment = document.getElementById('nextAssessment');
-    const mapContainer = document.getElementById('mapContainer');
+// Form elements
+const assessmentId = document.getElementById('assessmentId');
+const assessmentIdStatus = document.getElementById('assessmentIdStatus');
+const locationInput = document.getElementById('locationInput');
+const assessmentDate = document.getElementById('assessmentDate');
+const assessmentTime = document.getElementById('assessmentTime');
+const diseaseInput = document.getElementById('diseaseInput');
+const healthStatus = document.getElementById('healthStatus');
+const treatmentText = document.getElementById('treatmentText');
+const nextAssessment = document.getElementById('nextAssessment');
+const mapContainer = document.getElementById('mapContainer');
 
-    let originalImage = null;
-    let canvasContext = previewCanvas.getContext('2d');
-    let confidenceThreshold = 0.5;
-    let stream = null;
-    let currentDiseaseType = null;
-    let map = null;
-    let marker = null;
-    let currentDetections = [];
-    let currentUser = null;
-    let userData = null;
-    let generatedAssessmentId = '';
-    let isProcessing = false;
-    let hasProcessedImage = false; // Track if image has been processed
+let originalImage = null;
+let canvasContext = previewCanvas.getContext('2d');
+let confidenceThreshold = 0.5;
+let stream = null;
+let currentDiseaseType = null;
+let map = null;
+let marker = null;
+let currentDetections = [];
+let currentUser = null;
+let userData = null;
+let generatedAssessmentId = '';
+let isProcessing = false;
+let hasProcessedImage = false; // Track if image has been processed
+let hasOilPalmDetected = false; // Track if oil palm is detected
 
-    // Check authentication state
-    onAuthStateChanged(auth, async (user) => {
-        if (user) {
-            console.log('User is signed in:', user.email);
-            currentUser = user;
-            window.currentUser = user;
-            
-            try {
-                const userDoc = await getDoc(doc(db, "users", user.uid));
-                if (userDoc.exists()) {
-                    userData = userDoc.data();
-                    window.userData = userData;
-                    console.log('🔍 User data from Firestore:', userData);
-                    updateUserProfile(user, userData);
-                } else {
-                    console.log('No user data found in Firestore');
-                    updateUserProfile(user, {});
-                }
-            } catch (error) {
-                console.error('Error loading user data:', error);
+// Check authentication state
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        console.log('User is signed in:', user.email);
+        currentUser = user;
+        window.currentUser = user;
+        
+        try {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists()) {
+                userData = userDoc.data();
+                window.userData = userData;
+                console.log('🔍 User data from Firestore:', userData);
+                updateUserProfile(user, userData);
+            } else {
+                console.log('No user data found in Firestore');
                 updateUserProfile(user, {});
             }
-        } else {
-            console.log('User is not signed in');
-            window.location.href = 'signin.html';
+        } catch (error) {
+            console.error('Error loading user data:', error);
+            updateUserProfile(user, {});
         }
+    } else {
+        console.log('User is not signed in');
+        window.location.href = 'signin.html';
+    }
+});
+
+function updateUserProfile(user, userData) {
+    console.log('🔄 Updating user profile with data:', userData);
+    
+    const userNameElement = document.querySelector('.user-name');
+    const userRoleElement = document.querySelector('.user-role');
+    
+    const displayName = userData.firstName && userData.lastName 
+        ? `${userData.firstName} ${userData.lastName}`
+        : userData.username 
+        ? userData.username
+        : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+    
+    if (userNameElement) userNameElement.textContent = displayName;
+
+    if (userRoleElement) {
+        userRoleElement.textContent = userData.bio || 'Farmer';
+    }
+
+    updateProfilePicture(userData);
+}
+
+function updateProfilePicture(userData) {
+    const avatarElements = document.querySelectorAll('.user-avatar');
+    
+    let imageSource = 'images/user-avatar.jpg';
+    
+    if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
+        imageSource = userData.imageBase64.trim();
+        console.log('🎯 Using Base64 image from Firestore');
+    } else if (userData.picture && userData.picture.trim() !== '') {
+        imageSource = userData.picture.trim();
+        console.log('🎯 Using picture URL from Firestore');
+    } else if (userData.photoURL && userData.photoURL.trim() !== '') {
+        imageSource = userData.photoURL.trim();
+        console.log('🎯 Using photoURL from Firestore');
+    }
+
+    avatarElements.forEach(img => {
+        img.src = imageSource;
+        img.alt = 'User Avatar';
+        img.onerror = function() {
+            console.warn('⚠️ Failed to load user image, reverting to default.');
+            this.src = 'images/user-avatar.jpg';
+        };
     });
 
-    function updateUserProfile(user, userData) {
-        console.log('🔄 Updating user profile with data:', userData);
-        
-        const userNameElement = document.querySelector('.user-name');
-        const userRoleElement = document.querySelector('.user-role');
-        
-        const displayName = userData.firstName && userData.lastName 
-            ? `${userData.firstName} ${userData.lastName}`
-            : userData.username 
-            ? userData.username
-            : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
-        
-        if (userNameElement) userNameElement.textContent = displayName;
+    console.log('🔄 Updated avatar images with source:', imageSource);
+}
 
-        if (userRoleElement) {
-            userRoleElement.textContent = userData.bio || 'Farmer';
-        }
-
-        updateProfilePicture(userData);
-    }
-
-    function updateProfilePicture(userData) {
-        const avatarElements = document.querySelectorAll('.user-avatar');
-        
-        let imageSource = 'images/user-avatar.jpg';
-        
-        if (userData.imageBase64 && userData.imageBase64.trim() !== '') {
-            imageSource = userData.imageBase64.trim();
-            console.log('🎯 Using Base64 image from Firestore');
-        } else if (userData.picture && userData.picture.trim() !== '') {
-            imageSource = userData.picture.trim();
-            console.log('🎯 Using picture URL from Firestore');
-        } else if (userData.photoURL && userData.photoURL.trim() !== '') {
-            imageSource = userData.photoURL.trim();
-            console.log('🎯 Using photoURL from Firestore');
-        }
-
-        avatarElements.forEach(img => {
-            img.src = imageSource;
-            img.alt = 'User Avatar';
-            img.onerror = function() {
-                console.warn('⚠️ Failed to load user image, reverting to default.');
-                this.src = 'images/user-avatar.jpg';
-            };
-        });
-
-        console.log('🔄 Updated avatar images with source:', imageSource);
-    }
-
-    // Add logout functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                signOut(auth).then(() => {
-                    window.location.href = 'signin.html';
-                }).catch((error) => {
-                    console.error('Logout error:', error);
-                });
+// Add logout functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            signOut(auth).then(() => {
+                window.location.href = 'signin.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
             });
-        }
-
-        // Initialize the map
-        initializeMap();
-    });
-
-    // Initialize date and time
-    function initializeDateTime() {
-        const now = new Date();
-        assessmentDate.value = now.toISOString().split('T')[0];
-        assessmentTime.value = now.toTimeString().slice(0, 5);
+        });
     }
 
-    // Initialize map
-    function initializeMap() {
-        map = L.map('mapContainer').setView([0, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-            maxZoom: 19
-        }).addTo(map);
+    // Initialize the map
+    initializeMap();
+});
 
-        marker = L.marker([0, 0]).addTo(map)
-            .bindPopup('Default location')
+// Initialize date and time
+function initializeDateTime() {
+    const now = new Date();
+    assessmentDate.value = now.toISOString().split('T')[0];
+    assessmentTime.value = now.toTimeString().slice(0, 5);
+}
+
+// Initialize map
+function initializeMap() {
+    map = L.map('mapContainer').setView([0, 0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    marker = L.marker([0, 0]).addTo(map)
+        .bindPopup('Default location')
+        .openPopup();
+}
+
+// Update map with current location
+function updateMap(lat, lng, locationName = 'Current Location') {
+    if (map) {
+        map.setView([lat, lng], 15);
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        marker = L.marker([lat, lng]).addTo(map)
+            .bindPopup(locationName)
             .openPopup();
     }
+}
 
-    // Update map with current location
-    function updateMap(lat, lng, locationName = 'Current Location') {
-        if (map) {
-            map.setView([lat, lng], 15);
-            if (marker) {
-                map.removeLayer(marker);
+// Get current location
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+            position => {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                locationInput.value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                updateMap(lat, lng, 'Your Current Location');
+                getAddressFromCoordinates(lat, lng);
+            },
+            error => {
+                console.error('Error getting location:', error);
+                alert('Unable to get current location. Please enter manually.');
             }
-            marker = L.marker([lat, lng]).addTo(map)
-                .bindPopup(locationName)
-                .openPopup();
-        }
+        );
+    } else {
+        alert('Geolocation is not supported by this browser.');
+    }
+}
+
+// Get address from coordinates
+function getAddressFromCoordinates(lat, lng) {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.display_name) {
+                locationInput.value = data.display_name;
+            }
+        })
+        .catch(error => {
+            console.error('Error getting address:', error);
+        });
+}
+
+// Manual regeneration function
+async function regenerateAssessmentId() {
+    console.log('Manual regeneration requested');
+    console.log('hasProcessedImage:', hasProcessedImage);
+    console.log('currentDetections:', currentDetections);
+    
+    // Check if an image has been uploaded
+    if (!fileInput.files[0]) {
+        alert('Please upload an image first to generate Assessment ID');
+        return;
     }
 
-    // Get current location
-    function getCurrentLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                position => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    locationInput.value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-                    updateMap(lat, lng, 'Your Current Location');
-                    getAddressFromCoordinates(lat, lng);
-                },
-                error => {
-                    console.error('Error getting location:', error);
-                    alert('Unable to get current location. Please enter manually.');
-                }
-            );
-        } else {
-            alert('Geolocation is not supported by this browser.');
-        }
+    // Check if image has been processed
+    if (!hasProcessedImage) {
+        alert('Please wait for the image analysis to complete first. The Assessment ID will be generated automatically.');
+        return;
     }
 
-    // Get address from coordinates
-    function getAddressFromCoordinates(lat, lng) {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (data && data.display_name) {
-                    locationInput.value = data.display_name;
-                }
-            })
-            .catch(error => {
-                console.error('Error getting address:', error);
-            });
-    }
-
-    // Manual regeneration function
-    async function regenerateAssessmentId() {
-        console.log('Manual regeneration requested');
-        console.log('hasProcessedImage:', hasProcessedImage);
-        console.log('currentDetections:', currentDetections);
-        
-        // Check if an image has been uploaded
-        if (!fileInput.files[0]) {
-            alert('Please upload an image first to generate Assessment ID');
-            return;
-        }
-
-        // Check if image has been processed
-        if (!hasProcessedImage) {
-            alert('Please wait for the image analysis to complete first. The Assessment ID will be generated automatically.');
-            return;
-        }
-
-        // Check if detection has been performed
-        if (!currentDetections || currentDetections.length === 0) {
-            // If we have an image but no detections, it might be a clean image
-            console.log('No diseases detected in the image');
-            // Still allow generation of ID (for healthy plants)
-            await autoGenerateAssessmentId();
-            return;
-        }
-
-        // Call the auto-generation function
+    // Check if detection has been performed
+    if (!currentDetections || currentDetections.length === 0) {
+        // If we have an image but no detections, it might be a clean image
+        console.log('No diseases detected in the image');
+        // Still allow generation of ID (for healthy plants)
         await autoGenerateAssessmentId();
+        return;
     }
 
-    // Function to auto-generate assessment ID after detection
-    async function autoGenerateAssessmentId() {
+    // Call the auto-generation function
+    await autoGenerateAssessmentId();
+}
+
+// Function to auto-generate assessment ID after detection
+async function autoGenerateAssessmentId() {
     console.log('Auto-generating Assessment ID...');
     console.log('hasProcessedImage:', hasProcessedImage);
     console.log('Current detections:', currentDetections);
+    console.log('hasOilPalmDetected:', hasOilPalmDetected);
     
     if (!hasProcessedImage) {
         console.log('No image has been processed yet');
@@ -935,36 +938,42 @@
     }
 
     try {
-        const detectedDiseases = new Set();
-        if (currentDetections && currentDetections.length > 0) {
-            currentDetections.forEach(det => {
-                if (det.confidence >= confidenceThreshold) {
-                    // For healthy model, only count if class is in validClasses
-                    if (det.model === 'healthy') {
-                        if (models.healthy.validClasses.includes(det.class)) {
+        let diseaseCode = diseaseCodes.no_palm; // Default to no palm detected
+        
+        // First check if oil palm is detected
+        if (hasOilPalmDetected) {
+            const detectedDiseases = new Set();
+            if (currentDetections && currentDetections.length > 0) {
+                currentDetections.forEach(det => {
+                    if (det.confidence >= confidenceThreshold) {
+                        // For healthy model, only count if class is in validClasses
+                        if (det.model === 'healthy') {
+                            if (models.healthy.validClasses.includes(det.class)) {
+                                detectedDiseases.add(det.model);
+                            }
+                        } else {
                             detectedDiseases.add(det.model);
                         }
-                    } else {
-                        detectedDiseases.add(det.model);
                     }
-                }
-            });
-        }
+                });
+            }
 
-        console.log('Detected diseases:', Array.from(detectedDiseases));
+            console.log('Detected diseases:', Array.from(detectedDiseases));
 
-        let diseaseCode = diseaseCodes.healthy; // Default to healthy if no diseases detected
-        
-        // Priority: diseases over healthy detection
-        if (detectedDiseases.has('ganoderma')) {
-            diseaseCode = diseaseCodes.ganoderma;
-        } else if (detectedDiseases.has('blackspot')) {
-            diseaseCode = diseaseCodes.blackspot;
-        } else if (detectedDiseases.has('healthy')) {
-            diseaseCode = diseaseCodes.healthy;
-        } else if (detectedDiseases.size > 0) {
-            // If there are detections but not from our known models
-            diseaseCode = diseaseCodes.unknown;
+            // Priority: diseases over healthy detection
+            if (detectedDiseases.has('ganoderma')) {
+                diseaseCode = diseaseCodes.ganoderma;
+            } else if (detectedDiseases.has('blackspot')) {
+                diseaseCode = diseaseCodes.blackspot;
+            } else if (detectedDiseases.has('healthy')) {
+                diseaseCode = diseaseCodes.healthy;
+            } else if (detectedDiseases.size > 0) {
+                // If there are detections but not from our known models
+                diseaseCode = diseaseCodes.unknown;
+            } else {
+                // If oil palm is detected but no specific disease found, assume healthy
+                diseaseCode = diseaseCodes.healthy;
+            }
         }
 
         console.log('Selected disease code:', diseaseCode);
@@ -1009,48 +1018,75 @@
         updateAssessmentIdStatus(true, 'Unique Assessment ID generated');
         console.log('Generated Assessment ID:', generatedAssessmentId);
 
-        } catch (error) {
-            console.error('Error auto-generating Assessment ID:', error);
-            generatedAssessmentId = `ASS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-            assessmentId.value = generatedAssessmentId;
-            updateAssessmentIdStatus(true, 'Generated fallback ID');
-        }
+    } catch (error) {
+        console.error('Error auto-generating Assessment ID:', error);
+        generatedAssessmentId = `ASS-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        assessmentId.value = generatedAssessmentId;
+        updateAssessmentIdStatus(true, 'Generated fallback ID');
     }
+}
 
-    // Update assessment ID status display
-    function updateAssessmentIdStatus(isValid, message) {
-        assessmentIdStatus.textContent = message;
-        if (isValid) {
-            assessmentIdStatus.className = 'id-status valid';
-        } else {
-            assessmentIdStatus.className = 'id-status info';
-        }
-    }
-
-    // Reset assessment ID status
-    function resetAssessmentIdStatus() {
-        assessmentId.value = '';
-        assessmentIdStatus.textContent = 'Upload and analyze an image to generate Assessment ID';
+// Update assessment ID status display
+function updateAssessmentIdStatus(isValid, message) {
+    assessmentIdStatus.textContent = message;
+    if (isValid) {
+        assessmentIdStatus.className = 'id-status valid';
+    } else {
         assessmentIdStatus.className = 'id-status info';
     }
+}
 
-    // Check if assessment ID already exists
-    async function checkAssessmentIdExists(id) {
-        try {
-            const assessmentsRef = collection(db, "assessments");
-            const q = query(assessmentsRef, where("assessmentId", "==", id));
-            const querySnapshot = await getDocs(q);
-            return !querySnapshot.empty;
-        } catch (error) {
-            console.error('Error checking assessment ID:', error);
-            return false;
-        }
+// Reset assessment ID status
+function resetAssessmentIdStatus() {
+    assessmentId.value = '';
+    assessmentIdStatus.textContent = 'Upload and analyze an image to generate Assessment ID';
+    assessmentIdStatus.className = 'id-status info';
+}
+
+// Check if assessment ID already exists
+async function checkAssessmentIdExists(id) {
+    try {
+        const assessmentsRef = collection(db, "assessments");
+        const q = query(assessmentsRef, where("assessmentId", "==", id));
+        const querySnapshot = await getDocs(q);
+        return !querySnapshot.empty;
+    } catch (error) {
+        console.error('Error checking assessment ID:', error);
+        return false;
+    }
+}
+
+// Check if detection is related to oil palm
+function isOilPalmDetection(detection) {
+    // Keywords that indicate oil palm
+    const oilPalmKeywords = [
+        'oil palm', 'palm', 'palm tree', 'palm oil', 'elaeis', 
+        'ganoderma', 'basal stem rot', 'oilpalm', 'palmfrond',
+        'frond', 'palm leaf', 'palm leaves'
+    ];
+    
+    // Check class name for oil palm keywords
+    const className = detection.class.toLowerCase();
+    return oilPalmKeywords.some(keyword => className.includes(keyword.toLowerCase()));
+}
+
+// Update disease field based on detection results
+function updateDiseaseField(detections) {
+    // Reset hasOilPalmDetected flag
+    hasOilPalmDetected = false;
+    
+    if (!detections || detections.length === 0) {
+        diseaseInput.value = "No oil palm detected";
+        diseaseInput.className = "form-input disease-input";
+        return;
     }
 
-    // Update disease field based on detection results
-    function updateDiseaseField(detections) {
-    if (!detections || detections.length === 0) {
-        diseaseInput.value = "No disease detected";
+    // Check if any detection is related to oil palm
+    const oilPalmDetections = detections.filter(det => isOilPalmDetection(det));
+    hasOilPalmDetected = oilPalmDetections.length > 0;
+
+    if (!hasOilPalmDetected) {
+        diseaseInput.value = "No oil palm detected";
         diseaseInput.className = "form-input disease-input";
         return;
     }
@@ -1059,49 +1095,80 @@
     const hasHealthy = detections.some(d => 
         d.model === 'healthy' && 
         models.healthy.validClasses.includes(d.class) &&
-        d.confidence >= confidenceThreshold
+        d.confidence >= confidenceThreshold &&
+        isOilPalmDetection(d)
     );
     
     const hasDisease = detections.some(d => 
         (d.model === 'ganoderma' || d.model === 'blackspot') &&
-        d.confidence >= confidenceThreshold
+        d.confidence >= confidenceThreshold &&
+        isOilPalmDetection(d)
     );
 
     if (hasDisease) {
         const uniqueDiseases = [...new Set(detections
-            .filter(d => (d.model === 'ganoderma' || d.model === 'blackspot'))
+            .filter(d => (d.model === 'ganoderma' || d.model === 'blackspot') && isOilPalmDetection(d))
             .map(detection => detection.class))];
         
         if (uniqueDiseases.length > 0) {
             diseaseInput.value = uniqueDiseases.join(", ");
             diseaseInput.className = "form-input disease-input auto-detected";
         } else {
-            diseaseInput.value = "Disease detected";
+            diseaseInput.value = "Oil palm disease detected";
             diseaseInput.className = "form-input disease-input auto-detected";
         }
     } else if (hasHealthy) {
-        diseaseInput.value = "Healthy Leaves";
+        diseaseInput.value = "Healthy Oil Palm";
         diseaseInput.className = "form-input disease-input auto-detected";
     } else {
-        diseaseInput.value = "Unknown condition";
-        diseaseInput.className = "form-input disease-input";
+        // Oil palm detected but no specific condition identified
+        diseaseInput.value = "Oil palm detected - unknown condition";
+        diseaseInput.className = "form-input disease-input auto-detected";
     }
 }
 
-    // Update health status and treatment based on detection results
-    function updateHealthStatus(detections) {
-    // Check for healthy detections first
-    const hasHealthy = detections && detections.some(d => 
+// Update health status and treatment based on detection results
+function updateHealthStatus(detections) {
+    // Reset hasOilPalmDetected flag
+    hasOilPalmDetected = false;
+    
+    if (!detections || detections.length === 0) {
+        healthStatus.textContent = "No palm detected";
+        healthStatus.className = "health-status not-healthy";
+        treatmentText.value = "No oil palm plant detected in the image. Please upload an image containing oil palm plants.";
+        nextAssessment.value = "";
+        return;
+    }
+
+    // Check if any detection is related to oil palm
+    const oilPalmDetections = detections.filter(det => isOilPalmDetection(det));
+    hasOilPalmDetected = oilPalmDetections.length > 0;
+
+    if (!hasOilPalmDetected) {
+        healthStatus.textContent = "No palm detected";
+        healthStatus.className = "health-status not-healthy";
+        treatmentText.value = "No oil palm plant detected in the image. Please upload an image containing oil palm plants.";
+        nextAssessment.value = "";
+        return;
+    }
+
+    // Check for healthy detections in oil palm
+    const hasHealthy = detections.some(d => 
         d.model === 'healthy' && 
         models.healthy.validClasses.includes(d.class) &&
-        d.confidence >= confidenceThreshold
+        d.confidence >= confidenceThreshold &&
+        isOilPalmDetection(d)
     );
     
-    const hasGanoderma = detections && detections.some(d => 
-        d.model === 'ganoderma' && d.confidence >= confidenceThreshold
+    const hasGanoderma = detections.some(d => 
+        d.model === 'ganoderma' && 
+        d.confidence >= confidenceThreshold &&
+        isOilPalmDetection(d)
     );
-    const hasBlackspot = detections && detections.some(d => 
-        d.model === 'blackspot' && d.confidence >= confidenceThreshold
+    const hasBlackspot = detections.some(d => 
+        d.model === 'blackspot' && 
+        d.confidence >= confidenceThreshold &&
+        isOilPalmDetection(d)
     );
 
     // Determine overall health status
@@ -1110,7 +1177,7 @@
     if (isHealthy) {
         healthStatus.textContent = "Healthy";
         healthStatus.className = "health-status healthy";
-        treatmentText.value = "No treatment needed. Plant appears healthy.";
+        treatmentText.value = "No treatment needed. Oil palm appears healthy.";
         const today = new Date();
         const sixMonthsLater = new Date(today);
         sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
@@ -1124,492 +1191,509 @@
         const today = new Date();
 
         if (hasGanoderma) {
-            treatment += "Ganoderma Treatment:\n";
+            treatment += "Ganoderma Treatment for Oil Palm:\n";
             treatment += "- Remove and destroy infected plants\n";
-            treatment += "- Apply fungicide treatment\n";
+            treatment += "- Apply fungicide treatment around base\n";
             treatment += "- Improve soil drainage\n";
-            treatment += "- Avoid wounding plants\n\n";
+            treatment += "- Avoid wounding plants during maintenance\n\n";
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
             nextAssessmentDate = tomorrow.toISOString().split('T')[0];
         }
 
         if (hasBlackspot) {
-            treatment += "Blackspot Treatment:\n";
+            treatment += "Blackspot Treatment for Oil Palm:\n";
             treatment += "- Remove infected leaves\n";
             treatment += "- Apply fungicide spray\n";
-            treatment += "- Improve air circulation\n";
+            treatment += "- Improve air circulation between trees\n";
             treatment += "- Water at the base, not on leaves\n\n";
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
             nextAssessmentDate = tomorrow.toISOString().split('T')[0];
         }
 
-        if (!hasGanoderma && !hasBlackspot) {
-            treatment = "General Plant Care:\n";
-            treatment += "- Monitor plant health regularly\n";
+        if (!hasGanoderma && !hasBlackspot && hasOilPalmDetected) {
+            treatment = "Oil Palm General Care:\n";
+            treatment += "- Monitor oil palm health regularly\n";
             treatment += "- Ensure proper watering and sunlight\n";
-            treatment += "- Check for pests and diseases\n";
-            treatment += "- Maintain soil nutrients\n";
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 7);
-            nextAssessmentDate = tomorrow.toISOString().split('T')[0];
+            treatment += "- Check for pests and diseases specific to oil palm\n";
+            treatment += "- Maintain proper soil nutrients for oil palm\n";
+            const nextWeek = new Date(today);
+            nextWeek.setDate(nextWeek.getDate() + 7);
+            nextAssessmentDate = nextWeek.toISOString().split('T')[0];
         }
 
-            treatmentText.value = treatment;
-            nextAssessment.value = nextAssessmentDate;
-        }
+        treatmentText.value = treatment;
+        nextAssessment.value = nextAssessmentDate;
     }
+}
 
-    // Function to update confidence threshold
-    function updateConfidence(value) {
-        confidenceThreshold = value / 100;
-        confidenceValue.textContent = value + '%';
-        if (originalImage && currentDetections.length > 0) {
-            // Re-filter and display detections with new threshold
-            const filteredDetections = currentDetections.filter(det => det.confidence >= confidenceThreshold);
-            displayDetections(filteredDetections);
-        }
+// Function to update confidence threshold
+function updateConfidence(value) {
+    confidenceThreshold = value / 100;
+    confidenceValue.textContent = value + '%';
+    if (originalImage && currentDetections.length > 0) {
+        // Re-filter and display detections with new threshold
+        const filteredDetections = currentDetections.filter(det => det.confidence >= confidenceThreshold);
+        displayDetections(filteredDetections);
     }
+}
 
-    // Function to set threshold based on disease type
-    function setThresholdByDisease(diseaseType) {
-        currentDiseaseType = diseaseType;
-        if (diseaseType === 'ganoderma') {
-            confidenceThreshold = models.ganoderma.defaultThreshold;
-            confidenceSlider.value = models.ganoderma.defaultThreshold * 100;
-            confidenceValue.textContent = Math.round(models.ganoderma.defaultThreshold * 100) + '%';
-        } else if (diseaseType === 'blackspot') {
-            confidenceThreshold = models.blackspot.defaultThreshold;
-            confidenceSlider.value = models.blackspot.defaultThreshold * 100;
-            confidenceValue.textContent = Math.round(models.blackspot.defaultThreshold * 100) + '%';
-        } else if (diseaseType === 'healthy') {
-            confidenceThreshold = models.healthy.defaultThreshold;
-            confidenceSlider.value = models.healthy.defaultThreshold * 100;
-            confidenceValue.textContent = Math.round(models.healthy.defaultThreshold * 100) + '%';
-        }
+// Function to set threshold based on disease type
+function setThresholdByDisease(diseaseType) {
+    currentDiseaseType = diseaseType;
+    if (diseaseType === 'ganoderma') {
+        confidenceThreshold = models.ganoderma.defaultThreshold;
+        confidenceSlider.value = models.ganoderma.defaultThreshold * 100;
+        confidenceValue.textContent = Math.round(models.ganoderma.defaultThreshold * 100) + '%';
+    } else if (diseaseType === 'blackspot') {
+        confidenceThreshold = models.blackspot.defaultThreshold;
+        confidenceSlider.value = models.blackspot.defaultThreshold * 100;
+        confidenceValue.textContent = Math.round(models.blackspot.defaultThreshold * 100) + '%';
+    } else if (diseaseType === 'healthy') {
+        confidenceThreshold = models.healthy.defaultThreshold;
+        confidenceSlider.value = models.healthy.defaultThreshold * 100;
+        confidenceValue.textContent = Math.round(models.healthy.defaultThreshold * 100) + '%';
     }
+}
 
-    // Function to open camera
-    async function openCamera() {
+// Function to open camera
+async function openCamera() {
+    try {
+        const constraints = { 
+            video: { facingMode: 'environment' }
+        };
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        cameraVideo.srcObject = stream;
+        cameraContainer.style.display = 'flex';
+    } catch (error) {
+        console.error('Error accessing back camera:', error);
         try {
-            const constraints = { 
-                video: { facingMode: 'environment' }
-            };
-            stream = await navigator.mediaDevices.getUserMedia(constraints);
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
             cameraVideo.srcObject = stream;
             cameraContainer.style.display = 'flex';
-        } catch (error) {
-            console.error('Error accessing back camera:', error);
-            try {
-                stream = await navigator.mediaDevices.getUserMedia({ video: true });
-                cameraVideo.srcObject = stream;
-                cameraContainer.style.display = 'flex';
-            } catch (fallbackError) {
-                console.error('Fallback camera also failed:', fallbackError);
-                alert('Unable to access camera. Please ensure you have granted camera permissions.');
+        } catch (fallbackError) {
+            console.error('Fallback camera also failed:', fallbackError);
+            alert('Unable to access camera. Please ensure you have granted camera permissions.');
+        }
+    }
+}
+
+// Function to close camera
+function closeCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+    }
+    cameraContainer.style.display = 'none';
+}
+
+// Function to capture image from camera
+function captureImage() {
+    const tempCanvas = document.createElement('canvas');
+    const tempContext = tempCanvas.getContext('2d');
+    tempCanvas.width = cameraVideo.videoWidth;
+    tempCanvas.height = cameraVideo.videoHeight;
+    tempContext.drawImage(cameraVideo, 0, 0);
+
+    tempCanvas.toBlob(function (blob) {
+        const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+        processFileInput();
+        closeCamera();
+    }, 'image/jpeg');
+}
+
+// Function to process file input
+function processFileInput() {
+    if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (e) {
+            originalImage = new Image();
+            originalImage.onload = function () {
+                const containerWidth = imageContainer.clientWidth;
+                const containerHeight = imageContainer.clientHeight;
+                
+                // Calculate scaling to fit container
+                const scale = Math.min(
+                    containerWidth / originalImage.width, 
+                    containerHeight / originalImage.height, 
+                    1
+                );
+                
+                previewCanvas.width = originalImage.width * scale;
+                previewCanvas.height = originalImage.height * scale;
+                canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+                previewCanvas.style.display = 'block';
+                noImage.style.display = 'none';
+                currentDiseaseType = null;
+                hasOilPalmDetected = false; // Reset flag
+                
+                // Process the image for detection
+                performImageDetection(file);
             }
+            originalImage.src = e.target.result;
         }
+        reader.readAsDataURL(file);
+    }
+}
+
+// Event listener for file input
+fileInput.addEventListener('change', processFileInput);
+
+// Add drag and drop functionality
+imageContainer.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    imageContainer.style.borderColor = '#007bff';
+    imageContainer.style.backgroundColor = '#e9ecef';
+});
+
+imageContainer.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    imageContainer.style.borderColor = '#dee2e6';
+    imageContainer.style.backgroundColor = '#f8f9fa';
+});
+
+imageContainer.addEventListener('drop', (e) => {
+    e.preventDefault();
+    imageContainer.style.borderColor = '#dee2e6';
+    imageContainer.style.backgroundColor = '#f8f9fa';
+    
+    if (e.dataTransfer.files.length) {
+        fileInput.files = e.dataTransfer.files;
+        processFileInput();
+    }
+});
+
+// Main function to perform image detection
+async function performImageDetection(file) {
+    if (!file) {
+        alert('Please select an image first!');
+        return;
     }
 
-    // Function to close camera
-    function closeCamera() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
-        cameraContainer.style.display = 'none';
+    if (isProcessing) {
+        console.log('Already processing an image');
+        return;
     }
 
-    // Function to capture image from camera
-    function captureImage() {
-        const tempCanvas = document.createElement('canvas');
-        const tempContext = tempCanvas.getContext('2d');
-        tempCanvas.width = cameraVideo.videoWidth;
-        tempCanvas.height = cameraVideo.videoHeight;
-        tempContext.drawImage(cameraVideo, 0, 0);
-
-        tempCanvas.toBlob(function (blob) {
-            const file = new File([blob], 'camera-capture.jpg', { type: 'image/jpeg' });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            fileInput.files = dataTransfer.files;
-            processFileInput();
-            closeCamera();
-        }, 'image/jpeg');
-    }
-
-    // Function to process file input
-    function processFileInput() {
-        if (fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
+    isProcessing = true;
+    hasProcessedImage = false; // Reset this flag
+    hasOilPalmDetected = false; // Reset flag
+    loading.style.display = 'block';
+    resetAssessmentIdStatus();
+    
+    try {
+        // Convert image to base64
+        const base64Image = await new Promise((resolve, reject) => {
             const reader = new FileReader();
-
-            reader.onload = function (e) {
-                originalImage = new Image();
-                originalImage.onload = function () {
-                    const containerWidth = imageContainer.clientWidth;
-                    const containerHeight = imageContainer.clientHeight;
-                    
-                    // Calculate scaling to fit container
-                    const scale = Math.min(
-                        containerWidth / originalImage.width, 
-                        containerHeight / originalImage.height, 
-                        1
-                    );
-                    
-                    previewCanvas.width = originalImage.width * scale;
-                    previewCanvas.height = originalImage.height * scale;
-                    canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
-                    previewCanvas.style.display = 'block';
-                    noImage.style.display = 'none';
-                    currentDiseaseType = null;
-                    
-                    // Process the image for detection
-                    performImageDetection(file);
-                }
-                originalImage.src = e.target.result;
-            }
+            reader.onload = e => resolve(e.target.result.split(',')[1]);
+            reader.onerror = error => reject(error);
             reader.readAsDataURL(file);
-        }
-    }
-
-    // Event listener for file input
-    fileInput.addEventListener('change', processFileInput);
-
-    // Add drag and drop functionality
-    imageContainer.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        imageContainer.style.borderColor = '#007bff';
-        imageContainer.style.backgroundColor = '#e9ecef';
-    });
-
-    imageContainer.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        imageContainer.style.borderColor = '#dee2e6';
-        imageContainer.style.backgroundColor = '#f8f9fa';
-    });
-
-    imageContainer.addEventListener('drop', (e) => {
-        e.preventDefault();
-        imageContainer.style.borderColor = '#dee2e6';
-        imageContainer.style.backgroundColor = '#f8f9fa';
-        
-        if (e.dataTransfer.files.length) {
-            fileInput.files = e.dataTransfer.files;
-            processFileInput();
-        }
-    });
-
-    // Main function to perform image detection
-    async function performImageDetection(file) {
-        if (!file) {
-            alert('Please select an image first!');
-            return;
-        }
-
-        if (isProcessing) {
-            console.log('Already processing an image');
-            return;
-        }
-
-        isProcessing = true;
-        hasProcessedImage = false; // Reset this flag
-        loading.style.display = 'block';
-        resetAssessmentIdStatus();
-        
-        try {
-            // Convert image to base64
-            const base64Image = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-                reader.readAsDataURL(file);
-            });
-
-            // Call all detection models
-            const promises = Object.values(models).map(model =>
-                axios({
-                    method: "POST",
-                    url: model.url,
-                    params: { api_key: model.apiKey },
-                    data: base64Image,
-                    headers: { "Content-Type": "application/x-www-form-urlencoded" }
-                })
-            );
-
-            const responses = await Promise.all(promises);
-            
-            // Combine all detection results
-            let allDetections = [];
-            responses.forEach((response, index) => {
-                const modelKey = Object.keys(models)[index];
-                if (response.data && response.data.predictions) {
-                    const predictionsWithModel = response.data.predictions.map(pred => ({
-                        ...pred,
-                        model: modelKey,
-                        modelName: models[modelKey].name
-                    }));
-                    allDetections.push(...predictionsWithModel);
-                }
-            });
-
-            // Store all detections globally
-            currentDetections = allDetections;
-            hasProcessedImage = true; // Set flag to true after processing
-            console.log('Detection complete. Total detections:', allDetections.length);
-            console.log('hasProcessedImage set to true');
-            
-            // Auto-detect disease type and set threshold
-            autoDetectDiseaseType(allDetections);
-            
-            // Filter by current threshold and display
-            const filteredDetections = allDetections.filter(det => det.confidence >= confidenceThreshold);
-            displayDetections(filteredDetections);
-
-            // Auto-generate assessment ID based on detections
-            await autoGenerateAssessmentId();
-
-        } catch (error) {
-            console.error('Error during image detection:', error);
-            alert('Error processing image: ' + error.message);
-        } finally {
-            loading.style.display = 'none';
-            isProcessing = false;
-        }
-    }
-
-    // Function to auto-detect disease type and set threshold
-    function autoDetectDiseaseType(detections) {
-        if (!detections || detections.length === 0) {
-            currentDiseaseType = null;
-            return;
-        }
-
-        const hasGanoderma = detections.some(pred =>
-            pred.model === 'ganoderma' && pred.confidence >= models.ganoderma.defaultThreshold
-        );
-        const hasBlackspot = detections.some(pred =>
-            pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
-        );
-        const hasHealthy = detections.some(pred =>
-            pred.model === 'healthy' && pred.confidence >= models.healthy.defaultThreshold &&
-            models.healthy.validClasses.includes(pred.class)
-        );
-
-        if (hasGanoderma) {
-            setThresholdByDisease('ganoderma');
-        } else if (hasBlackspot) {
-            setThresholdByDisease('blackspot');
-        } else if (hasHealthy) {
-            setThresholdByDisease('healthy');
-        } else {
-            currentDiseaseType = null;
-        }
-    }
-
-    function displayDetections(filteredDetections) {
-        clearDetections();
-        
-        if (!filteredDetections || filteredDetections.length === 0) {
-            detectionsList.innerHTML = `<div style="text-align: center; color: #6c757d; padding: 20px;">No objects detected</div>`;
-            objectsCount.textContent = '0 objects';
-            updateDiseaseField([]);
-            updateHealthStatus([]);
-            return;
-        }
-
-        objectsCount.textContent = filteredDetections.length + ' objects';
-        drawDetectionBoxes(filteredDetections);
-
-        let detectionsHTML = '';
-        filteredDetections.forEach((detection) => {
-            const confidencePercent = Math.round(detection.confidence * 100);
-            const modelConfig = models[detection.model];
-            detectionsHTML += `
-                <div class="detection-item" style="border-left-color: ${modelConfig.color}">
-                    <span class="detection-class">
-                        ${detection.class}
-                        <span class="model-badge ${modelConfig.badgeClass}">${detection.model}</span>
-                    </span>
-                    <span class="detection-confidence" style="background: ${modelConfig.color}">${confidencePercent}%</span>
-                </div>
-            `;
         });
 
-        detectionsList.innerHTML = detectionsHTML;
-        updateDiseaseField(filteredDetections);
-        updateHealthStatus(filteredDetections);
-    }
+        // Call all detection models
+        const promises = Object.values(models).map(model =>
+            axios({
+                method: "POST",
+                url: model.url,
+                params: { api_key: model.apiKey },
+                data: base64Image,
+                headers: { "Content-Type": "application/x-www-form-urlencoded" }
+            })
+        );
 
-    function drawDetectionBoxes(detections) {
-        canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+        const responses = await Promise.all(promises);
         
-        const scaleX = previewCanvas.width / originalImage.width;
-        const scaleY = previewCanvas.height / originalImage.height;
-
-        detections.forEach((detection) => {
-            const confidencePercent = Math.round(detection.confidence * 100);
-            const modelConfig = models[detection.model];
-            const x = (detection.x - detection.width / 2) * scaleX;
-            const y = (detection.y - detection.height / 2) * scaleY;
-            const width = detection.width * scaleX;
-            const height = detection.height * scaleY;
-
-            canvasContext.strokeStyle = modelConfig.color;
-            canvasContext.lineWidth = 3;
-            canvasContext.strokeRect(x, y, width, height);
-
-            canvasContext.fillStyle = modelConfig.color;
-            const labelText = `${detection.class} (${detection.model}) ${confidencePercent}%`;
-            const textMetrics = canvasContext.measureText(labelText);
-            const textWidth = textMetrics.width + 10;
-            const textHeight = 20;
-
-            canvasContext.fillRect(x, y - textHeight, textWidth, textHeight);
-            canvasContext.fillStyle = '#ffffff';
-            canvasContext.font = 'bold 12px Arial';
-            canvasContext.fillText(labelText, x + 5, y - 5);
+        // Combine all detection results
+        let allDetections = [];
+        responses.forEach((response, index) => {
+            const modelKey = Object.keys(models)[index];
+            if (response.data && response.data.predictions) {
+                const predictionsWithModel = response.data.predictions.map(pred => ({
+                    ...pred,
+                    model: modelKey,
+                    modelName: models[modelKey].name
+                }));
+                allDetections.push(...predictionsWithModel);
+            }
         });
-    }
 
-    function clearDetections() {
-        if (originalImage) {
-            canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
-        }
-    }
-
-    // Save assessment function with proper Firebase integration
-    async function saveAssessment() {
-        // Validate required fields
-        if (!assessmentId.value) {
-            alert('Please generate an Assessment ID first');
-            return;
-        }
+        // Store all detections globally
+        currentDetections = allDetections;
+        hasProcessedImage = true; // Set flag to true after processing
+        console.log('Detection complete. Total detections:', allDetections.length);
+        console.log('hasProcessedImage set to true');
         
-        if (!locationInput.value) {
-            alert('Please enter a location');
-            return;
-        }
+        // Auto-detect disease type and set threshold
+        autoDetectDiseaseType(allDetections);
         
-        if (!fileInput.files[0]) {
-            alert('Please upload an image first');
-            return;
-        }
+        // Filter by current threshold and display
+        const filteredDetections = allDetections.filter(det => det.confidence >= confidenceThreshold);
+        displayDetections(filteredDetections);
 
-        // Check if user is authenticated
-        if (!currentUser) {
-            alert('You must be logged in to save assessments');
-            return;
-        }
+        // Auto-generate assessment ID based on detections
+        await autoGenerateAssessmentId();
 
-        // Double-check if Assessment ID already exists
-        const idExists = await checkAssessmentIdExists(assessmentId.value);
-        if (idExists) {
-            alert('This Assessment ID already exists. Please regenerate a new one.');
-            return;
-        }
-
-        try {
-            // Convert image to base64 for storage
-            const base64Image = await new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => resolve(e.target.result);
-                reader.onerror = error => reject(error);
-                reader.readAsDataURL(fileInput.files[0]);
-            });
-
-            // Filter detections by current threshold
-            const filteredDetections = currentDetections.filter(det => det.confidence >= confidenceThreshold);
-
-            // Create assessment object with ALL detection data
-            const assessment = {
-                assessmentId: assessmentId.value,
-                location: locationInput.value,
-                date: assessmentDate.value,
-                time: assessmentTime.value,
-                disease: diseaseInput.value,
-                healthStatus: healthStatus.textContent,
-                treatment: treatmentText.value,
-                nextAssessment: nextAssessment.value,
-                detections: filteredDetections,
-                detectionCount: filteredDetections.length,
-                confidenceThreshold: confidenceThreshold,
-                image: base64Image,
-                userId: currentUser.uid,
-                userEmail: currentUser.email,
-                userName: userData?.firstName && userData?.lastName 
-                    ? `${userData.firstName} ${userData.lastName}`
-                    : userData?.username || currentUser.email.split('@')[0],
-                timestamp: serverTimestamp(),
-                createdAt: new Date().toISOString()
-            };
-
-            console.log('Saving assessment with detections:', assessment.detections);
-
-            // Save to Firebase
-            const docRef = await addDoc(collection(db, "assessments"), assessment);
-            console.log("Assessment saved with ID: ", docRef.id);
-            
-            // Show success message
-            alert('Assessment saved successfully with ID: ' + assessmentId.value);
-            
-            // Reset form
-            resetForm();
-            
-        } catch (error) {
-            console.error("Error saving assessment: ", error);
-            alert('Error saving assessment: ' + error.message);
-        }
-    }
-
-    // Reset form function
-    function resetForm() {
-        // Clear assessment ID
-        resetAssessmentIdStatus();
-        
-        // Clear other fields
-        locationInput.value = '';
-        initializeDateTime();
-        diseaseInput.value = '';
-        diseaseInput.className = "form-input disease-input";
-        healthStatus.textContent = "Not assessed";
-        healthStatus.className = "health-status";
-        treatmentText.value = '';
-        nextAssessment.value = '';
-        
-        // Clear image and detections
-        fileInput.value = '';
-        previewCanvas.style.display = 'none';
-        noImage.style.display = 'flex';
-        detectionsList.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">No detections</div>';
-        objectsCount.textContent = '0 objects';
-        clearDetections();
-        currentDetections = [];
+    } catch (error) {
+        console.error('Error during image detection:', error);
+        alert('Error processing image: ' + error.message);
+    } finally {
+        loading.style.display = 'none';
         isProcessing = false;
-        hasProcessedImage = false; // Reset this flag
+    }
+}
+
+// Function to auto-detect disease type and set threshold
+function autoDetectDiseaseType(detections) {
+    if (!detections || detections.length === 0) {
+        currentDiseaseType = null;
+        return;
     }
 
-    // Initialize the application
-    function init() {
-        initializeDateTime();
-        initializeMap();
-        // DO NOT generate assessment ID on page load
-        // Assessment ID will be generated after image analysis
+    const hasGanoderma = detections.some(pred =>
+        pred.model === 'ganoderma' && pred.confidence >= models.ganoderma.defaultThreshold
+    );
+    const hasBlackspot = detections.some(pred =>
+        pred.model === 'blackspot' && pred.confidence >= models.blackspot.defaultThreshold
+    );
+    const hasHealthy = detections.some(pred =>
+        pred.model === 'healthy' && pred.confidence >= models.healthy.defaultThreshold &&
+        models.healthy.validClasses.includes(pred.class)
+    );
+
+    if (hasGanoderma) {
+        setThresholdByDisease('ganoderma');
+    } else if (hasBlackspot) {
+        setThresholdByDisease('blackspot');
+    } else if (hasHealthy) {
+        setThresholdByDisease('healthy');
+    } else {
+        currentDiseaseType = null;
+    }
+}
+
+function displayDetections(filteredDetections) {
+    clearDetections();
+    
+    if (!filteredDetections || filteredDetections.length === 0) {
+        detectionsList.innerHTML = `<div style="text-align: center; color: #6c757d; padding: 20px;">No objects detected</div>`;
+        objectsCount.textContent = '0 objects';
+        updateDiseaseField([]);
+        updateHealthStatus([]);
+        return;
     }
 
-    // Initialize when page loads
-    window.onload = init;
+    objectsCount.textContent = filteredDetections.length + ' objects';
+    drawDetectionBoxes(filteredDetections);
 
-    // Make functions globally available
-    window.openCamera = openCamera;
-    window.closeCamera = closeCamera;
-    window.captureImage = captureImage;
-    window.getCurrentLocation = getCurrentLocation;
-    window.updateConfidence = updateConfidence;
-    window.saveAssessment = saveAssessment;
-    window.performImageDetection = performImageDetection;
-    window.regenerateAssessmentId = regenerateAssessmentId;
+    let detectionsHTML = '';
+    filteredDetections.forEach((detection) => {
+        const confidencePercent = Math.round(detection.confidence * 100);
+        const modelConfig = models[detection.model];
+        const isOilPalm = isOilPalmDetection(detection);
+        const oilPalmIndicator = isOilPalm ? '🌴 ' : '';
+        
+        detectionsHTML += `
+            <div class="detection-item" style="border-left-color: ${modelConfig.color}">
+                <span class="detection-class">
+                    ${oilPalmIndicator}${detection.class}
+                    <span class="model-badge ${modelConfig.badgeClass}">${detection.model}</span>
+                </span>
+                <span class="detection-confidence" style="background: ${modelConfig.color}">${confidencePercent}%</span>
+            </div>
+        `;
+    });
+
+    detectionsList.innerHTML = detectionsHTML;
+    updateDiseaseField(filteredDetections);
+    updateHealthStatus(filteredDetections);
+}
+
+function drawDetectionBoxes(detections) {
+    canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+    
+    const scaleX = previewCanvas.width / originalImage.width;
+    const scaleY = previewCanvas.height / originalImage.height;
+
+    detections.forEach((detection) => {
+        const confidencePercent = Math.round(detection.confidence * 100);
+        const modelConfig = models[detection.model];
+        const isOilPalm = isOilPalmDetection(detection);
+        const x = (detection.x - detection.width / 2) * scaleX;
+        const y = (detection.y - detection.height / 2) * scaleY;
+        const width = detection.width * scaleX;
+        const height = detection.height * scaleY;
+
+        canvasContext.strokeStyle = modelConfig.color;
+        canvasContext.lineWidth = 3;
+        canvasContext.strokeRect(x, y, width, height);
+
+        canvasContext.fillStyle = modelConfig.color;
+        const oilPalmIndicator = isOilPalm ? '🌴 ' : '';
+        const labelText = `${oilPalmIndicator}${detection.class} (${detection.model}) ${confidencePercent}%`;
+        const textMetrics = canvasContext.measureText(labelText);
+        const textWidth = textMetrics.width + 10;
+        const textHeight = 20;
+
+        canvasContext.fillRect(x, y - textHeight, textWidth, textHeight);
+        canvasContext.fillStyle = '#ffffff';
+        canvasContext.font = 'bold 12px Arial';
+        canvasContext.fillText(labelText, x + 5, y - 5);
+    });
+}
+
+function clearDetections() {
+    if (originalImage) {
+        canvasContext.drawImage(originalImage, 0, 0, previewCanvas.width, previewCanvas.height);
+    }
+}
+
+// Save assessment function with proper Firebase integration
+async function saveAssessment() {
+    // Validate required fields
+    if (!assessmentId.value) {
+        alert('Please generate an Assessment ID first');
+        return;
+    }
+    
+    if (!locationInput.value) {
+        alert('Please enter a location');
+        return;
+    }
+    
+    if (!fileInput.files[0]) {
+        alert('Please upload an image first');
+        return;
+    }
+
+    // Check if user is authenticated
+    if (!currentUser) {
+        alert('You must be logged in to save assessments');
+        return;
+    }
+
+    // Double-check if Assessment ID already exists
+    const idExists = await checkAssessmentIdExists(assessmentId.value);
+    if (idExists) {
+        alert('This Assessment ID already exists. Please regenerate a new one.');
+        return;
+    }
+
+    // Check if oil palm is detected
+    if (!hasOilPalmDetected) {
+        const proceed = confirm('No oil palm plant detected in this image. Are you sure you want to save this assessment?');
+        if (!proceed) {
+            return;
+        }
+    }
+
+    try {
+        // Convert image to base64 for storage
+        const base64Image = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = e => resolve(e.target.result);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(fileInput.files[0]);
+        });
+
+        // Filter detections by current threshold
+        const filteredDetections = currentDetections.filter(det => det.confidence >= confidenceThreshold);
+
+        // Create assessment object with ALL detection data
+        const assessment = {
+            assessmentId: assessmentId.value,
+            location: locationInput.value,
+            date: assessmentDate.value,
+            time: assessmentTime.value,
+            disease: diseaseInput.value,
+            healthStatus: healthStatus.textContent,
+            treatment: treatmentText.value,
+            nextAssessment: nextAssessment.value,
+            detections: filteredDetections,
+            detectionCount: filteredDetections.length,
+            confidenceThreshold: confidenceThreshold,
+            image: base64Image,
+            userId: currentUser.uid,
+            userEmail: currentUser.email,
+            userName: userData?.firstName && userData?.lastName 
+                ? `${userData.firstName} ${userData.lastName}`
+                : userData?.username || currentUser.email.split('@')[0],
+            timestamp: serverTimestamp(),
+            createdAt: new Date().toISOString(),
+            hasOilPalm: hasOilPalmDetected
+        };
+
+        console.log('Saving assessment with detections:', assessment.detections);
+
+        // Save to Firebase
+        const docRef = await addDoc(collection(db, "assessments"), assessment);
+        console.log("Assessment saved with ID: ", docRef.id);
+        
+        // Show success message
+        alert('Assessment saved successfully with ID: ' + assessmentId.value);
+        
+        // Reset form
+        resetForm();
+        
+    } catch (error) {
+        console.error("Error saving assessment: ", error);
+        alert('Error saving assessment: ' + error.message);
+    }
+}
+
+// Reset form function
+function resetForm() {
+    // Clear assessment ID
+    resetAssessmentIdStatus();
+    
+    // Clear other fields
+    locationInput.value = '';
+    initializeDateTime();
+    diseaseInput.value = '';
+    diseaseInput.className = "form-input disease-input";
+    healthStatus.textContent = "Not assessed";
+    healthStatus.className = "health-status";
+    treatmentText.value = '';
+    nextAssessment.value = '';
+    
+    // Clear image and detections
+    fileInput.value = '';
+    previewCanvas.style.display = 'none';
+    noImage.style.display = 'flex';
+    detectionsList.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 20px;">No detections</div>';
+    objectsCount.textContent = '0 objects';
+    clearDetections();
+    currentDetections = [];
+    isProcessing = false;
+    hasProcessedImage = false; // Reset this flag
+    hasOilPalmDetected = false; // Reset flag
+}
+
+// Initialize the application
+function init() {
+    initializeDateTime();
+    initializeMap();
+    // DO NOT generate assessment ID on page load
+    // Assessment ID will be generated after image analysis
+}
+
+// Initialize when page loads
+window.onload = init;
+
+// Make functions globally available
+window.openCamera = openCamera;
+window.closeCamera = closeCamera;
+window.captureImage = captureImage;
+window.getCurrentLocation = getCurrentLocation;
+window.updateConfidence = updateConfidence;
+window.saveAssessment = saveAssessment;
+window.performImageDetection = performImageDetection;
+window.regenerateAssessmentId = regenerateAssessmentId;
 </script>
 </body>
 </html>
