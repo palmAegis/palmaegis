@@ -382,6 +382,37 @@
         color: #6c757d;
     }
 
+    .location-type-select {
+        margin-bottom: 10px;
+    }
+
+    .location-option {
+        display: none;
+    }
+
+    .location-option.active {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .location-display {
+        font-weight: 500;
+        color: #333;
+        min-height: 20px;
+        padding: 8px 0;
+    }
+
+    .location-display-input {
+        margin-top: 10px;
+        background-color: #f8f9fa !important;
+        font-weight: 500;
+    }
+
     @media (max-width: 768px) {
         .content {
             flex-direction: column;
@@ -555,12 +586,52 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Location</label>
-                            <input type="text" class="form-input" id="locationInput" placeholder="Enter location or use current location">
-                            <button type="button" class="camera-btn" style="margin-top: 10px; background: #28a745;"
-                                onclick="getCurrentLocation()">
-                                <i class="fas fa-map-marker-alt"></i> Use Current Location
-                            </button>
+                            <label class="form-label">Location <span style="color: red;">*</span></label>
+                            
+                            <!-- Location Type Selection -->
+                            <div class="form-row" style="margin-bottom: 10px;">
+                                <div class="form-group" style="flex: 1;">
+                                    <select class="form-input" id="locationType" onchange="handleLocationTypeChange()">
+                                        <option value="">Select Location Type</option>
+                                        <option value="option">Select from Options</option>
+                                        <option value="specific">Specific Location</option>
+                                        <option value="current">Current Location</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <!-- Options Location Dropdown (shown when "Select from Options" is chosen) -->
+                            <div class="form-group" id="optionsLocationGroup" style="display: none;">
+                                <select class="form-input" id="locationOptions">
+                                    <option value="">Select Location</option>
+                                    <option value="Parit Raja">Parit Raja</option>
+                                    <option value="Senggarang">Senggarang</option>
+                                    <option value="Batu Pahat">Batu Pahat</option>
+                                    <option value="Sri Gading">Sri Gading</option>
+                                    <option value="Kampung Minyak Beku">Kampung Minyak Beku</option>
+                                    <option value="Rengit">Rengit</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Specific Location Input (shown when "Specific Location" is chosen) -->
+                            <div class="form-group" id="specificLocationGroup" style="display: none;">
+                                <input type="text" class="form-input" id="specificLocationInput" 
+                                       placeholder="Enter specific address or coordinates">
+                            </div>
+                            
+                            <!-- Current Location Button (shown when "Current Location" is chosen) -->
+                            <div id="currentLocationGroup" style="display: none; margin-bottom: 10px;">
+                                <button type="button" class="camera-btn" style="background: #28a745;" 
+                                        onclick="getCurrentLocation()">
+                                    <i class="fas fa-map-marker-alt"></i> Get Current Location
+                                </button>
+                            </div>
+                            
+                            <!-- Combined Location Display (readonly) -->
+                            <input type="text" class="form-input location-display-input" id="locationDisplay" 
+                                   placeholder="Location will appear here" readonly>
+                            
+                            <!-- Map Container -->
                             <div class="map-container" id="mapContainer"></div>
                         </div>
 
@@ -703,7 +774,6 @@ const cameraVideo = document.getElementById('cameraVideo');
 // Form elements
 const assessmentId = document.getElementById('assessmentId');
 const assessmentIdStatus = document.getElementById('assessmentIdStatus');
-const locationInput = document.getElementById('locationInput');
 const assessmentDate = document.getElementById('assessmentDate');
 const assessmentTime = document.getElementById('assessmentTime');
 const diseaseInput = document.getElementById('diseaseInput');
@@ -711,6 +781,15 @@ const healthStatus = document.getElementById('healthStatus');
 const treatmentText = document.getElementById('treatmentText');
 const nextAssessment = document.getElementById('nextAssessment');
 const mapContainer = document.getElementById('mapContainer');
+
+// Location elements
+const locationType = document.getElementById('locationType');
+const optionsLocationGroup = document.getElementById('optionsLocationGroup');
+const locationOptions = document.getElementById('locationOptions');
+const specificLocationGroup = document.getElementById('specificLocationGroup');
+const specificLocationInput = document.getElementById('specificLocationInput');
+const currentLocationGroup = document.getElementById('currentLocationGroup');
+const locationDisplay = document.getElementById('locationDisplay');
 
 let originalImage = null;
 let canvasContext = previewCanvas.getContext('2d');
@@ -762,8 +841,8 @@ function updateUserProfile(user, userData) {
     
     const displayName = userData.firstName && userData.lastName 
         ? `${userData.firstName} ${userData.lastName}`
-        : userData.username 
-        ? userData.username
+        : userData.userName 
+        ? userData.userName
         : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
     
     if (userNameElement) userNameElement.textContent = displayName;
@@ -831,19 +910,42 @@ function initializeDateTime() {
 
 // Initialize map
 function initializeMap() {
-    map = L.map('mapContainer').setView([0, 0], 2);
+    map = L.map('mapContainer').setView([1.8686, 103.1115], 10); // Default to Parit Raja area
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
     }).addTo(map);
 
-    marker = L.marker([0, 0]).addTo(map)
-        .bindPopup('Default location')
+    marker = L.marker([1.8686, 103.1115]).addTo(map)
+        .bindPopup('Parit Raja')
         .openPopup();
 }
 
+// Handle location type change
+function handleLocationTypeChange() {
+    const selectedType = locationType.value;
+    
+    // Hide all location groups
+    optionsLocationGroup.style.display = 'none';
+    specificLocationGroup.style.display = 'none';
+    currentLocationGroup.style.display = 'none';
+    
+    // Clear display
+    locationDisplay.value = '';
+    
+    // Show selected group
+    if (selectedType === 'option') {
+        optionsLocationGroup.style.display = 'block';
+    } else if (selectedType === 'specific') {
+        specificLocationGroup.style.display = 'block';
+        specificLocationInput.value = ''; // Clear previous input
+    } else if (selectedType === 'current') {
+        currentLocationGroup.style.display = 'block';
+    }
+}
+
 // Update map with current location
-function updateMap(lat, lng, locationName = 'Current Location') {
+function updateMap(lat, lng, locationName = 'Location') {
     if (map) {
         map.setView([lat, lng], 15);
         if (marker) {
@@ -862,13 +964,14 @@ function getCurrentLocation() {
             position => {
                 const lat = position.coords.latitude;
                 const lng = position.coords.longitude;
-                locationInput.value = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                const displayText = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                locationDisplay.value = displayText;
                 updateMap(lat, lng, 'Your Current Location');
                 getAddressFromCoordinates(lat, lng);
             },
             error => {
                 console.error('Error getting location:', error);
-                alert('Unable to get current location. Please enter manually.');
+                alert('Unable to get current location. Please select another location option.');
             }
         );
     } else {
@@ -883,12 +986,31 @@ function getAddressFromCoordinates(lat, lng) {
         .then(response => response.json())
         .then(data => {
             if (data && data.display_name) {
-                locationInput.value = data.display_name;
+                locationDisplay.value = data.display_name;
             }
         })
         .catch(error => {
             console.error('Error getting address:', error);
         });
+}
+
+// Update map for selected location
+function updateMapForLocation(locationName) {
+    // Coordinates for predefined locations
+    const locationCoordinates = {
+        'Parit Raja': { lat: 1.8686, lng: 103.1115 },
+        'Senggarang': { lat: 1.8106, lng: 103.1023 },
+        'Batu Pahat': { lat: 1.8497, lng: 102.9285 },
+        'Sri Gading': { lat: 1.8350, lng: 103.1235 },
+        'Kampung Minyak Beku': { lat: 1.8167, lng: 103.1000 },
+        'Rengit': { lat: 1.6833, lng: 103.1000 }
+    };
+    
+    if (locationCoordinates[locationName]) {
+        const coords = locationCoordinates[locationName];
+        updateMap(coords.lat, coords.lng, locationName);
+        locationDisplay.value = locationName;
+    }
 }
 
 // Manual regeneration function
@@ -1327,6 +1449,17 @@ imageContainer.addEventListener('drop', (e) => {
     }
 });
 
+// Event listeners for location changes
+locationOptions.addEventListener('change', function() {
+    if (this.value) {
+        updateMapForLocation(this.value);
+    }
+});
+
+specificLocationInput.addEventListener('input', function() {
+    locationDisplay.value = this.value;
+});
+
 // Main function to perform image detection
 async function performImageDetection(file) {
     if (!file) {
@@ -1517,8 +1650,31 @@ async function saveAssessment() {
         return;
     }
     
-    if (!locationInput.value) {
-        alert('Please enter a location');
+    // Validate location selection
+    const selectedLocationType = locationType.value;
+    if (!selectedLocationType) {
+        alert('Please select a location type');
+        return;
+    }
+    
+    // Validate based on location type
+    if (selectedLocationType === 'option' && !locationOptions.value) {
+        alert('Please select a location from the options');
+        return;
+    }
+    
+    if (selectedLocationType === 'specific' && !specificLocationInput.value.trim()) {
+        alert('Please enter a specific location');
+        return;
+    }
+    
+    if (selectedLocationType === 'current' && !locationDisplay.value) {
+        alert('Please get your current location first');
+        return;
+    }
+    
+    if (!locationDisplay.value) {
+        alert('Please select or enter a location');
         return;
     }
     
@@ -1555,7 +1711,8 @@ async function saveAssessment() {
         // Create assessment object with ALL detection data
         const assessment = {
             assessmentId: assessmentId.value,
-            location: locationInput.value,
+            location: locationDisplay.value,
+            locationType: selectedLocationType,
             date: assessmentDate.value,
             time: assessmentTime.value,
             disease: diseaseInput.value,
@@ -1570,7 +1727,7 @@ async function saveAssessment() {
             userEmail: currentUser.email,
             userName: userData?.firstName && userData?.lastName 
                 ? `${userData.firstName} ${userData.lastName}`
-                : userData?.username || currentUser.email.split('@')[0],
+                : userData?.userName || currentUser.email.split('@')[0],
             timestamp: serverTimestamp(),
             createdAt: new Date().toISOString()
         };
@@ -1598,8 +1755,14 @@ function resetForm() {
     // Clear assessment ID
     resetAssessmentIdStatus();
     
+    // Clear location fields
+    locationType.value = '';
+    handleLocationTypeChange();
+    locationOptions.value = '';
+    specificLocationInput.value = '';
+    locationDisplay.value = '';
+    
     // Clear other fields
-    locationInput.value = '';
     initializeDateTime();
     diseaseInput.value = '';
     diseaseInput.className = "form-input disease-input";
@@ -1618,12 +1781,27 @@ function resetForm() {
     currentDetections = [];
     isProcessing = false;
     hasProcessedImage = false;
+    
+    // Reset map to default view
+    initializeMap();
 }
 
 // Initialize the application
 function init() {
     initializeDateTime();
     initializeMap();
+    
+    // Add event listener for location options
+    locationOptions.addEventListener('change', function() {
+        if (this.value) {
+            updateMapForLocation(this.value);
+        }
+    });
+    
+    // Add event listener for specific location input
+    specificLocationInput.addEventListener('input', function() {
+        locationDisplay.value = this.value;
+    });
 }
 
 // Initialize when page loads
@@ -1638,6 +1816,8 @@ window.updateConfidence = updateConfidence;
 window.saveAssessment = saveAssessment;
 window.performImageDetection = performImageDetection;
 window.regenerateAssessmentId = regenerateAssessmentId;
+window.handleLocationTypeChange = handleLocationTypeChange;
+window.updateMapForLocation = updateMapForLocation;
 </script>
 </body>
 </html>
