@@ -585,6 +585,175 @@
             color: var(--text-light);
         }
 
+        /* View/Edit Modal */
+        .view-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .view-modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .view-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #2e7d32;
+        }
+
+        .view-modal-title {
+            color: #2e7d32;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close-view-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            transition: color 0.3s;
+        }
+
+        .close-view-modal:hover {
+            color: #e53935;
+        }
+
+        .view-modal-body {
+            line-height: 1.6;
+        }
+
+        .view-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .view-modal-btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .view-modal-btn.close {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .view-modal-btn.close:hover {
+            background: #e0e0e0;
+        }
+
+        .view-modal-btn.edit {
+            background: #2e7d32;
+            color: white;
+            display: none;
+        }
+
+        .view-modal-btn.edit:hover {
+            background: #4caf50;
+        }
+
+        /* Modal Data Grid */
+        .modal-data-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .modal-data-item {
+            background: #f9f9f9;
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .modal-data-label {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .modal-data-value {
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .modal-images-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .modal-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .modal-image:hover {
+            transform: scale(1.05);
+            border-color: #2e7d32;
+        }
+
+        .modal-detection-list {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .modal-detection-item {
+            margin-bottom: 5px;
+        }
+
+        .modal-id-badge {
+            background: #e8f5e9;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #2e7d32;
+            font-family: monospace;
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -664,6 +833,15 @@
             .action-btn {
                 padding: 0.3rem 0.6rem;
                 font-size: 0.8rem;
+            }
+
+            .view-modal-content {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            .modal-data-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -859,6 +1037,25 @@
         </div>
     </div>
 
+    <!-- View/Edit Modal -->
+    <div class="view-modal" id="viewModal">
+        <div class="view-modal-content">
+            <div class="view-modal-header">
+                <h2 class="view-modal-title" id="modalTitle">Details</h2>
+                <button class="close-view-modal" id="closeViewModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="view-modal-body" id="modalContent">
+                <!-- Modal content will be loaded here -->
+            </div>
+            <div class="view-modal-footer">
+                <button class="view-modal-btn close" id="closeModalBtn">Close</button>
+                <button class="view-modal-btn edit" id="editModalBtn">Edit</button>
+            </div>
+        </div>
+    </div>
+
     <!-- jsPDF Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -889,6 +1086,7 @@
         let allFarms = [];
         let allAssessments = [];
         let filteredAssessments = [];
+        let currentModalData = null;
 
         // DOM elements
         const loadingState = document.getElementById('loadingState');
@@ -900,6 +1098,12 @@
         const farmsTableBody = document.getElementById('farmsTableBody');
         const filterModal = document.getElementById('filterModal');
         const exportModal = document.getElementById('exportModal');
+        const viewModal = document.getElementById('viewModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        const editModalBtn = document.getElementById('editModalBtn');
+        const closeViewModal = document.getElementById('closeViewModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
         const filterBtn = document.getElementById('filterBtn');
         const closeFilter = document.getElementById('closeFilter');
         const closeExport = document.getElementById('closeExport');
@@ -1037,6 +1241,10 @@
                 exportModal.classList.remove('active');
             });
 
+            // View modal
+            closeViewModal.addEventListener('click', closeViewModalFunc);
+            closeModalBtn.addEventListener('click', closeViewModalFunc);
+
             // Close modals when clicking outside
             filterModal.addEventListener('click', (e) => {
                 if (e.target === filterModal) {
@@ -1047,6 +1255,21 @@
             exportModal.addEventListener('click', (e) => {
                 if (e.target === exportModal) {
                     exportModal.classList.remove('active');
+                }
+            });
+
+            viewModal.addEventListener('click', (e) => {
+                if (e.target === viewModal) {
+                    closeViewModalFunc();
+                }
+            });
+
+            // Edit button in modal
+            editModalBtn.addEventListener('click', () => {
+                if (currentModalData && currentModalData.type === 'assessment') {
+                    editAssessment(currentModalData.id);
+                } else if (currentModalData && currentModalData.type === 'farm') {
+                    editFarm(currentModalData.id);
                 }
             });
 
@@ -1406,18 +1629,34 @@
 
         // ==================== VIEW FUNCTIONS ====================
         function viewAssessment(assessmentId) {
+            console.log('View assessment called:', assessmentId);
             const assessment = filteredAssessments.find(a => a.id === assessmentId);
             if (assessment) {
+                // Save to sessionStorage as backup
                 sessionStorage.setItem('currentAssessment', JSON.stringify(assessment));
-                window.location.href = 'assessment-detail.html?id=' + assessmentId;
+                currentModalData = { type: 'assessment', id: assessmentId, data: assessment };
+                
+                // Show in modal
+                showAssessmentModal(assessment);
+            } else {
+                console.error('Assessment not found:', assessmentId);
+                alert('Assessment not found!');
             }
         }
 
         function viewFarm(farmId) {
+            console.log('View farm called:', farmId);
             const farm = allFarms.find(f => f.id === farmId);
             if (farm) {
+                // Save to sessionStorage as backup
                 sessionStorage.setItem('currentFarm', JSON.stringify(farm));
-                window.location.href = 'farm-detail.html?id=' + farmId;
+                currentModalData = { type: 'farm', id: farmId, data: farm };
+                
+                // Show in modal
+                showFarmModal(farm);
+            } else {
+                console.error('Farm not found:', farmId);
+                alert('Farm not found!');
             }
         }
 
@@ -1429,19 +1668,218 @@
 
         // ==================== EDIT FUNCTIONS ====================
         function editAssessment(assessmentId) {
+            console.log('Edit assessment called:', assessmentId);
             const assessment = filteredAssessments.find(a => a.id === assessmentId);
             if (assessment) {
                 sessionStorage.setItem('editAssessment', JSON.stringify(assessment));
-                window.location.href = 'edit-assessment.html?id=' + assessmentId;
+                
+                // Check if edit page exists, if not show modal
+                checkPageExists('edit-assessment.html', () => {
+                    window.location.href = 'edit-assessment.html?id=' + assessmentId;
+                }, () => {
+                    // If page doesn't exist, show edit in modal
+                    showAssessmentModal(assessment, true);
+                });
             }
         }
 
         function editFarm(farmId) {
+            console.log('Edit farm called:', farmId);
             const farm = allFarms.find(f => f.id === farmId);
             if (farm) {
                 sessionStorage.setItem('editFarm', JSON.stringify(farm));
-                window.location.href = 'edit-farm.html?id=' + farmId;
+                
+                // Check if edit page exists, if not show modal
+                checkPageExists('edit-farm.html', () => {
+                    window.location.href = 'edit-farm.html?id=' + farmId;
+                }, () => {
+                    // If page doesn't exist, show edit in modal
+                    showFarmModal(farm, true);
+                });
             }
+        }
+
+        // ==================== MODAL FUNCTIONS ====================
+        function closeViewModalFunc() {
+            viewModal.style.display = 'none';
+            editModalBtn.style.display = 'none';
+            currentModalData = null;
+        }
+
+        function showAssessmentModal(assessment, isEditMode = false) {
+            const date = new Date(assessment.date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            
+            const healthStatus = assessment.healthStatus || 'Healthy';
+            let statusClass = 'status-healthy';
+            if (healthStatus === 'Infected') statusClass = 'status-infected';
+            else if (healthStatus === 'Warning') statusClass = 'status-warning';
+
+            let imageHtml = '';
+            if (assessment.image) {
+                imageHtml = `
+                    <div style="margin:15px 0;">
+                        <strong class="modal-data-label">Image:</strong>
+                        <img src="${assessment.image}" alt="Assessment" class="modal-image" onclick="viewImage('${assessment.image}')">
+                    </div>
+                `;
+            }
+
+            let detectionsHtml = '';
+            if (assessment.detections && Array.isArray(assessment.detections) && assessment.detections.length > 0) {
+                detectionsHtml = `
+                    <div style="margin:15px 0;">
+                        <strong class="modal-data-label">Detections:</strong>
+                        <ul class="modal-detection-list">
+                            ${assessment.detections.map((det, index) => `
+                                <li class="modal-detection-item">${index + 1}. ${det.disease || 'Unknown'}: ${det.confidence ? Math.round(det.confidence * 100) : 0}% confidence</li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            const html = `
+                <div class="modal-data-grid">
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Date</span>
+                        <span class="modal-data-value">${date}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Time</span>
+                        <span class="modal-data-value">${assessment.time || 'N/A'}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Disease</span>
+                        <span class="modal-data-value">${assessment.disease || 'None detected'}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Health Status</span>
+                        <span class="modal-data-value">
+                            <span class="status-badge ${statusClass}">${healthStatus}</span>
+                        </span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Detection Count</span>
+                        <span class="modal-data-value">${assessment.detectionCount || 0}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Confidence</span>
+                        <span class="modal-data-value">${assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'}</span>
+                    </div>
+                </div>
+                
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Location</span>
+                    <span class="modal-data-value">${assessment.location || 'Not specified'}</span>
+                </div>
+                
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Treatment</span>
+                    <div class="modal-data-value" style="white-space: pre-wrap;">${assessment.treatment || 'None'}</div>
+                </div>
+                
+                ${imageHtml}
+                ${detectionsHtml}
+                
+                <div class="modal-id-badge">
+                    <strong>Assessment ID:</strong> ${assessment.id || 'N/A'}
+                </div>
+            `;
+
+            modalTitle.textContent = 'Assessment Details';
+            modalContent.innerHTML = html;
+            editModalBtn.style.display = 'inline-block';
+            viewModal.style.display = 'flex';
+        }
+
+        function showFarmModal(farm, isEditMode = false) {
+            let imagesHtml = '';
+            if (farm.images && Array.isArray(farm.images) && farm.images.length > 0) {
+                imagesHtml = `
+                    <div style="margin:15px 0;">
+                        <strong class="modal-data-label">Images (${farm.images.length}):</strong>
+                        <div class="modal-images-container">
+                            ${farm.images.slice(0, 4).map((img, index) => `
+                                <img src="${img}" alt="Farm Image ${index + 1}" class="modal-image" onclick="viewImage('${img}')">
+                            `).join('')}
+                            ${farm.images.length > 4 ? `
+                                <div style="width:80px; height:80px; background:#f0f0f0; border-radius:6px; display:flex; align-items:center; justify-content:center; border:1px dashed #ccc;">
+                                    <span style="color:#666; font-size:0.9rem;">+${farm.images.length - 4}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }
+
+            const createdAt = farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A';
+            const statusClass = farm.status === 'Active' ? 'status-healthy' : 'status-warning';
+
+            const html = `
+                <div class="modal-data-grid">
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Farm Name</span>
+                        <span class="modal-data-value">${farm.name || 'Unnamed Farm'}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Location</span>
+                        <span class="modal-data-value">${farm.location || 'Not specified'}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Area</span>
+                        <span class="modal-data-value">${farm.area || 'N/A'}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Crops</span>
+                        <span class="modal-data-value">${farm.crops || 'Oil Palm'}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Soil Type</span>
+                        <span class="modal-data-value">${farm.soilType || 'Not specified'}</span>
+                    </div>
+                    <div class="modal-data-item">
+                        <span class="modal-data-label">Status</span>
+                        <span class="modal-data-value">
+                            <span class="status-badge ${statusClass}">${farm.status || 'Active'}</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="modal-data-item">
+                    <span class="modal-data-label">Created</span>
+                    <span class="modal-data-value">${createdAt}</span>
+                </div>
+                
+                ${imagesHtml}
+                
+                <div class="modal-id-badge">
+                    <strong>Farm ID:</strong> ${farm.id || 'N/A'}
+                </div>
+            `;
+
+            modalTitle.textContent = 'Farm Details';
+            modalContent.innerHTML = html;
+            editModalBtn.style.display = 'inline-block';
+            viewModal.style.display = 'flex';
+        }
+
+        // Helper function to check if a page exists
+        function checkPageExists(url, successCallback, fallbackCallback) {
+            fetch(url, { method: 'HEAD' })
+                .then(response => {
+                    if (response.ok) {
+                        successCallback();
+                    } else {
+                        fallbackCallback();
+                    }
+                })
+                .catch(() => {
+                    fallbackCallback();
+                });
         }
 
         // ==================== DELETE FUNCTIONS ====================
