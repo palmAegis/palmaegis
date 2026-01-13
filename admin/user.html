@@ -490,7 +490,7 @@
           <div class="stat-value" id="totalUsers">0</div>
           <div class="stat-label">Total Users</div>
           <div class="stat-change positive" id="userChange">
-            <i class="fas fa-arrow-up"></i>
+            <!-- <i class="fas fa-arrow-up"></i> -->
           </div>
         </div>
         
@@ -498,7 +498,7 @@
           <div class="stat-value" id="todayUsers">0</div>
           <div class="stat-label">Today's Registrations</div>
           <div class="stat-change positive" id="todayChange">
-            <i class="fas fa-arrow-up"></i> Loading...
+            <!-- <i class="fas fa-arrow-up"></i> Loading... -->
           </div>
         </div>
         
@@ -769,11 +769,11 @@
         const userChangeEl = document.getElementById('userChange');
         const todayChangeEl = document.getElementById('todayChange');
         
-        userChangeEl.innerHTML = `<i class="fas fa-arrow-${parseFloat(weekChange) >= 0 ? 'up' : 'down'}"></i> ${Math.abs(parseFloat(weekChange))}% from last week`;
-        userChangeEl.className = `stat-change ${parseFloat(weekChange) >= 0 ? 'positive' : 'negative'}`;
+        // userChangeEl.innerHTML = `<i class="fas fa-arrow-${parseFloat(weekChange) >= 0 ? 'up' : 'down'}"></i> ${Math.abs(parseFloat(weekChange))}% from last week`;
+        // userChangeEl.className = `stat-change ${parseFloat(weekChange) >= 0 ? 'positive' : 'negative'}`;
         
-        todayChangeEl.innerHTML = `<i class="fas fa-arrow-${parseFloat(todayChange) >= 0 ? 'up' : 'down'}"></i> ${Math.abs(parseFloat(todayChange))}% from yesterday`;
-        todayChangeEl.className = `stat-change ${parseFloat(todayChange) >= 0 ? 'positive' : 'negative'}`;
+        // todayChangeEl.innerHTML = `<i class="fas fa-arrow-${parseFloat(todayChange) >= 0 ? 'up' : 'down'}"></i> ${Math.abs(parseFloat(todayChange))}% from yesterday`;
+        // todayChangeEl.className = `stat-change ${parseFloat(todayChange) >= 0 ? 'positive' : 'negative'}`;
       }
 
       // Prepare chart data based on selected period
