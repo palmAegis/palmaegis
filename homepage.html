@@ -888,10 +888,10 @@
                         <div class="profile-details">
                             <h2>Loading...</h2>
                             <p class="profile-title">Professional Farmer</p>
-                            <p class="profile-location">
+                            <!-- <p class="profile-location">
                                 <i class="fas fa-map-marker-alt"></i>
                                 Loading location...
-                            </p>
+                            </p> -->
                         </div>
                         <button class="edit-profile-btn" onclick="window.location.href='test.html'">
                             <i class="fas fa-edit"></i>
@@ -993,9 +993,9 @@
                 profileTitleElement.textContent = userData.bio || 'Professional Farmer';
             }
 
-            if (profileLocationElement) {
-                profileLocationElement.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${userData.location || 'Location not set'}`;
-            }
+            // if (profileLocationElement) {
+            //     profileLocationElement.innerHTML = `<i class="fas fa-map-marker-alt"></i> ${userData.location || 'Location not set'}`;
+            // }
 
             if (userRoleElement) {
                 userRoleElement.textContent = userData.bio || 'Farmer';
