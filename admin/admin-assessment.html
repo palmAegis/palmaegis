@@ -1037,7 +1037,7 @@
                             <i class="fas fa-exclamation-triangle"></i>
                         </div>
                     </div>
-                    <div class="stat-trend trend-down" id="diseaseTrend">0% of total</div>
+                    <!-- <div class="stat-trend trend-down" id="diseaseTrend">0% of total</div> -->
                 </div>
 
                 <div class="stat-card info">
@@ -1480,7 +1480,7 @@
             // Update trends
             document.getElementById('assessmentsTrend').textContent = total === 0 ? 'No data' : `${total} total records`;
             document.getElementById('usersTrend').textContent = uniqueUsers.size === 0 ? 'No users' : `${uniqueUsers.size} active`;
-            document.getElementById('diseaseTrend').textContent = diseasePercentage > 0 ? `${diseasePercentage}% of total` : 'No diseases';
+            // document.getElementById('diseaseTrend').textContent = diseasePercentage > 0 ? `${diseasePercentage}% of total` : 'No diseases';
             document.getElementById('todayTrend').textContent = todayCount === 0 ? 'No assessments today' : `${todayCount} today`;
         }
 
