@@ -11,6 +11,10 @@
     <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
     <link rel="shortcut icon" href="images/logo1.png">
     <meta name="theme-color" content="#2e7d32">
+    <!-- ADD FIREBASE SDK -->
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js"></script>
     <style>
         :root {
             --primary-color: #10B981;
@@ -1119,11 +1123,18 @@
             appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
         };
 
-        // Initialize Firebase - REMOVED storage import
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        // Removed: const storage = firebase.storage();
+        // Initialize Firebase
+        let app, auth, db;
+        
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+            console.log("Firebase initialized successfully");
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+            showError("Failed to initialize Firebase. Please refresh the page.");
+        }
 
         // DOM Elements
         const healthStatusCard = document.getElementById('healthStatusCard');
@@ -1172,6 +1183,8 @@
 
         async function initializeApp() {
             try {
+                console.log('Initializing application...');
+                
                 // Wait for sidebar to load
                 await waitForSidebar();
                 
@@ -1182,9 +1195,10 @@
                 setupEventListeners();
                 
                 console.log('Application initialized successfully');
+                showToast('Application ready!', 'success');
             } catch (error) {
                 console.error('Failed to initialize app:', error);
-                showError('Failed to initialize application');
+                showError('Failed to initialize application: ' + error.message);
             }
         }
 
@@ -1208,8 +1222,14 @@
         }
 
         function setupAuthListener() {
+            if (!auth) {
+                console.error("Firebase Auth not available");
+                return;
+            }
+            
             auth.onAuthStateChanged(async (user) => {
                 if (!user) {
+                    console.log("User not signed in, redirecting to signin page");
                     window.location.href = 'signin.html';
                     return;
                 }
@@ -1224,6 +1244,11 @@
 
         async function updateUserProfile(user) {
             try {
+                if (!db) {
+                    console.error("Firestore not available");
+                    return;
+                }
+                
                 // Get user data from Firestore
                 const userDoc = await db.collection('users').doc(user.uid).get();
                 let userData = {};
@@ -1297,6 +1322,8 @@
         }
 
         function setupEventListeners() {
+            console.log('Setting up event listeners...');
+            
             // Make sure buttons are accessible
             cameraBtn.addEventListener('click', handleCameraClick);
             galleryBtn.addEventListener('click', handleGalleryClick);
@@ -1312,6 +1339,7 @@
             saveBtn.addEventListener('click', saveAssessment);
             
             helpBtn.addEventListener('click', () => {
+                console.log('Help button clicked');
                 helpModal.style.display = 'flex';
             });
             
@@ -1347,12 +1375,20 @@
 
         function handleCameraClick() {
             console.log('Camera button clicked');
+            if (!imageInput) {
+                showError('Image input not found');
+                return;
+            }
             imageInput.setAttribute('capture', 'environment');
             imageInput.click();
         }
 
         function handleGalleryClick() {
             console.log('Gallery button clicked');
+            if (!imageInput) {
+                showError('Image input not found');
+                return;
+            }
             imageInput.removeAttribute('capture');
             imageInput.click();
         }
@@ -1918,6 +1954,11 @@ PREVENTIVE ACTIONS:
                 return;
             }
 
+            if (!db) {
+                showError('Database not available. Please refresh the page.');
+                return;
+            }
+
             loadingOverlay.style.display = 'flex';
             loadingText.textContent = 'Saving assessment...';
             saveBtn.disabled = true;
@@ -2112,7 +2153,9 @@ PREVENTIVE ACTIONS:
             issuesCount.style.display = 'none';
             
             // Reset file input
-            imageInput.value = '';
+            if (imageInput) {
+                imageInput.value = '';
+            }
             
             showToast('Form cleared successfully', 'success');
         }
@@ -2131,6 +2174,12 @@ PREVENTIVE ACTIONS:
         }
 
         function showToast(message, type = 'info') {
+            if (!toast) {
+                console.error('Toast element not found');
+                alert(message); // Fallback to alert
+                return;
+            }
+            
             toast.textContent = message;
             toast.className = `toast toast-${type}`;
             toast.style.display = 'block';
@@ -2166,6 +2215,36 @@ PREVENTIVE ACTIONS:
             updateUserProfile: () => updateUserProfile(currentUser),
             saveAssessment: saveAssessment
         };
+        
+        // Test buttons on load
+        window.addEventListener('load', function() {
+            console.log('Page loaded, testing buttons...');
+            
+            // Test if buttons exist
+            const buttons = {
+                cameraBtn,
+                galleryBtn,
+                helpBtn,
+                autoGenerateBtn,
+                clearBtn,
+                saveBtn
+            };
+            
+            Object.entries(buttons).forEach(([name, button]) => {
+                if (!button) {
+                    console.error(`Button ${name} not found!`);
+                } else {
+                    console.log(`Button ${name} found and ready`);
+                }
+            });
+            
+            // Add a simple test click to verify buttons work
+            if (helpBtn) {
+                helpBtn.addEventListener('click', function() {
+                    console.log('Help button works!');
+                });
+            }
+        });
     </script>
 </body>
 </html>
