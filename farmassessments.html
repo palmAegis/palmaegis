@@ -1112,7 +1112,11 @@
         };
     </script>
 
-    <script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
+        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
+        import { getFirestore, collection, getDocs, doc, getDoc, orderBy } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
+        
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
