@@ -4,25 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farm Assessments | Palm Aegis</title>
+    <title>Farm Assessment | Palm Aegis</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- <link rel="stylesheet" href="css/farmdata.css"> -->
     <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/treatment.css">
+    <link rel="stylesheet" href="css/farmassessment.css">
     <link rel="icon" href="images/logo1.png" type="image/png" sizes="32x32">
     <link rel="shortcut icon" href="images/logo1.png">
     <meta name="theme-color" content="#2e7d32">
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js"></script>
     <style>
         :root {
-            --primary-color: #2e7d32;
-            --secondary-color: #4caf50;
-            --danger-color: #f44336;
-            --warning-color: #ff9800;
-            --info-color: #2196f3;
-            --light-color: #f8f9fa;
-            --dark-color: #343a40;
+            --primary-color: #10B981;
+            --primary-light: #D1FAE5;
+            --secondary-color: #3B82F6;
+            --danger-color: #EF4444;
+            --warning-color: #F59E0B;
+            --success-color: #10B981;
+            --info-color: #3B82F6;
+            --light-color: #F9FAFB;
+            --dark-color: #111827;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --border-color: #E5E7EB;
+            --card-bg: #FFFFFF;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --border-radius: 12px;
+            --transition-speed: 0.3s;
         }
 
         * {
@@ -33,8 +43,8 @@
         }
 
         body {
-            background-color: #c8f0c8;
-            color: #333;
+            background-color: #F9FAFB;
+            color: var(--text-primary);
         }
 
         .dashboard-container {
@@ -60,6 +70,7 @@
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
             backdrop-filter: blur(10px);
+            margin-bottom: 1.5rem;
         }
 
         .header-left h1 {
@@ -90,102 +101,34 @@
 
         .container {
             flex: 1;
-            padding: 30px;
+            padding: 0 30px 30px 30px;
             overflow-y: auto;
         }
 
-        /* Farm Assessments Custom Styles */
-        .status-card {
-            padding: 20px;
-            border-radius: 16px;
-            margin-bottom: 24px;
-            border: 2px solid;
-        }
-
-        .status-healthy {
-            background-color: rgba(59, 130, 246, 0.1);
-            border-color: rgba(59, 130, 246, 0.3);
-        }
-
-        .status-at-risk {
-            background-color: rgba(245, 158, 11, 0.1);
-            border-color: rgba(245, 158, 11, 0.3);
-        }
-
-        .status-no-palm {
-            background-color: #f8f9fa;
-            border-color: #e5e7eb;
-        }
-
-        .status-error {
-            background-color: rgba(239, 68, 68, 0.1);
-            border-color: rgba(239, 68, 68, 0.3);
-        }
-
-        .image-upload-area {
-            height: 300px;
-            border: 2px dashed #e5e7eb;
-            border-radius: 12px;
-            background-color: #f8f9fa;
+        /* Loading overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
             display: flex;
-            align-items: center;
+            flex-direction: column;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            overflow: hidden;
-        }
-
-        .image-upload-area:hover {
-            border-color: var(--primary-color);
-            background-color: rgba(46, 125, 50, 0.05);
-        }
-
-        .image-preview {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .detection-item {
-            padding: 16px;
-            border-radius: 12px;
-            background-color: #f8f9fa;
-            border: 1px solid #e5e7eb;
-            margin-bottom: 12px;
-        }
-
-        .detection-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            margin-right: 16px;
-        }
-
-        .ganoderma-icon {
-            background-color: rgba(16, 185, 129, 0.1);
-            color: #10B981;
-        }
-
-        .blackspot-icon {
-            background-color: rgba(239, 68, 68, 0.1);
-            color: #EF4444;
-        }
-
-        .healthy-icon {
-            background-color: rgba(59, 130, 246, 0.1);
-            color: #3B82F6;
+            z-index: 9999;
+            display: none;
         }
 
         .loading-spinner {
-            border: 3px solid rgba(46, 125, 50, 0.1);
-            border-top: 3px solid var(--primary-color);
-            border-radius: 50%;
             width: 50px;
             height: 50px;
+            border: 5px solid var(--primary-light);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
             animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
         }
 
         @keyframes spin {
@@ -193,45 +136,9 @@
             100% { transform: rotate(360deg); }
         }
 
-        .confidence-slider {
-            width: 100%;
-            height: 8px;
-            border-radius: 4px;
-            background: #e5e7eb;
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        .confidence-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: var(--primary-color);
-            cursor: pointer;
-        }
-
-        .canvas-container {
-            position: relative;
-            width: 100%;
-            height: 300px;
-        }
-
-        .detection-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .treatment-textarea {
-            min-height: 200px;
-            resize: vertical;
-            font-family: monospace;
-            font-size: 14px;
-            line-height: 1.6;
+        /* Model Configurations */
+        .model-configs {
+            display: none;
         }
 
         @media (max-width: 768px) {
@@ -269,10 +176,6 @@
             .search-box {
                 width: 200px;
             }
-
-            .image-upload-area {
-                height: 200px;
-            }
         }
     </style>
 </head>
@@ -285,226 +188,222 @@
         <main class="main-content">
             <div class="top-header">
                 <div class="header-left">
-                    <h1>Farm Assessments</h1>
+                    <h1>Oil Palm Health Assessment</h1>
                 </div>
-                <div class="header-right">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="globalSearchInput" placeholder="Search assessments...">
-                    </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="helpBtn">
+                        <i class="fas fa-question-circle"></i> Help
+                    </button>
                 </div>
             </div>
 
             <div class="container">
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h2 class="fw-bold mb-0">Oil Palm Health Detection</h2>
-                            <button class="btn btn-outline-primary" id="infoBtn">
-                                <i class="fas fa-info-circle me-2"></i>Guide
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Health Status Card -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body">
-                                <div id="healthStatusCard" class="status-card status-no-palm">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <i class="fas fa-question-circle fa-2x me-3" id="statusIcon"></i>
-                                        <h4 class="fw-bold mb-0" id="healthStatus">Unknown</h4>
-                                        <span class="badge bg-primary ms-auto d-none" id="issuesCount">0 Issues</span>
-                                    </div>
-                                    <p class="mb-0" id="healthDescription">Upload an image to assess palm health</p>
-                                </div>
-                            </div>
-                        </div>
+                <div class="health-status-card" id="healthStatusCard">
+                    <div class="status-header">
+                        <i class="fas fa-question-circle status-icon"></i>
+                        <h3 class="status-title">Unknown</h3>
+                        <span class="status-badge" id="issuesCount">0 Issues</span>
                     </div>
+                    <p class="status-description">Upload an image to assess palm health</p>
                 </div>
 
                 <!-- Image Upload Section -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-header text-center bg-light">
-                                <i class="fas fa-tree fa-3x mb-3" style="color: var(--primary-color);"></i>
-                                <h4 class="fw-bold">Oil Palm Health Detection</h4>
-                                <p class="text-muted mb-0">Upload a clear photo of oil palm leaves or trees for disease analysis</p>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6 mb-3 mb-md-0">
-                                        <div id="imageUploadArea" class="image-upload-area">
-                                            <div id="uploadPlaceholder" class="text-center">
-                                                <i class="fas fa-camera fa-3x mb-3 text-muted"></i>
-                                                <h5>Upload oil palm photo</h5>
-                                                <p class="text-muted">Focus on leaves or affected areas</p>
-                                            </div>
-                                            <canvas id="detectionCanvas" class="detection-canvas d-none"></canvas>
-                                            <img id="imagePreview" class="image-preview d-none" alt="Preview">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div id="loadingSection" class="d-none text-center py-5">
-                                            <div class="loading-spinner mx-auto mb-3"></div>
-                                            <h5>Analyzing Oil Palm Health...</h5>
-                                            <p class="text-muted">Detecting palm diseases and assessing health</p>
-                                        </div>
-                                        
-                                        <div id="detectionResults" class="d-none">
-                                            <h5 class="fw-bold mb-3">Detection Results</h5>
-                                            <div id="detectionList"></div>
-                                            
-                                            <div class="mt-4">
-                                                <label class="form-label fw-bold">Confidence Threshold</label>
-                                                <input type="range" class="confidence-slider" id="confidenceSlider" min="0" max="1" step="0.1" value="0.5">
-                                                <div class="d-flex justify-content-between mt-1">
-                                                    <small class="text-muted">0%</small>
-                                                    <small id="thresholdValue" class="fw-bold">50%</small>
-                                                    <small class="text-muted">100%</small>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="mt-4">
-                                                <h6 class="fw-bold">Total Detections: <span id="totalDetections">0</span></h6>
-                                                <h6 class="fw-bold">Filtered Detections: <span id="filteredDetections">0</span></h6>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row mt-4">
-                                    <div class="col-6">
-                                        <button class="btn btn-outline-primary w-100" id="cameraBtn">
-                                            <i class="fas fa-camera me-2"></i>Take Photo
-                                        </button>
-                                    </div>
-                                    <div class="col-6">
-                                        <button class="btn btn-primary w-100" id="galleryBtn">
-                                            <i class="fas fa-image me-2"></i>Choose from Gallery
-                                        </button>
-                                    </div>
-                                </div>
-                                
-                                <input type="file" id="fileInput" accept="image/*" class="d-none">
-                            </div>
+                <div class="upload-section card">
+                    <div class="upload-header">
+                        <i class="fas fa-pagelines"></i>
+                        <h2>Oil Palm Health Detection</h2>
+                        <p>Upload a clear photo of oil palm leaves or trees for disease analysis</p>
+                    </div>
+                    
+                    <div class="image-container">
+                        <div class="image-placeholder" id="imagePlaceholder">
+                            <i class="fas fa-camera"></i>
+                            <p>Upload oil palm photo</p>
+                            <small>Focus on leaves or affected areas</small>
                         </div>
+                        <canvas id="imageCanvas" style="display: none;"></canvas>
+                        <div class="analyzing-overlay" id="analyzingOverlay" style="display: none;">
+                            <div class="spinner"></div>
+                            <p>Analyzing Oil Palm Health...</p>
+                            <small>Detecting palm diseases and assessing health</small>
+                        </div>
+                    </div>
+
+                    <div class="upload-buttons">
+                        <button class="btn btn-outline" id="cameraBtn">
+                            <i class="fas fa-camera"></i> Take Photo
+                        </button>
+                        <button class="btn btn-primary" id="galleryBtn">
+                            <i class="fas fa-images"></i> Choose from Gallery
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Detection Results -->
+                <div class="detection-section card" id="detectionSection" style="display: none;">
+                    <div class="section-header">
+                        <i class="fas fa-search"></i>
+                        <h3>Detection Results</h3>
+                    </div>
+                    <p class="section-subtitle">Oil Palm Disease & Health Detection</p>
+                    
+                    <div class="detections-container" id="detectionsContainer">
+                        <!-- Detections will be added here dynamically -->
                     </div>
                 </div>
 
                 <!-- Assessment Form -->
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body">
-                                <h4 class="fw-bold mb-4"><i class="fas fa-clipboard-list me-2"></i>Assessment Details</h4>
-                                
-                                <!-- Location Selection -->
-                                <div class="mb-4">
-                                    <label class="form-label fw-bold">Oil Palm Location</label>
-                                    <select class="form-select" id="locationSelect">
-                                        <option value="Parit Raja">Parit Raja</option>
-                                        <option value="Senggarang">Senggarang</option>
-                                        <option value="Batu Pahat">Batu Pahat</option>
-                                        <option value="Specific Location">Specific Location</option>
-                                    </select>
-                                    
-                                    <div id="customLocationField" class="mt-3 d-none">
-                                        <label class="form-label fw-bold">Enter Specific Location</label>
-                                        <input type="text" class="form-control" id="customLocationInput" placeholder="Enter the exact oil palm tree location...">
-                                    </div>
-                                </div>
-                                
-                                <!-- Assessment Date -->
-                                <div class="mb-4">
-                                    <label class="form-label fw-bold">Assessment Date</label>
-                                    <input type="date" class="form-control" id="assessmentDate" value="">
-                                </div>
-                                
-                                <!-- Treatment Recommendation -->
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <label class="form-label fw-bold mb-0">Treatment Recommendation</label>
-                                        <button class="btn btn-sm btn-outline-primary" id="autoGenerateBtn">
-                                            <i class="fas fa-magic me-1"></i>Auto-generate
-                                        </button>
-                                    </div>
-                                    <textarea class="form-control treatment-textarea" id="treatmentTextarea" rows="8" 
-                                              placeholder="Treatment recommendations will be auto-generated based on detected diseases..."></textarea>
-                                    <small class="text-muted">Treatment is auto-generated based on detected oil palm conditions.</small>
-                                </div>
-                                
-                                <!-- Action Buttons -->
-                                <div class="row mt-4">
-                                    <div class="col-6">
-                                        <button class="btn btn-outline-primary w-100" id="clearBtn">
-                                            <i class="fas fa-trash-alt me-2"></i>Clear
-                                        </button>
-                                    </div>
-                                    <div class="col-6">
-                                        <button class="btn btn-primary w-100" id="saveBtn" disabled>
-                                            <i class="fas fa-save me-2"></i>Save Assessment
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                <div class="assessment-form card">
+                    <div class="section-header">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>Assessment Details</h3>
+                    </div>
+
+                    <!-- Location Selection -->
+                    <div class="form-group">
+                        <label for="locationSelect">Oil Palm Location</label>
+                        <div class="location-selector">
+                            <select id="locationSelect" class="form-control">
+                                <option value="Parit Raja">Parit Raja</option>
+                                <option value="Senggarang">Senggarang</option>
+                                <option value="Batu Pahat">Batu Pahat</option>
+                                <option value="custom">Specific Location</option>
+                            </select>
+                            <i class="fas fa-chevron-down"></i>
                         </div>
+                        <div id="customLocationContainer" style="display: none; margin-top: 1rem;">
+                            <label for="customLocation">Enter Specific Location</label>
+                            <input type="text" id="customLocation" class="form-control" 
+                                   placeholder="Enter the exact oil palm tree location...">
+                        </div>
+                    </div>
+
+                    <!-- Assessment Date -->
+                    <div class="form-group">
+                        <label for="assessmentDate">Assessment Date</label>
+                        <div class="date-input">
+                            <input type="date" id="assessmentDate" class="form-control">
+                            <i class="fas fa-calendar"></i>
+                        </div>
+                    </div>
+
+                    <!-- Treatment Recommendation -->
+                    <div class="form-group">
+                        <div class="form-header">
+                            <label for="treatmentText">Treatment Recommendation</label>
+                            <button class="btn-icon" id="autoGenerateBtn" title="Auto-generate treatment">
+                                <i class="fas fa-magic"></i>
+                            </button>
+                        </div>
+                        <textarea id="treatmentText" class="form-control" rows="6" 
+                                  placeholder="Treatment recommendations will be auto-generated based on detected diseases..."></textarea>
+                        <small class="form-hint">Treatment is auto-generated based on detected oil palm conditions.</small>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="form-actions">
+                        <button class="btn btn-outline" id="clearBtn">
+                            <i class="fas fa-trash"></i> Clear
+                        </button>
+                        <button class="btn btn-primary" id="saveBtn">
+                            <i class="fas fa-save"></i> Save Assessment
+                        </button>
                     </div>
                 </div>
 
                 <!-- Tips Section -->
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body">
-                                <h5 class="fw-bold mb-3"><i class="fas fa-lightbulb me-2" style="color: var(--primary-color);"></i>Tips for better oil palm detection</h5>
-                                <ul class="mb-0">
-                                    <li>Focus on oil palm leaves or affected areas</li>
-                                    <li>Ensure good lighting on the palm</li>
-                                    <li>Take close-up photos of disease symptoms</li>
-                                    <li>For healthy detection: show clear, green palm leaves</li>
-                                    <li>System filters out non-palm objects automatically</li>
-                                </ul>
-                            </div>
-                        </div>
+                <div class="tips-card card">
+                    <div class="tips-header">
+                        <i class="fas fa-lightbulb"></i>
+                        <h4>Tips for better oil palm detection</h4>
                     </div>
+                    <ul class="tips-list">
+                        <li>Focus on oil palm leaves or affected areas</li>
+                        <li>Ensure good lighting on the palm</li>
+                        <li>Take close-up photos of disease symptoms</li>
+                        <li>For healthy detection: show clear, green palm leaves</li>
+                        <li>System filters out non-palm objects automatically</li>
+                    </ul>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Guide Modal -->
-    <div class="modal fade" id="guideModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Oil Palm Health Detection Guide</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>1. Upload clear photos of oil palm leaves or trees</p>
-                    <p>2. System detects oil palm diseases AND healthy leaves</p>
-                    <p>3. Non-palm objects are filtered out automatically</p>
-                    <p>4. Provides oil palm specific treatment advice</p>
-                    <p>5. Save assessments for future reference</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">Processing...</p>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal" id="helpModal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Oil Palm Health Detection Guide</h2>
+            <div class="modal-body">
+                <ol>
+                    <li>Upload clear photos of oil palm leaves or trees</li>
+                    <li>System detects oil palm diseases AND healthy leaves</li>
+                    <li>Non-palm objects are filtered out automatically</li>
+                    <li>Provides oil palm specific treatment advice</li>
+                    <li>Save assessments for future reference</li>
+                </ol>
+                <div class="model-info">
+                    <h3>Detection Models:</h3>
+                    <div class="model-tags">
+                        <span class="model-tag" style="background-color: #10B98120; color: #10B981;">
+                            <i class="fas fa-warning"></i> Ganoderma Detection
+                        </span>
+                        <span class="model-tag" style="background-color: #EF444420; color: #EF4444;">
+                            <i class="fas fa-circle"></i> Blackspot Detection
+                        </span>
+                        <span class="model-tag" style="background-color: #3B82F620; color: #3B82F6;">
+                            <i class="fas fa-heart"></i> Healthy Leaves
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Firebase SDK -->
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
-        import { getAuth, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
-        import { getFirestore, collection, getDocs, doc, getDoc, addDoc } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js';
-        import { getStorage, ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
+    <!-- File Input (hidden) -->
+    <input type="file" id="imageInput" accept="image/*" capture="environment" style="display: none;">
 
+    <!-- Model Configurations (hidden) -->
+    <script type="text/template" id="modelConfig">
+        {
+            "ganoderma": {
+                "name": "Ganoderma",
+                "url": "https://serverless.roboflow.com/ganoderma-1-xpzwd/1",
+                "apiKey": "KOIYcp3E5rAFhgSploex",
+                "color": "#10B981",
+                "icon": "fa-warning",
+                "defaultThreshold": 0.7,
+                "validClasses": ["Ganoderma", "ganoderma", "Basal Stem Rot", "BSR"]
+            },
+            "blackspot": {
+                "name": "Blackspot",
+                "url": "https://serverless.roboflow.com/blackspot-lhjog/1",
+                "apiKey": "KOIYcp3E5rAFhgSploex",
+                "color": "#EF4444",
+                "icon": "fa-circle",
+                "defaultThreshold": 0.5,
+                "validClasses": ["Blackspot", "blackspot", "Black Spot", "Leaf Spot"]
+            },
+            "healthy": {
+                "name": "Healthy Leaves",
+                "url": "https://serverless.roboflow.com/date-final/1",
+                "apiKey": "KOIYcp3E5rAFhgSploex",
+                "color": "#3B82F6",
+                "icon": "fa-heart",
+                "defaultThreshold": 0.5,
+                "validClasses": ["Healthy", "healthy", "normal", "good", "leaf", "leaves"]
+            }
+        }
+    </script>
+
+    <script>
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
@@ -516,555 +415,446 @@
         };
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const storage = getStorage(app);
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
 
-        // DOM elements
-        const elements = {
-            userEmail: null, // Will be set from sidebar
-            signOutBtn: null, // Handled by sidebar
-            infoBtn: document.getElementById('infoBtn'),
-            healthStatusCard: document.getElementById('healthStatusCard'),
-            statusIcon: document.getElementById('statusIcon'),
-            healthStatus: document.getElementById('healthStatus'),
-            healthDescription: document.getElementById('healthDescription'),
-            issuesCount: document.getElementById('issuesCount'),
-            imageUploadArea: document.getElementById('imageUploadArea'),
-            uploadPlaceholder: document.getElementById('uploadPlaceholder'),
-            detectionCanvas: document.getElementById('detectionCanvas'),
-            imagePreview: document.getElementById('imagePreview'),
-            loadingSection: document.getElementById('loadingSection'),
-            detectionResults: document.getElementById('detectionResults'),
-            detectionList: document.getElementById('detectionList'),
-            confidenceSlider: document.getElementById('confidenceSlider'),
-            thresholdValue: document.getElementById('thresholdValue'),
-            totalDetections: document.getElementById('totalDetections'),
-            filteredDetections: document.getElementById('filteredDetections'),
-            cameraBtn: document.getElementById('cameraBtn'),
-            galleryBtn: document.getElementById('galleryBtn'),
-            fileInput: document.getElementById('fileInput'),
-            locationSelect: document.getElementById('locationSelect'),
-            customLocationField: document.getElementById('customLocationField'),
-            customLocationInput: document.getElementById('customLocationInput'),
-            assessmentDate: document.getElementById('assessmentDate'),
-            treatmentTextarea: document.getElementById('treatmentTextarea'),
-            autoGenerateBtn: document.getElementById('autoGenerateBtn'),
-            clearBtn: document.getElementById('clearBtn'),
-            saveBtn: document.getElementById('saveBtn')
-        };
+        // DOM Elements
+        const healthStatusCard = document.getElementById('healthStatusCard');
+        const statusTitle = healthStatusCard.querySelector('.status-title');
+        const statusIcon = healthStatusCard.querySelector('.status-icon');
+        const statusDescription = healthStatusCard.querySelector('.status-description');
+        const issuesCount = document.getElementById('issuesCount');
+        const imagePlaceholder = document.getElementById('imagePlaceholder');
+        const imageCanvas = document.getElementById('imageCanvas');
+        const analyzingOverlay = document.getElementById('analyzingOverlay');
+        const detectionSection = document.getElementById('detectionSection');
+        const detectionsContainer = document.getElementById('detectionsContainer');
+        const cameraBtn = document.getElementById('cameraBtn');
+        const galleryBtn = document.getElementById('galleryBtn');
+        const locationSelect = document.getElementById('locationSelect');
+        const customLocationContainer = document.getElementById('customLocationContainer');
+        const customLocation = document.getElementById('customLocation');
+        const assessmentDate = document.getElementById('assessmentDate');
+        const treatmentText = document.getElementById('treatmentText');
+        const autoGenerateBtn = document.getElementById('autoGenerateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const helpBtn = document.getElementById('helpBtn');
+        const helpModal = document.getElementById('helpModal');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const imageInput = document.getElementById('imageInput');
 
-        // App Configuration
-        const models = {
-            'ganoderma': {
-                'name': 'Ganoderma',
-                'url': 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
-                'apiKey': 'KOIYcp3E5rAFhgSploex',
-                'color': '#10B981',
-                'icon': 'fas fa-warning',
-                'defaultThreshold': 0.7,
-                'validClasses': ['Ganoderma', 'ganoderma', 'Basal Stem Rot', 'BSR']
-            },
-            'blackspot': {
-                'name': 'Blackspot',
-                'url': 'https://serverless.roboflow.com/blackspot-lhjog/1',
-                'apiKey': 'KOIYcp3E5rAFhgSploex',
-                'color': '#EF4444',
-                'icon': 'fas fa-circle',
-                'defaultThreshold': 0.5,
-                'validClasses': ['Blackspot', 'blackspot', 'Black Spot', 'Leaf Spot']
-            },
-            'healthy': {
-                'name': 'Healthy Leaves',
-                'url': 'https://serverless.roboflow.com/date-final/1',
-                'apiKey': 'KOIYcp3E5rAFhgSploex',
-                'color': '#3B82F6',
-                'icon': 'fas fa-heartbeat',
-                'defaultThreshold': 0.5,
-                'validClasses': ['Healthy', 'healthy', 'normal', 'good', 'leaf', 'leaves']
-            }
-        };
+        // Model configurations
+        const models = JSON.parse(document.getElementById('modelConfig').textContent);
 
-        // App State
-        let currentUser = null;
-        let imageData = null;
+        // State variables
+        let currentImage = null;
         let currentDetections = [];
+        let currentHealthStatus = 'Unknown';
+        let currentObjectsCount = 0;
         let confidenceThreshold = 0.5;
-        let healthStatus = 'Unknown';
-        let healthDescription = 'Upload an image to assess palm health';
-        let objectsCount = 0;
-        let isLoading = false;
         let isAnalyzing = false;
+        let currentLocation = 'Parit Raja';
+        let isCustomLocation = false;
 
-        // Initialize Date
-        elements.assessmentDate.value = new Date().toISOString().split('T')[0];
+        // Initialize date
+        assessmentDate.valueAsDate = new Date();
 
-        // Check authentication state
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                console.log('User is signed in:', user.email);
-                window.currentUser = user;
-                currentUser = user;
-
-                try {
-                    const userDoc = await getDoc(doc(db, "users", user.uid));
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data();
-                        window.userData = userData;
-                        updateUserProfile(user, userData);
-                    } else {
-                        updateUserProfile(user, {});
-                    }
-                } catch (error) {
-                    console.error('Error loading user data:', error);
-                    updateUserProfile(user, {});
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check authentication
+            auth.onAuthStateChanged(user => {
+                if (!user) {
+                    window.location.href = 'signin.html';
                 }
-            } else {
-                console.log('User is not signed in');
-                window.location.href = 'signin.html';
-            }
+            });
+
+            // Image upload
+            cameraBtn.addEventListener('click', () => {
+                imageInput.setAttribute('capture', 'environment');
+                imageInput.click();
+            });
+
+            galleryBtn.addEventListener('click', () => {
+                imageInput.removeAttribute('capture');
+                imageInput.click();
+            });
+
+            imageInput.addEventListener('change', handleImageUpload);
+
+            // Location selection
+            locationSelect.addEventListener('change', handleLocationChange);
+
+            // Auto-generate treatment
+            autoGenerateBtn.addEventListener('click', generateTreatmentAdvice);
+
+            // Clear form
+            clearBtn.addEventListener('click', resetForm);
+
+            // Save assessment
+            saveBtn.addEventListener('click', saveAssessment);
+
+            // Help modal
+            helpBtn.addEventListener('click', () => {
+                helpModal.style.display = 'block';
+            });
+
+            helpModal.querySelector('.close-modal').addEventListener('click', () => {
+                helpModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === helpModal) {
+                    helpModal.style.display = 'none';
+                }
+            });
         });
 
-        function updateUserProfile(user, userData) {
-            const userNameElement = document.querySelector('.user-name');
-            const userRoleElement = document.querySelector('.user-role');
+        // Handle image upload
+        async function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-            const displayName = userData.firstName && userData.lastName
-                ? `${userData.firstName} ${userData.lastName}`
-                : userData.username
-                    ? userData.username
-                    : userData.displayName || user.displayName || user.email.split('@')[0] || 'User';
+            // Show analyzing overlay
+            isAnalyzing = true;
+            imagePlaceholder.style.display = 'none';
+            analyzingOverlay.style.display = 'flex';
+            currentDetections = [];
+            currentObjectsCount = 0;
+            updateHealthStatus('Analyzing...', 'Processing image, please wait', 'fas fa-spinner fa-spin', '#6B7280');
 
-            if (userNameElement) userNameElement.textContent = displayName;
-            if (userRoleElement) userRoleElement.textContent = userData.bio || 'Farmer';
-
-            // set avatar(s) safely (use base64/photoURL/picture or fall back to default)
-            const avatarSrc = userData.imageBase64 || userData.picture || userData.photoURL || 'images/user-avatar.jpg';
-            const avatars = document.querySelectorAll('.user-avatar');
-            avatars.forEach(img => {
-                if (img) {
-                    img.src = avatarSrc;
-                    img.onerror = () => { img.src = 'images/default-avatar.png'; };
-                }
-            });
-
-            // store for later in case sidebar is loaded after profile
-            window.userData = userData;
-        }
-
-        // Initialize the page
-        document.addEventListener('DOMContentLoaded', function () {
-            setupEventListeners();
-        });
-
-        // Set up event listeners
-        function setupEventListeners() {
-            // Sidebar Toggle Logic (Mobile Support)
-            const checkSidebar = setInterval(() => {
-                const sidebarToggle = document.getElementById('sidebarToggle');
-                const sidebar = document.querySelector('.sidebar');
-
-                if (sidebarToggle && sidebar) {
-                    clearInterval(checkSidebar);
-
-                    sidebarToggle.addEventListener('click', (e) => {
-                        if (window.innerWidth <= 768) {
-                            e.stopPropagation();
-                            sidebar.classList.toggle('active');
-
-                            const icon = sidebarToggle.querySelector('i');
-                            if (sidebar.classList.contains('active')) {
-                                icon.className = 'fas fa-chevron-left';
-                            } else {
-                                icon.className = 'fas fa-chevron-right';
-                            }
-                        }
-                    });
-                }
-            }, 100);
-
-            // Info Button
-            elements.infoBtn.addEventListener('click', () => {
-                new bootstrap.Modal(document.getElementById('guideModal')).show();
-            });
-            
-            // Camera Button
-            elements.cameraBtn.addEventListener('click', () => {
-                if (!navigator.mediaDevices) {
-                    showToast('Camera access not available', 'error');
-                    return;
-                }
-                elements.fileInput.accept = 'image/*';
-                elements.fileInput.capture = 'environment';
-                elements.fileInput.click();
-            });
-            
-            // Gallery Button
-            elements.galleryBtn.addEventListener('click', () => {
-                elements.fileInput.accept = 'image/*';
-                elements.fileInput.capture = null;
-                elements.fileInput.click();
-            });
-            
-            // File Input
-            elements.fileInput.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                
-                try {
-                    imageData = await processImage(file);
-                    displayImage(imageData);
-                    await performImageDetection(imageData);
-                } catch (error) {
-                    showToast('Error processing image: ' + error.message, 'error');
-                }
-            });
-            
-            // Confidence Slider
-            elements.confidenceSlider.addEventListener('input', (e) => {
-                confidenceThreshold = parseFloat(e.target.value);
-                elements.thresholdValue.textContent = Math.round(confidenceThreshold * 100) + '%';
-                
-                if (currentDetections.length > 0) {
-                    const filteredDetections = drawDetectionBoxes(currentDetections);
-                    updateDetectionList(currentDetections);
-                    
-                    // Update object count
-                    objectsCount = filteredDetections.length;
-                    if (objectsCount > 0 && healthStatus === 'At Risk') {
-                        elements.issuesCount.textContent = objectsCount + ' Issues';
-                        elements.issuesCount.classList.remove('d-none');
-                    } else {
-                        elements.issuesCount.classList.add('d-none');
-                    }
-                }
-            });
-            
-            // Location Select
-            elements.locationSelect.addEventListener('change', (e) => {
-                if (e.target.value === 'Specific Location') {
-                    elements.customLocationField.classList.remove('d-none');
-                } else {
-                    elements.customLocationField.classList.add('d-none');
-                }
-            });
-            
-            // Auto Generate Button
-            elements.autoGenerateBtn.addEventListener('click', () => {
-                if (currentDetections.length > 0) {
-                    const filteredDetections = currentDetections.filter(d => d.confidence >= confidenceThreshold);
-                    generateTreatmentAdvice(filteredDetections);
-                    showToast('Treatment advice generated', 'success');
-                } else {
-                    showToast('No detections available', 'error');
-                }
-            });
-            
-            // Clear Button
-            elements.clearBtn.addEventListener('click', resetForm);
-            
-            // Save Button
-            elements.saveBtn.addEventListener('click', saveAssessment);
-
-            // Logout functionality (handled by sidebar)
-            document.addEventListener('click', function (e) {
-                if (e.target.id === 'logoutBtn') {
-                    e.preventDefault();
-                    signOut(auth).then(() => {
-                        window.location.href = 'signin.html';
-                    }).catch((error) => {
-                        console.error('Logout error:', error);
-                    });
-                }
-            });
-        }
-
-        // Toast Notification
-        function showToast(message, type = 'info') {
-            // Remove existing toasts
-            const existingToasts = document.querySelectorAll('.toast');
-            existingToasts.forEach(toast => toast.remove());
-            
-            const toast = document.createElement('div');
-            toast.className = `toast align-items-center text-white bg-${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'warning'} border-0`;
-            toast.setAttribute('role', 'alert');
-            toast.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 9999;
-                min-width: 300px;
-            `;
-            toast.innerHTML = `
-                <div class="d-flex">
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.parentElement.parentElement.remove()"></button>
-                </div>
-            `;
-            document.body.appendChild(toast);
-            
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                if (toast.parentNode) {
-                    toast.remove();
-                }
-            }, 3000);
-        }
-
-        // Image Processing
-        async function processImage(file) {
-            return new Promise((resolve, reject) => {
+            try {
+                // Read image
                 const reader = new FileReader();
-                reader.onload = (e) => {
+                reader.onload = async (e) => {
+                    currentImage = e.target.result;
+                    
+                    // Display image
                     const img = new Image();
                     img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
+                        imageCanvas.width = img.width;
+                        imageCanvas.height = img.height;
+                        const ctx = imageCanvas.getContext('2d');
                         ctx.drawImage(img, 0, 0);
-                        resolve({
-                            blob: file,
-                            dataUrl: canvas.toDataURL('image/jpeg', 0.8),
-                            width: img.width,
-                            height: img.height
-                        });
+                        imageCanvas.style.display = 'block';
+                        
+                        // Convert to base64 for API
+                        const base64Image = currentImage.split(',')[1];
+                        performImageDetection(base64Image);
                     };
-                    img.src = e.target.result;
+                    img.src = currentImage;
                 };
-                reader.onerror = reject;
                 reader.readAsDataURL(file);
-            });
-        }
-
-        // Display Image
-        function displayImage(imageData) {
-            elements.uploadPlaceholder.classList.add('d-none');
-            elements.imagePreview.classList.remove('d-none');
-            elements.imagePreview.src = imageData.dataUrl;
-            elements.detectionCanvas.classList.remove('d-none');
-            elements.detectionCanvas.width = imageData.width;
-            elements.detectionCanvas.height = imageData.height;
-        }
-
-        // Update Health Status
-        function updateHealthStatus(status, description) {
-            healthStatus = status;
-            healthDescription = description;
-            
-            elements.healthStatus.textContent = status;
-            elements.healthDescription.textContent = description;
-            
-            const statusCard = elements.healthStatusCard;
-            statusCard.className = 'status-card ';
-            
-            switch(status) {
-                case 'Healthy':
-                    elements.statusIcon.className = 'fas fa-check-circle fa-2x me-3';
-                    statusCard.classList.add('status-healthy');
-                    break;
-                case 'At Risk':
-                    elements.statusIcon.className = 'fas fa-exclamation-triangle fa-2x me-3';
-                    statusCard.classList.add('status-at-risk');
-                    break;
-                case 'No Palm Detected':
-                    elements.statusIcon.className = 'fas fa-tree fa-2x me-3';
-                    statusCard.classList.add('status-no-palm');
-                    break;
-                case 'Error':
-                    elements.statusIcon.className = 'fas fa-times-circle fa-2x me-3';
-                    statusCard.classList.add('status-error');
-                    break;
-                default:
-                    elements.statusIcon.className = 'fas fa-question-circle fa-2x me-3';
-                    statusCard.classList.add('status-no-palm');
-            }
-            
-            if (objectsCount > 0 && status === 'At Risk') {
-                elements.issuesCount.textContent = objectsCount + ' Issues';
-                elements.issuesCount.classList.remove('d-none');
-            } else {
-                elements.issuesCount.classList.add('d-none');
+            } catch (error) {
+                console.error('Error loading image:', error);
+                showError('Failed to load image');
+                resetAnalysis();
             }
         }
 
-        // Draw Detection Boxes
-        function drawDetectionBoxes(detections) {
-            const canvas = elements.detectionCanvas;
-            const ctx = canvas.getContext('2d');
-            const img = elements.imagePreview;
-            
-            // Clear canvas
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Draw image
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            // Filter detections by threshold
-            const filteredDetections = detections.filter(d => d.confidence >= confidenceThreshold);
-            
-            // Draw bounding boxes
-            filteredDetections.forEach(detection => {
-                const x = detection.x * canvas.width;
-                const y = detection.y * canvas.height;
-                const width = detection.width * canvas.width;
-                const height = detection.height * canvas.height;
-                const confidence = detection.confidence;
-                const className = detection.class;
-                const modelKey = detection.model;
-                const modelConfig = models[modelKey];
-                
-                // Draw box
-                ctx.strokeStyle = modelConfig.color;
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x - width/2, y - height/2, width, height);
-                
-                // Draw label background
-                const label = `${className} ${(confidence * 100).toFixed(1)}%`;
-                ctx.font = 'bold 12px Arial';
-                const textWidth = ctx.measureText(label).width;
-                const textHeight = 16;
-                
-                ctx.fillStyle = modelConfig.color;
-                ctx.fillRect(x - width/2, y - height/2 - textHeight, textWidth + 8, textHeight);
-                
-                // Draw label text
-                ctx.fillStyle = '#FFFFFF';
-                ctx.fillText(label, x - width/2 + 4, y - height/2 - 4);
-            });
-            
-            // Update counts
-            elements.totalDetections.textContent = detections.length;
-            elements.filteredDetections.textContent = filteredDetections.length;
-            
-            return filteredDetections;
-        }
-
-        // Update Detection List
-        function updateDetectionList(detections) {
-            const filteredDetections = detections.filter(d => d.confidence >= confidenceThreshold);
-            elements.detectionList.innerHTML = '';
-            
-            if (filteredDetections.length === 0) {
-                elements.detectionList.innerHTML = `
-                    <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        No significant diseases detected
-                        <small class="d-block">All detections are below confidence threshold</small>
-                    </div>
-                `;
-                return;
-            }
-            
-            filteredDetections.forEach(detection => {
-                const modelConfig = models[detection.model];
-                const isHealthy = detection.model === 'healthy';
-                
-                const item = document.createElement('div');
-                item.className = 'detection-item d-flex align-items-center';
-                item.innerHTML = `
-                    <div class="detection-icon ${detection.model}-icon">
-                        <i class="${modelConfig.icon}"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="fw-bold mb-1">${detection.class}</h6>
-                        <p class="mb-1 text-muted">Confidence: ${(detection.confidence * 100).toFixed(1)}%</p>
-                        <small class="${isHealthy ? 'text-primary' : 'text-success'}">
-                            ${isHealthy ? 'Healthy oil palm leaves detected' : 'Oil palm specific disease'}
-                        </small>
-                    </div>
-                `;
-                elements.detectionList.appendChild(item);
-            });
-        }
-
-        // Perform Image Detection
-        async function performImageDetection(imageData) {
+        // Perform image detection
+        async function performImageDetection(base64Image) {
             try {
-                isLoading = true;
-                isAnalyzing = true;
-                
-                // Show loading
-                elements.loadingSection.classList.remove('d-none');
-                elements.detectionResults.classList.add('d-none');
-                
-                // Convert image to base64
-                const base64Image = imageData.dataUrl.split(',')[1];
-                
-                // Call all models
+                loadingOverlay.style.display = 'flex';
+                loadingText.textContent = 'Analyzing palm health...';
+
                 const promises = Object.entries(models).map(async ([modelKey, model]) => {
                     try {
-                        const response = await fetch(`${model.url}?api_key=${model.apiKey}`, {
+                        const response = await fetch(model.url + '?api_key=' + model.apiKey, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded',
                             },
                             body: base64Image
                         });
-                        
+
                         if (!response.ok) throw new Error(`HTTP ${response.status}`);
                         
                         const data = await response.json();
-                        if (data.predictions) {
-                            return data.predictions.map(pred => ({
-                                ...pred,
-                                model: modelKey,
-                                modelName: model.name,
-                                modelColor: model.color
-                            }));
-                        }
-                        return [];
+                        return {
+                            modelKey,
+                            data,
+                            predictions: data.predictions || []
+                        };
                     } catch (error) {
                         console.error(`Error with model ${modelKey}:`, error);
-                        return [];
+                        return { modelKey, data: null, predictions: [] };
                     }
                 });
-                
+
                 const results = await Promise.all(promises);
-                currentDetections = results.flat();
                 
-                // Filter valid detections (simplified for web)
-                const validDetections = currentDetections.filter(d => d.confidence >= 0.3);
-                
-                if (validDetections.length === 0) {
-                    updateHealthStatus('No Palm Detected', 
-                        'No valid palm tree detected. Please ensure the image contains clear photos of oil palm trees.');
-                    objectsCount = 0;
-                } else {
-                    objectsCount = validDetections.length;
-                    updateHealthStatus('At Risk', 
-                        `Detected ${objectsCount} palm disease${objectsCount > 1 ? 's' : ''}.`);
+                // Process all detections
+                let allDetections = [];
+                let hasValidPalmDetections = false;
+
+                results.forEach(result => {
+                    if (result.predictions && result.predictions.length > 0) {
+                        const modelConfig = models[result.modelKey];
+                        const validPredictions = result.predictions.filter(pred => {
+                            const detectionWithModel = {
+                                ...pred,
+                                model: result.modelKey,
+                                modelName: modelConfig.name,
+                                modelColor: modelConfig.color
+                            };
+                            return isValidPalmDetection(detectionWithModel);
+                        });
+
+                        if (validPredictions.length > 0) {
+                            hasValidPalmDetections = true;
+                        }
+
+                        allDetections = allDetections.concat(validPredictions.map(pred => ({
+                            ...pred,
+                            model: result.modelKey,
+                            modelName: modelConfig.name,
+                            modelColor: modelConfig.color
+                        })));
+                    }
+                });
+
+                // Validate palm context
+                const hasPalmContext = await validatePalmContext(base64Image);
+
+                if (!hasValidPalmDetections || !hasPalmContext) {
+                    updateHealthStatus(
+                        'No Palm Detected',
+                        'No valid palm tree detected. Please ensure the image contains clear photos of oil palm trees.',
+                        'fas fa-tree',
+                        '#6B7280'
+                    );
+                    currentDetections = [];
+                    displayDetections([]);
+                    generateTreatmentAdvice();
+                    return;
                 }
+
+                currentDetections = allDetections;
+                autoDetectDiseaseType(allDetections);
                 
-                // Draw boxes and update UI
-                const filteredDetections = drawDetectionBoxes(validDetections);
-                updateDetectionList(validDetections);
-                generateTreatmentAdvice(filteredDetections);
+                const filteredDetections = allDetections.filter(
+                    det => det.confidence >= confidenceThreshold
+                );
                 
-                // Show results
-                elements.loadingSection.classList.add('d-none');
-                elements.detectionResults.classList.remove('d-none');
-                elements.saveBtn.disabled = false;
-                
+                updateHealthAssessment(filteredDetections);
+                displayDetections(filteredDetections);
+                generateTreatmentAdvice();
+
             } catch (error) {
-                console.error('Detection error:', error);
-                updateHealthStatus('Error', 'Failed to analyze image. Please try again.');
-                showToast('Error processing image: ' + error.message, 'error');
+                console.error('Error during image detection:', error);
+                updateHealthStatus(
+                    'Error',
+                    'Failed to analyze image. Please try again.',
+                    'fas fa-exclamation-triangle',
+                    '#EF4444'
+                );
+                showError('Error processing image: ' + error.message);
             } finally {
-                isLoading = false;
+                loadingOverlay.style.display = 'none';
+                analyzingOverlay.style.display = 'none';
                 isAnalyzing = false;
             }
         }
 
-        // Generate Treatment Advice
-        function generateTreatmentAdvice(detections) {
-            let treatmentAdvice = '';
+        // Validate palm detection
+        function isValidPalmDetection(detection) {
+            const className = detection.class.toLowerCase();
+            const confidence = detection.confidence;
+            
+            if (confidence < 0.3) return false;
+            
+            // Check model-specific valid classes
+            const modelKey = detection.model;
+            const modelConfig = models[modelKey];
+            if (modelConfig && modelConfig.validClasses) {
+                const validClasses = modelConfig.validClasses.map(c => c.toLowerCase());
+                const isValidClass = validClasses.some(validClass => 
+                    className === validClass || className.includes(validClass)
+                );
+                
+                if (!isValidClass) return false;
+            }
+            
+            return true;
+        }
+
+        // Validate palm context
+        async function validatePalmContext(base64Image) {
+            // Simplified validation - in production, you might want more sophisticated validation
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    // Basic size validation
+                    if (img.width < 300 || img.height < 300) {
+                        resolve(false);
+                        return;
+                    }
+                    
+                    // For now, assume it's valid if it passed the detection filters
+                    resolve(true);
+                };
+                img.onerror = () => resolve(false);
+                img.src = 'data:image/jpeg;base64,' + base64Image;
+            });
+        }
+
+        // Auto-detect disease type and set threshold
+        function autoDetectDiseaseType(detections) {
+            if (detections.length === 0) {
+                confidenceThreshold = 0.5;
+                return;
+            }
+
+            let hasGanoderma = false;
+            let hasBlackspot = false;
+            let hasHealthy = false;
+
+            detections.forEach(det => {
+                if (det.model === 'ganoderma' && det.confidence >= models.ganoderma.defaultThreshold) {
+                    hasGanoderma = true;
+                }
+                if (det.model === 'blackspot' && det.confidence >= models.blackspot.defaultThreshold) {
+                    hasBlackspot = true;
+                }
+                if (det.model === 'healthy' && det.confidence >= models.healthy.defaultThreshold) {
+                    hasHealthy = true;
+                }
+            });
+
+            if (hasGanoderma) {
+                confidenceThreshold = models.ganoderma.defaultThreshold;
+            } else if (hasBlackspot) {
+                confidenceThreshold = models.blackspot.defaultThreshold;
+            } else if (hasHealthy) {
+                confidenceThreshold = models.healthy.defaultThreshold;
+            } else {
+                confidenceThreshold = 0.5;
+            }
+        }
+
+        // Update health assessment
+        function updateHealthAssessment(detections) {
+            currentObjectsCount = detections.length;
             
             const diseaseDetections = detections.filter(d => d.model !== 'healthy');
             const healthyDetections = detections.filter(d => d.model === 'healthy');
+            
+            if (diseaseDetections.length === 0 && healthyDetections.length > 0) {
+                updateHealthStatus(
+                    'Healthy',
+                    'Your oil palm leaves appear to be in excellent health condition.',
+                    'fas fa-check-circle',
+                    '#3B82F6'
+                );
+            } else if (diseaseDetections.length > 0) {
+                const diseases = [...new Set(diseaseDetections.map(d => d.class))].join(', ');
+                const count = diseaseDetections.length;
+                updateHealthStatus(
+                    'At Risk',
+                    `Detected ${count} palm disease${count > 1 ? 's' : ''}: ${diseases}. These are specific to oil palm trees.`,
+                    'fas fa-exclamation-triangle',
+                    '#F59E0B'
+                );
+                issuesCount.textContent = `${count} Issues`;
+                issuesCount.style.display = 'inline-block';
+            } else {
+                updateHealthStatus(
+                    'Healthy',
+                    'Your oil palm appears to be in good health with no diseases detected.',
+                    'fas fa-check-circle',
+                    '#3B82F6'
+                );
+            }
+        }
+
+        // Update health status display
+        function updateHealthStatus(title, description, icon, color) {
+            currentHealthStatus = title;
+            statusTitle.textContent = title;
+            statusIcon.className = `fas ${icon} status-icon`;
+            statusDescription.textContent = description;
+            
+            healthStatusCard.style.backgroundColor = `${color}20`;
+            healthStatusCard.style.borderColor = `${color}30`;
+            statusTitle.style.color = color;
+            statusIcon.style.color = color;
+            
+            if (title === 'Healthy') {
+                issuesCount.style.display = 'none';
+            }
+        }
+
+        // Display detections
+        function displayDetections(detections) {
+            if (detections.length === 0) {
+                detectionSection.style.display = 'none';
+                return;
+            }
+
+            detectionSection.style.display = 'block';
+            detectionsContainer.innerHTML = '';
+
+            // Group detections by model
+            const groupedDetections = detections.reduce((groups, det) => {
+                if (!groups[det.model]) groups[det.model] = [];
+                groups[det.model].push(det);
+                return groups;
+            }, {});
+
+            Object.entries(groupedDetections).forEach(([modelKey, modelDetections]) => {
+                const modelConfig = models[modelKey];
+                const modelCard = document.createElement('div');
+                modelCard.className = 'model-card';
+                modelCard.style.borderColor = modelConfig.color + '40';
+
+                let detectionsHTML = '';
+                modelDetections.forEach(det => {
+                    detectionsHTML += `
+                        <div class="detection-item">
+                            <div class="detection-class">
+                                <span class="detection-class-name">${det.class}</span>
+                                <span class="detection-confidence">${(det.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="detection-description">
+                                ${modelKey === 'healthy' ? 'Healthy oil palm leaves detected' : 'Oil palm specific disease'}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                modelCard.innerHTML = `
+                    <div class="model-header">
+                        <div class="model-icon" style="background-color: ${modelConfig.color}20; color: ${modelConfig.color};">
+                            <i class="fas ${modelConfig.icon}"></i>
+                        </div>
+                        <div class="model-info">
+                            <h4>${modelConfig.name}</h4>
+                            <p>${modelDetections.length} detection${modelDetections.length > 1 ? 's' : ''}</p>
+                        </div>
+                    </div>
+                    <div class="detections-list">
+                        ${detectionsHTML}
+                    </div>
+                `;
+
+                detectionsContainer.appendChild(modelCard);
+            });
+        }
+
+        // Generate treatment advice
+        function generateTreatmentAdvice() {
+            const filteredDetections = currentDetections.filter(
+                det => det.confidence >= confidenceThreshold
+            );
+            
+            const diseaseDetections = filteredDetections.filter(d => d.model !== 'healthy');
+            const healthyDetections = filteredDetections.filter(d => d.model === 'healthy');
+            
+            let treatmentAdvice = '';
             
             if (diseaseDetections.length === 0 && healthyDetections.length > 0) {
                 treatmentAdvice = getHealthyLeavesTreatment();
@@ -1085,10 +875,10 @@
                 }
             }
             
-            elements.treatmentTextarea.value = treatmentAdvice;
+            treatmentText.value = treatmentAdvice;
         }
 
-        // Treatment Templates
+        // Treatment templates
         function getGanodermaTreatment() {
             return `GANODERMA DISEASE TREATMENT (Oil Palm Specific):
 
@@ -1103,7 +893,14 @@ LONG-TERM MANAGEMENT:
 • Apply soil drench with Propiconazole every 3 months
 • Consider soil replacement in heavily infected areas
 • Plant resistant oil palm varieties (if available)
-• Regular monitoring every 2 months`;
+• Regular monitoring every 2 months
+
+PREVENTIVE MEASURES FOR OIL PALM:
+• Sterilize all pruning and harvesting tools
+• Avoid over-irrigation and waterlogging
+• Maintain proper spacing (9m x 9m for oil palm)
+• Apply calcium and potassium supplements
+• Regular soil testing (maintain pH 5.0-5.5 for oil palm)`;
         }
 
         function getBlackspotTreatment() {
@@ -1120,7 +917,14 @@ CULTURAL CONTROL FOR OIL PALM:
 • Improve air circulation by proper spacing
 • Remove weeds that may harbor the fungus
 • Apply organic mulch around palm base
-• Prune only during dry weather`;
+• Prune only during dry weather
+
+PREVENTIVE MEASURES:
+• Regular inspection of oil palm plantation
+• Maintain balanced fertilization (avoid excess nitrogen)
+• Clean harvesting tools with disinfectant
+• Apply preventive fungicide before rainy season
+• Monitor for pest infestations that weaken palms`;
         }
 
         function getHealthyLeavesTreatment() {
@@ -1142,7 +946,19 @@ PREVENTIVE CARE FOR HEALTHY PALMS:
 • Maintain proper drainage
 • Ensure adequate sunlight
 • Prune only damaged or old fronds
-• Apply preventive fungicide during rainy season`;
+• Apply preventive fungicide during rainy season
+
+MONITORING SCHEDULE:
+• Daily: Visual check for sudden changes
+• Weekly: Check soil moisture levels
+• Monthly: Inspect for pests or early symptoms
+• Quarterly: Soil testing and nutrient analysis
+
+KEEP YOUR PALMS HEALTHY:
+• Avoid over-fertilization
+• Prevent mechanical damage during harvesting
+• Maintain proper plantation sanitation
+• Document any changes in leaf appearance`;
         }
 
         function getCombinedTreatment() {
@@ -1159,6 +975,13 @@ Week 1-2: Remove infected palms and debris
 Week 3-4: Soil drench for Ganoderma control
 Week 5-6: Foliar spray for Black Spot control
 Week 7-8: Second preventive treatment
+
+INTEGRATED MANAGEMENT:
+• Improve overall plantation sanitation
+• Implement proper drainage system
+• Regular monitoring for both diseases
+• Balanced nutrition management
+• Consider biological control agents
 
 IMPORTANT: Ganoderma is soil-borne and fatal to oil palm. Black Spot is foliar and manageable. Prioritize Ganoderma eradication.`;
         }
@@ -1177,113 +1000,179 @@ ONGOING CARE FOR OIL PALM:
 • Adjust watering schedule (oil palms need consistent moisture)
 • Ensure proper sunlight exposure
 • Apply balanced oil palm fertilizer (N:P:K 12:12:17+2)
-• Maintain soil pH between 5.0-5.5`;
+• Maintain soil pH between 5.0-5.5
+
+PREVENTIVE ACTIONS:
+• Regular inspection of oil palm plantation
+• Proper sanitation practices
+• Adequate spacing (9m x 9m recommended)
+• Avoid mechanical injuries during harvesting
+• Mulch around base to retain moisture`;
         }
 
-        // Save Assessment
+        // Handle location change
+        function handleLocationChange() {
+            const value = locationSelect.value;
+            currentLocation = value;
+            isCustomLocation = value === 'custom';
+            
+            if (isCustomLocation) {
+                customLocationContainer.style.display = 'block';
+                customLocation.focus();
+            } else {
+                customLocationContainer.style.display = 'none';
+                customLocation.value = '';
+            }
+        }
+
+        // Save assessment to Firestore
         async function saveAssessment() {
-            if (isLoading || !imageData || !currentUser) return;
-            
-            const location = elements.locationSelect.value === 'Specific Location' 
-                ? elements.customLocationInput.value 
-                : elements.locationSelect.value;
-            
-            if (!location.trim()) {
-                showToast('Please enter a location for the palm', 'error');
+            // Validate location
+            if (isCustomLocation && !customLocation.value.trim()) {
+                showError('Please enter a specific location for the palm');
                 return;
             }
-            
-            if (!imageData) {
-                showToast('Please upload an image first', 'error');
+
+            if (!currentImage) {
+                showError('Please upload an image first');
                 return;
             }
-            
+
+            const user = auth.currentUser;
+            if (!user) {
+                showError('Please sign in to save assessments');
+                return;
+            }
+
+            loadingOverlay.style.display = 'flex';
+            loadingText.textContent = 'Saving assessment...';
+
             try {
-                isLoading = true;
-                elements.saveBtn.disabled = true;
-                elements.saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Saving...';
-                
                 // Prepare assessment data
-                const filteredDetections = currentDetections.filter(d => d.confidence >= confidenceThreshold);
-                const assessmentId = 'ASS' + Date.now() + Math.floor(Math.random() * 1000);
+                const finalLocation = isCustomLocation ? 
+                    customLocation.value.trim() : currentLocation;
                 
+                const filteredDetections = currentDetections.filter(
+                    det => det.confidence >= confidenceThreshold
+                );
+
                 const assessmentData = {
-                    assessmentId: assessmentId,
-                    userId: currentUser.uid,
-                    userEmail: currentUser.email,
-                    userName: currentUser.displayName || currentUser.email.split('@')[0] || 'User',
-                    
-                    location: location,
-                    locationType: elements.locationSelect.value === 'Specific Location' ? 'custom' : 'predefined',
-                    treatment: elements.treatmentTextarea.value.trim(),
-                    date: elements.assessmentDate.value,
-                    time: new Date().toLocaleTimeString(),
-                    timestamp: new Date(),
-                    
-                    healthStatus: healthStatus,
-                    objectsCount: objectsCount,
+                    assessmentId: 'ASS' + Date.now() + Math.floor(Math.random() * 1000),
+                    userId: user.uid,
+                    userEmail: user.email || '',
+                    userName: user.displayName || user.email?.split('@')[0] || 'User',
+
+                    location: finalLocation,
+                    locationType: isCustomLocation ? 'custom' : 'predefined',
+                    treatment: treatmentText.value.trim(),
+                    date: new Date().toISOString().split('T')[0],
+                    time: new Date().toTimeString().split(' ')[0],
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+
+                    healthStatus: currentHealthStatus,
+                    objectsCount: currentObjectsCount,
                     confidenceThreshold: confidenceThreshold,
-                    
+
                     diseases: filteredDetections.map(d => d.class),
                     detectionCount: filteredDetections.length,
                     totalDetections: currentDetections.length,
-                    
-                    imageData: imageData.dataUrl,
-                    imageSize: imageData.blob.size,
+
+                    treatmentAdvice: treatmentText.value.trim().substring(0, 500),
+                    preventionTips: getPreventionTips(),
+
+                    imageData: currentImage,
+                    imageSize: currentImage.length,
                     imageFormat: 'jpg',
                     imageProcessedAt: new Date().toISOString(),
-                    
+
                     modelsUsed: [...new Set(filteredDetections.map(d => d.model))],
+
                     isAnalyzed: true,
-                    isValidPalmImage: healthStatus !== 'No Palm Detected',
+                    isValidPalmImage: currentHealthStatus !== 'No Palm Detected',
                     createdAt: new Date().toISOString()
                 };
-                
+
                 // Save to Firestore
-                await addDoc(collection(db, 'assessments'), assessmentData);
+                await db.collection('assessments').add(assessmentData);
                 
-                showToast('Oil palm health assessment saved successfully!', 'success');
-                
-                // Reset form after delay
-                setTimeout(resetForm, 1500);
-                
+                showSuccess('Oil palm health assessment saved successfully!');
+                setTimeout(() => {
+                    resetForm();
+                }, 1500);
+
             } catch (error) {
-                console.error('Save error:', error);
-                showToast('Failed to save assessment: ' + error.message, 'error');
+                console.error('Error saving assessment:', error);
+                showError('Failed to save assessment: ' + error.message);
             } finally {
-                isLoading = false;
-                elements.saveBtn.disabled = false;
-                elements.saveBtn.innerHTML = '<i class="fas fa-save me-2"></i>Save Assessment';
+                loadingOverlay.style.display = 'none';
             }
         }
 
-        // Reset Form
+        // Get prevention tips
+        function getPreventionTips() {
+            return `OIL PALM DISEASE PREVENTION TIPS:
+
+1. CULTURAL PRACTICES:
+   • Maintain proper spacing between oil palm trees (9m x 9m)
+   • Water early in the day to allow leaves to dry
+   • Ensure good air circulation around palms
+   • Use disease-resistant oil palm varieties when planting
+   • Clean pruning and harvesting tools with disinfectant
+
+2. NUTRITIONAL MANAGEMENT FOR OIL PALM:
+   • Apply balanced oil palm fertilizer (N:P:K 12:12:17+2)
+   • Maintain soil pH between 5.0-5.5
+   • Add organic matter to improve soil structure
+   • Avoid excess nitrogen which promotes disease
+   • Apply micronutrients (Boron, Magnesium, Manganese)
+
+3. MONITORING & SANITATION:
+   • Monitor oil palms regularly for early signs of disease
+   • Remove diseased plant material immediately
+   • Keep plantation area clean and weed-free
+   • Avoid mechanical damage to palm trunks
+   • Record disease occurrences for future reference`;
+        }
+
+        // Reset form
         function resetForm() {
-            imageData = null;
+            currentImage = null;
             currentDetections = [];
+            currentObjectsCount = 0;
             confidenceThreshold = 0.5;
-            healthStatus = 'Unknown';
-            healthDescription = 'Upload an image to assess palm health';
-            objectsCount = 0;
+            currentHealthStatus = 'Unknown';
             
-            elements.uploadPlaceholder.classList.remove('d-none');
-            elements.imagePreview.classList.add('d-none');
-            elements.detectionCanvas.classList.add('d-none');
-            elements.loadingSection.classList.add('d-none');
-            elements.detectionResults.classList.add('d-none');
-            elements.treatmentTextarea.value = '';
-            elements.confidenceSlider.value = 0.5;
-            elements.thresholdValue.textContent = '50%';
-            elements.saveBtn.disabled = true;
-            elements.locationSelect.value = 'Parit Raja';
-            elements.customLocationField.classList.add('d-none');
-            elements.customLocationInput.value = '';
+            // Reset UI
+            imagePlaceholder.style.display = 'flex';
+            imageCanvas.style.display = 'none';
+            analyzingOverlay.style.display = 'none';
+            detectionSection.style.display = 'none';
+            locationSelect.value = 'Parit Raja';
+            customLocationContainer.style.display = 'none';
+            customLocation.value = '';
+            assessmentDate.valueAsDate = new Date();
+            treatmentText.value = '';
             
-            updateHealthStatus('Unknown', 'Upload an image to assess palm health');
+            updateHealthStatus('Unknown', 'Upload an image to assess palm health', 'fa-question-circle', '#6B7280');
+            issuesCount.style.display = 'none';
+        }
+
+        // Reset analysis
+        function resetAnalysis() {
+            isAnalyzing = false;
+            analyzingOverlay.style.display = 'none';
+            loadingOverlay.style.display = 'none';
+        }
+
+        // Show error message
+        function showError(message) {
+            alert('Error: ' + message);
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            alert('Success: ' + message);
         }
     </script>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
