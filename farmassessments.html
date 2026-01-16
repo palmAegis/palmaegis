@@ -1119,11 +1119,11 @@
             appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
         };
 
-        // Initialize Firebase
+        // Initialize Firebase - REMOVED storage import
         const app = firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const storage = firebase.storage();
+        // Removed: const storage = firebase.storage();
 
         // DOM Elements
         const healthStatusCard = document.getElementById('healthStatusCard');
@@ -1250,7 +1250,7 @@
                     displayName = user.email.split('@')[0];
                 }
                 
-                // Determine avatar source
+                // Determine avatar source (from Firestore document)
                 const avatarSrc = userData.photoURL || userData.imageBase64 || user.photoURL;
                 
                 // Update all user name elements
@@ -1931,11 +1931,19 @@ PREVENTIVE ACTIONS:
                     det => det.confidence >= confidenceThreshold
                 );
 
-                // Prepare image for storage
+                // Prepare image for storage in Firestore (compress if too large)
                 let imageData = currentImage;
                 if (currentImage.length > 1000000) { // 1MB
-                    // Compress image if too large
+                    // Compress image if too large for Firestore
                     imageData = await compressImage(currentImage);
+                    console.log('Image compressed for Firestore storage');
+                }
+                
+                // Check if image is still too large for Firestore (1MB limit per field)
+                if (imageData.length > 1000000) {
+                    // If still too large, store only a thumbnail
+                    console.log('Image too large for Firestore, storing thumbnail only');
+                    imageData = await compressImage(currentImage, 400, 0.5); // Smaller thumbnail
                 }
 
                 const assessmentData = {
@@ -1962,7 +1970,9 @@ PREVENTIVE ACTIONS:
                     treatmentAdvice: treatmentText.value.trim().substring(0, 500),
                     preventionTips: getPreventionTips(),
 
+                    // Store image as base64 string in Firestore
                     imageData: imageData,
+                    hasImage: true,
                     imageSize: imageData.length,
                     imageFormat: 'jpg',
                     imageProcessedAt: new Date().toISOString(),
@@ -1971,30 +1981,44 @@ PREVENTIVE ACTIONS:
 
                     isAnalyzed: true,
                     isValidPalmImage: currentHealthStatus !== 'No Palm Detected',
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    
+                    // Add metadata for easier querying
+                    year: new Date().getFullYear(),
+                    month: new Date().getMonth() + 1,
+                    day: new Date().getDate(),
+                    status: currentHealthStatus.toLowerCase().replace(' ', '_')
                 };
 
-                console.log('Saving assessment data:', assessmentData);
-
-                // Save to Firestore
-                await db.collection('assessments').add(assessmentData);
+                console.log('Saving assessment to Firestore...');
                 
+                // Save to Firestore assessments collection
+                const docRef = await db.collection('assessments').add(assessmentData);
+                
+                console.log('Assessment saved to Firestore with ID:', docRef.id);
                 showToast('Assessment saved successfully!', 'success');
+                
                 setTimeout(() => {
                     resetForm();
                     saveBtn.disabled = false;
                 }, 1500);
 
             } catch (error) {
-                console.error('Error saving assessment:', error);
-                showError('Failed to save assessment: ' + error.message);
+                console.error('Error saving assessment to Firestore:', error);
+                
+                if (error.message && error.message.includes('request entity too large')) {
+                    showError('Image is too large. Please use a smaller image or take a new photo.');
+                } else {
+                    showError('Failed to save assessment: ' + error.message);
+                }
+                
                 saveBtn.disabled = false;
             } finally {
                 loadingOverlay.style.display = 'none';
             }
         }
 
-        async function compressImage(base64Image) {
+        async function compressImage(base64Image, maxSize = 800, quality = 0.7) {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => {
@@ -2004,7 +2028,6 @@ PREVENTIVE ACTIONS:
                     // Calculate new dimensions
                     let width = img.width;
                     let height = img.height;
-                    const maxSize = 800;
                     
                     if (width > maxSize || height > maxSize) {
                         if (width > height) {
@@ -2018,13 +2041,26 @@ PREVENTIVE ACTIONS:
                     
                     canvas.width = width;
                     canvas.height = height;
+                    
+                    // Draw image on canvas
                     ctx.drawImage(img, 0, 0, width, height);
                     
-                    // Compress to JPEG with 70% quality
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                    // Compress to JPEG with specified quality
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+                    console.log(`Image compressed: ${img.width}x${img.height} -> ${width}x${height}, quality: ${quality}`);
                     resolve(compressedBase64);
                 };
+                img.onerror = () => {
+                    console.log('Failed to compress image, using original');
+                    resolve(base64Image);
+                };
                 img.src = base64Image;
+                
+                // Timeout fallback
+                setTimeout(() => {
+                    console.log('Image compression timeout, using original');
+                    resolve(base64Image);
+                }, 5000);
             });
         }
 
@@ -2127,7 +2163,8 @@ PREVENTIVE ACTIONS:
             currentUser,
             resetForm,
             generateTreatmentAdvice,
-            updateUserProfile: () => updateUserProfile(currentUser)
+            updateUserProfile: () => updateUserProfile(currentUser),
+            saveAssessment: saveAssessment
         };
     </script>
 </body>
