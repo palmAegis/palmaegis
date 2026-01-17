@@ -816,9 +816,9 @@
 
     /* Top Header */
     .top-header {
-        background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+        background: linear-gradient(135deg, var(--light-bg), var(--shadow-light));
         padding: 25px 30px;
-        border-bottom: 3px solid rgba(255, 255, 255, 0.2);
+        border-bottom: 4px solid rgba(255, 255, 255, 0.2);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         position: relative;
         overflow: hidden;
@@ -842,11 +842,10 @@
     }
 
     .header-left h1 {
-        color: white;
+        color: green;
         font-size: 32px;
-        font-weight: 800;
+        font-weight: 500;
         margin: 0;
-        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         position: relative;
         z-index: 1;
         display: flex;
@@ -854,10 +853,10 @@
         gap: 15px;
     }
 
-    .header-left h1::before {
+    /* .header-left h1::before {
         content: '🌴';
         font-size: 36px;
-    }
+    } */
 
     /* Responsive Design */
     @media (max-width: 1200px) {
