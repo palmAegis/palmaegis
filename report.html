@@ -1615,15 +1615,14 @@
 
                 // Get diseases list - check both disease and diseases
                 let diseasesText = 'None';
-                if (assessment.disease) {
-                    diseasesText = assessment.disease;
-                } else if (assessment.diseases && Array.isArray(assessment.diseases)) {
-                    if (assessment.diseases.length === 1) {
-                        diseasesText = assessment.diseases[0];
-                    } else if (assessment.diseases.length > 1) {
-                        diseasesText = `${assessment.diseases[0]} +${assessment.diseases.length - 1} more`;
+                    if (assessment.disease) {
+                        diseasesText = assessment.disease;
+                    } else if (assessment.diseases && Array.isArray(assessment.diseases)) {
+                        if (assessment.diseases.length > 0) {
+                            // Show only the first disease
+                            diseasesText = assessment.diseases[0];
+                        }
                     }
-                }
 
                 row.innerHTML = `
                     <td>
