@@ -266,7 +266,10 @@
             color: #2e7d32;
         }
 
-        .status-infected {
+        .status-infected, 
+        .status-danger, 
+        .status-not-healthy, 
+        .status-at-risk {
             background: #ffebee;
             color: #e53935;
         }
@@ -1592,8 +1595,15 @@
                 
                 const healthStatus = assessment.healthStatus || 'Healthy';
                 let statusClass = 'status-healthy';
-                if (healthStatus === 'Infected') statusClass = 'status-infected';
-                else if (healthStatus === 'Warning') statusClass = 'status-warning';
+
+                // Arrays of status strings to check against
+                const redStatuses = ['Infected', 'Not Healthy', 'At Risk', 'Danger'];
+                const orangeStatuses = ['Warning', 'Caution'];
+                if (redStatuses.includes(healthStatus)) {
+                    statusClass = 'status-infected'; // Applies Red CSS
+                } else if (orangeStatuses.includes(healthStatus)) {
+                    statusClass = 'status-warning'; // Applies Orange CSS
+                }
 
                 // Generate image HTML - check both image and imageData
                 let imageHtml = '';
