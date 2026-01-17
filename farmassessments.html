@@ -14,6 +14,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         /* All your CSS styles remain the same */
         :root {
@@ -206,9 +207,10 @@
             position: relative;
             border: 2px dashed var(--border-color);
             border-radius: var(--border-radius);
-            height: 300px;
+            height: 400px;
             margin-bottom: 2rem;
             overflow: hidden;
+            background: #f8f9fa;
         }
 
         .image-placeholder {
@@ -770,6 +772,60 @@
             white-space: nowrap;
         }
 
+        /* LEGEND STYLES */
+        .image-legend {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 9;
+            display: none;
+            max-width: 200px;
+            backdrop-filter: blur(5px);
+        }
+
+        .legend-title {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .legend-text {
+            color: #333;
+        }
+
+        .legend-count {
+            margin-left: auto;
+            font-weight: bold;
+            font-size: 10px;
+            background: #f0f0f0;
+            padding: 1px 5px;
+            border-radius: 3px;
+            min-width: 20px;
+            text-align: center;
+        }
+
         /* Progress Bar */
         .progress-container {
             width: 100%;
@@ -905,6 +961,10 @@
             .card {
                 padding: 1.5rem;
             }
+            
+            .image-container {
+                height: 300px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -919,6 +979,25 @@
             .btn {
                 padding: 0.75rem 1rem;
                 font-size: 0.9rem;
+            }
+            
+            .image-container {
+                height: 250px;
+            }
+            
+            .image-legend {
+                max-width: 150px;
+                padding: 8px;
+                bottom: 5px;
+                right: 5px;
+            }
+            
+            .legend-title {
+                font-size: 11px;
+            }
+            
+            .legend-item {
+                font-size: 10px;
             }
         }
 
@@ -1042,6 +1121,9 @@
                     <button class="btn btn-secondary" id="helpBtn">
                         <i class="fas fa-question-circle"></i> Help
                     </button>
+                    <button class="btn btn-outline" id="toggleLabelsBtn" style="display: none;">
+                        <i class="fas fa-eye-slash"></i> Hide Labels
+                    </button>
                 </div>
             </div>
 
@@ -1071,10 +1153,13 @@
                             <small>Focus on leaves or affected areas</small>
                         </div>
                         <img id="imagePreview" style="display: none; width: 100%; height: 100%; object-fit: contain;">
-                        <!-- Preview Canvas for detection boxes -->
+                        <!-- Preview Canvas for detection boxes and labels -->
                         <canvas id="previewCanvas"></canvas>
-                        <!-- Original canvas for image display -->
-                        <canvas id="imageCanvas"></canvas>
+                        <!-- Legend for disease labels -->
+                        <div class="image-legend" id="imageLegend">
+                            <div class="legend-title">Disease Legend</div>
+                            <div id="legendItems"></div>
+                        </div>
                         <div class="analyzing-overlay" id="analyzingOverlay" style="display: none;">
                             <div class="spinner"></div>
                             <p>Analyzing Oil Palm Health...</p>
@@ -1082,10 +1167,12 @@
                         </div>
                     </div>
 
-                    <!-- Progress Bar -->
-                    <div class="progress-container" id="progressContainer">
-                        <div class="progress-bar" id="progressBar"></div>
-                        <div class="progress-text" id="progressText">Analyzing...</div>
+                    <!-- Confidence Threshold Slider -->
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label for="confidenceSlider">Confidence Threshold: <span id="confidenceValue">50%</span></label>
+                        <input type="range" id="confidenceSlider" class="form-control" min="1" max="100" value="50" 
+                               style="padding: 0; height: 8px; background: var(--border-color);">
+                        <small class="form-hint">Adjust to filter detections by confidence level</small>
                     </div>
 
                     <div class="upload-buttons">
@@ -1094,6 +1181,9 @@
                         </button>
                         <button class="btn btn-primary" id="galleryBtn">
                             <i class="fas fa-images"></i> Choose from Gallery
+                        </button>
+                        <button class="btn btn-secondary" id="downloadBtn" style="display: none;">
+                            <i class="fas fa-download"></i> Download Labeled Image
                         </button>
                     </div>
 
@@ -1205,6 +1295,7 @@
                     <li>Non-palm objects are filtered out automatically</li>
                     <li>Provides oil palm specific treatment advice</li>
                     <li>Save assessments for future reference</li>
+                    <li>Download labeled images for reporting</li>
                 </ol>
                 <div class="model-info">
                     <h3>Detection Models:</h3>
@@ -1227,9 +1318,8 @@
     <!-- File Input (hidden) -->
     <input type="file" id="imageInput" accept="image/*" style="display: none;">
 
-    <!-- Model Configurations -->
     <script>
-        // Model configurations for 3 separate Roboflow models
+        // Model configurations for Roboflow models
         const models = {
             'ganoderma': {
                 name: 'Ganoderma Detection',
@@ -1237,7 +1327,9 @@
                 apiKey: 'KOIYcp3E5rAFhgSploex',
                 color: '#EF4444',
                 icon: 'fa-warning',
-                threshold: 0.5
+                threshold: 0.5,
+                label: 'Ganoderma',
+                shortLabel: 'GAN'
             },
             'blackspot': {
                 name: 'Blackspot Disease Detection',
@@ -1245,7 +1337,9 @@
                 apiKey: 'KOIYcp3E5rAFhgSploex',
                 color: '#8B4513',
                 icon: 'fa-circle',
-                threshold: 0.5
+                threshold: 0.5,
+                label: 'Black Spot',
+                shortLabel: 'BLS'
             },
             'healthy': {
                 name: 'Healthy Leaves Detection',
@@ -1253,7 +1347,9 @@
                 apiKey: 'KOIYcp3E5rAFhgSploex',
                 color: '#10B981',
                 icon: 'fa-heart',
-                threshold: 0.5
+                threshold: 0.5,
+                label: 'Healthy',
+                shortLabel: 'HLT'
             }
         };
 
@@ -1318,10 +1414,13 @@
                 imagePlaceholder: document.getElementById('imagePlaceholder'),
                 imagePreview: document.getElementById('imagePreview'),
                 previewCanvas: document.getElementById('previewCanvas'),
-                imageCanvas: document.getElementById('imageCanvas'),
+                imageLegend: document.getElementById('imageLegend'),
+                legendItems: document.getElementById('legendItems'),
                 analyzingOverlay: document.getElementById('analyzingOverlay'),
                 cameraBtn: document.getElementById('cameraBtn'),
                 galleryBtn: document.getElementById('galleryBtn'),
+                downloadBtn: document.getElementById('downloadBtn'),
+                toggleLabelsBtn: document.getElementById('toggleLabelsBtn'),
                 locationSelect: document.getElementById('locationSelect'),
                 customLocationContainer: document.getElementById('customLocationContainer'),
                 customLocation: document.getElementById('customLocation'),
@@ -1341,7 +1440,9 @@
                 detectionCount: document.getElementById('detectionCount'),
                 progressContainer: document.getElementById('progressContainer'),
                 progressBar: document.getElementById('progressBar'),
-                progressText: document.getElementById('progressText')
+                progressText: document.getElementById('progressText'),
+                confidenceSlider: document.getElementById('confidenceSlider'),
+                confidenceValue: document.getElementById('confidenceValue')
             };
 
             // State variables
@@ -1350,6 +1451,9 @@
             let previewContext = null;
             let originalImage = null;
             let isProcessing = false;
+            let labelsVisible = true;
+            let legendData = {};
+            let confidenceThreshold = 0.5;
 
             // Initialize date
             if (elements.assessmentDate) {
@@ -1359,6 +1463,21 @@
             // Setup canvas contexts
             if (elements.previewCanvas) {
                 previewContext = elements.previewCanvas.getContext('2d');
+            }
+
+            // Initialize confidence slider
+            if (elements.confidenceSlider) {
+                elements.confidenceSlider.addEventListener('input', function(e) {
+                    confidenceThreshold = e.target.value / 100;
+                    elements.confidenceValue.textContent = e.target.value + '%';
+                    
+                    // Redraw detections with new threshold
+                    if (currentDetections.length > 0) {
+                        drawBoundingBoxes();
+                        updateDetectionResults();
+                        updateLegend();
+                    }
+                });
             }
 
             // Event Handlers
@@ -1376,6 +1495,95 @@
                     elements.imageInput.removeAttribute('capture');
                     elements.imageInput.click();
                 }
+            }
+
+            function handleDownloadLabeledImage() {
+                if (!elements.previewCanvas || currentDetections.length === 0) {
+                    showError('No labeled image available to download');
+                    return;
+                }
+                
+                try {
+                    // Create a temporary canvas for the download
+                    const downloadCanvas = document.createElement('canvas');
+                    const downloadContext = downloadCanvas.getContext('2d');
+                    
+                    // Set canvas size
+                    downloadCanvas.width = elements.previewCanvas.width;
+                    downloadCanvas.height = elements.previewCanvas.height;
+                    
+                    // Draw the current preview canvas content
+                    downloadContext.drawImage(elements.previewCanvas, 0, 0);
+                    
+                    // Add timestamp and assessment info
+                    addWatermark(downloadContext, downloadCanvas.width, downloadCanvas.height);
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.download = `palm-assessment-${new Date().getTime()}.png`;
+                    link.href = downloadCanvas.toDataURL('image/png');
+                    link.click();
+                    
+                    showToast('Labeled image downloaded successfully!', 'success');
+                } catch (error) {
+                    console.error('Error downloading image:', error);
+                    showError('Failed to download image');
+                }
+            }
+
+            function addWatermark(context, width, height) {
+                // Add timestamp
+                context.font = '16px Arial';
+                context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                context.fillRect(10, height - 50, 300, 40);
+                
+                context.fillStyle = '#333';
+                context.fillText(`Assessment: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, height - 30);
+                
+                // Add Palm Aegis logo
+                context.font = 'bold 14px Arial';
+                context.fillText('Palm Aegis - Oil Palm Health Assessment', 20, height - 10);
+                
+                // Add disease count summary
+                if (Object.keys(legendData).length > 0) {
+                    let yPos = 20;
+                    Object.entries(legendData).forEach(([model, data]) => {
+                        if (data.count > 0) {
+                            context.fillStyle = data.color;
+                            context.fillRect(width - 150, yPos, 10, 10);
+                            context.fillStyle = '#333';
+                            context.font = '12px Arial';
+                            context.fillText(`${data.label}: ${data.count}`, width - 135, yPos + 10);
+                            yPos += 20;
+                        }
+                    });
+                }
+            }
+
+            function toggleLabelsVisibility() {
+                labelsVisible = !labelsVisible;
+                
+                if (elements.previewCanvas && originalImage) {
+                    // Clear canvas
+                    previewContext.clearRect(0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
+                    
+                    // Draw original image
+                    previewContext.drawImage(originalImage, 0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
+                    
+                    // If labels should be visible, redraw them
+                    if (labelsVisible) {
+                        drawBoundingBoxes();
+                        if (elements.toggleLabelsBtn) {
+                            elements.toggleLabelsBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Labels';
+                        }
+                    } else {
+                        if (elements.toggleLabelsBtn) {
+                            elements.toggleLabelsBtn.innerHTML = '<i class="fas fa-eye"></i> Show Labels';
+                        }
+                    }
+                }
+                
+                showToast(labelsVisible ? 'Labels shown' : 'Labels hidden', 'info');
             }
 
             function handleLocationChange(e) {
@@ -1407,6 +1615,8 @@
                 if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'flex';
                 if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'none';
                 if (elements.detectionResults) elements.detectionResults.style.display = 'none';
+                if (elements.toggleLabelsBtn) elements.toggleLabelsBtn.style.display = 'none';
+                if (elements.downloadBtn) elements.downloadBtn.style.display = 'none';
 
                 try {
                     // Read image
@@ -1452,6 +1662,16 @@
                                 elements.analyzingOverlay.style.display = 'none';
                             }
                             
+                            // Show label toggle and download buttons if detections exist
+                            if (currentDetections.length > 0) {
+                                if (elements.toggleLabelsBtn) {
+                                    elements.toggleLabelsBtn.style.display = 'inline-flex';
+                                }
+                                if (elements.downloadBtn) {
+                                    elements.downloadBtn.style.display = 'inline-flex';
+                                }
+                            }
+                            
                             isProcessing = false;
                         };
                         originalImage.src = currentImage;
@@ -1475,8 +1695,9 @@
                         elements.progressText.textContent = 'Starting analysis...';
                     }
                     
-                    // Reset detections
+                    // Reset detections and legend
                     currentDetections = [];
+                    legendData = {};
                     
                     // Get all 3 models to analyze
                     const modelIds = ['ganoderma', 'blackspot', 'healthy'];
@@ -1495,11 +1716,21 @@
                         
                         try {
                             // Call Roboflow API for this model
-                            const detections = await callRoboflowAPI(model, currentImage);
+                            const apiResponse = await callRoboflowAPI(model, currentImage);
                             
-                            // Process and add detections
-                            const processed = processDetections(detections, modelId);
-                            currentDetections.push(...processed);
+                            // Process and add detections based on confidence threshold
+                            const filteredDetections = processRoboflowDetections(apiResponse, modelId);
+                            currentDetections.push(...filteredDetections);
+                            
+                            // Update legend data
+                            if (filteredDetections.length > 0) {
+                                legendData[modelId] = {
+                                    label: model.label,
+                                    color: model.color,
+                                    count: filteredDetections.length,
+                                    icon: model.icon
+                                };
+                            }
                             
                         } catch (modelError) {
                             console.warn(`Error with ${model.name}:`, modelError);
@@ -1516,8 +1747,11 @@
                         elements.progressText.textContent = 'Finalizing results...';
                     }
                     
-                    // Draw bounding boxes on preview canvas
+                    // Draw bounding boxes and labels on preview canvas
                     drawBoundingBoxes();
+                    
+                    // Update legend
+                    updateLegend();
                     
                     // Update detection results
                     updateDetectionResults();
@@ -1551,53 +1785,56 @@
             }
 
             async function callRoboflowAPI(model, base64Image) {
-                // Remove data URL prefix
-                const base64Data = base64Image.split(',')[1];
-                
-                // Make API call to specific model
-                const response = await fetch(`${model.url}?api_key=${model.apiKey}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: base64Data
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText} for ${model.name}`);
+                try {
+                    // Remove data URL prefix
+                    const base64Data = base64Image.split(',')[1];
+                    
+                    // Make API call to Roboflow
+                    const response = await axios({
+                        method: "POST",
+                        url: model.url,
+                        params: {
+                            api_key: model.apiKey
+                        },
+                        data: base64Data,
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded"
+                        }
+                    });
+                    
+                    return response.data;
+                } catch (error) {
+                    console.error('Roboflow API Error:', error);
+                    throw error;
                 }
-                
-                const data = await response.json();
-                return data.predictions || [];
             }
 
-            function processDetections(detections, modelId) {
-                const model = models[modelId];
-                const threshold = model.threshold || 0.4;
-                
-                return detections
-                    .filter(detection => detection.confidence > threshold)
-                    .map(detection => {
-                        // Normalize class names
-                        const className = detection.class.toLowerCase();
-                        
-                        return {
-                            class: detection.class,
-                            className: className,
-                            confidence: detection.confidence,
-                            bbox: {
-                                x: detection.x,
-                                y: detection.y,
-                                width: detection.width,
-                                height: detection.height
-                            },
-                            color: model.color,
-                            model: modelId,
-                            description: getDescriptionForModel(modelId),
-                            icon: model.icon
-                        };
-                    });
-            }
+            function processRoboflowDetections(apiResponse, modelId) {
+    const model = models[modelId];
+    const predictions = apiResponse.predictions || [];
+    
+    return predictions
+        .filter(prediction => prediction.confidence >= confidenceThreshold)
+        .map(prediction => {
+            // Roboflow returns coordinates as percentages
+            const bbox = {
+                x: prediction.x,  // center x (percentage)
+                y: prediction.y,  // center y (percentage)
+                width: prediction.width,  // width (percentage)
+                height: prediction.height, // height (percentage)
+            };
+            
+            return {
+                class: prediction.class,
+                confidence: prediction.confidence,
+                bbox: bbox,
+                color: model.color,
+                model: modelId,
+                label: model.label,
+                shortLabel: model.shortLabel
+            };
+        });
+}
 
             function getDescriptionForModel(modelId) {
                 switch(modelId) {
@@ -1629,16 +1866,18 @@
                 const canvasWidth = elements.previewCanvas.width;
                 const canvasHeight = elements.previewCanvas.height;
                 
-                console.log('Drawing bounding boxes:', {
+                console.log('Drawing bounding boxes and labels:', {
                     canvasSize: `${canvasWidth}x${canvasHeight}`,
-                    detections: currentDetections.length
+                    detections: currentDetections.length,
+                    confidenceThreshold: confidenceThreshold
                 });
                 
-                // Draw bounding boxes for each detection
+                // Draw bounding boxes and labels for each detection
                 currentDetections.forEach((detection, index) => {
                     const bbox = detection.bbox;
                     
                     // Convert Roboflow coordinates (percentage) to pixel coordinates
+                    // Roboflow returns: x, y as center coordinates, width, height as percentages
                     const x = (bbox.x / 100) * canvasWidth - (bbox.width / 100) * canvasWidth / 2;
                     const y = (bbox.y / 100) * canvasHeight - (bbox.height / 100) * canvasHeight / 2;
                     const width = (bbox.width / 100) * canvasWidth;
@@ -1650,28 +1889,89 @@
                     previewContext.strokeRect(x, y, width, height);
                     
                     // Draw label background
-                    const labelText = `${detection.class} ${Math.round(detection.confidence * 100)}%`;
-                    previewContext.font = 'bold 12px Arial';
+                    const confidencePercent = Math.round(detection.confidence * 100);
+                    const labelText = `${detection.shortLabel} ${confidencePercent}%`;
+                    previewContext.font = 'bold 14px Arial';
                     const textMetrics = previewContext.measureText(labelText);
-                    const textWidth = textMetrics.width + 10;
-                    const textHeight = 20;
+                    const textWidth = textMetrics.width + 20;
+                    const textHeight = 24;
                     
                     // Calculate label position (above the bounding box)
-                    const labelX = x;
-                    const labelY = Math.max(y - textHeight, 5);
+                    const labelX = Math.max(0, Math.min(x, canvasWidth - textWidth));
+                    const labelY = Math.max(textHeight, y - 5);
                     
-                    // Draw label background
-                    previewContext.fillStyle = detection.color;
-                    previewContext.fillRect(labelX, labelY, textWidth, textHeight);
+                    // Draw label background with rounded corners
+                    previewContext.fillStyle = detection.color + 'DD';
+                    previewContext.beginPath();
+                    previewContext.roundRect(labelX, labelY - textHeight, textWidth, textHeight, 5);
+                    previewContext.fill();
                     
                     // Draw label text
                     previewContext.fillStyle = 'white';
-                    previewContext.fillText(labelText, labelX + 5, labelY + 14);
+                    previewContext.font = 'bold 12px Arial';
+                    previewContext.fillText(labelText, labelX + 10, labelY - 8);
+                    
+                    // Add detection number in top-left corner of box
+                    previewContext.fillStyle = detection.color;
+                    previewContext.font = 'bold 16px Arial';
+                    previewContext.fillText(`${index + 1}`, x + 5, y + 20);
+                    
+                    // Add disease name inside box (if there's enough space)
+                    if (height > 40) {
+                        previewContext.fillStyle = 'white';
+                        previewContext.font = 'bold 10px Arial';
+                        previewContext.textAlign = 'center';
+                        previewContext.fillText(detection.label, x + width/2, y + height/2);
+                        previewContext.textAlign = 'left';
+                    }
                 });
+                
+                // Add overall image label if multiple diseases detected
+                if (Object.keys(legendData).length > 1) {
+                    const diseaseCount = Object.values(legendData).reduce((sum, data) => sum + data.count, 0);
+                    previewContext.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    previewContext.font = 'bold 16px Arial';
+                    previewContext.textAlign = 'center';
+                    previewContext.fillText(
+                        `Detected: ${diseaseCount} objects - ${Object.keys(legendData).length} disease types`, 
+                        canvasWidth / 2, 
+                        30
+                    );
+                    previewContext.textAlign = 'left';
+                }
                 
                 // Ensure canvas is displayed
                 elements.previewCanvas.style.display = 'block';
-                console.log('Preview canvas displayed with bounding boxes');
+                console.log('Preview canvas displayed with bounding boxes and labels');
+            }
+
+            function updateLegend() {
+                if (!elements.legendItems || !elements.imageLegend) return;
+                
+                // Clear previous legend items
+                elements.legendItems.innerHTML = '';
+                
+                if (Object.keys(legendData).length === 0) {
+                    elements.imageLegend.style.display = 'none';
+                    return;
+                }
+                
+                // Add legend items for each disease type
+                Object.entries(legendData).forEach(([modelId, data]) => {
+                    const legendItem = document.createElement('div');
+                    legendItem.className = 'legend-item';
+                    
+                    legendItem.innerHTML = `
+                        <div class="legend-color" style="background-color: ${data.color};"></div>
+                        <div class="legend-text">${data.label}</div>
+                        <div class="legend-count">${data.count}</div>
+                    `;
+                    
+                    elements.legendItems.appendChild(legendItem);
+                });
+                
+                // Show legend
+                elements.imageLegend.style.display = 'block';
             }
 
             function updateDetectionResults() {
@@ -1680,15 +1980,18 @@
                 // Clear previous results
                 elements.detectionsList.innerHTML = '';
                 
-                if (currentDetections.length === 0) {
-                    elements.detectionsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No palm features detected</p>';
+                // Filter detections by current confidence threshold
+                const filteredDetections = currentDetections.filter(d => d.confidence >= confidenceThreshold);
+                
+                if (filteredDetections.length === 0) {
+                    elements.detectionsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No palm features detected above confidence threshold</p>';
                     elements.detectionResults.style.display = 'none';
                     return;
                 }
                 
                 // Group detections by class and model
                 const groupedDetections = {};
-                currentDetections.forEach(detection => {
+                filteredDetections.forEach(detection => {
                     const key = `${detection.model}_${detection.class}`;
                     if (!groupedDetections[key]) {
                         groupedDetections[key] = [];
@@ -1709,7 +2012,7 @@
                         <div class="detection-class">
                             <span class="detection-class-name">
                                 <i class="fas ${detection.icon}" style="color: ${detection.color}; margin-right: 8px;"></i>
-                                ${detection.class}
+                                ${detection.label} (${detection.class})
                             </span>
                             <span class="detection-confidence">${Math.round(avgConfidence * 100)}%</span>
                         </div>
@@ -1725,21 +2028,24 @@
                 }
                 
                 // Update count and show results
-                elements.detectionCount.textContent = `${currentDetections.length} object${currentDetections.length !== 1 ? 's' : ''}`;
+                elements.detectionCount.textContent = `${filteredDetections.length} object${filteredDetections.length !== 1 ? 's' : ''}`;
                 elements.detectionResults.style.display = 'block';
             }
 
             function updateHealthStatusFromDetections() {
-                if (currentDetections.length === 0) {
-                    updateHealthStatus('No Detection', 'No palm features detected in image', 'fa-question-circle', '#6B7280');
+                // Filter detections by current confidence threshold
+                const filteredDetections = currentDetections.filter(d => d.confidence >= confidenceThreshold);
+                
+                if (filteredDetections.length === 0) {
+                    updateHealthStatus('No Detection', 'No palm features detected above confidence threshold', 'fa-question-circle', '#6B7280');
                     if (elements.issuesCount) elements.issuesCount.style.display = 'none';
                     return;
                 }
                 
                 // Check for diseases
-                const hasGanoderma = currentDetections.some(d => d.model === 'ganoderma');
-                const hasBlackspot = currentDetections.some(d => d.model === 'blackspot');
-                const hasHealthy = currentDetections.some(d => d.model === 'healthy');
+                const hasGanoderma = filteredDetections.some(d => d.model === 'ganoderma');
+                const hasBlackspot = filteredDetections.some(d => d.model === 'blackspot');
+                const hasHealthy = filteredDetections.some(d => d.model === 'healthy');
                 
                 let diseaseCount = 0;
                 if (hasGanoderma) diseaseCount++;
@@ -1786,26 +2092,48 @@
             }
 
             function generateTreatmentAdvice() {
-                if (currentDetections.length === 0) {
+                // Filter detections by current confidence threshold
+                const filteredDetections = currentDetections.filter(d => d.confidence >= confidenceThreshold);
+                
+                if (filteredDetections.length === 0) {
                     if (elements.treatmentText) {
-                        elements.treatmentText.value = "Please upload and analyze an image first.";
+                        elements.treatmentText.value = "No palm features detected above confidence threshold.";
                     }
                     return;
                 }
 
                 // Group detections by type
-                const hasGanoderma = currentDetections.some(d => d.model === 'ganoderma');
-                const hasBlackspot = currentDetections.some(d => d.model === 'blackspot');
-                const hasHealthy = currentDetections.some(d => d.model === 'healthy');
+                const hasGanoderma = filteredDetections.some(d => d.model === 'ganoderma');
+                const hasBlackspot = filteredDetections.some(d => d.model === 'blackspot');
+                const hasHealthy = filteredDetections.some(d => d.model === 'healthy');
                 
                 let treatment = "OIL PALM HEALTH ASSESSMENT REPORT\n";
                 treatment += "=================================\n\n";
                 
                 // Add timestamp
-                treatment += `Assessment Date: ${new Date().toLocaleDateString()}\n\n`;
+                treatment += `Assessment Date: ${new Date().toLocaleDateString()}\n`;
+                treatment += `Confidence Threshold: ${Math.round(confidenceThreshold * 100)}%\n\n`;
+                
+                // Add image analysis summary
+                treatment += "IMAGE ANALYSIS SUMMARY:\n";
+                treatment += `Total Detections: ${filteredDetections.length}\n`;
                 
                 if (hasGanoderma) {
-                    const ganodermaCount = currentDetections.filter(d => d.model === 'ganoderma').length;
+                    const ganodermaCount = filteredDetections.filter(d => d.model === 'ganoderma').length;
+                    treatment += `Ganoderma Detections: ${ganodermaCount}\n`;
+                }
+                if (hasBlackspot) {
+                    const blackspotCount = filteredDetections.filter(d => d.model === 'blackspot').length;
+                    treatment += `Black Spot Detections: ${blackspotCount}\n`;
+                }
+                if (hasHealthy) {
+                    const healthyCount = filteredDetections.filter(d => d.model === 'healthy').length;
+                    treatment += `Healthy Areas: ${healthyCount}\n`;
+                }
+                treatment += "\n";
+                
+                if (hasGanoderma) {
+                    const ganodermaCount = filteredDetections.filter(d => d.model === 'ganoderma').length;
                     treatment += "⚠️ GANODERMA DISEASE DETECTED\n";
                     treatment += `Instances Found: ${ganodermaCount}\n`;
                     treatment += "Severity: HIGH - Requires immediate action\n\n";
@@ -1815,7 +2143,7 @@
                 }
                 
                 if (hasBlackspot) {
-                    const blackspotCount = currentDetections.filter(d => d.model === 'blackspot').length;
+                    const blackspotCount = filteredDetections.filter(d => d.model === 'blackspot').length;
                     treatment += "⚠️ BLACK SPOT DISEASE DETECTED\n";
                     treatment += `Instances Found: ${blackspotCount}\n`;
                     treatment += "Severity: MEDIUM - Treatment required\n\n";
@@ -1825,7 +2153,7 @@
                 }
                 
                 if (hasHealthy && !hasGanoderma && !hasBlackspot) {
-                    const healthyCount = currentDetections.filter(d => d.model === 'healthy').length;
+                    const healthyCount = filteredDetections.filter(d => d.model === 'healthy').length;
                     treatment += "✅ HEALTHY PALM DETECTED\n";
                     treatment += `Instances Found: ${healthyCount}\n`;
                     treatment += "Status: Good - Continue regular maintenance\n\n";
@@ -1865,6 +2193,9 @@
                 currentDetections = [];
                 originalImage = null;
                 isProcessing = false;
+                labelsVisible = true;
+                legendData = {};
+                confidenceThreshold = 0.5;
                 
                 // Reset UI
                 if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'flex';
@@ -1878,8 +2209,8 @@
                         previewContext.clearRect(0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
                     }
                 }
-                if (elements.imageCanvas) {
-                    elements.imageCanvas.style.display = 'none';
+                if (elements.imageLegend) {
+                    elements.imageLegend.style.display = 'none';
                 }
                 if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'none';
                 if (elements.detectionResults) elements.detectionResults.style.display = 'none';
@@ -1891,6 +2222,15 @@
                 if (elements.imageInput) elements.imageInput.value = '';
                 if (elements.issuesCount) elements.issuesCount.style.display = 'none';
                 if (elements.progressContainer) elements.progressContainer.style.display = 'none';
+                if (elements.toggleLabelsBtn) elements.toggleLabelsBtn.style.display = 'none';
+                if (elements.downloadBtn) elements.downloadBtn.style.display = 'none';
+                if (elements.toggleLabelsBtn) {
+                    elements.toggleLabelsBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Labels';
+                }
+                if (elements.confidenceSlider) {
+                    elements.confidenceSlider.value = 50;
+                    elements.confidenceValue.textContent = '50%';
+                }
                 
                 // Clear detections list
                 if (elements.detectionsList) elements.detectionsList.innerHTML = '';
@@ -1972,6 +2312,16 @@
                 // Gallery button
                 if (elements.galleryBtn) {
                     elements.galleryBtn.onclick = handleGalleryClick;
+                }
+                
+                // Download labeled image button
+                if (elements.downloadBtn) {
+                    elements.downloadBtn.onclick = handleDownloadLabeledImage;
+                }
+                
+                // Toggle labels button
+                if (elements.toggleLabelsBtn) {
+                    elements.toggleLabelsBtn.onclick = toggleLabelsVisibility;
                 }
                 
                 // Image placeholder click
