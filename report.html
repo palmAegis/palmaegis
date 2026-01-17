@@ -902,7 +902,6 @@
                                     <th>Detection Count</th>
                                     <th>Image</th>
                                     <th>Location</th>
-                                    <th>Treatment</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1532,7 +1531,7 @@
                 </div>
                 <div class="report-field">
                     <span class="field-label">Treatment:</span>
-                    <span class="field-value">${assessment.treatment ? 'Recommended' : 'type','None'}</span>
+                    <span class="field-value">${assessment.treatment ? 'Recommended' : 'None'}</span>
                 </div>
             </div>
             <div class="report-actions">
@@ -1567,6 +1566,24 @@
                 if (healthStatus === 'Infected') statusClass = 'status-infected';
                 else if (healthStatus === 'Warning') statusClass = 'status-warning';
 
+                // Generate image HTML - check both image and imageData
+                let imageHtml = '';
+                if (assessment.image || assessment.imageData) {
+                    const images = [];
+                    if (assessment.image) images.push(assessment.image);
+                    if (assessment.imageData) images.push(assessment.imageData);
+                    
+                    imageHtml = images.map((img, index) => 
+                        `<img src="${img}" alt="Assessment ${index + 1}" class="image-preview" onclick="window.viewImage('${img}')">`
+                    ).join(' ');
+                    
+                    if (images.length > 1) {
+                        imageHtml += ` <span style="color: var(--text-lighter); font-size: 0.8rem;">(${images.length})</span>`;
+                    }
+                } else {
+                    imageHtml = '<span style="color: var(--text-lighter);">No image</span>';
+                }
+
                 row.innerHTML = `
                     <td>
                         <div>${date}</div>
@@ -1575,14 +1592,8 @@
                     <td>${assessment.disease || 'None'}</td>
                     <td><span class="status-badge ${statusClass}">${healthStatus}</span></td>
                     <td>${assessment.detectionCount || 0}</td>
-                    <td>
-                        ${assessment.image ? 
-                            `<img src="${assessment.image}" alt="Assessment" class="image-preview" onclick="window.viewImage('${assessment.image}')">` : 
-                            '<span style="color: var(--text-lighter);">No image</span>'
-                        }
-                    </td>
+                    <td>${imageHtml}</td>
                     <td>${assessment.location || 'Not specified'}</td>
-                    <td>${assessment.treatment || 'None'}</td>
                     <td>
                         <div class="action-buttons">
                             <button class="action-btn view-action" onclick="window.viewAssessment('${assessment.id}')">
@@ -1737,13 +1748,21 @@
         if (healthStatus === 'Infected') statusClass = 'status-infected';
         else if (healthStatus === 'Warning') statusClass = 'status-warning';
 
-        let imageHtml = '';
-        if (assessment.image) {
-            imageHtml = `
+        // Generate images HTML - check both image and imageData
+        let imagesHtml = '';
+        const images = [];
+        if (assessment.image) images.push(assessment.image);
+        if (assessment.imageData) images.push(assessment.imageData);
+        
+        if (images.length > 0) {
+            imagesHtml = `
                 <div style="margin:15px 0;">
-                    <strong class="modal-data-label">Image:</strong>
-                    <img src="${assessment.image}" alt="Assessment" class="modal-image" onclick="window.viewImage('${assessment.image}')">
-                    <img src="${assessment.imageData}" alt="Assessment" class="modal-image" onclick="window.viewImage('${assessment.imageData}')">
+                    <strong class="modal-data-label">Images (${images.length}):</strong>
+                    <div class="modal-images-container">
+                        ${images.map((img, index) => `
+                            <img src="${img}" alt="Assessment Image ${index + 1}" class="modal-image" onclick="window.viewImage('${img}')">
+                        `).join('')}
+                    </div>
                 </div>
             `;
         }
@@ -1802,7 +1821,7 @@
                 <div class="modal-data-value" style="white-space: pre-wrap;">${assessment.treatment || 'None'}</div>
             </div>
             
-            ${imageHtml}
+            ${imagesHtml}
             ${detectionsHtml}
             
             <div class="modal-id-badge">
@@ -2137,13 +2156,12 @@
                     assessment.disease || 'None',
                     assessment.healthStatus || 'Healthy',
                     assessment.detectionCount || 0,
-                    assessment.location || 'N/A',
-                    assessment.treatment ? 'Yes' : 'No'
+                    assessment.location || 'N/A'
                 ]);
 
                 doc.autoTable({
                     startY: yOffset,
-                    head: [['Date', 'Disease', 'Status', 'Count', 'Location', 'Treatment']],
+                    head: [['Date', 'Disease', 'Status', 'Count', 'Location']],
                     body: tableData,
                     margin: { left: margin, right: margin },
                     headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
