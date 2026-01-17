@@ -1229,35 +1229,33 @@
     <!-- Model Configurations -->
     <script>
         const models = {
-            "ganoderma": {
-                "name": "Ganoderma",
-                "url": "https://serverless.roboflow.com/ganoderma-1-xpzwd/1",
-                "apiKey": "KOIYcp3E5rAFhgSploex",
-                "color": "#10B981",
-                "icon": "fa-warning",
-                "defaultThreshold": 0.7,
-                "description": "Fungal disease causing basal stem rot in oil palm"
+            'ganoderma': {
+                name: 'Ganoderma Detection',
+                url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
+                apiKey: 'KOIYcp3E5rAFhgSploex',
+                color: '#28a745',
+                badgeClass: 'ganoderma-badge',
+                defaultThreshold: 0.7
             },
-            "blackspot": {
-                "name": "Blackspot",
-                "url": "https://serverless.roboflow.com/blackspot-lhjog/1",
-                "apiKey": "KOIYcp3E5rAFhgSploex",
-                "color": "#EF4444",
-                "icon": "fa-circle",
-                "defaultThreshold": 0.5,
-                "description": "Fungal leaf spot disease affecting oil palm leaves"
+            'blackspot': {
+                name: 'Blackspot Disease Detection',
+                url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
+                apiKey: 'KOIYcp3E5rAFhgSploex',
+                color: '#dc3545',
+                badgeClass: 'blackspot-badge',
+                defaultThreshold: 0.5
             },
-            "healthy": {
-                "name": "Healthy Leaves",
-                "url": "https://serverless.roboflow.com/date-final/1",
-                "apiKey": "KOIYcp3E5rAFhgSploex",
-                "color": "#3B82F6",
-                "icon": "fa-heart",
-                "defaultThreshold": 0.5,
-                "description": "Healthy oil palm leaves without disease symptoms"
+            'healthy': {
+                name: 'Healthy Leaves Detection',
+                url: 'https://serverless.roboflow.com/date-final/1',
+                apiKey: 'KOIYcp3E5rAFhgSploex',
+                color: '#3B82F6',
+                badgeClass: 'healthy-badge',
+                defaultThreshold: 0.5,
+                validClasses: ['Healthy', 'healthy', 'normal', 'good', 'leaf', 'leaves', 'palm', 'tree', 'plant', 'undamaged']
             }
         };
-
+        
         // Disease descriptions for treatment generation
         const diseaseInfo = {
             "ganoderma": {
