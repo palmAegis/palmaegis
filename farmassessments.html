@@ -1044,28 +1044,6 @@
                         <p>Upload a clear photo of oil palm leaves or trees for disease analysis</p>
                     </div>
 
-                    <!-- Model Selection -->
-                    <!-- <div class="model-selection" id="modelSelection">
-                        <div class="model-checkbox" data-model="ganoderma">
-                            <input type="checkbox" id="modelGanoderma" checked>
-                            <label for="modelGanoderma">
-                                <i class="fas fa-warning" style="color: #10B981;"></i> Ganoderma Detection
-                            </label>
-                        </div>
-                        <div class="model-checkbox" data-model="blackspot">
-                            <input type="checkbox" id="modelBlackspot" checked>
-                            <label for="modelBlackspot">
-                                <i class="fas fa-circle" style="color: #EF4444;"></i> Blackspot Detection
-                            </label>
-                        </div>
-                        <div class="model-checkbox" data-model="healthy">
-                            <input type="checkbox" id="modelHealthy" checked>
-                            <label for="modelHealthy">
-                                <i class="fas fa-heart" style="color: #3B82F6;"></i> Healthy Leaves
-                            </label>
-                        </div>
-                    </div>
-                     -->
                     <div class="image-container">
                         <div class="image-placeholder" id="imagePlaceholder">
                             <i class="fas fa-camera"></i>
@@ -1176,7 +1154,7 @@
                         <li>Ensure good lighting on the palm</li>
                         <li>Take close-up photos of disease symptoms</li>
                         <li>For healthy detection: show clear, green palm leaves</li>
-                        <li>System filters out non-palm objects automatically</li>
+                        <li>System automatically detects all palm conditions</li>
                     </ul>
                 </div>
             </div>
@@ -1200,7 +1178,7 @@
             <div class="modal-body">
                 <ol>
                     <li>Upload clear photos of oil palm leaves or trees</li>
-                    <li>System detects oil palm diseases AND healthy leaves</li>
+                    <li>System automatically detects diseases and healthy palms</li>
                     <li>Non-palm objects are filtered out automatically</li>
                     <li>Provides oil palm specific treatment advice</li>
                     <li>Save assessments for future reference</li>
@@ -1228,753 +1206,758 @@
 
     <!-- Model Configurations -->
     <script>
+        // Model configurations for 3 separate Roboflow models
         const models = {
             'ganoderma': {
                 name: 'Ganoderma Detection',
                 url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
-                color: '#28a745',
-                badgeClass: 'ganoderma-badge',
-                defaultThreshold: 0.7
+                color: '#EF4444',
+                icon: 'fa-warning',
+                threshold: 0.5
             },
             'blackspot': {
                 name: 'Blackspot Disease Detection',
                 url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
-                color: '#dc3545',
-                badgeClass: 'blackspot-badge',
-                defaultThreshold: 0.5
+                color: '#8B4513',
+                icon: 'fa-circle',
+                threshold: 0.5
             },
             'healthy': {
                 name: 'Healthy Leaves Detection',
                 url: 'https://serverless.roboflow.com/date-final/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
-                color: '#3B82F6',
-                badgeClass: 'healthy-badge',
-                defaultThreshold: 0.5,
-                validClasses: ['Healthy', 'healthy', 'normal', 'good', 'leaf', 'leaves', 'palm', 'tree', 'plant', 'undamaged']
+                color: '#10B981',
+                icon: 'fa-heart',
+                threshold: 0.5
             }
         };
 
-    // Disease information for treatment generation
-    const diseaseInfo = {
-        "ganoderma": {
-            name: "Ganoderma (Basal Stem Rot)",
-            severity: "High",
-            treatment: "1. Remove and destroy infected trees immediately\n2. Apply Trichoderma harzianum biocontrol agent\n3. Improve drainage in plantation\n4. Avoid wounding trees during maintenance\n5. Implement strict sanitation measures"
-        },
-        "blackspot": {
-            name: "Black Spot Disease",
-            severity: "Medium",
-            treatment: "1. Apply fungicides like Mancozeb or Chlorothalonil\n2. Prune and destroy infected leaves\n3. Improve air circulation\n4. Avoid overhead irrigation\n5. Apply balanced fertilizer"
-        },
-        "healthy": {
-            name: "Healthy Palm",
-            severity: "None",
-            treatment: "1. Continue regular monitoring\n2. Maintain proper fertilization schedule\n3. Ensure adequate irrigation\n4. Regular pruning of old leaves\n5. Monitor for early signs of disease"
-        },
-        "leaf": {
-            name: "Palm Leaf",
-            severity: "None",
-            treatment: "1. Regular inspection required\n2. Monitor leaf color and texture\n3. Check for early disease symptoms\n4. Maintain good plantation hygiene"
-        }
-    };
-
-    // Wait for DOM to be fully loaded
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM fully loaded');
-        
-        // Initialize Firebase
-        const firebaseConfig = {
-            apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-            authDomain: "palmaegis-setup.firebaseapp.com",
-            projectId: "palmaegis-setup",
-            storageBucket: "palmaegis-setup.firebasestorage.app",
-            messagingSenderId: "445887502374",
-            appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+        // Disease information for treatment generation
+        const diseaseInfo = {
+            "ganoderma": {
+                name: "Ganoderma (Basal Stem Rot)",
+                severity: "High",
+                symptoms: "Yellowing leaves, wilting, fruiting bodies at stem base",
+                treatment: "1. Remove and destroy infected trees immediately\n2. Apply Trichoderma harzianum biocontrol agent\n3. Improve drainage in plantation\n4. Avoid wounding trees during maintenance\n5. Implement strict sanitation measures"
+            },
+            "blackspot": {
+                name: "Black Spot Disease",
+                severity: "Medium",
+                symptoms: "Dark circular spots on leaves, yellow halos, leaf drop",
+                treatment: "1. Apply fungicides like Mancozeb or Chlorothalonil\n2. Prune and destroy infected leaves\n3. Improve air circulation\n4. Avoid overhead irrigation\n5. Apply balanced fertilizer"
+            },
+            "healthy": {
+                name: "Healthy Palm",
+                severity: "None",
+                symptoms: "Green, vibrant leaves, no spots or discoloration",
+                treatment: "1. Continue regular monitoring\n2. Maintain proper fertilization schedule\n3. Ensure adequate irrigation\n4. Regular pruning of old leaves\n5. Monitor for early signs of disease"
+            },
+            "default": {
+                name: "Oil Palm Detected",
+                severity: "Monitor",
+                symptoms: "Palm features detected, requires regular monitoring",
+                treatment: "1. Regular inspection required\n2. Monitor leaf color and texture\n3. Check for early disease symptoms\n4. Maintain good plantation hygiene"
+            }
         };
 
-        try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp(firebaseConfig);
-                console.log("Firebase initialized");
-            }
-        } catch (error) {
-            console.error("Firebase error:", error);
-        }
-
-        // Get DOM elements
-        const elements = {
-            healthStatusCard: document.getElementById('healthStatusCard'),
-            statusTitle: document.querySelector('.status-title'),
-            statusIcon: document.querySelector('.status-icon'),
-            statusDescription: document.querySelector('.status-description'),
-            issuesCount: document.getElementById('issuesCount'),
-            imagePlaceholder: document.getElementById('imagePlaceholder'),
-            imagePreview: document.getElementById('imagePreview'),
-            imageCanvas: document.getElementById('imageCanvas'),
-            analyzingOverlay: document.getElementById('analyzingOverlay'),
-            cameraBtn: document.getElementById('cameraBtn'),
-            galleryBtn: document.getElementById('galleryBtn'),
-            locationSelect: document.getElementById('locationSelect'),
-            customLocationContainer: document.getElementById('customLocationContainer'),
-            customLocation: document.getElementById('customLocation'),
-            assessmentDate: document.getElementById('assessmentDate'),
-            treatmentText: document.getElementById('treatmentText'),
-            autoGenerateBtn: document.getElementById('autoGenerateBtn'),
-            clearBtn: document.getElementById('clearBtn'),
-            saveBtn: document.getElementById('saveBtn'),
-            helpBtn: document.getElementById('helpBtn'),
-            helpModal: document.getElementById('helpModal'),
-            loadingOverlay: document.getElementById('loadingOverlay'),
-            loadingText: document.getElementById('loadingText'),
-            imageInput: document.getElementById('imageInput'),
-            toast: document.getElementById('toast'),
-            detectionResults: document.getElementById('detectionResults'),
-            detectionsList: document.getElementById('detectionsList'),
-            detectionCount: document.getElementById('detectionCount'),
-            progressContainer: document.getElementById('progressContainer'),
-            progressBar: document.getElementById('progressBar'),
-            progressText: document.getElementById('progressText')
-        };
-
-        // State variables
-        let currentImage = null;
-        let currentDetections = [];
-        let currentHealthStatus = 'Unknown';
-        let canvasContext = null;
-
-        // Initialize date
-        if (elements.assessmentDate) {
-            elements.assessmentDate.valueAsDate = new Date();
-        }
-
-        // Setup canvas
-        if (elements.imageCanvas) {
-            canvasContext = elements.imageCanvas.getContext('2d');
-        }
-
-        // Event Handlers
-        function handleCameraClick(e) {
-            e?.preventDefault();
-            if (elements.imageInput) {
-                elements.imageInput.setAttribute('capture', 'environment');
-                elements.imageInput.click();
-            }
-        }
-
-        function handleGalleryClick(e) {
-            e?.preventDefault();
-            if (elements.imageInput) {
-                elements.imageInput.removeAttribute('capture');
-                elements.imageInput.click();
-            }
-        }
-
-        function handleLocationChange(e) {
-            const value = e.target.value;
-            if (value === 'custom' && elements.customLocationContainer) {
-                elements.customLocationContainer.style.display = 'block';
-            } else if (elements.customLocationContainer) {
-                elements.customLocationContainer.style.display = 'none';
-            }
-        }
-
-        async function handleImageUpload(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            console.log('Processing image:', file.name);
+        // Wait for DOM to be fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Palm Aegis - Health Assessment loaded');
             
-            // Reset previous results
-            resetAnalysis();
-            
-            // Show analyzing overlay
-            if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'flex';
-            if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'none';
-            if (elements.detectionResults) elements.detectionResults.style.display = 'none';
+            // Initialize Firebase
+            const firebaseConfig = {
+                apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+                authDomain: "palmaegis-setup.firebaseapp.com",
+                projectId: "palmaegis-setup",
+                storageBucket: "palmaegis-setup.firebasestorage.app",
+                messagingSenderId: "445887502374",
+                appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+            };
 
             try {
-                // Read image
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    currentImage = e.target.result;
-                    
-                    if (elements.imagePreview) {
-                        elements.imagePreview.src = currentImage;
-                        elements.imagePreview.onload = async function() {
-                            elements.imagePreview.style.display = 'block';
-                            
-                            // Set canvas size
-                            if (elements.imageCanvas && canvasContext) {
-                                elements.imageCanvas.width = elements.imagePreview.naturalWidth;
-                                elements.imageCanvas.height = elements.imagePreview.naturalHeight;
-                            }
-                            
-                            // Show progress
-                            if (elements.progressContainer) {
-                                elements.progressContainer.style.display = 'block';
-                                elements.progressBar.style.width = '0%';
-                                elements.progressText.textContent = 'Processing image...';
-                            }
-                            
-                            // Analyze image with Roboflow
-                            await analyzeImageWithRoboflow();
-                            
-                            // Hide analyzing overlay
-                            if (elements.analyzingOverlay) {
-                                elements.analyzingOverlay.style.display = 'none';
-                            }
-                        };
-                    }
-                };
-                reader.readAsDataURL(file);
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                    console.log("Firebase initialized");
+                }
             } catch (error) {
-                console.error('Error loading image:', error);
-                showError('Failed to load image');
-                resetAnalysis();
+                console.error("Firebase error:", error);
             }
-        }
 
-        async function analyzeImageWithRoboflow() {
-            if (!currentImage) return;
-            
-            try {
-                // Update progress
-                if (elements.progressBar) {
-                    elements.progressBar.style.width = '30%';
-                    elements.progressText.textContent = 'Sending to detection API...';
+            // Get DOM elements
+            const elements = {
+                healthStatusCard: document.getElementById('healthStatusCard'),
+                statusTitle: document.querySelector('.status-title'),
+                statusIcon: document.querySelector('.status-icon'),
+                statusDescription: document.querySelector('.status-description'),
+                issuesCount: document.getElementById('issuesCount'),
+                imagePlaceholder: document.getElementById('imagePlaceholder'),
+                imagePreview: document.getElementById('imagePreview'),
+                imageCanvas: document.getElementById('imageCanvas'),
+                analyzingOverlay: document.getElementById('analyzingOverlay'),
+                cameraBtn: document.getElementById('cameraBtn'),
+                galleryBtn: document.getElementById('galleryBtn'),
+                locationSelect: document.getElementById('locationSelect'),
+                customLocationContainer: document.getElementById('customLocationContainer'),
+                customLocation: document.getElementById('customLocation'),
+                assessmentDate: document.getElementById('assessmentDate'),
+                treatmentText: document.getElementById('treatmentText'),
+                autoGenerateBtn: document.getElementById('autoGenerateBtn'),
+                clearBtn: document.getElementById('clearBtn'),
+                saveBtn: document.getElementById('saveBtn'),
+                helpBtn: document.getElementById('helpBtn'),
+                helpModal: document.getElementById('helpModal'),
+                loadingOverlay: document.getElementById('loadingOverlay'),
+                loadingText: document.getElementById('loadingText'),
+                imageInput: document.getElementById('imageInput'),
+                toast: document.getElementById('toast'),
+                detectionResults: document.getElementById('detectionResults'),
+                detectionsList: document.getElementById('detectionsList'),
+                detectionCount: document.getElementById('detectionCount'),
+                progressContainer: document.getElementById('progressContainer'),
+                progressBar: document.getElementById('progressBar'),
+                progressText: document.getElementById('progressText')
+            };
+
+            // State variables
+            let currentImage = null;
+            let currentDetections = [];
+            let canvasContext = null;
+
+            // Initialize date
+            if (elements.assessmentDate) {
+                elements.assessmentDate.valueAsDate = new Date();
+            }
+
+            // Setup canvas
+            if (elements.imageCanvas) {
+                canvasContext = elements.imageCanvas.getContext('2d');
+            }
+
+            // Event Handlers
+            function handleCameraClick(e) {
+                e?.preventDefault();
+                if (elements.imageInput) {
+                    elements.imageInput.setAttribute('capture', 'environment');
+                    elements.imageInput.click();
+                }
+            }
+
+            function handleGalleryClick(e) {
+                e?.preventDefault();
+                if (elements.imageInput) {
+                    elements.imageInput.removeAttribute('capture');
+                    elements.imageInput.click();
+                }
+            }
+
+            function handleLocationChange(e) {
+                const value = e.target.value;
+                if (value === 'custom' && elements.customLocationContainer) {
+                    elements.customLocationContainer.style.display = 'block';
+                } else if (elements.customLocationContainer) {
+                    elements.customLocationContainer.style.display = 'none';
+                }
+            }
+
+            async function handleImageUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                console.log('Processing image:', file.name);
+                
+                // Reset previous results
+                resetAnalysis();
+                
+                // Show analyzing overlay
+                if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'flex';
+                if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'none';
+                if (elements.detectionResults) elements.detectionResults.style.display = 'none';
+
+                try {
+                    // Read image
+                    const reader = new FileReader();
+                    reader.onload = async function(e) {
+                        currentImage = e.target.result;
+                        
+                        if (elements.imagePreview) {
+                            elements.imagePreview.src = currentImage;
+                            elements.imagePreview.onload = async function() {
+                                elements.imagePreview.style.display = 'block';
+                                
+                                // Set canvas size
+                                if (elements.imageCanvas && canvasContext) {
+                                    elements.imageCanvas.width = elements.imagePreview.naturalWidth;
+                                    elements.imageCanvas.height = elements.imagePreview.naturalHeight;
+                                }
+                                
+                                // Show progress
+                                if (elements.progressContainer) {
+                                    elements.progressContainer.style.display = 'block';
+                                    elements.progressBar.style.width = '0%';
+                                    elements.progressText.textContent = 'Processing image...';
+                                }
+                                
+                                // Analyze image with all 3 Roboflow models
+                                await analyzeImageWithAllModels();
+                                
+                                // Hide analyzing overlay
+                                if (elements.analyzingOverlay) {
+                                    elements.analyzingOverlay.style.display = 'none';
+                                }
+                            };
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                } catch (error) {
+                    console.error('Error loading image:', error);
+                    showError('Failed to load image');
+                    resetAnalysis();
+                }
+            }
+
+            async function analyzeImageWithAllModels() {
+                if (!currentImage) return;
+                
+                try {
+                    // Update progress
+                    if (elements.progressBar) {
+                        elements.progressBar.style.width = '10%';
+                        elements.progressText.textContent = 'Starting analysis...';
+                    }
+                    
+                    // Reset detections
+                    currentDetections = [];
+                    
+                    // Get all 3 models to analyze
+                    const modelIds = ['ganoderma', 'blackspot', 'healthy'];
+                    
+                    // Analyze with each model sequentially
+                    for (let i = 0; i < modelIds.length; i++) {
+                        const modelId = modelIds[i];
+                        const model = models[modelId];
+                        
+                        // Update progress
+                        const progressPercent = 10 + (i * 30);
+                        if (elements.progressBar) {
+                            elements.progressBar.style.width = `${progressPercent}%`;
+                            elements.progressText.textContent = `Analyzing with ${model.name}...`;
+                        }
+                        
+                        try {
+                            // Call Roboflow API for this model
+                            const detections = await callRoboflowAPI(model, currentImage);
+                            
+                            // Process and add detections
+                            const processed = processDetections(detections, modelId);
+                            currentDetections.push(...processed);
+                            
+                        } catch (modelError) {
+                            console.warn(`Error with ${model.name}:`, modelError);
+                            // Continue with other models even if one fails
+                        }
+                        
+                        // Small delay between API calls to avoid rate limiting
+                        await new Promise(resolve => setTimeout(resolve, 300));
+                    }
+                    
+                    // Update progress
+                    if (elements.progressBar) {
+                        elements.progressBar.style.width = '90%';
+                        elements.progressText.textContent = 'Finalizing results...';
+                    }
+                    
+                    // Draw bounding boxes
+                    drawBoundingBoxes();
+                    
+                    // Update detection results
+                    updateDetectionResults();
+                    
+                    // Update health status
+                    updateHealthStatusFromDetections();
+                    
+                    // Auto-generate treatment
+                    generateTreatmentAdvice();
+                    
+                    // Complete progress
+                    if (elements.progressBar) {
+                        elements.progressBar.style.width = '100%';
+                        elements.progressText.textContent = 'Analysis complete!';
+                    }
+                    
+                    showToast('Palm health analysis complete!', 'success');
+                    
+                    // Hide progress after delay
+                    setTimeout(() => {
+                        if (elements.progressContainer) {
+                            elements.progressContainer.style.display = 'none';
+                        }
+                    }, 1500);
+                    
+                } catch (error) {
+                    console.error('Analysis error:', error);
+                    showError('Failed to analyze image. Please try again.');
+                    resetAnalysis();
+                }
+            }
+
+            async function callRoboflowAPI(model, base64Image) {
+                // Remove data URL prefix
+                const base64Data = base64Image.split(',')[1];
+                
+                // Make API call to specific model
+                const response = await fetch(`${model.url}?api_key=${model.apiKey}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: base64Data
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText} for ${model.name}`);
                 }
                 
-                // Call Roboflow API
-                const detections = await callRoboflowAPI(currentImage);
+                const data = await response.json();
+                return data.predictions || [];
+            }
+
+            function processDetections(detections, modelId) {
+                const model = models[modelId];
+                const threshold = model.threshold || 0.4;
                 
-                // Update progress
-                if (elements.progressBar) {
-                    elements.progressBar.style.width = '70%';
-                    elements.progressText.textContent = 'Processing results...';
+                return detections
+                    .filter(detection => detection.confidence > threshold)
+                    .map(detection => {
+                        // Normalize class names
+                        const className = detection.class.toLowerCase();
+                        
+                        return {
+                            class: detection.class,
+                            className: className,
+                            confidence: detection.confidence,
+                            bbox: {
+                                x: detection.x / 100,
+                                y: detection.y / 100,
+                                width: detection.width / 100,
+                                height: detection.height / 100
+                            },
+                            color: model.color,
+                            model: modelId,
+                            description: getDescriptionForModel(modelId),
+                            icon: model.icon
+                        };
+                    });
+            }
+
+            function getDescriptionForModel(modelId) {
+                switch(modelId) {
+                    case 'ganoderma': return 'Ganoderma disease detected - requires immediate attention';
+                    case 'blackspot': return 'Black spot disease detected - treatment recommended';
+                    case 'healthy': return 'Healthy oil palm leaf detected';
+                    default: return 'Oil palm feature detected';
                 }
+            }
+
+            function drawBoundingBoxes() {
+                if (!elements.imagePreview || !elements.imageCanvas || !canvasContext || currentDetections.length === 0) return;
                 
-                // Process detections
-                currentDetections = processDetections(detections);
+                // Clear canvas
+                canvasContext.clearRect(0, 0, elements.imageCanvas.width, elements.imageCanvas.height);
+                
+                // Get image dimensions
+                const imgWidth = elements.imageCanvas.width;
+                const imgHeight = elements.imageCanvas.height;
                 
                 // Draw bounding boxes
-                drawBoundingBoxes();
+                currentDetections.forEach((detection, index) => {
+                    const bbox = detection.bbox;
+                    
+                    // Calculate pixel coordinates
+                    const x = bbox.x * imgWidth - (bbox.width * imgWidth) / 2;
+                    const y = bbox.y * imgHeight - (bbox.height * imgHeight) / 2;
+                    const width = bbox.width * imgWidth;
+                    const height = bbox.height * imgHeight;
+                    
+                    // Draw bounding box
+                    canvasContext.strokeStyle = detection.color;
+                    canvasContext.lineWidth = 3;
+                    canvasContext.strokeRect(x, y, width, height);
+                    
+                    // Draw label background
+                    const labelText = `${detection.class} ${(detection.confidence * 100).toFixed(1)}%`;
+                    canvasContext.font = '14px Arial';
+                    const textWidth = canvasContext.measureText(labelText).width;
+                    
+                    // Draw label
+                    canvasContext.fillStyle = detection.color + 'CC';
+                    canvasContext.fillRect(x, Math.max(y - 20, 0), textWidth + 10, 20);
+                    
+                    // Draw label text
+                    canvasContext.fillStyle = 'white';
+                    canvasContext.fillText(labelText, x + 5, Math.max(y - 5, 15));
+                });
                 
-                // Update detection results
-                updateDetectionResults();
+                // Show canvas
+                elements.imageCanvas.style.display = 'block';
+            }
+
+            function updateDetectionResults() {
+                if (!elements.detectionsList || !elements.detectionResults || !elements.detectionCount) return;
+                
+                // Clear previous results
+                elements.detectionsList.innerHTML = '';
+                
+                if (currentDetections.length === 0) {
+                    elements.detectionsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No palm features detected</p>';
+                    elements.detectionResults.style.display = 'none';
+                    return;
+                }
+                
+                // Group detections by class and model
+                const groupedDetections = {};
+                currentDetections.forEach(detection => {
+                    const key = `${detection.model}_${detection.class}`;
+                    if (!groupedDetections[key]) {
+                        groupedDetections[key] = [];
+                    }
+                    groupedDetections[key].push(detection);
+                });
+                
+                // Create detection items
+                for (const [key, detections] of Object.entries(groupedDetections)) {
+                    const detection = detections[0];
+                    const avgConfidence = detections.reduce((sum, d) => sum + d.confidence, 0) / detections.length;
+                    
+                    const detectionItem = document.createElement('div');
+                    detectionItem.className = 'detection-item';
+                    detectionItem.style.borderLeft = `4px solid ${detection.color}`;
+                    
+                    detectionItem.innerHTML = `
+                        <div class="detection-class">
+                            <span class="detection-class-name">
+                                <i class="fas ${detection.icon}" style="color: ${detection.color}; margin-right: 8px;"></i>
+                                ${detection.class}
+                            </span>
+                            <span class="detection-confidence">${(avgConfidence * 100).toFixed(1)}%</span>
+                        </div>
+                        <div class="detection-description">
+                            ${detection.description}
+                        </div>
+                        <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                            Detected: ${detections.length} instance(s)
+                        </div>
+                    `;
+                    
+                    elements.detectionsList.appendChild(detectionItem);
+                }
+                
+                // Update count and show results
+                elements.detectionCount.textContent = `${currentDetections.length} object${currentDetections.length !== 1 ? 's' : ''}`;
+                elements.detectionResults.style.display = 'block';
+            }
+
+            function updateHealthStatusFromDetections() {
+                if (currentDetections.length === 0) {
+                    updateHealthStatus('No Detection', 'No palm features detected in image', 'fa-question-circle', '#6B7280');
+                    if (elements.issuesCount) elements.issuesCount.style.display = 'none';
+                    return;
+                }
+                
+                // Check for diseases
+                const hasGanoderma = currentDetections.some(d => d.model === 'ganoderma');
+                const hasBlackspot = currentDetections.some(d => d.model === 'blackspot');
+                const hasHealthy = currentDetections.some(d => d.model === 'healthy');
+                
+                let diseaseCount = 0;
+                if (hasGanoderma) diseaseCount++;
+                if (hasBlackspot) diseaseCount++;
+                
+                if (hasGanoderma || hasBlackspot) {
+                    updateHealthStatus(
+                        'Disease Detected',
+                        `Found ${diseaseCount} disease${diseaseCount !== 1 ? 's' : ''}. Check treatment recommendations.`,
+                        'fa-exclamation-triangle',
+                        '#EF4444'
+                    );
+                    
+                    if (elements.issuesCount) {
+                        elements.issuesCount.textContent = `${diseaseCount} Issue${diseaseCount !== 1 ? 's' : ''}`;
+                        elements.issuesCount.style.display = 'inline-block';
+                    }
+                } else if (hasHealthy) {
+                    updateHealthStatus(
+                        'Healthy',
+                        'Your oil palm appears to be in good health.',
+                        'fa-check-circle',
+                        '#10B981'
+                    );
+                    if (elements.issuesCount) elements.issuesCount.style.display = 'none';
+                } else {
+                    updateHealthStatus(
+                        'Palm Detected',
+                        'Oil palm features detected for monitoring',
+                        'fa-search',
+                        '#F59E0B'
+                    );
+                    if (elements.issuesCount) elements.issuesCount.style.display = 'none';
+                }
+            }
+
+            function updateHealthStatus(title, description, iconClass, color) {
+                if (elements.statusTitle) elements.statusTitle.textContent = title;
+                if (elements.statusDescription) elements.statusDescription.textContent = description;
+                if (elements.statusIcon) {
+                    elements.statusIcon.className = 'status-icon fas ' + iconClass;
+                    elements.statusIcon.style.color = color;
+                }
+            }
+
+            function generateTreatmentAdvice() {
+                if (currentDetections.length === 0) {
+                    if (elements.treatmentText) {
+                        elements.treatmentText.value = "Please upload and analyze an image first.";
+                    }
+                    return;
+                }
+
+                // Group detections by type
+                const hasGanoderma = currentDetections.some(d => d.model === 'ganoderma');
+                const hasBlackspot = currentDetections.some(d => d.model === 'blackspot');
+                const hasHealthy = currentDetections.some(d => d.model === 'healthy');
+                
+                let treatment = "OIL PALM HEALTH ASSESSMENT REPORT\n";
+                treatment += "=================================\n\n";
+                
+                // Add timestamp
+                treatment += `Assessment Date: ${new Date().toLocaleDateString()}\n\n`;
+                
+                if (hasGanoderma) {
+                    treatment += "⚠️ GANODERMA DISEASE DETECTED\n";
+                    treatment += "Severity: HIGH - Requires immediate action\n\n";
+                    treatment += "Symptoms: " + diseaseInfo.ganoderma.symptoms + "\n\n";
+                    treatment += "TREATMENT PLAN:\n";
+                    treatment += diseaseInfo.ganoderma.treatment + "\n\n";
+                }
+                
+                if (hasBlackspot) {
+                    treatment += "⚠️ BLACK SPOT DISEASE DETECTED\n";
+                    treatment += "Severity: MEDIUM - Treatment required\n\n";
+                    treatment += "Symptoms: " + diseaseInfo.blackspot.symptoms + "\n\n";
+                    treatment += "TREATMENT PLAN:\n";
+                    treatment += diseaseInfo.blackspot.treatment + "\n\n";
+                }
+                
+                if (hasHealthy && !hasGanoderma && !hasBlackspot) {
+                    treatment += "✅ HEALTHY PALM DETECTED\n";
+                    treatment += "Status: Good - Continue regular maintenance\n\n";
+                    treatment += "MANAGEMENT RECOMMENDATIONS:\n";
+                    treatment += diseaseInfo.healthy.treatment + "\n\n";
+                }
+                
+                if (!hasGanoderma && !hasBlackspot && !hasHealthy) {
+                    treatment += "🌴 OIL PALM DETECTED\n";
+                    treatment += "Status: Monitoring required\n\n";
+                    treatment += "RECOMMENDATIONS:\n";
+                    treatment += diseaseInfo.default.treatment + "\n\n";
+                }
+                
+                // Add general recommendations
+                treatment += "GENERAL RECOMMENDATIONS FOR ALL OIL PALMS:\n";
+                treatment += "1. Monitor plants weekly for any changes\n";
+                treatment += "2. Maintain plantation hygiene and proper spacing\n";
+                treatment += "3. Record all observations and treatments\n";
+                treatment += "4. Consult agricultural officer if condition worsens\n";
+                treatment += "5. Regular soil testing and balanced fertilization\n";
+                treatment += "6. Implement integrated pest management\n";
+                treatment += "7. Keep plantation free from weeds and debris\n\n";
+                
+                treatment += "--- END OF REPORT ---";
+                
+                if (elements.treatmentText) {
+                    elements.treatmentText.value = treatment;
+                }
+            }
+
+            function resetForm(e) {
+                e?.preventDefault();
+                
+                // Reset state
+                currentImage = null;
+                currentDetections = [];
+                
+                // Reset UI
+                if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'flex';
+                if (elements.imagePreview) {
+                    elements.imagePreview.style.display = 'none';
+                    elements.imagePreview.src = '';
+                }
+                if (elements.imageCanvas) {
+                    elements.imageCanvas.style.display = 'none';
+                    if (canvasContext) {
+                        canvasContext.clearRect(0, 0, elements.imageCanvas.width, elements.imageCanvas.height);
+                    }
+                }
+                if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'none';
+                if (elements.detectionResults) elements.detectionResults.style.display = 'none';
+                if (elements.locationSelect) elements.locationSelect.value = 'Parit Raja';
+                if (elements.customLocationContainer) elements.customLocationContainer.style.display = 'none';
+                if (elements.customLocation) elements.customLocation.value = '';
+                if (elements.assessmentDate) elements.assessmentDate.valueAsDate = new Date();
+                if (elements.treatmentText) elements.treatmentText.value = '';
+                if (elements.imageInput) elements.imageInput.value = '';
+                if (elements.issuesCount) elements.issuesCount.style.display = 'none';
+                if (elements.progressContainer) elements.progressContainer.style.display = 'none';
+                
+                // Clear detections list
+                if (elements.detectionsList) elements.detectionsList.innerHTML = '';
                 
                 // Update health status
-                updateHealthStatusFromDetections();
+                updateHealthStatus('Unknown', 'Upload an image to assess palm health', 'fa-question-circle', '#6B7280');
                 
-                // Auto-generate treatment
-                generateTreatmentAdvice();
+                showToast('Form cleared successfully', 'success');
+            }
+
+            async function saveAssessment(e) {
+                e?.preventDefault();
                 
-                // Complete progress
-                if (elements.progressBar) {
-                    elements.progressBar.style.width = '100%';
-                    elements.progressText.textContent = 'Analysis complete!';
+                if (!currentImage) {
+                    showError('Please upload an image first');
+                    return;
+                }
+
+                if (elements.loadingOverlay) {
+                    elements.loadingOverlay.style.display = 'flex';
+                    elements.loadingText.textContent = 'Saving assessment...';
+                }
+
+                // Simulate saving (replace with actual Firebase save)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                if (elements.loadingOverlay) {
+                    elements.loadingOverlay.style.display = 'none';
+                }
+
+                showToast('Assessment saved successfully!', 'success');
+            }
+
+            function showHelpModal(e) {
+                e?.preventDefault();
+                if (elements.helpModal) {
+                    elements.helpModal.style.display = 'flex';
+                }
+            }
+
+            function closeHelpModal() {
+                if (elements.helpModal) {
+                    elements.helpModal.style.display = 'none';
+                }
+            }
+
+            function resetAnalysis() {
+                if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'none';
+                if (elements.loadingOverlay) elements.loadingOverlay.style.display = 'none';
+                if (elements.progressContainer) elements.progressContainer.style.display = 'none';
+            }
+
+            function showToast(message, type = 'info') {
+                if (!elements.toast) {
+                    alert(message);
+                    return;
                 }
                 
-                showToast('Palm health analysis complete!', 'success');
+                elements.toast.textContent = message;
+                elements.toast.className = `toast toast-${type}`;
+                elements.toast.style.display = 'block';
                 
-                // Hide progress after delay
                 setTimeout(() => {
-                    if (elements.progressContainer) {
-                        elements.progressContainer.style.display = 'none';
-                    }
-                }, 1500);
+                    elements.toast.style.display = 'none';
+                }, 3000);
+            }
+
+            function showError(message) {
+                showToast(message, 'error');
+            }
+
+            // Setup Event Listeners
+            function setupEventListeners() {
+                // Camera button
+                if (elements.cameraBtn) {
+                    elements.cameraBtn.onclick = handleCameraClick;
+                }
                 
-            } catch (error) {
-                console.error('Analysis error:', error);
-                showError('Failed to analyze image. Please try again.');
-                resetAnalysis();
-            }
-        }
-
-        async function callRoboflowAPI(base64Image) {
-            // Remove data URL prefix
-            const base64Data = base64Image.split(',')[1];
-            
-            // Prepare form data
-            const formData = new FormData();
-            formData.append('image', base64Data);
-            
-            // Make API call
-            const response = await fetch(`${PALM_DETECTION_MODEL.url}?api_key=${PALM_DETECTION_MODEL.apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: base64Data
-            });
-            
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
-            
-            const data = await response.json();
-            return data.predictions || [];
-        }
-
-        function processDetections(detections) {
-            // Filter and process detections
-            return detections
-                .filter(detection => detection.confidence > 0.4) // Filter low confidence
-                .map(detection => {
-                    // Normalize class names
-                    const className = detection.class.toLowerCase();
+                // Gallery button
+                if (elements.galleryBtn) {
+                    elements.galleryBtn.onclick = handleGalleryClick;
+                }
+                
+                // Image placeholder click
+                if (elements.imagePlaceholder) {
+                    elements.imagePlaceholder.onclick = handleGalleryClick;
+                }
+                
+                // File input change
+                if (elements.imageInput) {
+                    elements.imageInput.onchange = handleImageUpload;
+                }
+                
+                // Location select
+                if (elements.locationSelect) {
+                    elements.locationSelect.onchange = handleLocationChange;
+                }
+                
+                // Auto generate treatment
+                if (elements.autoGenerateBtn) {
+                    elements.autoGenerateBtn.onclick = generateTreatmentAdvice;
+                }
+                
+                // Clear form
+                if (elements.clearBtn) {
+                    elements.clearBtn.onclick = resetForm;
+                }
+                
+                // Save assessment
+                if (elements.saveBtn) {
+                    elements.saveBtn.onclick = saveAssessment;
+                }
+                
+                // Help button
+                if (elements.helpBtn) {
+                    elements.helpBtn.onclick = showHelpModal;
+                }
+                
+                // Help modal close
+                if (elements.helpModal) {
+                    const closeBtn = elements.helpModal.querySelector('.close-modal');
+                    if (closeBtn) {
+                        closeBtn.onclick = closeHelpModal;
+                    }
                     
-                    // Assign color based on class
-                    let color = '#3B82F6'; // Default blue
-                    if (className.includes('ganoderma')) color = '#EF4444'; // Red
-                    if (className.includes('blackspot')) color = '#8B4513'; // Brown
-                    if (className.includes('healthy')) color = '#10B981'; // Green
-                    if (className.includes('leaf') || className.includes('palm')) color = '#F59E0B'; // Yellow
-                    
-                    return {
-                        class: detection.class,
-                        className: className,
-                        confidence: detection.confidence,
-                        bbox: {
-                            x: detection.x / 100, // Normalize coordinates
-                            y: detection.y / 100,
-                            width: detection.width / 100,
-                            height: detection.height / 100
-                        },
-                        color: color,
-                        description: getDescriptionForClass(className)
+                    elements.helpModal.onclick = function(e) {
+                        if (e.target === elements.helpModal) {
+                            closeHelpModal();
+                        }
                     };
-                });
-        }
-
-        function getDescriptionForClass(className) {
-            if (className.includes('ganoderma')) return 'Ganoderma disease detected - requires immediate attention';
-            if (className.includes('blackspot')) return 'Black spot disease detected - treatment recommended';
-            if (className.includes('healthy')) return 'Healthy oil palm leaf detected';
-            if (className.includes('leaf') || className.includes('palm')) return 'Oil palm leaf detected';
-            return 'Oil palm feature detected';
-        }
-
-        function drawBoundingBoxes() {
-            if (!elements.imagePreview || !elements.imageCanvas || !canvasContext || currentDetections.length === 0) return;
-            
-            // Clear canvas
-            canvasContext.clearRect(0, 0, elements.imageCanvas.width, elements.imageCanvas.height);
-            
-            // Get image dimensions
-            const imgWidth = elements.imageCanvas.width;
-            const imgHeight = elements.imageCanvas.height;
-            
-            // Draw bounding boxes
-            currentDetections.forEach((detection, index) => {
-                const bbox = detection.bbox;
-                
-                // Calculate pixel coordinates
-                const x = bbox.x * imgWidth - (bbox.width * imgWidth) / 2;
-                const y = bbox.y * imgHeight - (bbox.height * imgHeight) / 2;
-                const width = bbox.width * imgWidth;
-                const height = bbox.height * imgHeight;
-                
-                // Draw bounding box
-                canvasContext.strokeStyle = detection.color;
-                canvasContext.lineWidth = 3;
-                canvasContext.strokeRect(x, y, width, height);
-                
-                // Draw label background
-                const labelText = `${detection.class} ${(detection.confidence * 100).toFixed(1)}%`;
-                canvasContext.font = '14px Arial';
-                const textWidth = canvasContext.measureText(labelText).width;
-                
-                // Draw label
-                canvasContext.fillStyle = detection.color + 'CC';
-                canvasContext.fillRect(x, Math.max(y - 20, 0), textWidth + 10, 20);
-                
-                // Draw label text
-                canvasContext.fillStyle = 'white';
-                canvasContext.fillText(labelText, x + 5, Math.max(y - 5, 15));
-            });
-            
-            // Show canvas
-            elements.imageCanvas.style.display = 'block';
-        }
-
-        function updateDetectionResults() {
-            if (!elements.detectionsList || !elements.detectionResults || !elements.detectionCount) return;
-            
-            // Clear previous results
-            elements.detectionsList.innerHTML = '';
-            
-            if (currentDetections.length === 0) {
-                elements.detectionsList.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">No palm features detected</p>';
-                elements.detectionResults.style.display = 'none';
-                return;
-            }
-            
-            // Group detections by class
-            const groupedDetections = {};
-            currentDetections.forEach(detection => {
-                if (!groupedDetections[detection.class]) {
-                    groupedDetections[detection.class] = [];
-                }
-                groupedDetections[detection.class].push(detection);
-            });
-            
-            // Create detection items
-            for (const [className, detections] of Object.entries(groupedDetections)) {
-                const detection = detections[0];
-                const avgConfidence = detections.reduce((sum, d) => sum + d.confidence, 0) / detections.length;
-                
-                const detectionItem = document.createElement('div');
-                detectionItem.className = 'detection-item';
-                detectionItem.style.borderLeft = `4px solid ${detection.color}`;
-                
-                detectionItem.innerHTML = `
-                    <div class="detection-class">
-                        <span class="detection-class-name">
-                            <i class="fas fa-search" style="color: ${detection.color}; margin-right: 8px;"></i>
-                            ${className}
-                        </span>
-                        <span class="detection-confidence">${(avgConfidence * 100).toFixed(1)}%</span>
-                    </div>
-                    <div class="detection-description">
-                        ${detection.description}
-                    </div>
-                    <div style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
-                        Detected: ${detections.length} instance(s)
-                    </div>
-                `;
-                
-                elements.detectionsList.appendChild(detectionItem);
-            }
-            
-            // Update count and show results
-            elements.detectionCount.textContent = `${currentDetections.length} object${currentDetections.length !== 1 ? 's' : ''}`;
-            elements.detectionResults.style.display = 'block';
-        }
-
-        function updateHealthStatusFromDetections() {
-            if (currentDetections.length === 0) {
-                updateHealthStatus('No Detection', 'No palm features detected in image', 'fa-question-circle', '#6B7280');
-                if (elements.issuesCount) elements.issuesCount.style.display = 'none';
-                return;
-            }
-            
-            // Check for diseases
-            const hasGanoderma = currentDetections.some(d => d.className.includes('ganoderma'));
-            const hasBlackspot = currentDetections.some(d => d.className.includes('blackspot'));
-            const hasHealthy = currentDetections.some(d => d.className.includes('healthy'));
-            
-            let diseaseCount = 0;
-            if (hasGanoderma) diseaseCount++;
-            if (hasBlackspot) diseaseCount++;
-            
-            if (hasGanoderma || hasBlackspot) {
-                updateHealthStatus(
-                    'Disease Detected',
-                    `Found ${diseaseCount} disease${diseaseCount !== 1 ? 's' : ''}. Check treatment recommendations.`,
-                    'fa-exclamation-triangle',
-                    '#EF4444'
-                );
-                
-                if (elements.issuesCount) {
-                    elements.issuesCount.textContent = `${diseaseCount} Issue${diseaseCount !== 1 ? 's' : ''}`;
-                    elements.issuesCount.style.display = 'inline-block';
-                }
-            } else if (hasHealthy) {
-                updateHealthStatus(
-                    'Healthy',
-                    'Your oil palm appears to be in good health.',
-                    'fa-check-circle',
-                    '#10B981'
-                );
-                if (elements.issuesCount) elements.issuesCount.style.display = 'none';
-            } else {
-                updateHealthStatus(
-                    'Palm Detected',
-                    'Oil palm features detected for monitoring',
-                    'fa-search',
-                    '#F59E0B'
-                );
-                if (elements.issuesCount) elements.issuesCount.style.display = 'none';
-            }
-        }
-
-        function updateHealthStatus(title, description, iconClass, color) {
-            if (elements.statusTitle) elements.statusTitle.textContent = title;
-            if (elements.statusDescription) elements.statusDescription.textContent = description;
-            if (elements.statusIcon) {
-                elements.statusIcon.className = 'status-icon fas ' + iconClass;
-                elements.statusIcon.style.color = color;
-            }
-        }
-
-        function generateTreatmentAdvice() {
-            if (currentDetections.length === 0) {
-                if (elements.treatmentText) {
-                    elements.treatmentText.value = "Please upload and analyze an image first.";
-                }
-                return;
-            }
-
-            // Group detections by type
-            const hasGanoderma = currentDetections.some(d => d.className.includes('ganoderma'));
-            const hasBlackspot = currentDetections.some(d => d.className.includes('blackspot'));
-            const hasHealthy = currentDetections.some(d => d.className.includes('healthy'));
-            
-            let treatment = "OIL PALM HEALTH ASSESSMENT REPORT\n";
-            treatment += "=================================\n\n";
-            
-            if (hasGanoderma) {
-                treatment += "⚠️ GANODERMA DISEASE DETECTED\n";
-                treatment += "Severity: HIGH - Requires immediate action\n\n";
-                treatment += diseaseInfo.ganoderma.treatment + "\n\n";
-            }
-            
-            if (hasBlackspot) {
-                treatment += "⚠️ BLACK SPOT DISEASE DETECTED\n";
-                treatment += "Severity: MEDIUM - Treatment required\n\n";
-                treatment += diseaseInfo.blackspot.treatment + "\n\n";
-            }
-            
-            if (hasHealthy && !hasGanoderma && !hasBlackspot) {
-                treatment += "✅ HEALTHY PALM DETECTED\n";
-                treatment += "Status: Good - Continue regular maintenance\n\n";
-                treatment += diseaseInfo.healthy.treatment + "\n\n";
-            }
-            
-            if (!hasGanoderma && !hasBlackspot && !hasHealthy) {
-                treatment += "🌴 OIL PALM DETECTED\n";
-                treatment += "Status: Monitoring required\n\n";
-                treatment += diseaseInfo.leaf.treatment + "\n\n";
-            }
-            
-            // Add general recommendations
-            treatment += "GENERAL RECOMMENDATIONS:\n";
-            treatment += "1. Monitor plants weekly for any changes\n";
-            treatment += "2. Maintain plantation hygiene and proper spacing\n";
-            treatment += "3. Record all observations and treatments\n";
-            treatment += "4. Consult agricultural officer if condition worsens\n";
-            treatment += "5. Regular soil testing and balanced fertilization\n";
-            
-            if (elements.treatmentText) {
-                elements.treatmentText.value = treatment;
-            }
-        }
-
-        function resetForm(e) {
-            e?.preventDefault();
-            
-            // Reset state
-            currentImage = null;
-            currentDetections = [];
-            currentHealthStatus = 'Unknown';
-            
-            // Reset UI
-            if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'flex';
-            if (elements.imagePreview) {
-                elements.imagePreview.style.display = 'none';
-                elements.imagePreview.src = '';
-            }
-            if (elements.imageCanvas) {
-                elements.imageCanvas.style.display = 'none';
-                if (canvasContext) {
-                    canvasContext.clearRect(0, 0, elements.imageCanvas.width, elements.imageCanvas.height);
                 }
             }
-            if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'none';
-            if (elements.detectionResults) elements.detectionResults.style.display = 'none';
-            if (elements.locationSelect) elements.locationSelect.value = 'Parit Raja';
-            if (elements.customLocationContainer) elements.customLocationContainer.style.display = 'none';
-            if (elements.customLocation) elements.customLocation.value = '';
-            if (elements.assessmentDate) elements.assessmentDate.valueAsDate = new Date();
-            if (elements.treatmentText) elements.treatmentText.value = '';
-            if (elements.imageInput) elements.imageInput.value = '';
-            if (elements.issuesCount) elements.issuesCount.style.display = 'none';
-            if (elements.progressContainer) elements.progressContainer.style.display = 'none';
-            
-            // Clear detections list
-            if (elements.detectionsList) elements.detectionsList.innerHTML = '';
-            
-            // Update health status
-            updateHealthStatus('Unknown', 'Upload an image to assess palm health', 'fa-question-circle', '#6B7280');
-            
-            showToast('Form cleared successfully', 'success');
-        }
 
-        async function saveAssessment(e) {
-            e?.preventDefault();
-            
-            if (!currentImage) {
-                showError('Please upload an image first');
-                return;
-            }
-
-            if (elements.loadingOverlay) {
-                elements.loadingOverlay.style.display = 'flex';
-                elements.loadingText.textContent = 'Saving assessment...';
-            }
-
-            // Simulate saving (replace with actual Firebase save)
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            if (elements.loadingOverlay) {
-                elements.loadingOverlay.style.display = 'none';
-            }
-
-            showToast('Assessment saved successfully!', 'success');
-        }
-
-        function showHelpModal(e) {
-            e?.preventDefault();
-            if (elements.helpModal) {
-                elements.helpModal.style.display = 'flex';
-            }
-        }
-
-        function closeHelpModal() {
-            if (elements.helpModal) {
-                elements.helpModal.style.display = 'none';
-            }
-        }
-
-        function resetAnalysis() {
-            if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'none';
-            if (elements.loadingOverlay) elements.loadingOverlay.style.display = 'none';
-            if (elements.progressContainer) elements.progressContainer.style.display = 'none';
-        }
-
-        function showToast(message, type = 'info') {
-            if (!elements.toast) {
-                alert(message);
-                return;
-            }
-            
-            elements.toast.textContent = message;
-            elements.toast.className = `toast toast-${type}`;
-            elements.toast.style.display = 'block';
-            
-            setTimeout(() => {
-                elements.toast.style.display = 'none';
-            }, 3000);
-        }
-
-        function showError(message) {
-            showToast(message, 'error');
-        }
-
-        // Setup Event Listeners
-        function setupEventListeners() {
-            // Camera button
-            if (elements.cameraBtn) {
-                elements.cameraBtn.onclick = handleCameraClick;
-            }
-            
-            // Gallery button
-            if (elements.galleryBtn) {
-                elements.galleryBtn.onclick = handleGalleryClick;
-            }
-            
-            // Image placeholder click
-            if (elements.imagePlaceholder) {
-                elements.imagePlaceholder.onclick = handleGalleryClick;
-            }
-            
-            // File input change
-            if (elements.imageInput) {
-                elements.imageInput.onchange = handleImageUpload;
-            }
-            
-            // Location select
-            if (elements.locationSelect) {
-                elements.locationSelect.onchange = handleLocationChange;
-            }
-            
-            // Auto generate treatment
-            if (elements.autoGenerateBtn) {
-                elements.autoGenerateBtn.onclick = generateTreatmentAdvice;
-            }
-            
-            // Clear form
-            if (elements.clearBtn) {
-                elements.clearBtn.onclick = resetForm;
-            }
-            
-            // Save assessment
-            if (elements.saveBtn) {
-                elements.saveBtn.onclick = saveAssessment;
-            }
-            
-            // Help button
-            if (elements.helpBtn) {
-                elements.helpBtn.onclick = showHelpModal;
-            }
-            
-            // Help modal close
-            if (elements.helpModal) {
-                const closeBtn = elements.helpModal.querySelector('.close-modal');
-                if (closeBtn) {
-                    closeBtn.onclick = closeHelpModal;
-                }
+            // Initialize the app
+            function initApp() {
+                console.log('Initializing Palm Health Assessment...');
                 
-                elements.helpModal.onclick = function(e) {
-                    if (e.target === elements.helpModal) {
-                        closeHelpModal();
-                    }
-                };
+                // Setup event listeners
+                setupEventListeners();
+                
+                // Show welcome message
+                setTimeout(() => {
+                    showToast('Palm Aegis ready! Upload an oil palm image for automatic health analysis.', 'success');
+                }, 500);
             }
-        }
 
-        // Remove the model selection UI
-        function removeModelSelection() {
-            const modelSelectionDiv = document.getElementById('modelSelection');
-            if (modelSelectionDiv) {
-                modelSelectionDiv.style.display = 'none';
-            }
-            
-            // Update the tips to remove model-related tips
-            const tipsList = document.querySelector('.tips-list');
-            if (tipsList) {
-                // Keep only essential tips
-                tipsList.innerHTML = `
-                    <li>Focus on oil palm leaves or affected areas</li>
-                    <li>Ensure good lighting on the palm</li>
-                    <li>Take close-up photos of disease symptoms</li>
-                    <li>System automatically detects all palm conditions</li>
-                `;
-            }
-            
-            // Update help modal
-            const helpModal = document.querySelector('.modal-body ol');
-            if (helpModal) {
-                helpModal.innerHTML = `
-                    <li>Upload clear photos of oil palm leaves or trees</li>
-                    <li>System automatically detects diseases and healthy palms</li>
-                    <li>Provides specific treatment advice</li>
-                    <li>Save assessments for future reference</li>
-                `;
-            }
-        }
-
-        // Initialize the app
-        function initApp() {
-            console.log('Initializing Palm Health Assessment...');
-            
-            // Remove model selection
-            removeModelSelection();
-            
-            // Setup event listeners
-            setupEventListeners();
-            
-            // Show welcome message
-            setTimeout(() => {
-                showToast('Palm Aegis ready! Upload an oil palm image for automatic health analysis.', 'success');
-            }, 500);
-        }
-
-        // Start the app
-        initApp();
-    });
-</script>
+            // Start the app
+            initApp();
+        });
+    </script>
 </body>
 </html>
