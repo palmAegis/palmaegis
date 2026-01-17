@@ -1810,31 +1810,31 @@
             }
 
             function processRoboflowDetections(apiResponse, modelId) {
-    const model = models[modelId];
-    const predictions = apiResponse.predictions || [];
-    
-    return predictions
-        .filter(prediction => prediction.confidence >= confidenceThreshold)
-        .map(prediction => {
-            // Roboflow returns coordinates as percentages
-            const bbox = {
-                x: prediction.x,  // center x (percentage)
-                y: prediction.y,  // center y (percentage)
-                width: prediction.width,  // width (percentage)
-                height: prediction.height, // height (percentage)
-            };
-            
-            return {
-                class: prediction.class,
-                confidence: prediction.confidence,
-                bbox: bbox,
-                color: model.color,
-                model: modelId,
-                label: model.label,
-                shortLabel: model.shortLabel
-            };
-        });
-}
+                const model = models[modelId];
+                const predictions = apiResponse.predictions || [];
+                
+                return predictions
+                    .filter(prediction => prediction.confidence >= confidenceThreshold)
+                    .map(prediction => {
+                        // Roboflow returns coordinates as percentages
+                        const bbox = {
+                            x: prediction.x,  // center x (percentage)
+                            y: prediction.y,  // center y (percentage)
+                            width: prediction.width,  // width (percentage)
+                            height: prediction.height, // height (percentage)
+                        };
+                        
+                        return {
+                            class: prediction.class,
+                            confidence: prediction.confidence,
+                            bbox: bbox,
+                            color: model.color,
+                            model: modelId,
+                            label: model.label,
+                            shortLabel: model.shortLabel
+                        };
+                    });
+            }
 
             function getDescriptionForModel(modelId) {
                 switch(modelId) {
@@ -1843,6 +1843,24 @@
                     case 'healthy': return 'Healthy oil palm leaf detected';
                     default: return 'Oil palm feature detected';
                 }
+            }
+
+            // Helper function to draw rounded rectangle
+            function drawRoundedRect(ctx, x, y, width, height, radius) {
+                if (width < 2 * radius) radius = width / 2;
+                if (height < 2 * radius) radius = height / 2;
+                
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + width - radius, y);
+                ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+                ctx.lineTo(x + width, y + height - radius);
+                ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+                ctx.lineTo(x + radius, y + height);
+                ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
             }
 
             function drawBoundingBoxes() {
@@ -1900,10 +1918,9 @@
                     const labelX = Math.max(0, Math.min(x, canvasWidth - textWidth));
                     const labelY = Math.max(textHeight, y - 5);
                     
-                    // Draw label background with rounded corners
+                    // Draw label background with rounded corners using helper function
                     previewContext.fillStyle = detection.color + 'DD';
-                    previewContext.beginPath();
-                    previewContext.roundRect(labelX, labelY - textHeight, textWidth, textHeight, 5);
+                    drawRoundedRect(previewContext, labelX, labelY - textHeight, textWidth, textHeight, 5);
                     previewContext.fill();
                     
                     // Draw label text
