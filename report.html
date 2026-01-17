@@ -897,7 +897,7 @@
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>Disease</th>
+                                    <th>Disease(s)</th>
                                     <th>Health Status</th>
                                     <th>Detection Count</th>
                                     <th>Image</th>
@@ -1396,9 +1396,23 @@
     function populateDiseaseFilter() {
         if (!diseaseFilter) return;
         
-        const diseases = [...new Set(allAssessments.map(a => a.disease).filter(d => d))];
+        // Collect diseases from both disease and diseases fields
+        const allDiseases = new Set();
+        
+        allAssessments.forEach(assessment => {
+            if (assessment.disease) {
+                allDiseases.add(assessment.disease);
+            }
+            if (assessment.diseases && Array.isArray(assessment.diseases)) {
+                assessment.diseases.forEach(d => {
+                    if (d && d.trim()) allDiseases.add(d.trim());
+                });
+            }
+        });
+        
+        const diseases = Array.from(allDiseases).filter(d => d);
         diseaseFilter.innerHTML = '<option value="all">All Diseases</option>';
-        diseases.forEach(disease => {
+        diseases.sort().forEach(disease => {
             const option = document.createElement('option');
             option.value = disease;
             option.textContent = disease;
@@ -1444,8 +1458,15 @@
             }
 
             // Filter by disease type
-            if (diseaseType !== 'all' && assessment.disease !== diseaseType) {
-                return false;
+            if (diseaseType !== 'all') {
+                const hasDisease = 
+                    assessment.disease === diseaseType ||
+                    (assessment.diseases && Array.isArray(assessment.diseases) && 
+                     assessment.diseases.includes(diseaseType));
+                
+                if (!hasDisease) {
+                    return false;
+                }
             }
 
             return true;
@@ -1502,6 +1523,14 @@
         if (healthStatus === 'Infected') statusClass = 'status-infected';
         else if (healthStatus === 'Warning') statusClass = 'status-warning';
 
+        // Get diseases list - check both disease and diseases
+        let diseasesText = 'None detected';
+        if (assessment.disease) {
+            diseasesText = assessment.disease;
+        } else if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
+            diseasesText = assessment.diseases.join(', ');
+        }
+
         card.innerHTML = `
             <div class="report-header">
                 <div>
@@ -1514,8 +1543,8 @@
             </div>
             <div class="report-content">
                 <div class="report-field">
-                    <span class="field-label">Disease:</span>
-                    <span class="field-value">${assessment.disease || 'None detected'}</span>
+                    <span class="field-label">Disease(s):</span>
+                    <span class="field-value">${diseasesText}</span>
                 </div>
                 <div class="report-field">
                     <span class="field-label">Detection Count:</span>
@@ -1584,12 +1613,24 @@
                     imageHtml = '<span style="color: var(--text-lighter);">No image</span>';
                 }
 
+                // Get diseases list - check both disease and diseases
+                let diseasesText = 'None';
+                if (assessment.disease) {
+                    diseasesText = assessment.disease;
+                } else if (assessment.diseases && Array.isArray(assessment.diseases)) {
+                    if (assessment.diseases.length === 1) {
+                        diseasesText = assessment.diseases[0];
+                    } else if (assessment.diseases.length > 1) {
+                        diseasesText = `${assessment.diseases[0]} +${assessment.diseases.length - 1} more`;
+                    }
+                }
+
                 row.innerHTML = `
                     <td>
                         <div>${date}</div>
                         <small style="color: var(--text-lighter);">${assessment.time || ''}</small>
                     </td>
-                    <td>${assessment.disease || 'None'}</td>
+                    <td>${diseasesText}</td>
                     <td><span class="status-badge ${statusClass}">${healthStatus}</span></td>
                     <td>${assessment.detectionCount || 0}</td>
                     <td>${imageHtml}</td>
@@ -1767,6 +1808,22 @@
             `;
         }
 
+        // Get diseases list - check both disease and diseases
+        let diseasesHtml = '';
+        if (assessment.disease) {
+            diseasesHtml = assessment.disease;
+        } else if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
+            diseasesHtml = `
+                <ul class="modal-detection-list" style="margin: 0; padding-left: 20px;">
+                    ${assessment.diseases.map(disease => `
+                        <li class="modal-detection-item">${disease}</li>
+                    `).join('')}
+                </ul>
+            `;
+        } else {
+            diseasesHtml = 'None detected';
+        }
+
         let detectionsHtml = '';
         if (assessment.detections && Array.isArray(assessment.detections) && assessment.detections.length > 0) {
             detectionsHtml = `
@@ -1792,8 +1849,8 @@
                     <span class="modal-data-value">${assessment.time || 'N/A'}</span>
                 </div>
                 <div class="modal-data-item">
-                    <span class="modal-data-label">Disease</span>
-                    <span class="modal-data-value">${assessment.disease || 'None detected'}</span>
+                    <span class="modal-data-label">Disease(s)</span>
+                    <span class="modal-data-value">${diseasesHtml}</span>
                 </div>
                 <div class="modal-data-item">
                     <span class="modal-data-label">Health Status</span>
@@ -2011,585 +2068,631 @@
         }
     }
 
-        async function generateSingleAssessmentPDF(assessment) {
-            try {
-                if (typeof window.jspdf === 'undefined') {
-                    throw new Error('jsPDF library not loaded.');
-                }
+    async function generateSingleAssessmentPDF(assessment) {
+        try {
+            if (typeof window.jspdf === 'undefined') {
+                throw new Error('jsPDF library not loaded.');
+            }
 
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
 
-                const pageWidth = doc.internal.pageSize.width;
-                const margin = 20;
-                const contentWidth = pageWidth - (2 * margin);
-                let yOffset = 20;
+            const pageWidth = doc.internal.pageSize.width;
+            const margin = 20;
+            const contentWidth = pageWidth - (2 * margin);
+            let yOffset = 20;
 
-                // Header
-                doc.setFontSize(20);
+            // Header
+            doc.setFontSize(20);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Palm Aegis - Assessment Report', pageWidth / 2, yOffset, { align: 'center' });
+            yOffset += 10;
+
+            doc.setFontSize(12);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset, { align: 'center' });
+            yOffset += 15;
+
+            // Assessment Details Box
+            doc.setFillColor(46, 125, 50, 10);
+            doc.rect(margin, yOffset, contentWidth, 80, 'F');
+            
+            yOffset += 10;
+            doc.setFontSize(16);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Assessment Details', margin + 10, yOffset);
+            yOffset += 15;
+
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            
+            // Get diseases text - check both disease and diseases
+            let diseasesText = 'None detected';
+            if (assessment.disease) {
+                diseasesText = assessment.disease;
+            } else if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
+                diseasesText = assessment.diseases.join(', ');
+            }
+
+            const details = [
+                ['Date:', new Date(assessment.date).toLocaleDateString()],
+                ['Time:', assessment.time || 'N/A'],
+                ['Disease(s):', diseasesText],
+                ['Health Status:', assessment.healthStatus || 'Healthy'],
+                ['Detection Count:', String(assessment.detectionCount || 0)],
+                ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
+                ['Location:', assessment.location || 'Not specified'],
+                ['Treatment:', assessment.treatment || 'None'],
+                ['User:', assessment.userName || currentUser?.email || 'N/A']
+            ];
+
+            details.forEach(([label, value]) => {
+                doc.text(label, margin + 15, yOffset);
+                doc.text(String(value), margin + 60, yOffset);
+                yOffset += 7;
+            });
+
+            yOffset += 20;
+
+            // Detections Section
+            if (assessment.detections && assessment.detections.length > 0) {
+                doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
-                doc.text('Palm Aegis - Assessment Report', pageWidth / 2, yOffset, { align: 'center' });
+                doc.text('Detected Issues', margin, yOffset);
                 yOffset += 10;
-
-                doc.setFontSize(12);
-                doc.setTextColor(100, 100, 100);
-                doc.text(`Generated on: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset, { align: 'center' });
-                yOffset += 15;
-
-                // Assessment Details Box
-                doc.setFillColor(46, 125, 50, 10);
-                doc.rect(margin, yOffset, contentWidth, 80, 'F');
-                
-                yOffset += 10;
-                doc.setFontSize(16);
-                doc.setTextColor(46, 125, 50);
-                doc.text('Assessment Details', margin + 10, yOffset);
-                yOffset += 15;
 
                 doc.setFontSize(11);
-                doc.setTextColor(0, 0, 0);
-                
-                const details = [
-                    ['Date:', new Date(assessment.date).toLocaleDateString()],
-                    ['Time:', assessment.time || 'N/A'],
-                    ['Disease:', assessment.disease || 'None detected'],
-                    ['Health Status:', assessment.healthStatus || 'Healthy'],
-                    ['Detection Count:', String(assessment.detectionCount || 0)],
-                    ['Confidence:', assessment.confidenceThreshold ? Math.round(assessment.confidenceThreshold * 100) + '%' : 'N/A'],
-                    ['Location:', assessment.location || 'Not specified'],
-                    ['Treatment:', assessment.treatment || 'None'],
-                    ['User:', assessment.userName || currentUser?.email || 'N/A']
-                ];
-
-                details.forEach(([label, value]) => {
-                    doc.text(label, margin + 15, yOffset);
-                    doc.text(String(value), margin + 60, yOffset);
-                    yOffset += 7;
+                assessment.detections.forEach((det, index) => {
+                    const detectionText = `${index + 1}. ${det.disease || 'Unknown'}: ${det.confidence ? Math.round(det.confidence * 100) : 0}% confidence`;
+                    doc.text(detectionText, margin + 5, yOffset);
+                    yOffset += 6;
                 });
-
-                yOffset += 20;
-
-                // Detections Section
-                if (assessment.detections && assessment.detections.length > 0) {
-                    doc.setFontSize(14);
-                    doc.setTextColor(46, 125, 50);
-                    doc.text('Detected Issues', margin, yOffset);
-                    yOffset += 10;
-
-                    doc.setFontSize(11);
-                    assessment.detections.forEach((det, index) => {
-                        const detectionText = `${index + 1}. ${det.disease || 'Unknown'}: ${det.confidence ? Math.round(det.confidence * 100) : 0}% confidence`;
-                        doc.text(detectionText, margin + 5, yOffset);
-                        yOffset += 6;
-                    });
-                    yOffset += 10;
-                }
-
-                // Recommendations
-                if (assessment.treatment) {
-                    doc.setFontSize(14);
-                    doc.setTextColor(46, 125, 50);
-                    doc.text('Treatment Recommendations', margin, yOffset);
-                    yOffset += 10;
-
-                    doc.setFontSize(11);
-                    const lines = doc.splitTextToSize(assessment.treatment, contentWidth);
-                    lines.forEach(line => {
-                        doc.text(line, margin + 5, yOffset);
-                        yOffset += 6;
-                    });
-                    yOffset += 10;
-                }
-
-                // Footer
-                const finalY = doc.internal.pageSize.height - 10;
-                doc.setFontSize(10);
-                doc.setTextColor(150, 150, 150);
-                doc.text('Generated by Palm Aegis - Detection Disease System', pageWidth / 2, finalY, { align: 'center' });
-
-                // Save the PDF
-                const fileName = `Assessment-${assessment.id || 'report'}-${new Date().toISOString().slice(0,10)}.pdf`;
-                doc.save(fileName);
-
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                alert(`Failed to generate PDF: ${error.message}`);
+                yOffset += 10;
             }
-        }
 
-        function generateCurrentViewPDF() {
-            try {
-                if (typeof window.jspdf === 'undefined') {
-                    throw new Error('jsPDF library not loaded.');
-                }
-
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                const pageWidth = doc.internal.pageSize.width;
-                const margin = 20;
-                let yOffset = 20;
-
-                // Header
-                doc.setFontSize(20);
+            // Recommendations
+            if (assessment.treatment) {
+                doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
-                doc.text('Palm Aegis - Current View Report', pageWidth / 2, yOffset, { align: 'center' });
+                doc.text('Treatment Recommendations', margin, yOffset);
                 yOffset += 10;
 
-                doc.setFontSize(12);
-                doc.setTextColor(100, 100, 100);
-                doc.text(`Filtered Results (${filteredAssessments.length} assessments)`, pageWidth / 2, yOffset, { align: 'center' });
-                doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset + 7, { align: 'center' });
-                yOffset += 20;
+                doc.setFontSize(11);
+                const lines = doc.splitTextToSize(assessment.treatment, contentWidth);
+                lines.forEach(line => {
+                    doc.text(line, margin + 5, yOffset);
+                    yOffset += 6;
+                });
+                yOffset += 10;
+            }
 
-                // Assessment Table
-                const tableData = filteredAssessments.map(assessment => [
+            // Footer
+            const finalY = doc.internal.pageSize.height - 10;
+            doc.setFontSize(10);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Generated by Palm Aegis - Detection Disease System', pageWidth / 2, finalY, { align: 'center' });
+
+            // Save the PDF
+            const fileName = `Assessment-${assessment.id || 'report'}-${new Date().toISOString().slice(0,10)}.pdf`;
+            doc.save(fileName);
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert(`Failed to generate PDF: ${error.message}`);
+        }
+    }
+
+    function generateCurrentViewPDF() {
+        try {
+            if (typeof window.jspdf === 'undefined') {
+                throw new Error('jsPDF library not loaded.');
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = doc.internal.pageSize.width;
+            const margin = 20;
+            let yOffset = 20;
+
+            // Header
+            doc.setFontSize(20);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Palm Aegis - Current View Report', pageWidth / 2, yOffset, { align: 'center' });
+            yOffset += 10;
+
+            doc.setFontSize(12);
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Filtered Results (${filteredAssessments.length} assessments)`, pageWidth / 2, yOffset, { align: 'center' });
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset + 7, { align: 'center' });
+            yOffset += 20;
+
+            // Assessment Table
+            const tableData = filteredAssessments.map(assessment => {
+                // Get diseases text - check both disease and diseases
+                let diseasesText = 'None';
+                if (assessment.disease) {
+                    diseasesText = assessment.disease;
+                } else if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
+                    diseasesText = assessment.diseases.join(', ');
+                }
+                
+                return [
                     new Date(assessment.date).toLocaleDateString('short'),
-                    assessment.disease || 'None',
+                    diseasesText,
                     assessment.healthStatus || 'Healthy',
                     assessment.detectionCount || 0,
                     assessment.location || 'N/A'
-                ]);
+                ];
+            });
 
-                doc.autoTable({
-                    startY: yOffset,
-                    head: [['Date', 'Disease', 'Status', 'Count', 'Location']],
-                    body: tableData,
-                    margin: { left: margin, right: margin },
-                    headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
-                    alternateRowStyles: { fillColor: [240, 255, 240] },
-                    styles: { fontSize: 9, cellPadding: 3 }
-                });
+            doc.autoTable({
+                startY: yOffset,
+                head: [['Date', 'Disease(s)', 'Status', 'Count', 'Location']],
+                body: tableData,
+                margin: { left: margin, right: margin },
+                headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
+                alternateRowStyles: { fillColor: [240, 255, 240] },
+                styles: { fontSize: 9, cellPadding: 3 }
+            });
 
-                yOffset = doc.lastAutoTable.finalY + 10;
+            yOffset = doc.lastAutoTable.finalY + 10;
 
-                // Health Summary
-                const healthyCount = filteredAssessments.filter(a => a.healthStatus === 'Healthy').length;
-                const infectedCount = filteredAssessments.filter(a => a.healthStatus === 'Infected').length;
-                const warningCount = filteredAssessments.filter(a => a.healthStatus === 'Warning').length;
+            // Health Summary
+            const healthyCount = filteredAssessments.filter(a => a.healthStatus === 'Healthy').length;
+            const infectedCount = filteredAssessments.filter(a => a.healthStatus === 'Infected').length;
+            const warningCount = filteredAssessments.filter(a => a.healthStatus === 'Warning').length;
 
-                doc.setFontSize(14);
+            doc.setFontSize(14);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Health Summary', margin, yOffset);
+            yOffset += 10;
+
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Total Assessments: ${filteredAssessments.length}`, margin, yOffset);
+            yOffset += 6;
+            doc.text(`Healthy: ${healthyCount}`, margin, yOffset);
+            yOffset += 6;
+            doc.text(`Infected: ${infectedCount}`, margin, yOffset);
+            yOffset += 6;
+            doc.text(`Warning: ${warningCount}`, margin, yOffset);
+
+            // Footer
+            const finalY = doc.internal.pageSize.height - 10;
+            doc.setFontSize(10);
+            doc.setTextColor(150, 150, 150);
+            doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
+
+            // Save the PDF
+            const fileName = `Palm-Aegis-Current-View-${new Date().toISOString().slice(0,10)}.pdf`;
+            doc.save(fileName);
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert(`Failed to generate PDF: ${error.message}`);
+        }
+    }
+
+    function generateCompleteReportPDF() {
+        try {
+            if (typeof window.jspdf === 'undefined') {
+                throw new Error('jsPDF library not loaded.');
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = doc.internal.pageSize.width;
+            const margin = 20;
+            let yOffset = 20;
+
+            // Header
+            doc.setFontSize(24);
+            doc.setTextColor(46, 125, 50);
+            doc.text('PALM AEGIS', pageWidth / 2, yOffset, { align: 'center' });
+            
+            doc.setFontSize(14);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Complete Farm Report', pageWidth / 2, yOffset + 10, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset + 18, { align: 'center' });
+            yOffset += 30;
+
+            // User Info
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`User: ${window.userData?.firstName || ''} ${window.userData?.lastName || ''}`, margin, yOffset);
+            doc.text(`Email: ${currentUser?.email || 'N/A'}`, pageWidth / 2, yOffset);
+            yOffset += 15;
+
+            // Farms Section
+            if (allFarms.length > 0) {
+                doc.setFontSize(16);
                 doc.setTextColor(46, 125, 50);
-                doc.text('Health Summary', margin, yOffset);
+                doc.text('Farm Records', margin, yOffset);
                 yOffset += 10;
 
-                doc.setFontSize(11);
-                doc.setTextColor(0, 0, 0);
-                doc.text(`Total Assessments: ${filteredAssessments.length}`, margin, yOffset);
-                yOffset += 6;
-                doc.text(`Healthy: ${healthyCount}`, margin, yOffset);
-                yOffset += 6;
-                doc.text(`Infected: ${infectedCount}`, margin, yOffset);
-                yOffset += 6;
-                doc.text(`Warning: ${warningCount}`, margin, yOffset);
-
-                // Footer
-                const finalY = doc.internal.pageSize.height - 10;
-                doc.setFontSize(10);
-                doc.setTextColor(150, 150, 150);
-                doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
-
-                // Save the PDF
-                const fileName = `Palm-Aegis-Current-View-${new Date().toISOString().slice(0,10)}.pdf`;
-                doc.save(fileName);
-
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                alert(`Failed to generate PDF: ${error.message}`);
-            }
-        }
-
-        function generateCompleteReportPDF() {
-            try {
-                if (typeof window.jspdf === 'undefined') {
-                    throw new Error('jsPDF library not loaded.');
-                }
-
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                const pageWidth = doc.internal.pageSize.width;
-                const margin = 20;
-                let yOffset = 20;
-
-                // Header
-                doc.setFontSize(24);
-                doc.setTextColor(46, 125, 50);
-                doc.text('PALM AEGIS', pageWidth / 2, yOffset, { align: 'center' });
-                
-                doc.setFontSize(14);
-                doc.setTextColor(100, 100, 100);
-                doc.text('Complete Farm Report', pageWidth / 2, yOffset + 10, { align: 'center' });
-                
-                doc.setFontSize(12);
-                doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yOffset + 18, { align: 'center' });
-                yOffset += 30;
-
-                // User Info
-                doc.setFontSize(11);
-                doc.setTextColor(0, 0, 0);
-                doc.text(`User: ${window.userData?.firstName || ''} ${window.userData?.lastName || ''}`, margin, yOffset);
-                doc.text(`Email: ${currentUser?.email || 'N/A'}`, pageWidth / 2, yOffset);
-                yOffset += 15;
-
-                // Farms Section
-                if (allFarms.length > 0) {
-                    doc.setFontSize(16);
-                    doc.setTextColor(46, 125, 50);
-                    doc.text('Farm Records', margin, yOffset);
-                    yOffset += 10;
-
-                    allFarms.forEach((farm, index) => {
-                        if (yOffset > 250) {
-                            doc.addPage();
-                            yOffset = 20;
-                        }
-
-                        doc.setFontSize(12);
-                        doc.setTextColor(46, 125, 50);
-                        doc.text(`${index + 1}. ${farm.name || 'Unnamed Farm'}`, margin, yOffset);
-                        yOffset += 7;
-
-                        doc.setFontSize(10);
-                        doc.setTextColor(0, 0, 0);
-                        const details = [
-                            `Location: ${farm.location || 'N/A'}`,
-                            `Area: ${farm.area || 'N/A'}`,
-                            `Crops: ${farm.crops || 'Oil Palm'}`,
-                            `Soil Type: ${farm.soilType || 'N/A'}`,
-                            `Status: ${farm.status || 'Active'}`,
-                            `Created: ${farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A'}`
-                        ];
-
-                        details.forEach(detail => {
-                            doc.text(detail, margin + 5, yOffset);
-                            yOffset += 5;
-                        });
-
-                        yOffset += 10;
-                    });
-
-                    yOffset += 10;
-                }
-
-                // Assessments Section
-                if (allAssessments.length > 0) {
-                    if (yOffset > 220) {
+                allFarms.forEach((farm, index) => {
+                    if (yOffset > 250) {
                         doc.addPage();
                         yOffset = 20;
                     }
 
-                    doc.setFontSize(16);
+                    doc.setFontSize(12);
                     doc.setTextColor(46, 125, 50);
-                    doc.text('All Assessments', margin, yOffset);
-                    yOffset += 10;
+                    doc.text(`${index + 1}. ${farm.name || 'Unnamed Farm'}`, margin, yOffset);
+                    yOffset += 7;
 
-                    const tableData = allAssessments.map(assessment => [
-                        new Date(assessment.date).toLocaleDateString('short'),
-                        assessment.disease || 'None',
-                        assessment.healthStatus || 'Healthy',
-                        assessment.detectionCount || 0,
-                        assessment.location || 'N/A'
-                    ]);
+                    doc.setFontSize(10);
+                    doc.setTextColor(0, 0, 0);
+                    const details = [
+                        `Location: ${farm.location || 'N/A'}`,
+                        `Area: ${farm.area || 'N/A'}`,
+                        `Crops: ${farm.crops || 'Oil Palm'}`,
+                        `Soil Type: ${farm.soilType || 'N/A'}`,
+                        `Status: ${farm.status || 'Active'}`,
+                        `Created: ${farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A'}`
+                    ];
 
-                    doc.autoTable({
-                        startY: yOffset,
-                        head: [['Date', 'Disease', 'Status', 'Count', 'Location']],
-                        body: tableData,
-                        margin: { left: margin, right: margin },
-                        headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
-                        alternateRowStyles: { fillColor: [240, 255, 240] },
-                        styles: { fontSize: 8, cellPadding: 2 }
-                    });
-
-                    yOffset = doc.lastAutoTable.finalY + 10;
-                }
-
-                // Statistics
-                const totalAssessments = allAssessments.length;
-                const totalFarms = allFarms.length;
-                const infectedCount = allAssessments.filter(a => a.healthStatus === 'Infected').length;
-                const healthyCount = allAssessments.filter(a => a.healthStatus === 'Healthy').length;
-
-                doc.setFontSize(14);
-                doc.setTextColor(46, 125, 50);
-                doc.text('Overall Statistics', margin, yOffset);
-                yOffset += 10;
-
-                doc.setFontSize(11);
-                doc.setTextColor(0, 0, 0);
-                doc.text(`Total Farms: ${totalFarms}`, margin, yOffset);
-                yOffset += 6;
-                doc.text(`Total Assessments: ${totalAssessments}`, margin, yOffset);
-                yOffset += 6;
-                doc.text(`Healthy Plants: ${healthyCount}`, margin, yOffset);
-                yOffset += 6;
-                doc.text(`Infected Plants: ${infectedCount}`, margin, yOffset);
-                yOffset += 6;
-                
-                const infectionRate = totalAssessments > 0 ? ((infectedCount / totalAssessments) * 100).toFixed(1) : 0;
-                doc.text(`Infection Rate: ${infectionRate}%`, margin, yOffset);
-
-                // Footer
-                const finalY = doc.internal.pageSize.height - 20;
-                doc.setFontSize(10);
-                doc.setTextColor(100, 100, 100);
-                doc.text('--- End of Complete Report ---', pageWidth / 2, finalY - 10, { align: 'center' });
-                doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
-
-                // Save the PDF
-                const fileName = `Palm-Aegis-Complete-Report-${new Date().toISOString().slice(0,10)}.pdf`;
-                doc.save(fileName);
-
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                alert(`Failed to generate PDF: ${error.message}`);
-            }
-        }
-
-        // ==================== INVOICE REPORT FUNCTION ====================
-        async function generateInvoiceReport() {
-            if (filteredAssessments.length === 0 && allFarms.length === 0) {
-                alert('No data available for invoice report.');
-                return;
-            }
-
-            const confirmed = confirm('Generate comprehensive invoice report with all data?');
-            if (!confirmed) return;
-
-            try {
-                if (typeof window.jspdf === 'undefined') {
-                    throw new Error('jsPDF library not loaded.');
-                }
-
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'mm',
-                    format: 'a4'
-                });
-
-                const pageWidth = doc.internal.pageSize.width;
-                const margin = 20;
-                const contentWidth = pageWidth - (2 * margin);
-                let yOffset = 20;
-
-                // Company Header
-                doc.setFontSize(24);
-                doc.setTextColor(46, 125, 50);
-                doc.text('PALM AEGIS', pageWidth / 2, yOffset, { align: 'center' });
-                
-                doc.setFontSize(12);
-                doc.setTextColor(100, 100, 100);
-                doc.text('Smart Palm Farming System', pageWidth / 2, yOffset + 7, { align: 'center' });
-                doc.text('INVOICE REPORT', pageWidth / 2, yOffset + 15, { align: 'center' });
-                
-                yOffset += 30;
-
-                // User Information
-                doc.setFontSize(11);
-                doc.setTextColor(0, 0, 0);
-                doc.text('User Information:', margin, yOffset);
-                yOffset += 7;
-                
-                doc.text(`Name: ${window.userData?.firstName || ''} ${window.userData?.lastName || ''}`, margin + 5, yOffset);
-                doc.text(`Email: ${currentUser?.email || 'N/A'}`, margin + 80, yOffset);
-                yOffset += 7;
-                doc.text(`Date: ${new Date().toLocaleDateString()}`, margin + 5, yOffset);
-                doc.text(`Time: ${new Date().toLocaleTimeString()}`, margin + 80, yOffset);
-                yOffset += 15;
-
-                // Summary Statistics
-                doc.setFillColor(46, 125, 50, 10);
-                doc.rect(margin, yOffset, contentWidth, 25, 'F');
-                
-                doc.setFontSize(12);
-                doc.setTextColor(46, 125, 50);
-                doc.text('Report Summary', margin + 10, yOffset + 8);
-                
-                doc.setFontSize(10);
-                doc.setTextColor(0, 0, 0);
-                
-                const totalFarms = allFarms.length;
-                const totalAssessments = allAssessments.length;
-                const infectedCount = allAssessments.filter(a => a.healthStatus === 'Infected').length;
-                const healthyCount = allAssessments.filter(a => a.healthStatus === 'Healthy').length;
-                const warningCount = allAssessments.filter(a => a.healthStatus === 'Warning').length;
-
-                doc.text(`Total Farms: ${totalFarms}`, margin + 10, yOffset + 18);
-                doc.text(`Total Assessments: ${totalAssessments}`, margin + 60, yOffset + 18);
-                doc.text(`Healthy: ${healthyCount}`, margin + 120, yOffset + 18);
-                
-                doc.text(`Infected: ${infectedCount}`, margin + 10, yOffset + 28);
-                doc.text(`Warning: ${warningCount}`, margin + 60, yOffset + 28);
-                
-                yOffset += 40;
-
-                // Farm Records Section
-                if (allFarms.length > 0) {
-                    doc.setFontSize(14);
-                    doc.setTextColor(46, 125, 50);
-                    doc.text('Farm Records', margin, yOffset);
-                    yOffset += 10;
-
-                    allFarms.forEach((farm, index) => {
-                        if (yOffset > 250) {
-                            doc.addPage();
-                            yOffset = 20;
-                        }
-
-                        // Farm header
-                        doc.setFontSize(11);
-                        doc.setTextColor(46, 125, 50);
-                        doc.text(`Farm ${index + 1}: ${farm.name || 'Unnamed Farm'}`, margin, yOffset);
-                        yOffset += 7;
-
-                        // Farm details
-                        doc.setFontSize(10);
-                        doc.setTextColor(0, 0, 0);
-                        
-                        const details = [
-                            ['Location:', farm.location || 'Not specified'],
-                            ['Area:', farm.area || 'N/A'],
-                            ['Crops:', farm.crops || 'Oil Palm'],
-                            ['Soil Type:', farm.soilType || 'Not specified'],
-                            ['Status:', farm.status || 'Active'],
-                            ['Created:', farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A']
-                        ];
-
-                        details.forEach(([label, value]) => {
-                            doc.text(`${label} ${value}`, margin + 5, yOffset);
-                            yOffset += 5;
-                        });
-
+                    details.forEach(detail => {
+                        doc.text(detail, margin + 5, yOffset);
                         yOffset += 5;
                     });
 
                     yOffset += 10;
+                });
+
+                yOffset += 10;
+            }
+
+            // Assessments Section
+            if (allAssessments.length > 0) {
+                if (yOffset > 220) {
+                    doc.addPage();
+                    yOffset = 20;
                 }
 
-                // Assessment Records Section
-                if (filteredAssessments.length > 0) {
-                    if (yOffset > 220) {
+                doc.setFontSize(16);
+                doc.setTextColor(46, 125, 50);
+                doc.text('All Assessments', margin, yOffset);
+                yOffset += 10;
+
+                const tableData = allAssessments.map(assessment => {
+                    // Get diseases text - check both disease and diseases
+                    let diseasesText = 'None';
+                    if (assessment.disease) {
+                        diseasesText = assessment.disease;
+                    } else if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
+                        diseasesText = assessment.diseases.join(', ');
+                    }
+                    
+                    return [
+                        new Date(assessment.date).toLocaleDateString('short'),
+                        diseasesText,
+                        assessment.healthStatus || 'Healthy',
+                        assessment.detectionCount || 0,
+                        assessment.location || 'N/A'
+                    ];
+                });
+
+                doc.autoTable({
+                    startY: yOffset,
+                    head: [['Date', 'Disease(s)', 'Status', 'Count', 'Location']],
+                    body: tableData,
+                    margin: { left: margin, right: margin },
+                    headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
+                    alternateRowStyles: { fillColor: [240, 255, 240] },
+                    styles: { fontSize: 8, cellPadding: 2 }
+                });
+
+                yOffset = doc.lastAutoTable.finalY + 10;
+            }
+
+            // Statistics
+            const totalAssessments = allAssessments.length;
+            const totalFarms = allFarms.length;
+            const infectedCount = allAssessments.filter(a => a.healthStatus === 'Infected').length;
+            const healthyCount = allAssessments.filter(a => a.healthStatus === 'Healthy').length;
+
+            doc.setFontSize(14);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Overall Statistics', margin, yOffset);
+            yOffset += 10;
+
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Total Farms: ${totalFarms}`, margin, yOffset);
+            yOffset += 6;
+            doc.text(`Total Assessments: ${totalAssessments}`, margin, yOffset);
+            yOffset += 6;
+            doc.text(`Healthy Plants: ${healthyCount}`, margin, yOffset);
+            yOffset += 6;
+            doc.text(`Infected Plants: ${infectedCount}`, margin, yOffset);
+            yOffset += 6;
+            
+            const infectionRate = totalAssessments > 0 ? ((infectedCount / totalAssessments) * 100).toFixed(1) : 0;
+            doc.text(`Infection Rate: ${infectionRate}%`, margin, yOffset);
+
+            // Footer
+            const finalY = doc.internal.pageSize.height - 20;
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('--- End of Complete Report ---', pageWidth / 2, finalY - 10, { align: 'center' });
+            doc.text('Generated by Palm Aegis - Smart Palm Farming System', pageWidth / 2, finalY, { align: 'center' });
+
+            // Save the PDF
+            const fileName = `Palm-Aegis-Complete-Report-${new Date().toISOString().slice(0,10)}.pdf`;
+            doc.save(fileName);
+
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            alert(`Failed to generate PDF: ${error.message}`);
+        }
+    }
+
+    // ==================== INVOICE REPORT FUNCTION ====================
+    async function generateInvoiceReport() {
+        if (filteredAssessments.length === 0 && allFarms.length === 0) {
+            alert('No data available for invoice report.');
+            return;
+        }
+
+        const confirmed = confirm('Generate comprehensive invoice report with all data?');
+        if (!confirmed) return;
+
+        try {
+            if (typeof window.jspdf === 'undefined') {
+                throw new Error('jsPDF library not loaded.');
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const pageWidth = doc.internal.pageSize.width;
+            const margin = 20;
+            const contentWidth = pageWidth - (2 * margin);
+            let yOffset = 20;
+
+            // Company Header
+            doc.setFontSize(24);
+            doc.setTextColor(46, 125, 50);
+            doc.text('PALM AEGIS', pageWidth / 2, yOffset, { align: 'center' });
+            
+            doc.setFontSize(12);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Smart Palm Farming System', pageWidth / 2, yOffset + 7, { align: 'center' });
+            doc.text('INVOICE REPORT', pageWidth / 2, yOffset + 15, { align: 'center' });
+            
+            yOffset += 30;
+
+            // User Information
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            doc.text('User Information:', margin, yOffset);
+            yOffset += 7;
+            
+            doc.text(`Name: ${window.userData?.firstName || ''} ${window.userData?.lastName || ''}`, margin + 5, yOffset);
+            doc.text(`Email: ${currentUser?.email || 'N/A'}`, margin + 80, yOffset);
+            yOffset += 7;
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, margin + 5, yOffset);
+            doc.text(`Time: ${new Date().toLocaleTimeString()}`, margin + 80, yOffset);
+            yOffset += 15;
+
+            // Summary Statistics
+            doc.setFillColor(46, 125, 50, 10);
+            doc.rect(margin, yOffset, contentWidth, 25, 'F');
+            
+            doc.setFontSize(12);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Report Summary', margin + 10, yOffset + 8);
+            
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            
+            const totalFarms = allFarms.length;
+            const totalAssessments = allAssessments.length;
+            const infectedCount = allAssessments.filter(a => a.healthStatus === 'Infected').length;
+            const healthyCount = allAssessments.filter(a => a.healthStatus === 'Healthy').length;
+            const warningCount = allAssessments.filter(a => a.healthStatus === 'Warning').length;
+
+            doc.text(`Total Farms: ${totalFarms}`, margin + 10, yOffset + 18);
+            doc.text(`Total Assessments: ${totalAssessments}`, margin + 60, yOffset + 18);
+            doc.text(`Healthy: ${healthyCount}`, margin + 120, yOffset + 18);
+            
+            doc.text(`Infected: ${infectedCount}`, margin + 10, yOffset + 28);
+            doc.text(`Warning: ${warningCount}`, margin + 60, yOffset + 28);
+            
+            yOffset += 40;
+
+            // Farm Records Section
+            if (allFarms.length > 0) {
+                doc.setFontSize(14);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Farm Records', margin, yOffset);
+                yOffset += 10;
+
+                allFarms.forEach((farm, index) => {
+                    if (yOffset > 250) {
                         doc.addPage();
                         yOffset = 20;
                     }
 
-                    doc.setFontSize(14);
+                    // Farm header
+                    doc.setFontSize(11);
                     doc.setTextColor(46, 125, 50);
-                    doc.text('Assessment Records', margin, yOffset);
-                    yOffset += 10;
+                    doc.text(`Farm ${index + 1}: ${farm.name || 'Unnamed Farm'}`, margin, yOffset);
+                    yOffset += 7;
 
-                    // Create a table for assessments
-                    const headers = ['Date', 'Disease', 'Status', 'Count', 'Location'];
-                    const data = filteredAssessments.map(assessment => [
-                        new Date(assessment.date).toLocaleDateString('short'),
-                        assessment.disease || 'None',
-                        assessment.healthStatus || 'Healthy',
-                        assessment.detectionCount || '0',
-                        assessment.location || 'N/A'
-                    ]);
+                    // Farm details
+                    doc.setFontSize(10);
+                    doc.setTextColor(0, 0, 0);
+                    
+                    const details = [
+                        ['Location:', farm.location || 'Not specified'],
+                        ['Area:', farm.area || 'N/A'],
+                        ['Crops:', farm.crops || 'Oil Palm'],
+                        ['Soil Type:', farm.soilType || 'Not specified'],
+                        ['Status:', farm.status || 'Active'],
+                        ['Created:', farm.createdAt ? new Date(farm.createdAt).toLocaleDateString() : 'N/A']
+                    ];
 
-                    // Draw table
-                    doc.autoTable({
-                        startY: yOffset,
-                        head: [headers],
-                        body: data,
-                        margin: { left: margin },
-                        headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
-                        alternateRowStyles: { fillColor: [240, 255, 240] },
-                        styles: { fontSize: 9, cellPadding: 3 }
+                    details.forEach(([label, value]) => {
+                        doc.text(`${label} ${value}`, margin + 5, yOffset);
+                        yOffset += 5;
                     });
 
-                    yOffset = doc.lastAutoTable.finalY + 10;
-                }
+                    yOffset += 5;
+                });
 
-                // Health Analysis Section
-                if (yOffset > 200) {
+                yOffset += 10;
+            }
+
+            // Assessment Records Section
+            if (filteredAssessments.length > 0) {
+                if (yOffset > 220) {
                     doc.addPage();
                     yOffset = 20;
                 }
 
                 doc.setFontSize(14);
                 doc.setTextColor(46, 125, 50);
-                doc.text('Health Analysis', margin, yOffset);
+                doc.text('Assessment Records', margin, yOffset);
                 yOffset += 10;
 
-                const healthyPercentage = totalAssessments > 0 ? (healthyCount / totalAssessments * 100).toFixed(1) : 0;
-                const infectedPercentage = totalAssessments > 0 ? (infectedCount / totalAssessments * 100).toFixed(1) : 0;
-                const warningPercentage = totalAssessments > 0 ? (warningCount / totalAssessments * 100).toFixed(1) : 0;
+                // Create a table for assessments
+                const headers = ['Date', 'Disease(s)', 'Status', 'Count', 'Location'];
+                const data = filteredAssessments.map(assessment => {
+                    // Get diseases text - check both disease and diseases
+                    let diseasesText = 'None';
+                    if (assessment.disease) {
+                        diseasesText = assessment.disease;
+                    } else if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
+                        diseasesText = assessment.diseases.join(', ');
+                    }
+                    
+                    return [
+                        new Date(assessment.date).toLocaleDateString('short'),
+                        diseasesText,
+                        assessment.healthStatus || 'Healthy',
+                        assessment.detectionCount || '0',
+                        assessment.location || 'N/A'
+                    ];
+                });
+
+                // Draw table
+                doc.autoTable({
+                    startY: yOffset,
+                    head: [headers],
+                    body: data,
+                    margin: { left: margin },
+                    headStyles: { fillColor: [46, 125, 50], textColor: [255, 255, 255] },
+                    alternateRowStyles: { fillColor: [240, 255, 240] },
+                    styles: { fontSize: 9, cellPadding: 3 }
+                });
+
+                yOffset = doc.lastAutoTable.finalY + 10;
+            }
+
+            // Health Analysis Section
+            if (yOffset > 200) {
+                doc.addPage();
+                yOffset = 20;
+            }
+
+            doc.setFontSize(14);
+            doc.setTextColor(46, 125, 50);
+            doc.text('Health Analysis', margin, yOffset);
+            yOffset += 10;
+
+            const healthyPercentage = totalAssessments > 0 ? (healthyCount / totalAssessments * 100).toFixed(1) : 0;
+            const infectedPercentage = totalAssessments > 0 ? (infectedCount / totalAssessments * 100).toFixed(1) : 0;
+            const warningPercentage = totalAssessments > 0 ? (warningCount / totalAssessments * 100).toFixed(1) : 0;
+
+            doc.setFontSize(11);
+            doc.setTextColor(0, 0, 0);
+            
+            doc.text('Health Status Distribution:', margin, yOffset);
+            yOffset += 7;
+            doc.text(`• Healthy: ${healthyCount} (${healthyPercentage}%)`, margin + 10, yOffset);
+            yOffset += 6;
+            doc.text(`• Infected: ${infectedCount} (${infectedPercentage}%)`, margin + 10, yOffset);
+            yOffset += 6;
+            doc.text(`• Warning: ${warningCount} (${warningPercentage}%)`, margin + 10, yOffset);
+            yOffset += 15;
+
+            // Treatment Recommendations
+            if (filteredAssessments.some(a => a.treatment)) {
+                const treatments = filteredAssessments.filter(a => a.treatment);
+                
+                doc.setFontSize(14);
+                doc.setTextColor(46, 125, 50);
+                doc.text('Treatment Recommendations', margin, yOffset);
+                yOffset += 10;
 
                 doc.setFontSize(11);
                 doc.setTextColor(0, 0, 0);
-                
-                doc.text('Health Status Distribution:', margin, yOffset);
-                yOffset += 7;
-                doc.text(`• Healthy: ${healthyCount} (${healthyPercentage}%)`, margin + 10, yOffset);
-                yOffset += 6;
-                doc.text(`• Infected: ${infectedCount} (${infectedPercentage}%)`, margin + 10, yOffset);
-                yOffset += 6;
-                doc.text(`• Warning: ${warningCount} (${warningPercentage}%)`, margin + 10, yOffset);
-                yOffset += 15;
 
-                // Treatment Recommendations
-                if (filteredAssessments.some(a => a.treatment)) {
-                    const treatments = filteredAssessments.filter(a => a.treatment);
-                    
-                    doc.setFontSize(14);
-                    doc.setTextColor(46, 125, 50);
-                    doc.text('Treatment Recommendations', margin, yOffset);
+                treatments.forEach((assessment, index) => {
+                    if (yOffset > 250) {
+                        doc.addPage();
+                        yOffset = 20;
+                    }
+
+                    // Get diseases text - check both disease and diseases
+                    let diseasesText = 'Unknown Disease';
+                    if (assessment.disease) {
+                        diseasesText = assessment.disease;
+                    } else if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
+                        diseasesText = assessment.diseases.join(', ');
+                    }
+
+                    doc.text(`${index + 1}. ${diseasesText}`, margin, yOffset);
+                    yOffset += 6;
+                    doc.text(`   Treatment: ${assessment.treatment}`, margin + 5, yOffset);
+                    yOffset += 6;
+                    doc.text(`   Date: ${new Date(assessment.date).toLocaleDateString()}`, margin + 5, yOffset);
                     yOffset += 10;
-
-                    doc.setFontSize(11);
-                    doc.setTextColor(0, 0, 0);
-
-                    treatments.forEach((assessment, index) => {
-                        if (yOffset > 250) {
-                            doc.addPage();
-                            yOffset = 20;
-                        }
-
-                        doc.text(`${index + 1}. ${assessment.disease || 'Unknown Disease'}`, margin, yOffset);
-                        yOffset += 6;
-                        doc.text(`   Treatment: ${assessment.treatment}`, margin + 5, yOffset);
-                        yOffset += 6;
-                        doc.text(`   Date: ${new Date(assessment.date).toLocaleDateString()}`, margin + 5, yOffset);
-                        yOffset += 10;
-                    });
-                }
-
-                // Footer with totals
-                const finalY = doc.internal.pageSize.height - 20;
-                
-                doc.setFontSize(10);
-                doc.setTextColor(100, 100, 100);
-                doc.text('--- End of Report ---', pageWidth / 2, finalY - 10, { align: 'center' });
-                
-                doc.setFontSize(9);
-                doc.text(`Report generated by Palm Aegis on ${new Date().toLocaleString()}`, pageWidth / 2, finalY, { align: 'center' });
-                doc.text('For inquiries contact: support@palmaegis.com | www.palmaegis.com', pageWidth / 2, finalY + 5, { align: 'center' });
-
-                // Save the PDF
-                const fileName = `Palm-Aegis-Invoice-Report-${new Date().toISOString().slice(0,10)}.pdf`;
-                doc.save(fileName);
-
-            } catch (error) {
-                console.error('Error generating invoice report:', error);
-                alert(`Failed to generate invoice report: ${error.message}`);
+                });
             }
+
+            // Footer with totals
+            const finalY = doc.internal.pageSize.height - 20;
+            
+            doc.setFontSize(10);
+            doc.setTextColor(100, 100, 100);
+            doc.text('--- End of Report ---', pageWidth / 2, finalY - 10, { align: 'center' });
+            
+            doc.setFontSize(9);
+            doc.text(`Report generated by Palm Aegis on ${new Date().toLocaleString()}`, pageWidth / 2, finalY, { align: 'center' });
+            doc.text('For inquiries contact: support@palmaegis.com | www.palmaegis.com', pageWidth / 2, finalY + 5, { align: 'center' });
+
+            // Save the PDF
+            const fileName = `Palm-Aegis-Invoice-Report-${new Date().toISOString().slice(0,10)}.pdf`;
+            doc.save(fileName);
+
+        } catch (error) {
+            console.error('Error generating invoice report:', error);
+            alert(`Failed to generate invoice report: ${error.message}`);
         }
-    </script>
+    }
+</script>
 </body>
 </html>
