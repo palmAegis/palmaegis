@@ -281,6 +281,97 @@
             }
         }
 
+        /* Canvas for bounding boxes */
+        #previewCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            display: none;
+            object-fit: contain;
+        }
+
+        .bounding-box {
+            position: absolute;
+            border: 3px solid;
+            border-radius: 4px;
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        .detection-label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 7;
+            pointer-events: none;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Legend Styles */
+        .image-legend {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 8;
+            display: none;
+            max-width: 200px;
+            backdrop-filter: blur(5px);
+        }
+
+        .legend-title {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .legend-text {
+            color: #333;
+            flex: 1;
+        }
+
+        .legend-count {
+            margin-left: 8px;
+            font-weight: bold;
+            font-size: 10px;
+            background: #f0f0f0;
+            padding: 1px 5px;
+            border-radius: 3px;
+            min-width: 20px;
+            text-align: center;
+        }
+
         /* Assessment Form Styles */
         .assessment-section {
             background: var(--card-bg);
@@ -555,6 +646,12 @@
             margin-top: 2rem;
         }
 
+        /* Toggle Labels Button */
+        .toggle-labels-btn {
+            margin-top: 1rem;
+            width: 100%;
+        }
+
         /* Toast Notification */
         .toast {
             position: fixed;
@@ -594,18 +691,6 @@
             background-color: var(--info-color);
         }
 
-        /* Canvas for preview */
-        #previewCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 5;
-            display: none;
-            object-fit: contain;
-        }
-
         /* Confidence Slider */
         .confidence-slider {
             margin: 1rem 0;
@@ -620,6 +705,18 @@
         .slider-value {
             font-weight: bold;
             color: var(--primary-color);
+        }
+
+        /* Disease Color Badges */
+        .disease-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
         }
 
         /* Responsive */
@@ -697,6 +794,9 @@
                     <button class="btn btn-secondary" id="historyBtn">
                         <i class="fas fa-history"></i> View History
                     </button>
+                    <button class="btn btn-outline" id="toggleLabelsBtn" style="display: none;">
+                        <i class="fas fa-eye-slash"></i> Hide Labels
+                    </button>
                 </div>
             </div>
 
@@ -726,6 +826,11 @@
                             <small>Drag & drop or click to upload</small>
                         </div>
                         <canvas id="previewCanvas"></canvas>
+                        <!-- Disease Legend -->
+                        <div class="image-legend" id="imageLegend">
+                            <div class="legend-title">Disease Legend</div>
+                            <div id="legendItems"></div>
+                        </div>
                         <div class="analyzing-overlay" id="analyzingOverlay" style="display: none;">
                             <div class="spinner"></div>
                             <p>Analyzing Farm Health...</p>
@@ -753,6 +858,9 @@
                         </button>
                         <button class="btn btn-secondary" id="analyzeBtn" style="display: none;">
                             <i class="fas fa-search"></i> Re-analyze
+                        </button>
+                        <button class="btn btn-outline" id="downloadBtn" style="display: none;">
+                            <i class="fas fa-download"></i> Save Image
                         </button>
                     </div>
 
@@ -933,13 +1041,15 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Model configurations
+        // Model configurations with colors
         const models = {
             'ganoderma': {
                 name: 'Ganoderma Detection',
                 url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
-                color: '#EF4444',
+                color: '#EF4444', // Red for serious disease
+                borderColor: '#DC2626',
+                labelColor: 'rgba(239, 68, 68, 0.85)',
                 icon: 'fa-warning',
                 threshold: 0.5,
                 label: 'Ganoderma',
@@ -949,7 +1059,9 @@
                 name: 'Blackspot Disease Detection',
                 url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
-                color: '#8B4513',
+                color: '#8B4513', // Brown for blackspot
+                borderColor: '#5D4037',
+                labelColor: 'rgba(139, 69, 19, 0.85)',
                 icon: 'fa-circle',
                 threshold: 0.5,
                 label: 'Black Spot',
@@ -959,7 +1071,9 @@
                 name: 'Healthy Leaves Detection',
                 url: 'https://serverless.roboflow.com/date-final/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
-                color: '#10B981',
+                color: '#10B981', // Green for healthy
+                borderColor: '#059669',
+                labelColor: 'rgba(16, 185, 129, 0.85)',
                 icon: 'fa-heart',
                 threshold: 0.5,
                 label: 'Healthy',
@@ -1009,6 +1123,8 @@
         let generatedAssessmentId = '';
         let isProcessing = false;
         let hasProcessedImage = false;
+        let labelsVisible = true;
+        let legendData = {};
 
         // DOM Elements
         const elements = {
@@ -1020,6 +1136,12 @@
             cameraBtn: document.getElementById('cameraBtn'),
             galleryBtn: document.getElementById('galleryBtn'),
             analyzeBtn: document.getElementById('analyzeBtn'),
+            downloadBtn: document.getElementById('downloadBtn'),
+            toggleLabelsBtn: document.getElementById('toggleLabelsBtn'),
+            
+            // Legend elements
+            imageLegend: document.getElementById('imageLegend'),
+            legendItems: document.getElementById('legendItems'),
             
             // Detection elements
             detectionResults: document.getElementById('detectionResults'),
@@ -1121,6 +1243,14 @@
                         performImageDetection();
                     }
                 });
+            }
+            
+            if (elements.downloadBtn) {
+                elements.downloadBtn.addEventListener('click', downloadLabeledImage);
+            }
+            
+            if (elements.toggleLabelsBtn) {
+                elements.toggleLabelsBtn.addEventListener('click', toggleLabelsVisibility);
             }
             
             // Image input change
@@ -1311,7 +1441,11 @@
                             model: modelKey,
                             modelName: models[modelKey].name,
                             color: models[modelKey].color,
-                            label: models[modelKey].label
+                            borderColor: models[modelKey].borderColor,
+                            labelColor: models[modelKey].labelColor,
+                            label: models[modelKey].label,
+                            shortLabel: models[modelKey].shortLabel,
+                            icon: models[modelKey].icon
                         }));
                         allDetections.push(...predictionsWithModel);
                     }
@@ -1331,6 +1465,8 @@
                 
                 // Show analyze button
                 elements.analyzeBtn.style.display = 'inline-flex';
+                elements.downloadBtn.style.display = 'inline-flex';
+                elements.toggleLabelsBtn.style.display = 'inline-flex';
                 
             } catch (error) {
                 console.error('Error during image detection:', error);
@@ -1375,6 +1511,7 @@
                     detectionItem.innerHTML = `
                         <div class="detection-class">
                             <span class="detection-class-name">
+                                <i class="fas ${detection.icon}" style="color: ${detection.color}; margin-right: 8px;"></i>
                                 ${detection.label} (${detection.class})
                             </span>
                             <span class="detection-confidence">${Math.round(avgConfidence * 100)}%</span>
@@ -1402,6 +1539,9 @@
             
             // Draw bounding boxes on canvas
             drawBoundingBoxes(filteredDetections);
+            
+            // Update legend
+            updateLegend(filteredDetections);
         }
 
         // Draw bounding boxes on canvas
@@ -1415,44 +1555,207 @@
             previewContext.drawImage(originalImage, 0, 0, 
                 elements.previewCanvas.width, elements.previewCanvas.height);
             
-            // Draw bounding boxes
+            // Clear existing bounding boxes
+            const existingBoxes = document.querySelectorAll('.bounding-box, .detection-label');
+            existingBoxes.forEach(box => box.remove());
+            
+            // Only draw if labels are visible
+            if (!labelsVisible) return;
+            
+            // Draw bounding boxes and labels
             detections.forEach((detection, index) => {
-                const bbox = detection;
                 const scaleX = elements.previewCanvas.width / originalImage.width;
                 const scaleY = elements.previewCanvas.height / originalImage.height;
                 
-                // Convert percentages to pixels
-                const x = (bbox.x / 100) * elements.previewCanvas.width - (bbox.width / 100) * elements.previewCanvas.width / 2;
-                const y = (bbox.y / 100) * elements.previewCanvas.height - (bbox.height / 100) * elements.previewCanvas.height / 2;
-                const width = (bbox.width / 100) * elements.previewCanvas.width;
-                const height = (bbox.height / 100) * elements.previewCanvas.height;
+                // Convert Roboflow percentages to pixel coordinates
+                // Roboflow returns: x, y as center coordinates, width, height as percentages
+                const bboxX = (detection.x / 100) * elements.previewCanvas.width;
+                const bboxY = (detection.y / 100) * elements.previewCanvas.height;
+                const bboxWidth = (detection.width / 100) * elements.previewCanvas.width;
+                const bboxHeight = (detection.height / 100) * elements.previewCanvas.height;
                 
-                // Draw bounding box
-                previewContext.strokeStyle = detection.color;
-                previewContext.lineWidth = 3;
-                previewContext.strokeRect(x, y, width, height);
+                // Calculate top-left corner
+                const x = bboxX - bboxWidth / 2;
+                const y = bboxY - bboxHeight / 2;
                 
-                // Draw label background
+                // Create bounding box element
+                const boundingBox = document.createElement('div');
+                boundingBox.className = 'bounding-box';
+                boundingBox.style.left = x + 'px';
+                boundingBox.style.top = y + 'px';
+                boundingBox.style.width = bboxWidth + 'px';
+                boundingBox.style.height = bboxHeight + 'px';
+                boundingBox.style.borderColor = detection.borderColor;
+                boundingBox.style.backgroundColor = detection.color + '20'; // 20% opacity
+                
+                // Create label element
                 const confidencePercent = Math.round(detection.confidence * 100);
-                const labelText = `${detection.label} ${confidencePercent}%`;
-                previewContext.font = 'bold 12px Arial';
-                const textMetrics = previewContext.measureText(labelText);
-                const textWidth = textMetrics.width + 20;
-                const textHeight = 20;
+                const label = document.createElement('div');
+                label.className = 'detection-label';
+                label.style.left = x + 'px';
+                label.style.top = (y - 30) + 'px'; // Position above the box
+                label.style.backgroundColor = detection.labelColor;
+                label.style.border = `2px solid ${detection.borderColor}`;
+                label.innerHTML = `
+                    <i class="fas ${detection.icon}"></i>
+                    <span>${detection.label}: ${confidencePercent}%</span>
+                    <span style="margin-left: 8px; background: rgba(255,255,255,0.3); padding: 1px 4px; border-radius: 2px; font-size: 10px;">#${index + 1}</span>
+                `;
                 
-                // Draw label background
-                previewContext.fillStyle = detection.color + 'DD';
-                previewContext.fillRect(x, y - textHeight, textWidth, textHeight);
+                // Ensure label stays within canvas bounds
+                const labelWidth = 150; // Approximate width
+                if (x + labelWidth > elements.previewCanvas.width) {
+                    label.style.left = (elements.previewCanvas.width - labelWidth) + 'px';
+                }
+                if (y - 30 < 0) {
+                    label.style.top = (y + bboxHeight + 5) + 'px';
+                }
                 
-                // Draw label text
-                previewContext.fillStyle = 'white';
-                previewContext.fillText(labelText, x + 10, y - 5);
-                
-                // Add number
-                previewContext.fillStyle = detection.color;
-                previewContext.font = 'bold 14px Arial';
-                previewContext.fillText(`${index + 1}`, x + 5, y + 20);
+                // Add elements to canvas container
+                elements.previewCanvas.parentElement.appendChild(boundingBox);
+                elements.previewCanvas.parentElement.appendChild(label);
             });
+        }
+
+        // Toggle labels visibility
+        function toggleLabelsVisibility() {
+            labelsVisible = !labelsVisible;
+            
+            const boundingBoxes = document.querySelectorAll('.bounding-box');
+            const labels = document.querySelectorAll('.detection-label');
+            
+            if (labelsVisible) {
+                boundingBoxes.forEach(box => box.style.display = 'block');
+                labels.forEach(label => label.style.display = 'flex');
+                elements.toggleLabelsBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Labels';
+            } else {
+                boundingBoxes.forEach(box => box.style.display = 'none');
+                labels.forEach(label => label.style.display = 'none');
+                elements.toggleLabelsBtn.innerHTML = '<i class="fas fa-eye"></i> Show Labels';
+            }
+        }
+
+        // Update legend
+        function updateLegend(detections) {
+            // Reset legend data
+            legendData = {};
+            elements.legendItems.innerHTML = '';
+            
+            // Group detections by disease type
+            detections.forEach(detection => {
+                if (!legendData[detection.model]) {
+                    legendData[detection.model] = {
+                        label: detection.label,
+                        color: detection.color,
+                        count: 0,
+                        icon: detection.icon
+                    };
+                }
+                legendData[detection.model].count++;
+            });
+            
+            // Create legend items
+            Object.values(legendData).forEach(data => {
+                const legendItem = document.createElement('div');
+                legendItem.className = 'legend-item';
+                
+                legendItem.innerHTML = `
+                    <div class="legend-color" style="background-color: ${data.color};"></div>
+                    <div class="legend-text">${data.label}</div>
+                    <div class="legend-count">${data.count}</div>
+                `;
+                
+                elements.legendItems.appendChild(legendItem);
+            });
+            
+            // Show/hide legend
+            if (Object.keys(legendData).length > 0) {
+                elements.imageLegend.style.display = 'block';
+            } else {
+                elements.imageLegend.style.display = 'none';
+            }
+        }
+
+        // Download labeled image
+        function downloadLabeledImage() {
+            if (!originalImage || currentDetections.length === 0) {
+                showToast('No labeled image available to download', 'error');
+                return;
+            }
+            
+            try {
+                // Create a temporary canvas for download
+                const downloadCanvas = document.createElement('canvas');
+                const downloadContext = downloadCanvas.getContext('2d');
+                
+                // Set canvas to original image size
+                downloadCanvas.width = originalImage.width;
+                downloadCanvas.height = originalImage.height;
+                
+                // Draw original image
+                downloadContext.drawImage(originalImage, 0, 0);
+                
+                // Draw bounding boxes and labels
+                const filteredDetections = currentDetections.filter(det => det.confidence >= confidenceThreshold);
+                
+                filteredDetections.forEach((detection, index) => {
+                    // Convert percentages to pixels
+                    const bboxX = (detection.x / 100) * downloadCanvas.width;
+                    const bboxY = (detection.y / 100) * downloadCanvas.height;
+                    const bboxWidth = (detection.width / 100) * downloadCanvas.width;
+                    const bboxHeight = (detection.height / 100) * downloadCanvas.height;
+                    
+                    // Calculate top-left corner
+                    const x = bboxX - bboxWidth / 2;
+                    const y = bboxY - bboxHeight / 2;
+                    
+                    // Draw bounding box
+                    downloadContext.strokeStyle = detection.borderColor;
+                    downloadContext.lineWidth = 3;
+                    downloadContext.strokeRect(x, y, bboxWidth, bboxHeight);
+                    
+                    // Draw label background
+                    const confidencePercent = Math.round(detection.confidence * 100);
+                    const labelText = `${detection.label} ${confidencePercent}%`;
+                    downloadContext.font = 'bold 16px Arial';
+                    const textMetrics = downloadContext.measureText(labelText);
+                    const textWidth = textMetrics.width + 20;
+                    const textHeight = 24;
+                    
+                    // Draw label background
+                    downloadContext.fillStyle = detection.labelColor;
+                    downloadContext.fillRect(x, y - textHeight, textWidth, textHeight);
+                    
+                    // Draw label text
+                    downloadContext.fillStyle = 'white';
+                    downloadContext.font = 'bold 14px Arial';
+                    downloadContext.fillText(labelText, x + 10, y - 5);
+                    
+                    // Draw detection number
+                    downloadContext.fillStyle = detection.color;
+                    downloadContext.font = 'bold 18px Arial';
+                    downloadContext.fillText(`#${index + 1}`, x + 5, y + 25);
+                });
+                
+                // Add timestamp and watermark
+                downloadContext.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                downloadContext.fillRect(10, downloadCanvas.height - 60, 400, 50);
+                downloadContext.fillStyle = '#333';
+                downloadContext.font = '12px Arial';
+                downloadContext.fillText(`Assessment ID: ${elements.assessmentId.value || 'N/A'}`, 20, downloadCanvas.height - 40);
+                downloadContext.fillText(`Date: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, downloadCanvas.height - 20);
+                
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `farm-assessment-${Date.now()}.png`;
+                link.href = downloadCanvas.toDataURL('image/png');
+                link.click();
+                
+                showToast('Labeled image downloaded successfully!', 'success');
+            } catch (error) {
+                console.error('Error downloading image:', error);
+                showToast('Failed to download image', 'error');
+            }
         }
 
         // Update disease field
@@ -1550,17 +1853,25 @@
             const hasBlackspot = detections.some(d => d.model === 'blackspot');
             const hasHealthy = detections.some(d => d.model === 'healthy');
             
+            // Count instances of each disease
+            let ganodermaCount = 0;
+            let blackspotCount = 0;
+            let healthyCount = 0;
+            
+            detections.forEach(d => {
+                if (d.model === 'ganoderma') ganodermaCount++;
+                if (d.model === 'blackspot') blackspotCount++;
+                if (d.model === 'healthy') healthyCount++;
+            });
+            
             if (hasGanoderma) {
-                const count = detections.filter(d => d.model === 'ganoderma').length;
-                treatment += `• Ganoderma Disease: ${count} instance(s)\n`;
+                treatment += `• Ganoderma Disease: ${ganodermaCount} instance(s)\n`;
             }
             if (hasBlackspot) {
-                const count = detections.filter(d => d.model === 'blackspot').length;
-                treatment += `• Black Spot Disease: ${count} instance(s)\n`;
+                treatment += `• Black Spot Disease: ${blackspotCount} instance(s)\n`;
             }
             if (hasHealthy && !hasGanoderma && !hasBlackspot) {
-                const count = detections.filter(d => d.model === 'healthy').length;
-                treatment += `• Healthy Areas: ${count} instance(s)\n`;
+                treatment += `• Healthy Areas: ${healthyCount} instance(s)\n`;
             }
             
             treatment += "\n";
@@ -1739,9 +2050,11 @@
             }
             
             try {
+                // Filter detections by current threshold
+                const filteredDetections = currentDetections.filter(det => det.confidence >= confidenceThreshold);
+                
                 // Determine disease code from detections
                 let diseaseCode = diseaseCodes.healthy;
-                const filteredDetections = currentDetections.filter(det => det.confidence >= confidenceThreshold);
                 
                 if (filteredDetections.some(d => d.model === 'ganoderma')) {
                     diseaseCode = diseaseCodes.ganoderma;
@@ -1935,11 +2248,20 @@
             elements.analyzingOverlay.style.display = 'none';
             elements.detectionResults.style.display = 'none';
             elements.analyzeBtn.style.display = 'none';
+            elements.downloadBtn.style.display = 'none';
+            elements.toggleLabelsBtn.style.display = 'none';
+            elements.imageLegend.style.display = 'none';
+            
+            // Clear existing bounding boxes and labels
+            const existingBoxes = document.querySelectorAll('.bounding-box, .detection-label');
+            existingBoxes.forEach(box => box.remove());
             
             // Reset detections
             currentDetections = [];
             originalImage = null;
             hasProcessedImage = false;
+            labelsVisible = true;
+            legendData = {};
             
             // Reset form fields
             elements.assessmentId.value = '';
@@ -1990,6 +2312,11 @@
             elements.detectionResults.style.display = 'none';
             elements.detectionsList.innerHTML = '';
             elements.detectionCount.textContent = '0 objects';
+            elements.imageLegend.style.display = 'none';
+            
+            // Clear existing bounding boxes and labels
+            const existingBoxes = document.querySelectorAll('.bounding-box, .detection-label');
+            existingBoxes.forEach(box => box.remove());
         }
 
         // Show loading overlay
