@@ -2474,14 +2474,13 @@
                     yOffset += 10;
 
                     // Create a table for assessments
-                    const headers = ['Date', 'Disease', 'Status', 'Count', 'Location','Treatment'];
+                    const headers = ['Date', 'Disease', 'Status', 'Count', 'Location'];
                     const data = filteredAssessments.map(assessment => [
                         new Date(assessment.date).toLocaleDateString('short'),
                         assessment.disease || 'None',
                         assessment.healthStatus || 'Healthy',
                         assessment.detectionCount || '0',
-                        assessment.location || 'N/A',
-                        assessment.treatment ? 'Yes' : 'No'
+                        assessment.location || 'N/A'
                     ]);
 
                     // Draw table
