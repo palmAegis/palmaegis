@@ -730,11 +730,30 @@
             display: none;
         }
 
+        /* PREVIEW CANVAS SPECIFIC STYLES */
+        #previewCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 6;
+            display: none;
+            object-fit: contain;
+        }
+
+        .preview-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: none;
+        }
+
         .bounding-box {
             position: absolute;
             border: 3px solid;
             border-radius: 4px;
-            z-index: 6;
+            z-index: 7;
             pointer-events: none;
         }
 
@@ -746,7 +765,7 @@
             border-radius: 4px;
             font-size: 12px;
             font-weight: 600;
-            z-index: 7;
+            z-index: 8;
             pointer-events: none;
             white-space: nowrap;
         }
@@ -1052,6 +1071,9 @@
                             <small>Focus on leaves or affected areas</small>
                         </div>
                         <img id="imagePreview" style="display: none; width: 100%; height: 100%; object-fit: contain;">
+                        <!-- Preview Canvas for detection boxes -->
+                        <canvas id="previewCanvas"></canvas>
+                        <!-- Original canvas for image display -->
                         <canvas id="imageCanvas"></canvas>
                         <div class="analyzing-overlay" id="analyzingOverlay" style="display: none;">
                             <div class="spinner"></div>
@@ -1295,6 +1317,7 @@
                 issuesCount: document.getElementById('issuesCount'),
                 imagePlaceholder: document.getElementById('imagePlaceholder'),
                 imagePreview: document.getElementById('imagePreview'),
+                previewCanvas: document.getElementById('previewCanvas'),
                 imageCanvas: document.getElementById('imageCanvas'),
                 analyzingOverlay: document.getElementById('analyzingOverlay'),
                 cameraBtn: document.getElementById('cameraBtn'),
@@ -1324,16 +1347,18 @@
             // State variables
             let currentImage = null;
             let currentDetections = [];
-            let canvasContext = null;
+            let previewContext = null;
+            let originalImage = null;
+            let isProcessing = false;
 
             // Initialize date
             if (elements.assessmentDate) {
                 elements.assessmentDate.valueAsDate = new Date();
             }
 
-            // Setup canvas
-            if (elements.imageCanvas) {
-                canvasContext = elements.imageCanvas.getContext('2d');
+            // Setup canvas contexts
+            if (elements.previewCanvas) {
+                previewContext = elements.previewCanvas.getContext('2d');
             }
 
             // Event Handlers
@@ -1368,6 +1393,13 @@
 
                 console.log('Processing image:', file.name);
                 
+                if (isProcessing) {
+                    console.log('Already processing an image');
+                    return;
+                }
+                
+                isProcessing = true;
+                
                 // Reset previous results
                 resetAnalysis();
                 
@@ -1382,40 +1414,54 @@
                     reader.onload = async function(e) {
                         currentImage = e.target.result;
                         
-                        if (elements.imagePreview) {
-                            elements.imagePreview.src = currentImage;
-                            elements.imagePreview.onload = async function() {
-                                elements.imagePreview.style.display = 'block';
-                                
-                                // Set canvas size to match image
-                                if (elements.imageCanvas && canvasContext) {
-                                    const img = elements.imagePreview;
-                                    elements.imageCanvas.width = img.width || img.naturalWidth;
-                                    elements.imageCanvas.height = img.height || img.naturalHeight;
-                                }
-                                
-                                // Show progress
-                                if (elements.progressContainer) {
-                                    elements.progressContainer.style.display = 'block';
-                                    elements.progressBar.style.width = '0%';
-                                    elements.progressText.textContent = 'Processing image...';
-                                }
-                                
-                                // Analyze image with all 3 Roboflow models
-                                await analyzeImageWithAllModels();
-                                
-                                // Hide analyzing overlay
-                                if (elements.analyzingOverlay) {
-                                    elements.analyzingOverlay.style.display = 'none';
-                                }
-                            };
-                        }
+                        // Load the original image for drawing
+                        originalImage = new Image();
+                        originalImage.onload = async function() {
+                            // Set canvas size to match image dimensions
+                            const containerWidth = elements.imagePreview.parentElement.clientWidth;
+                            const containerHeight = elements.imagePreview.parentElement.clientHeight;
+                            
+                            // Calculate scaling to fit container
+                            const scale = Math.min(
+                                containerWidth / originalImage.width, 
+                                containerHeight / originalImage.height, 
+                                1
+                            );
+                            
+                            // Set preview canvas dimensions
+                            elements.previewCanvas.width = originalImage.width * scale;
+                            elements.previewCanvas.height = originalImage.height * scale;
+                            
+                            // Draw original image on canvas
+                            previewContext.drawImage(originalImage, 0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
+                            elements.previewCanvas.style.display = 'block';
+                            elements.imagePlaceholder.style.display = 'none';
+                            
+                            // Show progress
+                            if (elements.progressContainer) {
+                                elements.progressContainer.style.display = 'block';
+                                elements.progressBar.style.width = '0%';
+                                elements.progressText.textContent = 'Processing image...';
+                            }
+                            
+                            // Analyze image with all 3 Roboflow models
+                            await analyzeImageWithAllModels();
+                            
+                            // Hide analyzing overlay
+                            if (elements.analyzingOverlay) {
+                                elements.analyzingOverlay.style.display = 'none';
+                            }
+                            
+                            isProcessing = false;
+                        };
+                        originalImage.src = currentImage;
                     };
                     reader.readAsDataURL(file);
                 } catch (error) {
                     console.error('Error loading image:', error);
                     showError('Failed to load image');
                     resetAnalysis();
+                    isProcessing = false;
                 }
             }
 
@@ -1470,7 +1516,7 @@
                         elements.progressText.textContent = 'Finalizing results...';
                     }
                     
-                    // Draw bounding boxes
+                    // Draw bounding boxes on preview canvas
                     drawBoundingBoxes();
                     
                     // Update detection results
@@ -1563,78 +1609,69 @@
             }
 
             function drawBoundingBoxes() {
-                if (!elements.imagePreview || !elements.imageCanvas || !canvasContext || currentDetections.length === 0) {
+                if (!originalImage || !elements.previewCanvas || !previewContext || currentDetections.length === 0) {
                     console.log('Cannot draw bounding boxes:', {
-                        hasPreview: !!elements.imagePreview,
-                        hasCanvas: !!elements.imageCanvas,
-                        hasContext: !!canvasContext,
+                        hasOriginalImage: !!originalImage,
+                        hasPreviewCanvas: !!elements.previewCanvas,
+                        hasContext: !!previewContext,
                         detectionsCount: currentDetections.length
                     });
                     return;
                 }
                 
-                // Get image dimensions
-                const img = elements.imagePreview;
-                const imgWidth = elements.imageCanvas.width;
-                const imgHeight = elements.imageCanvas.height;
+                // Clear canvas first
+                previewContext.clearRect(0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
+                
+                // Redraw the original image
+                previewContext.drawImage(originalImage, 0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
+                
+                // Get canvas dimensions
+                const canvasWidth = elements.previewCanvas.width;
+                const canvasHeight = elements.previewCanvas.height;
                 
                 console.log('Drawing bounding boxes:', {
-                    imageSize: `${imgWidth}x${imgHeight}`,
+                    canvasSize: `${canvasWidth}x${canvasHeight}`,
                     detections: currentDetections.length
                 });
                 
-                // Clear canvas
-                canvasContext.clearRect(0, 0, imgWidth, imgHeight);
-                
-                // Draw bounding boxes
+                // Draw bounding boxes for each detection
                 currentDetections.forEach((detection, index) => {
                     const bbox = detection.bbox;
                     
                     // Convert Roboflow coordinates (percentage) to pixel coordinates
-                    // Roboflow returns: x, y as center coordinates, width, height as percentages
-                    const x = (bbox.x / 100) * imgWidth - (bbox.width / 100) * imgWidth / 2;
-                    const y = (bbox.y / 100) * imgHeight - (bbox.height / 100) * imgHeight / 2;
-                    const width = (bbox.width / 100) * imgWidth;
-                    const height = (bbox.height / 100) * imgHeight;
-                    
-                    console.log(`Detection ${index + 1}:`, {
-                        class: detection.class,
-                        confidence: detection.confidence,
-                        bbox: bbox,
-                        pixelCoords: { x, y, width, height }
-                    });
+                    const x = (bbox.x / 100) * canvasWidth - (bbox.width / 100) * canvasWidth / 2;
+                    const y = (bbox.y / 100) * canvasHeight - (bbox.height / 100) * canvasHeight / 2;
+                    const width = (bbox.width / 100) * canvasWidth;
+                    const height = (bbox.height / 100) * canvasHeight;
                     
                     // Draw bounding box
-                    canvasContext.strokeStyle = detection.color;
-                    canvasContext.lineWidth = 3;
-                    canvasContext.strokeRect(x, y, width, height);
+                    previewContext.strokeStyle = detection.color;
+                    previewContext.lineWidth = 3;
+                    previewContext.strokeRect(x, y, width, height);
                     
                     // Draw label background
                     const labelText = `${detection.class} ${Math.round(detection.confidence * 100)}%`;
-                    canvasContext.font = '14px Arial';
-                    const textWidth = canvasContext.measureText(labelText).width;
+                    previewContext.font = 'bold 12px Arial';
+                    const textMetrics = previewContext.measureText(labelText);
+                    const textWidth = textMetrics.width + 10;
+                    const textHeight = 20;
                     
                     // Calculate label position (above the bounding box)
                     const labelX = x;
-                    const labelY = Math.max(y - 20, 10); // Ensure label doesn't go above canvas
+                    const labelY = Math.max(y - textHeight, 5);
                     
                     // Draw label background
-                    canvasContext.fillStyle = detection.color + 'CC';
-                    canvasContext.fillRect(labelX, labelY, textWidth + 10, 20);
+                    previewContext.fillStyle = detection.color;
+                    previewContext.fillRect(labelX, labelY, textWidth, textHeight);
                     
                     // Draw label text
-                    canvasContext.fillStyle = 'white';
-                    canvasContext.fillText(labelText, labelX + 5, labelY + 15);
-                    
-                    // Add detection number for reference
-                    canvasContext.fillStyle = detection.color;
-                    canvasContext.font = 'bold 12px Arial';
-                    canvasContext.fillText(`${index + 1}`, x + 5, y + 15);
+                    previewContext.fillStyle = 'white';
+                    previewContext.fillText(labelText, labelX + 5, labelY + 14);
                 });
                 
-                // Show canvas
-                elements.imageCanvas.style.display = 'block';
-                console.log('Canvas displayed with bounding boxes');
+                // Ensure canvas is displayed
+                elements.previewCanvas.style.display = 'block';
+                console.log('Preview canvas displayed with bounding boxes');
             }
 
             function updateDetectionResults() {
@@ -1826,6 +1863,8 @@
                 // Reset state
                 currentImage = null;
                 currentDetections = [];
+                originalImage = null;
+                isProcessing = false;
                 
                 // Reset UI
                 if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'flex';
@@ -1833,11 +1872,14 @@
                     elements.imagePreview.style.display = 'none';
                     elements.imagePreview.src = '';
                 }
+                if (elements.previewCanvas) {
+                    elements.previewCanvas.style.display = 'none';
+                    if (previewContext) {
+                        previewContext.clearRect(0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
+                    }
+                }
                 if (elements.imageCanvas) {
                     elements.imageCanvas.style.display = 'none';
-                    if (canvasContext) {
-                        canvasContext.clearRect(0, 0, elements.imageCanvas.width, elements.imageCanvas.height);
-                    }
                 }
                 if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'none';
                 if (elements.detectionResults) elements.detectionResults.style.display = 'none';
