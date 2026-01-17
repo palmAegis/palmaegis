@@ -853,11 +853,6 @@
         gap: 15px;
     }
 
-    /* .header-left h1::before {
-        content: '🌴';
-        font-size: 36px;
-    } */
-
     /* Responsive Design */
     @media (max-width: 1200px) {
         .content {
@@ -1372,6 +1367,48 @@
         let isProcessing = false;
         let hasProcessedImage = false;
 
+        // Helper function to get detected diseases array
+        function getDetectedDiseasesArray(filteredDetections) {
+            const diseases = new Set();
+            
+            if (!filteredDetections || filteredDetections.length === 0) {
+                return ['Healthy']; // Default if no detections
+            }
+            
+            filteredDetections.forEach(det => {
+                if (det.confidence >= confidenceThreshold) {
+                    if (det.model === 'healthy' && models.healthy.validClasses.includes(det.class)) {
+                        diseases.add('Healthy');
+                    } else if (det.model === 'ganoderma') {
+                        diseases.add(det.class || 'Ganoderma Disease');
+                    } else if (det.model === 'blackspot') {
+                        diseases.add(det.class || 'Blackspot Disease');
+                    } else {
+                        diseases.add(det.class || 'Unknown Disease');
+                    }
+                }
+            });
+            
+            return Array.from(diseases);
+        }
+
+        // Helper function to get models used
+        function getModelsUsed(filteredDetections) {
+            const modelsUsed = new Set();
+            
+            if (!filteredDetections || filteredDetections.length === 0) {
+                return []; // No models used
+            }
+            
+            filteredDetections.forEach(det => {
+                if (det.confidence >= confidenceThreshold) {
+                    modelsUsed.add(det.model);
+                }
+            });
+            
+            return Array.from(modelsUsed);
+        }
+
         // Check authentication state
         onAuthStateChanged(auth, async (user) => {
             if (user) {
@@ -1624,35 +1661,24 @@
             }
 
             try {
-                const detectedDiseases = new Set();
-                if (currentDetections && currentDetections.length > 0) {
-                    currentDetections.forEach(det => {
-                        if (det.confidence >= confidenceThreshold) {
-                            // For healthy model, only count if class is in validClasses
-                            if (det.model === 'healthy') {
-                                if (models.healthy.validClasses.includes(det.class)) {
-                                    detectedDiseases.add(det.model);
-                                }
-                            } else {
-                                detectedDiseases.add(det.model);
-                            }
-                        }
-                    });
-                }
-
-                console.log('Detected diseases:', Array.from(detectedDiseases));
+                const diseasesArray = getDetectedDiseasesArray(currentDetections);
+                console.log('Detected diseases array:', diseasesArray);
 
                 let diseaseCode = diseaseCodes.healthy; // Default to healthy
                 
-                // Priority: diseases over healthy detection
-                if (detectedDiseases.has('ganoderma')) {
+                // Check for specific diseases in the array
+                if (diseasesArray.some(disease => 
+                    disease.toLowerCase().includes('ganoderma')
+                )) {
                     diseaseCode = diseaseCodes.ganoderma;
-                } else if (detectedDiseases.has('blackspot')) {
+                } else if (diseasesArray.some(disease => 
+                    disease.toLowerCase().includes('blackspot')
+                )) {
                     diseaseCode = diseaseCodes.blackspot;
-                } else if (detectedDiseases.has('healthy')) {
+                } else if (diseasesArray.includes('Healthy')) {
                     diseaseCode = diseaseCodes.healthy;
-                } else if (detectedDiseases.size > 0) {
-                    // If there are detections but not from our known models
+                } else if (diseasesArray.length > 0) {
+                    // If there are other diseases not in our known list
                     diseaseCode = diseaseCodes.unknown;
                 }
 
@@ -1736,62 +1762,27 @@
             }
         }
 
-        // Update disease field based on detection results - FIXED VERSION
+        // Update disease field based on detection results
         function updateDiseaseField(detections) {
-            if (!detections || detections.length === 0) {
+            const diseasesArray = getDetectedDiseasesArray(detections);
+            
+            if (diseasesArray.length === 0) {
                 diseaseInput.value = "Healthy";
                 diseaseInput.className = "form-input disease-input auto-detected";
                 return;
             }
-
-            // First, check for healthy detections from the healthy model
-            const healthyDetections = detections.filter(d => 
-                d.model === 'healthy' && 
-                d.confidence >= confidenceThreshold &&
-                models.healthy.validClasses.includes(d.class)
-            );
             
-            // Check for disease detections
-            const ganodermaDetections = detections.filter(d => 
-                d.model === 'ganoderma' && 
-                d.confidence >= confidenceThreshold
-            );
-            
-            const blackspotDetections = detections.filter(d => 
-                d.model === 'blackspot' && 
-                d.confidence >= confidenceThreshold
-            );
-
-            // Determine the main condition
-            if (healthyDetections.length > 0 && ganodermaDetections.length === 0 && blackspotDetections.length === 0) {
-                // Only healthy detections, no diseases
-                diseaseInput.value = "Healthy";
-                diseaseInput.className = "form-input disease-input auto-detected";
-            } else if (ganodermaDetections.length > 0) {
-                // Ganoderma detected
-                const uniqueClasses = [...new Set(ganodermaDetections.map(d => d.class))];
-                diseaseInput.value = uniqueClasses.join(", ") || "Ganoderma Disease";
-                diseaseInput.className = "form-input disease-input auto-detected";
-            } else if (blackspotDetections.length > 0) {
-                // Blackspot detected
-                const uniqueClasses = [...new Set(blackspotDetections.map(d => d.class))];
-                diseaseInput.value = uniqueClasses.join(", ") || "Blackspot Disease";
-                diseaseInput.className = "form-input disease-input auto-detected";
-            } else if (healthyDetections.length > 0) {
-                // Some healthy detections (mixed with other non-disease detections)
-                diseaseInput.value = "Healthy";
-                diseaseInput.className = "form-input disease-input auto-detected";
-            } else {
-                // Other conditions
-                diseaseInput.value = "Healthy";
-                diseaseInput.className = "form-input disease-input";
-            }
+            // Display diseases as comma-separated list
+            diseaseInput.value = diseasesArray.join(", ");
+            diseaseInput.className = "form-input disease-input auto-detected";
         }
 
-        // Update health status based on detection results - FIXED VERSION
+        // Update health status based on detection results
         function updateHealthStatus(detections) {
-            if (!detections || detections.length === 0) {
-                // No detections - assume healthy
+            const diseasesArray = getDetectedDiseasesArray(detections);
+            
+            if (diseasesArray.length === 0 || (diseasesArray.length === 1 && diseasesArray[0] === 'Healthy')) {
+                // No diseases or only "Healthy" detected
                 healthStatus.textContent = "Healthy";
                 healthStatus.className = "health-status healthy";
                 const today = new Date();
@@ -1800,28 +1791,15 @@
                 nextAssessment.value = sixMonthsLater.toISOString().split('T')[0];
                 return;
             }
-
-            // Check for healthy detections
-            const healthyDetections = detections.filter(d => 
-                d.model === 'healthy' && 
-                d.confidence >= confidenceThreshold &&
-                models.healthy.validClasses.includes(d.class)
+            
+            // Check for actual diseases
+            const hasDisease = diseasesArray.some(disease => 
+                disease !== 'Healthy' && 
+                !disease.toLowerCase().includes('healthy') &&
+                !disease.toLowerCase().includes('normal')
             );
             
-            // Check for disease detections
-            const hasGanoderma = detections.some(d => 
-                d.model === 'ganoderma' && d.confidence >= confidenceThreshold
-            );
-            
-            const hasBlackspot = detections.some(d => 
-                d.model === 'blackspot' && d.confidence >= confidenceThreshold
-            );
-
-            // Logic: If we have healthy detections AND no disease detections, mark as healthy
-            const isHealthy = (healthyDetections.length > 0 && !hasGanoderma && !hasBlackspot) || 
-                            (!hasGanoderma && !hasBlackspot && detections.length > 0);
-
-            if (isHealthy) {
+            if (!hasDisease) {
                 healthStatus.textContent = "Healthy";
                 healthStatus.className = "health-status healthy";
                 const today = new Date();
@@ -1834,6 +1812,14 @@
 
                 let nextAssessmentDate = "";
                 const today = new Date();
+
+                // Check for specific diseases
+                const hasGanoderma = diseasesArray.some(disease => 
+                    disease.toLowerCase().includes('ganoderma')
+                );
+                const hasBlackspot = diseasesArray.some(disease => 
+                    disease.toLowerCase().includes('blackspot')
+                );
 
                 if (hasGanoderma || hasBlackspot) {
                     const tomorrow = new Date(today);
@@ -2078,7 +2064,7 @@
             }
         }
 
-        // Function to auto-detect disease type and set threshold - FIXED VERSION
+        // Function to auto-detect disease type and set threshold
         function autoDetectDiseaseType(detections) {
             if (!detections || detections.length === 0) {
                 currentDiseaseType = 'healthy';
@@ -2256,12 +2242,17 @@
                     date: assessmentDate.value,
                     time: assessmentTime.value,
                     disease: diseaseInput.value,
+                    // Store diseases as an array from detection results
+                    diseases: getDetectedDiseasesArray(filteredDetections),
+                    // Store which models were used
+                    modelsUsed: getModelsUsed(filteredDetections),
                     healthStatus: healthStatus.textContent,
                     nextAssessment: nextAssessment.value,
                     detections: filteredDetections,
                     detectionCount: filteredDetections.length,
                     confidenceThreshold: confidenceThreshold,
                     image: base64Image,
+                    imageData: base64Image, // Store as both image and imageData
                     userId: currentUser.uid,
                     userEmail: currentUser.email,
                     userName: userData?.firstName && userData?.lastName 
@@ -2271,7 +2262,8 @@
                     createdAt: new Date().toISOString()
                 };
 
-                console.log('Saving assessment with detections:', assessment.detections);
+                console.log('Saving assessment with diseases array:', assessment.diseases);
+                console.log('Models used:', assessment.modelsUsed);
 
                 // Save to Firebase
                 const docRef = await addDoc(collection(db, "assessments"), assessment);
@@ -2356,6 +2348,6 @@
         window.regenerateAssessmentId = regenerateAssessmentId;
         window.handleLocationTypeChange = handleLocationTypeChange;
         window.updateMapForLocation = updateMapForLocation;
-        </script>
+    </script>
 </body>
 </html>
