@@ -1147,394 +1147,293 @@
         };
     </script>
 
-    <script>
-        // Wait for DOM to be fully loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM fully loaded');
-            
-            // Initialize Firebase (SIMPLIFIED - removed duplicate imports)
-            const firebaseConfig = {
-                apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
-                authDomain: "palmaegis-setup.firebaseapp.com",
-                projectId: "palmaegis-setup",
-                storageBucket: "palmaegis-setup.firebasestorage.app",
-                messagingSenderId: "445887502374",
-                appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
-            };
+<script>
+// Wait for DOM to be fully loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded');
+    
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAf-wtZpl8wVjCymdLlC-YGlv7xn0yEMMU",
+        authDomain: "palmaegis-setup.firebaseapp.com",
+        projectId: "palmaegis-setup",
+        storageBucket: "palmaegis-setup.firebasestorage.app",
+        messagingSenderId: "445887502374",
+        appId: "1:445887502374:web:a5f6ecaa90b88447626ee7"
+    };
 
-            let app, auth, db, currentUser;
-            
-            try {
-                // Check if Firebase is already initialized
-                if (!firebase.apps.length) {
-                    app = firebase.initializeApp(firebaseConfig);
-                    console.log("Firebase initialized");
-                } else {
-                    app = firebase.apps[0];
-                    console.log("Firebase already initialized");
-                }
-                
-                auth = firebase.auth();
-                db = firebase.firestore();
-            } catch (error) {
-                console.error("Firebase error:", error);
-                showToast("Firebase initialization error: " + error.message, "error");
-            }
+    try {
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase initialized");
+        }
+    } catch (error) {
+        console.error("Firebase error:", error);
+    }
 
-            // Get DOM elements - USE DIRECT SELECTION
-            const healthStatusCard = document.getElementById('healthStatusCard');
-            const statusTitle = document.querySelector('.status-title');
-            const statusIcon = document.querySelector('.status-icon');
-            const statusDescription = document.querySelector('.status-description');
-            const issuesCount = document.getElementById('issuesCount');
-            const imagePlaceholder = document.getElementById('imagePlaceholder');
-            const imagePreview = document.getElementById('imagePreview');
-            const analyzingOverlay = document.getElementById('analyzingOverlay');
-            const detectionSection = document.getElementById('detectionSection');
-            const detectionsContainer = document.getElementById('detectionsContainer');
-            const cameraBtn = document.getElementById('cameraBtn');
-            const galleryBtn = document.getElementById('galleryBtn');
-            const locationSelect = document.getElementById('locationSelect');
-            const customLocationContainer = document.getElementById('customLocationContainer');
-            const customLocation = document.getElementById('customLocation');
-            const assessmentDate = document.getElementById('assessmentDate');
-            const treatmentText = document.getElementById('treatmentText');
-            const autoGenerateBtn = document.getElementById('autoGenerateBtn');
-            const clearBtn = document.getElementById('clearBtn');
-            const saveBtn = document.getElementById('saveBtn');
-            const helpBtn = document.getElementById('helpBtn');
-            const helpModal = document.getElementById('helpModal');
-            const loadingOverlay = document.getElementById('loadingOverlay');
-            const loadingText = document.getElementById('loadingText');
-            const imageInput = document.getElementById('imageInput');
-            const toast = document.getElementById('toast');
+    // Get ALL DOM elements
+    const elements = {
+        healthStatusCard: document.getElementById('healthStatusCard'),
+        statusTitle: document.querySelector('.status-title'),
+        statusIcon: document.querySelector('.status-icon'),
+        statusDescription: document.querySelector('.status-description'),
+        issuesCount: document.getElementById('issuesCount'),
+        imagePlaceholder: document.getElementById('imagePlaceholder'),
+        imagePreview: document.getElementById('imagePreview'),
+        analyzingOverlay: document.getElementById('analyzingOverlay'),
+        detectionSection: document.getElementById('detectionSection'),
+        detectionsContainer: document.getElementById('detectionsContainer'),
+        cameraBtn: document.getElementById('cameraBtn'),
+        galleryBtn: document.getElementById('galleryBtn'),
+        locationSelect: document.getElementById('locationSelect'),
+        customLocationContainer: document.getElementById('customLocationContainer'),
+        customLocation: document.getElementById('customLocation'),
+        assessmentDate: document.getElementById('assessmentDate'),
+        treatmentText: document.getElementById('treatmentText'),
+        autoGenerateBtn: document.getElementById('autoGenerateBtn'),
+        clearBtn: document.getElementById('clearBtn'),
+        saveBtn: document.getElementById('saveBtn'),
+        helpBtn: document.getElementById('helpBtn'),
+        helpModal: document.getElementById('helpModal'),
+        loadingOverlay: document.getElementById('loadingOverlay'),
+        loadingText: document.getElementById('loadingText'),
+        imageInput: document.getElementById('imageInput'),
+        toast: document.getElementById('toast')
+    };
 
-            // Check if all elements are found
-            console.log('Elements check:', {
-                cameraBtn: !!cameraBtn,
-                galleryBtn: !!galleryBtn,
-                helpBtn: !!helpBtn,
-                clearBtn: !!clearBtn,
-                saveBtn: !!saveBtn,
-                autoGenerateBtn: !!autoGenerateBtn
-            });
+    // Log which elements were found
+    console.log('Elements found:', Object.keys(elements).filter(key => elements[key]));
 
-            // State variables
-            let currentImage = null;
-            let currentDetections = [];
-            let currentHealthStatus = 'Unknown';
-            let currentObjectsCount = 0;
-            let confidenceThreshold = 0.5;
-            let isAnalyzing = false;
-            let currentLocation = 'Parit Raja';
-            let isCustomLocation = false;
+    // State variables
+    let currentImage = null;
+    let currentDetections = [];
+    let currentHealthStatus = 'Unknown';
 
-            // Initialize date
-            if (assessmentDate) {
-                assessmentDate.valueAsDate = new Date();
-            }
+    // Initialize date
+    if (elements.assessmentDate) {
+        elements.assessmentDate.valueAsDate = new Date();
+    }
 
-            // SIMPLE EVENT LISTENER SETUP
-            function setupEventListeners() {
-                console.log('Setting up event listeners...');
-                
-                // Basic button event listeners
-                if (cameraBtn) {
-                    cameraBtn.addEventListener('click', handleCameraClick);
-                    cameraBtn.addEventListener('touchstart', function(e) {
-                        e.preventDefault();
-                        handleCameraClick();
-                    }, { passive: false });
-                }
-                
-                if (galleryBtn) {
-                    galleryBtn.addEventListener('click', handleGalleryClick);
-                    galleryBtn.addEventListener('touchstart', function(e) {
-                        e.preventDefault();
-                        handleGalleryClick();
-                    }, { passive: false });
-                }
-                
-                if (imagePlaceholder) {
-                    imagePlaceholder.addEventListener('click', handleGalleryClick);
-                }
-                
-                if (imageInput) {
-                    imageInput.addEventListener('change', handleImageUpload);
-                }
-                
-                if (locationSelect) {
-                    locationSelect.addEventListener('change', handleLocationChange);
-                }
-                
-                if (customLocation) {
-                    customLocation.addEventListener('input', handleCustomLocationInput);
-                }
-                
-                if (autoGenerateBtn) {
-                    autoGenerateBtn.addEventListener('click', generateTreatmentAdvice);
-                    autoGenerateBtn.addEventListener('touchstart', function(e) {
-                        e.preventDefault();
-                        generateTreatmentAdvice();
-                    }, { passive: false });
-                }
-                
-                if (clearBtn) {
-                    clearBtn.addEventListener('click', resetForm);
-                    clearBtn.addEventListener('touchstart', function(e) {
-                        e.preventDefault();
-                        resetForm();
-                    }, { passive: false });
-                }
-                
-                if (saveBtn) {
-                    saveBtn.addEventListener('click', saveAssessment);
-                    saveBtn.addEventListener('touchstart', function(e) {
-                        e.preventDefault();
-                        saveAssessment();
-                    }, { passive: false });
-                }
-                
-                if (helpBtn) {
-                    helpBtn.addEventListener('click', function() {
-                        console.log('Help button clicked');
-                        if (helpModal) {
-                            helpModal.style.display = 'flex';
-                        }
-                    });
-                    
-                    helpBtn.addEventListener('touchstart', function(e) {
-                        e.preventDefault();
-                        if (helpModal) {
-                            helpModal.style.display = 'flex';
-                        }
-                    }, { passive: false });
-                }
-                
-                if (helpModal) {
-                    const closeModal = helpModal.querySelector('.close-modal');
-                    if (closeModal) {
-                        closeModal.addEventListener('click', function() {
-                            helpModal.style.display = 'none';
-                        });
-                        
-                        // Close modal when clicking outside
-                        helpModal.addEventListener('click', function(e) {
-                            if (e.target === helpModal) {
-                                helpModal.style.display = 'none';
-                            }
-                        });
-                    }
-                }
-                
-                console.log('Event listeners setup complete');
-            }
+    // SIMPLIFIED EVENT HANDLERS
+    function handleCameraClick(e) {
+        e?.preventDefault();
+        console.log('Camera button clicked');
+        if (elements.imageInput) {
+            elements.imageInput.setAttribute('capture', 'environment');
+            elements.imageInput.click();
+        }
+    }
 
-            // Basic button handlers
-            function handleCameraClick() {
-                console.log('Camera button clicked');
-                if (imageInput) {
-                    imageInput.setAttribute('capture', 'environment');
-                    imageInput.click();
-                }
-            }
+    function handleGalleryClick(e) {
+        e?.preventDefault();
+        console.log('Gallery button clicked');
+        if (elements.imageInput) {
+            elements.imageInput.removeAttribute('capture');
+            elements.imageInput.click();
+        }
+    }
 
-            function handleGalleryClick() {
-                console.log('Gallery button clicked');
-                if (imageInput) {
-                    imageInput.removeAttribute('capture');
-                    imageInput.click();
-                }
-            }
+    function handleLocationChange(e) {
+        const value = e.target.value;
+        if (value === 'custom' && elements.customLocationContainer) {
+            elements.customLocationContainer.style.display = 'block';
+        } else if (elements.customLocationContainer) {
+            elements.customLocationContainer.style.display = 'none';
+        }
+    }
 
-            function handleLocationChange() {
-                const value = locationSelect.value;
-                currentLocation = value;
-                isCustomLocation = value === 'custom';
+    function generateTreatmentAdvice(e) {
+        e?.preventDefault();
+        console.log('Generating treatment advice');
+        if (elements.treatmentText) {
+            elements.treatmentText.value = "Treatment recommendations will be generated after image analysis.";
+        }
+        showToast('Treatment advice generated!', 'success');
+    }
+
+    function resetForm(e) {
+        e?.preventDefault();
+        console.log('Resetting form');
+        
+        // Reset UI
+        if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'flex';
+        if (elements.imagePreview) elements.imagePreview.style.display = 'none';
+        if (elements.detectionSection) elements.detectionSection.style.display = 'none';
+        if (elements.locationSelect) elements.locationSelect.value = 'Parit Raja';
+        if (elements.customLocationContainer) elements.customLocationContainer.style.display = 'none';
+        if (elements.customLocation) elements.customLocation.value = '';
+        if (elements.assessmentDate) elements.assessmentDate.valueAsDate = new Date();
+        if (elements.treatmentText) elements.treatmentText.value = '';
+        if (elements.imageInput) elements.imageInput.value = '';
+        
+        updateHealthStatus('Unknown', 'Upload an image to assess palm health', 'fa-question-circle', '#6B7280');
+        showToast('Form cleared successfully', 'success');
+    }
+
+    function saveAssessment(e) {
+        e?.preventDefault();
+        console.log('Save assessment clicked');
+        showToast('Assessment saved successfully!', 'success');
+    }
+
+    function showHelpModal(e) {
+        e?.preventDefault();
+        console.log('Help button clicked');
+        if (elements.helpModal) {
+            elements.helpModal.style.display = 'flex';
+        }
+    }
+
+    function closeHelpModal() {
+        if (elements.helpModal) {
+            elements.helpModal.style.display = 'none';
+        }
+    }
+
+    function handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        console.log('File selected:', file.name);
+        
+        if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'flex';
+        if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'none';
+        if (elements.imagePreview) elements.imagePreview.style.display = 'none';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            if (elements.imagePreview) {
+                elements.imagePreview.src = e.target.result;
+                elements.imagePreview.style.display = 'block';
+                if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'none';
                 
-                if (customLocationContainer) {
-                    customLocationContainer.style.display = isCustomLocation ? 'block' : 'none';
-                }
-                
-                if (customLocation && !isCustomLocation) {
-                    customLocation.value = '';
-                }
-            }
-
-            function handleCustomLocationInput() {
-                if (customLocation) {
-                    currentLocation = customLocation.value.trim();
-                }
-            }
-
-            function generateTreatmentAdvice() {
-                console.log('Generating treatment advice');
-                // Simple treatment advice for now
-                const advice = "Treatment recommendations will be generated after image analysis.";
-                if (treatmentText) {
-                    treatmentText.value = advice;
-                }
-                showToast('Treatment advice generated!', 'success');
-            }
-
-            function resetForm() {
-                console.log('Resetting form');
-                
-                // Reset state
-                currentImage = null;
-                currentDetections = [];
-                currentObjectsCount = 0;
-                confidenceThreshold = 0.5;
-                currentHealthStatus = 'Unknown';
-                
-                // Reset UI
-                if (imagePlaceholder) imagePlaceholder.style.display = 'flex';
-                if (imagePreview) imagePreview.style.display = 'none';
-                if (analyzingOverlay) analyzingOverlay.style.display = 'none';
-                if (detectionSection) detectionSection.style.display = 'none';
-                if (locationSelect) locationSelect.value = 'Parit Raja';
-                if (customLocationContainer) customLocationContainer.style.display = 'none';
-                if (customLocation) customLocation.value = '';
-                if (assessmentDate) assessmentDate.valueAsDate = new Date();
-                if (treatmentText) treatmentText.value = '';
-                if (imageInput) imageInput.value = '';
-                if (issuesCount) issuesCount.style.display = 'none';
-                
-                // Update health status
-                updateHealthStatus('Unknown', 'Upload an image to assess palm health', 'fa-question-circle', '#6B7280');
-                
-                showToast('Form cleared successfully', 'success');
-            }
-
-            async function saveAssessment() {
-                console.log('Save assessment clicked');
-                
-                if (!currentImage) {
-                    showError('Please upload an image first');
-                    return;
-                }
-                
-                showToast('Assessment saved successfully!', 'success');
-            }
-
-            // Image upload handler
-            async function handleImageUpload(event) {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                console.log('File selected:', file.name);
-                
-                if (analyzingOverlay) analyzingOverlay.style.display = 'flex';
-                if (imagePlaceholder) imagePlaceholder.style.display = 'none';
-                if (imagePreview) imagePreview.style.display = 'none';
-
-                try {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        currentImage = e.target.result;
-                        
-                        if (imagePreview) {
-                            imagePreview.src = currentImage;
-                            imagePreview.onload = function() {
-                                imagePreview.style.display = 'block';
-                                if (analyzingOverlay) analyzingOverlay.style.display = 'none';
-                                
-                                // Simulate detection
-                                setTimeout(() => {
-                                    updateHealthStatus(
-                                        'Healthy',
-                                        'Your oil palm appears to be in good health.',
-                                        'fa-check-circle',
-                                        '#3B82F6'
-                                    );
-                                    showToast('Image analyzed successfully!', 'success');
-                                }, 1500);
-                            };
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                } catch (error) {
-                    console.error('Error loading image:', error);
-                    showError('Failed to load image');
-                    resetAnalysis();
-                }
-            }
-
-            function resetAnalysis() {
-                isAnalyzing = false;
-                if (analyzingOverlay) analyzingOverlay.style.display = 'none';
-                if (loadingOverlay) loadingOverlay.style.display = 'none';
-                if (saveBtn) saveBtn.disabled = false;
-            }
-
-            // Update health status card
-            function updateHealthStatus(title, description, iconClass, color) {
-                if (statusTitle) statusTitle.textContent = title;
-                if (statusDescription) statusDescription.textContent = description;
-                if (statusIcon) {
-                    statusIcon.className = 'status-icon fas ' + iconClass;
-                    statusIcon.style.color = color;
-                }
-            }
-
-            // Toast notification functions
-            function showToast(message, type = 'info') {
-                console.log('Toast:', message, type);
-                if (!toast) {
-                    alert(message);
-                    return;
-                }
-                
-                toast.textContent = message;
-                toast.className = `toast toast-${type}`;
-                toast.style.display = 'block';
-                
+                // Simulate detection
                 setTimeout(() => {
-                    toast.style.display = 'none';
-                }, 3000);
+                    updateHealthStatus(
+                        'Healthy',
+                        'Your oil palm appears to be in good health.',
+                        'fa-check-circle',
+                        '#3B82F6'
+                    );
+                    showToast('Image analyzed successfully!', 'success');
+                }, 1000);
             }
+        };
+        reader.readAsDataURL(file);
+    }
 
-            function showError(message) {
-                console.error('Error:', message);
-                showToast(message, 'error');
+    // Update health status
+    function updateHealthStatus(title, description, iconClass, color) {
+        if (elements.statusTitle) elements.statusTitle.textContent = title;
+        if (elements.statusDescription) elements.statusDescription.textContent = description;
+        if (elements.statusIcon) {
+            elements.statusIcon.className = 'status-icon fas ' + iconClass;
+            elements.statusIcon.style.color = color;
+        }
+    }
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+        console.log('Toast:', message);
+        if (!elements.toast) {
+            alert(message);
+            return;
+        }
+        
+        elements.toast.textContent = message;
+        elements.toast.className = `toast toast-${type}`;
+        elements.toast.style.display = 'block';
+        
+        setTimeout(() => {
+            elements.toast.style.display = 'none';
+        }, 3000);
+    }
+
+    // SETUP EVENT LISTENERS - SIMPLE AND RELIABLE
+    function setupEventListeners() {
+        console.log('Setting up event listeners...');
+        
+        // Camera button
+        if (elements.cameraBtn) {
+            elements.cameraBtn.onclick = handleCameraClick;
+        }
+        
+        // Gallery button
+        if (elements.galleryBtn) {
+            elements.galleryBtn.onclick = handleGalleryClick;
+        }
+        
+        // Image placeholder click
+        if (elements.imagePlaceholder) {
+            elements.imagePlaceholder.onclick = handleGalleryClick;
+        }
+        
+        // File input change
+        if (elements.imageInput) {
+            elements.imageInput.onchange = handleImageUpload;
+        }
+        
+        // Location select
+        if (elements.locationSelect) {
+            elements.locationSelect.onchange = handleLocationChange;
+        }
+        
+        // Auto generate treatment
+        if (elements.autoGenerateBtn) {
+            elements.autoGenerateBtn.onclick = generateTreatmentAdvice;
+        }
+        
+        // Clear form
+        if (elements.clearBtn) {
+            elements.clearBtn.onclick = resetForm;
+        }
+        
+        // Save assessment
+        if (elements.saveBtn) {
+            elements.saveBtn.onclick = saveAssessment;
+        }
+        
+        // Help button
+        if (elements.helpBtn) {
+            elements.helpBtn.onclick = showHelpModal;
+        }
+        
+        // Help modal close
+        if (elements.helpModal) {
+            // Close button
+            const closeBtn = elements.helpModal.querySelector('.close-modal');
+            if (closeBtn) {
+                closeBtn.onclick = closeHelpModal;
             }
-
-            // Initialize the app
-            function initApp() {
-                console.log('Initializing app...');
-                
-                // Check authentication
-                if (auth) {
-                    auth.onAuthStateChanged(function(user) {
-                        if (user) {
-                            currentUser = user;
-                            console.log('User authenticated:', user.email);
-                        } else {
-                            console.log('No user signed in');
-                            // Redirect to login if needed
-                            // window.location.href = 'signin.html';
-                        }
-                    });
+            
+            // Close when clicking outside
+            elements.helpModal.onclick = function(e) {
+                if (e.target === elements.helpModal) {
+                    closeHelpModal();
                 }
-                
-                // Setup event listeners
-                setupEventListeners();
-                
-                // Test if buttons work
-                console.log('Testing button functionality...');
-                if (helpBtn) {
-                    helpBtn.addEventListener('click', function() {
-                        console.log('Help button works!');
-                    });
-                }
-                
-                console.log('App initialized successfully');
-                showToast('App ready!', 'success');
-            }
+            };
+        }
+        
+        console.log('Event listeners setup complete');
+    }
 
-            // Start the app
-            initApp();
-        });
-    </script>
+    // Initialize the app
+    function initApp() {
+        console.log('Initializing app...');
+        setupEventListeners();
+        
+        // Test that buttons work
+        console.log('Testing buttons...');
+        
+        // Add a simple test
+        setTimeout(() => {
+            showToast('App ready! Click buttons to test', 'success');
+        }, 500);
+    }
+
+    // Start the app
+    initApp();
+});
+</script>
 </body>
 </html>
