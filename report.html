@@ -1777,6 +1777,7 @@
         currentModalData = null;
     }
 
+    // In showAssessmentModal() function:
     function showAssessmentModal(assessment, isEditMode = false) {
         const date = new Date(assessment.date).toLocaleDateString('en-US', {
             year: 'numeric',
@@ -1808,11 +1809,9 @@
             `;
         }
 
-        // Get diseases list - check both disease and diseases
+        // Get diseases list - ONLY from assessment.diseases array
         let diseasesHtml = '';
-        if (assessment.disease) {
-            diseasesHtml = assessment.disease;
-        } else if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
+        if (assessment.diseases && Array.isArray(assessment.diseases) && assessment.diseases.length > 0) {
             diseasesHtml = `
                 <ul class="modal-detection-list" style="margin: 0; padding-left: 20px;">
                     ${assessment.diseases.map(disease => `
