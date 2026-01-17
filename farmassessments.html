@@ -1467,15 +1467,13 @@
                 if (saveBtn) saveBtn.disabled = false;
             }
 
-            function updateHealthStatus(title, description, icon, color) {
-                currentHealthStatus = title;
+            // Update health status card
+            function updateHealthStatus(title, description, iconClass, color) {
                 if (statusTitle) statusTitle.textContent = title;
-                if (statusIcon) statusIcon.className = `fas ${icon} status-icon`;
                 if (statusDescription) statusDescription.textContent = description;
-                
-                if (healthStatusCard) {
-                    healthStatusCard.style.backgroundColor = `${color}20`;
-                    healthStatusCard.style.borderColor = `${color}30`;
+                if (statusIcon) {
+                    statusIcon.className = 'status-icon fas ' + iconClass;
+                    statusIcon.style.color = color;
                 }
             }
 
