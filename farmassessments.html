@@ -15,6 +15,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js"></script>
     <style>
+        /* All your CSS styles remain the same */
         :root {
             --primary-color: #10B981;
             --primary-light: #D1FAE5;
@@ -1386,10 +1387,11 @@
                             elements.imagePreview.onload = async function() {
                                 elements.imagePreview.style.display = 'block';
                                 
-                                // Set canvas size
+                                // Set canvas size to match image
                                 if (elements.imageCanvas && canvasContext) {
-                                    elements.imageCanvas.width = elements.imagePreview.naturalWidth;
-                                    elements.imageCanvas.height = elements.imagePreview.naturalHeight;
+                                    const img = elements.imagePreview;
+                                    elements.imageCanvas.width = img.width || img.naturalWidth;
+                                    elements.imageCanvas.height = img.height || img.naturalHeight;
                                 }
                                 
                                 // Show progress
@@ -1538,10 +1540,10 @@
                             className: className,
                             confidence: detection.confidence,
                             bbox: {
-                                x: detection.x / 100,
-                                y: detection.y / 100,
-                                width: detection.width / 100,
-                                height: detection.height / 100
+                                x: detection.x,
+                                y: detection.y,
+                                width: detection.width,
+                                height: detection.height
                             },
                             color: model.color,
                             model: modelId,
@@ -1561,24 +1563,46 @@
             }
 
             function drawBoundingBoxes() {
-                if (!elements.imagePreview || !elements.imageCanvas || !canvasContext || currentDetections.length === 0) return;
-                
-                // Clear canvas
-                canvasContext.clearRect(0, 0, elements.imageCanvas.width, elements.imageCanvas.height);
+                if (!elements.imagePreview || !elements.imageCanvas || !canvasContext || currentDetections.length === 0) {
+                    console.log('Cannot draw bounding boxes:', {
+                        hasPreview: !!elements.imagePreview,
+                        hasCanvas: !!elements.imageCanvas,
+                        hasContext: !!canvasContext,
+                        detectionsCount: currentDetections.length
+                    });
+                    return;
+                }
                 
                 // Get image dimensions
+                const img = elements.imagePreview;
                 const imgWidth = elements.imageCanvas.width;
                 const imgHeight = elements.imageCanvas.height;
+                
+                console.log('Drawing bounding boxes:', {
+                    imageSize: `${imgWidth}x${imgHeight}`,
+                    detections: currentDetections.length
+                });
+                
+                // Clear canvas
+                canvasContext.clearRect(0, 0, imgWidth, imgHeight);
                 
                 // Draw bounding boxes
                 currentDetections.forEach((detection, index) => {
                     const bbox = detection.bbox;
                     
-                    // Calculate pixel coordinates
-                    const x = bbox.x * imgWidth - (bbox.width * imgWidth) / 2;
-                    const y = bbox.y * imgHeight - (bbox.height * imgHeight) / 2;
-                    const width = bbox.width * imgWidth;
-                    const height = bbox.height * imgHeight;
+                    // Convert Roboflow coordinates (percentage) to pixel coordinates
+                    // Roboflow returns: x, y as center coordinates, width, height as percentages
+                    const x = (bbox.x / 100) * imgWidth - (bbox.width / 100) * imgWidth / 2;
+                    const y = (bbox.y / 100) * imgHeight - (bbox.height / 100) * imgHeight / 2;
+                    const width = (bbox.width / 100) * imgWidth;
+                    const height = (bbox.height / 100) * imgHeight;
+                    
+                    console.log(`Detection ${index + 1}:`, {
+                        class: detection.class,
+                        confidence: detection.confidence,
+                        bbox: bbox,
+                        pixelCoords: { x, y, width, height }
+                    });
                     
                     // Draw bounding box
                     canvasContext.strokeStyle = detection.color;
@@ -1586,21 +1610,31 @@
                     canvasContext.strokeRect(x, y, width, height);
                     
                     // Draw label background
-                    const labelText = `${detection.class} ${(detection.confidence * 100).toFixed(1)}%`;
+                    const labelText = `${detection.class} ${Math.round(detection.confidence * 100)}%`;
                     canvasContext.font = '14px Arial';
                     const textWidth = canvasContext.measureText(labelText).width;
                     
-                    // Draw label
+                    // Calculate label position (above the bounding box)
+                    const labelX = x;
+                    const labelY = Math.max(y - 20, 10); // Ensure label doesn't go above canvas
+                    
+                    // Draw label background
                     canvasContext.fillStyle = detection.color + 'CC';
-                    canvasContext.fillRect(x, Math.max(y - 20, 0), textWidth + 10, 20);
+                    canvasContext.fillRect(labelX, labelY, textWidth + 10, 20);
                     
                     // Draw label text
                     canvasContext.fillStyle = 'white';
-                    canvasContext.fillText(labelText, x + 5, Math.max(y - 5, 15));
+                    canvasContext.fillText(labelText, labelX + 5, labelY + 15);
+                    
+                    // Add detection number for reference
+                    canvasContext.fillStyle = detection.color;
+                    canvasContext.font = 'bold 12px Arial';
+                    canvasContext.fillText(`${index + 1}`, x + 5, y + 15);
                 });
                 
                 // Show canvas
                 elements.imageCanvas.style.display = 'block';
+                console.log('Canvas displayed with bounding boxes');
             }
 
             function updateDetectionResults() {
@@ -1640,7 +1674,7 @@
                                 <i class="fas ${detection.icon}" style="color: ${detection.color}; margin-right: 8px;"></i>
                                 ${detection.class}
                             </span>
-                            <span class="detection-confidence">${(avgConfidence * 100).toFixed(1)}%</span>
+                            <span class="detection-confidence">${Math.round(avgConfidence * 100)}%</span>
                         </div>
                         <div class="detection-description">
                             ${detection.description}
@@ -1734,7 +1768,9 @@
                 treatment += `Assessment Date: ${new Date().toLocaleDateString()}\n\n`;
                 
                 if (hasGanoderma) {
+                    const ganodermaCount = currentDetections.filter(d => d.model === 'ganoderma').length;
                     treatment += "⚠️ GANODERMA DISEASE DETECTED\n";
+                    treatment += `Instances Found: ${ganodermaCount}\n`;
                     treatment += "Severity: HIGH - Requires immediate action\n\n";
                     treatment += "Symptoms: " + diseaseInfo.ganoderma.symptoms + "\n\n";
                     treatment += "TREATMENT PLAN:\n";
@@ -1742,7 +1778,9 @@
                 }
                 
                 if (hasBlackspot) {
+                    const blackspotCount = currentDetections.filter(d => d.model === 'blackspot').length;
                     treatment += "⚠️ BLACK SPOT DISEASE DETECTED\n";
+                    treatment += `Instances Found: ${blackspotCount}\n`;
                     treatment += "Severity: MEDIUM - Treatment required\n\n";
                     treatment += "Symptoms: " + diseaseInfo.blackspot.symptoms + "\n\n";
                     treatment += "TREATMENT PLAN:\n";
@@ -1750,7 +1788,9 @@
                 }
                 
                 if (hasHealthy && !hasGanoderma && !hasBlackspot) {
+                    const healthyCount = currentDetections.filter(d => d.model === 'healthy').length;
                     treatment += "✅ HEALTHY PALM DETECTED\n";
+                    treatment += `Instances Found: ${healthyCount}\n`;
                     treatment += "Status: Good - Continue regular maintenance\n\n";
                     treatment += "MANAGEMENT RECOMMENDATIONS:\n";
                     treatment += diseaseInfo.healthy.treatment + "\n\n";
