@@ -206,9 +206,10 @@
             position: relative;
             border: 2px dashed var(--border-color);
             border-radius: var(--border-radius);
-            height: 300px;
+            height: 400px;
             margin-bottom: 2rem;
             overflow: hidden;
+            background: #f8f9fa;
         }
 
         .image-placeholder {
@@ -770,6 +771,60 @@
             white-space: nowrap;
         }
 
+        /* LEGEND STYLES */
+        .image-legend {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 9;
+            display: none;
+            max-width: 200px;
+            backdrop-filter: blur(5px);
+        }
+
+        .legend-title {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            margin-right: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .legend-text {
+            color: #333;
+        }
+
+        .legend-count {
+            margin-left: auto;
+            font-weight: bold;
+            font-size: 10px;
+            background: #f0f0f0;
+            padding: 1px 5px;
+            border-radius: 3px;
+            min-width: 20px;
+            text-align: center;
+        }
+
         /* Progress Bar */
         .progress-container {
             width: 100%;
@@ -905,6 +960,10 @@
             .card {
                 padding: 1.5rem;
             }
+            
+            .image-container {
+                height: 300px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -919,6 +978,25 @@
             .btn {
                 padding: 0.75rem 1rem;
                 font-size: 0.9rem;
+            }
+            
+            .image-container {
+                height: 250px;
+            }
+            
+            .image-legend {
+                max-width: 150px;
+                padding: 8px;
+                bottom: 5px;
+                right: 5px;
+            }
+            
+            .legend-title {
+                font-size: 11px;
+            }
+            
+            .legend-item {
+                font-size: 10px;
             }
         }
 
@@ -1042,6 +1120,9 @@
                     <button class="btn btn-secondary" id="helpBtn">
                         <i class="fas fa-question-circle"></i> Help
                     </button>
+                    <button class="btn btn-outline" id="toggleLabelsBtn" style="display: none;">
+                        <i class="fas fa-tag"></i> Hide Labels
+                    </button>
                 </div>
             </div>
 
@@ -1071,10 +1152,13 @@
                             <small>Focus on leaves or affected areas</small>
                         </div>
                         <img id="imagePreview" style="display: none; width: 100%; height: 100%; object-fit: contain;">
-                        <!-- Preview Canvas for detection boxes -->
+                        <!-- Preview Canvas for detection boxes and labels -->
                         <canvas id="previewCanvas"></canvas>
-                        <!-- Original canvas for image display -->
-                        <canvas id="imageCanvas"></canvas>
+                        <!-- Legend for disease labels -->
+                        <div class="image-legend" id="imageLegend">
+                            <div class="legend-title">Disease Legend</div>
+                            <div id="legendItems"></div>
+                        </div>
                         <div class="analyzing-overlay" id="analyzingOverlay" style="display: none;">
                             <div class="spinner"></div>
                             <p>Analyzing Oil Palm Health...</p>
@@ -1094,6 +1178,9 @@
                         </button>
                         <button class="btn btn-primary" id="galleryBtn">
                             <i class="fas fa-images"></i> Choose from Gallery
+                        </button>
+                        <button class="btn btn-secondary" id="downloadBtn" style="display: none;">
+                            <i class="fas fa-download"></i> Download Labeled Image
                         </button>
                     </div>
 
@@ -1205,6 +1292,7 @@
                     <li>Non-palm objects are filtered out automatically</li>
                     <li>Provides oil palm specific treatment advice</li>
                     <li>Save assessments for future reference</li>
+                    <li>Download labeled images for reporting</li>
                 </ol>
                 <div class="model-info">
                     <h3>Detection Models:</h3>
@@ -1232,28 +1320,34 @@
         // Model configurations for 3 separate Roboflow models
         const models = {
             'ganoderma': {
-                name: 'Ganoderma Detection',
+                name: 'Ganoderma',
                 url: 'https://serverless.roboflow.com/ganoderma-1-xpzwd/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
                 color: '#EF4444',
                 icon: 'fa-warning',
-                threshold: 0.5
+                threshold: 0.5,
+                label: 'Ganoderma',
+                shortLabel: 'GAN'
             },
             'blackspot': {
-                name: 'Blackspot Disease Detection',
+                name: 'Blackspot',
                 url: 'https://serverless.roboflow.com/blackspot-lhjog/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
                 color: '#8B4513',
                 icon: 'fa-circle',
-                threshold: 0.5
+                threshold: 0.5,
+                label: 'Black Spot',
+                shortLabel: 'BLS'
             },
             'healthy': {
-                name: 'Healthy Leaves Detection',
-                url: 'https://serverless.roboflow.com/date-final/1',
+                name: 'Healthy',
+                url: 'https://serverless.roflow.com/date-final/1',
                 apiKey: 'KOIYcp3E5rAFhgSploex',
                 color: '#10B981',
                 icon: 'fa-heart',
-                threshold: 0.5
+                threshold: 0.5,
+                label: 'Healthy',
+                shortLabel: 'HLT'
             }
         };
 
@@ -1318,10 +1412,13 @@
                 imagePlaceholder: document.getElementById('imagePlaceholder'),
                 imagePreview: document.getElementById('imagePreview'),
                 previewCanvas: document.getElementById('previewCanvas'),
-                imageCanvas: document.getElementById('imageCanvas'),
+                imageLegend: document.getElementById('imageLegend'),
+                legendItems: document.getElementById('legendItems'),
                 analyzingOverlay: document.getElementById('analyzingOverlay'),
                 cameraBtn: document.getElementById('cameraBtn'),
                 galleryBtn: document.getElementById('galleryBtn'),
+                downloadBtn: document.getElementById('downloadBtn'),
+                toggleLabelsBtn: document.getElementById('toggleLabelsBtn'),
                 locationSelect: document.getElementById('locationSelect'),
                 customLocationContainer: document.getElementById('customLocationContainer'),
                 customLocation: document.getElementById('customLocation'),
@@ -1350,6 +1447,8 @@
             let previewContext = null;
             let originalImage = null;
             let isProcessing = false;
+            let labelsVisible = true;
+            let legendData = {};
 
             // Initialize date
             if (elements.assessmentDate) {
@@ -1376,6 +1475,95 @@
                     elements.imageInput.removeAttribute('capture');
                     elements.imageInput.click();
                 }
+            }
+
+            function handleDownloadLabeledImage() {
+                if (!elements.previewCanvas || currentDetections.length === 0) {
+                    showError('No labeled image available to download');
+                    return;
+                }
+                
+                try {
+                    // Create a temporary canvas for the download
+                    const downloadCanvas = document.createElement('canvas');
+                    const downloadContext = downloadCanvas.getContext('2d');
+                    
+                    // Set canvas size
+                    downloadCanvas.width = elements.previewCanvas.width;
+                    downloadCanvas.height = elements.previewCanvas.height;
+                    
+                    // Draw the current preview canvas content
+                    downloadContext.drawImage(elements.previewCanvas, 0, 0);
+                    
+                    // Add timestamp and assessment info
+                    addWatermark(downloadContext, downloadCanvas.width, downloadCanvas.height);
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.download = `palm-assessment-${new Date().getTime()}.png`;
+                    link.href = downloadCanvas.toDataURL('image/png');
+                    link.click();
+                    
+                    showToast('Labeled image downloaded successfully!', 'success');
+                } catch (error) {
+                    console.error('Error downloading image:', error);
+                    showError('Failed to download image');
+                }
+            }
+
+            function addWatermark(context, width, height) {
+                // Add timestamp
+                context.font = '16px Arial';
+                context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                context.fillRect(10, height - 50, 300, 40);
+                
+                context.fillStyle = '#333';
+                context.fillText(`Assessment: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, height - 30);
+                
+                // Add Palm Aegis logo
+                context.font = 'bold 14px Arial';
+                context.fillText('Palm Aegis - Oil Palm Health Assessment', 20, height - 10);
+                
+                // Add disease count summary
+                if (Object.keys(legendData).length > 0) {
+                    let yPos = 20;
+                    Object.entries(legendData).forEach(([model, data]) => {
+                        if (data.count > 0) {
+                            context.fillStyle = data.color;
+                            context.fillRect(width - 150, yPos, 10, 10);
+                            context.fillStyle = '#333';
+                            context.font = '12px Arial';
+                            context.fillText(`${data.label}: ${data.count}`, width - 135, yPos + 10);
+                            yPos += 20;
+                        }
+                    });
+                }
+            }
+
+            function toggleLabelsVisibility() {
+                labelsVisible = !labelsVisible;
+                
+                if (elements.previewCanvas && originalImage) {
+                    // Clear canvas
+                    previewContext.clearRect(0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
+                    
+                    // Draw original image
+                    previewContext.drawImage(originalImage, 0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
+                    
+                    // If labels should be visible, redraw them
+                    if (labelsVisible) {
+                        drawBoundingBoxes();
+                        if (elements.toggleLabelsBtn) {
+                            elements.toggleLabelsBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Labels';
+                        }
+                    } else {
+                        if (elements.toggleLabelsBtn) {
+                            elements.toggleLabelsBtn.innerHTML = '<i class="fas fa-eye"></i> Show Labels';
+                        }
+                    }
+                }
+                
+                showToast(labelsVisible ? 'Labels shown' : 'Labels hidden', 'info');
             }
 
             function handleLocationChange(e) {
@@ -1407,6 +1595,8 @@
                 if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'flex';
                 if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'none';
                 if (elements.detectionResults) elements.detectionResults.style.display = 'none';
+                if (elements.toggleLabelsBtn) elements.toggleLabelsBtn.style.display = 'none';
+                if (elements.downloadBtn) elements.downloadBtn.style.display = 'none';
 
                 try {
                     // Read image
@@ -1452,6 +1642,16 @@
                                 elements.analyzingOverlay.style.display = 'none';
                             }
                             
+                            // Show label toggle and download buttons if detections exist
+                            if (currentDetections.length > 0) {
+                                if (elements.toggleLabelsBtn) {
+                                    elements.toggleLabelsBtn.style.display = 'inline-flex';
+                                }
+                                if (elements.downloadBtn) {
+                                    elements.downloadBtn.style.display = 'inline-flex';
+                                }
+                            }
+                            
                             isProcessing = false;
                         };
                         originalImage.src = currentImage;
@@ -1475,8 +1675,9 @@
                         elements.progressText.textContent = 'Starting analysis...';
                     }
                     
-                    // Reset detections
+                    // Reset detections and legend
                     currentDetections = [];
+                    legendData = {};
                     
                     // Get all 3 models to analyze
                     const modelIds = ['ganoderma', 'blackspot', 'healthy'];
@@ -1501,6 +1702,16 @@
                             const processed = processDetections(detections, modelId);
                             currentDetections.push(...processed);
                             
+                            // Update legend data
+                            if (processed.length > 0) {
+                                legendData[modelId] = {
+                                    label: model.label,
+                                    color: model.color,
+                                    count: processed.length,
+                                    icon: model.icon
+                                };
+                            }
+                            
                         } catch (modelError) {
                             console.warn(`Error with ${model.name}:`, modelError);
                             // Continue with other models even if one fails
@@ -1516,8 +1727,11 @@
                         elements.progressText.textContent = 'Finalizing results...';
                     }
                     
-                    // Draw bounding boxes on preview canvas
+                    // Draw bounding boxes and labels on preview canvas
                     drawBoundingBoxes();
+                    
+                    // Update legend
+                    updateLegend();
                     
                     // Update detection results
                     updateDetectionResults();
@@ -1593,6 +1807,8 @@
                             },
                             color: model.color,
                             model: modelId,
+                            label: model.label,
+                            shortLabel: model.shortLabel,
                             description: getDescriptionForModel(modelId),
                             icon: model.icon
                         };
@@ -1629,12 +1845,12 @@
                 const canvasWidth = elements.previewCanvas.width;
                 const canvasHeight = elements.previewCanvas.height;
                 
-                console.log('Drawing bounding boxes:', {
+                console.log('Drawing bounding boxes and labels:', {
                     canvasSize: `${canvasWidth}x${canvasHeight}`,
                     detections: currentDetections.length
                 });
                 
-                // Draw bounding boxes for each detection
+                // Draw bounding boxes and labels for each detection
                 currentDetections.forEach((detection, index) => {
                     const bbox = detection.bbox;
                     
@@ -1650,28 +1866,88 @@
                     previewContext.strokeRect(x, y, width, height);
                     
                     // Draw label background
-                    const labelText = `${detection.class} ${Math.round(detection.confidence * 100)}%`;
-                    previewContext.font = 'bold 12px Arial';
+                    const labelText = `${detection.shortLabel} - ${Math.round(detection.confidence * 100)}%`;
+                    previewContext.font = 'bold 14px Arial';
                     const textMetrics = previewContext.measureText(labelText);
-                    const textWidth = textMetrics.width + 10;
-                    const textHeight = 20;
+                    const textWidth = textMetrics.width + 20;
+                    const textHeight = 24;
                     
                     // Calculate label position (above the bounding box)
-                    const labelX = x;
-                    const labelY = Math.max(y - textHeight, 5);
+                    const labelX = Math.max(0, Math.min(x, canvasWidth - textWidth));
+                    const labelY = Math.max(textHeight, y - 5);
                     
-                    // Draw label background
-                    previewContext.fillStyle = detection.color;
-                    previewContext.fillRect(labelX, labelY, textWidth, textHeight);
+                    // Draw label background with rounded corners
+                    previewContext.fillStyle = detection.color + 'DD';
+                    previewContext.beginPath();
+                    previewContext.roundRect(labelX, labelY - textHeight, textWidth, textHeight, 5);
+                    previewContext.fill();
                     
                     // Draw label text
                     previewContext.fillStyle = 'white';
-                    previewContext.fillText(labelText, labelX + 5, labelY + 14);
+                    previewContext.font = 'bold 12px Arial';
+                    previewContext.fillText(labelText, labelX + 10, labelY - 8);
+                    
+                    // Add detection number in top-left corner of box
+                    previewContext.fillStyle = detection.color;
+                    previewContext.font = 'bold 16px Arial';
+                    previewContext.fillText(`${index + 1}`, x + 5, y + 20);
+                    
+                    // Add disease name inside box (if there's enough space)
+                    if (height > 40) {
+                        previewContext.fillStyle = 'white';
+                        previewContext.font = 'bold 10px Arial';
+                        previewContext.textAlign = 'center';
+                        previewContext.fillText(detection.label, x + width/2, y + height/2);
+                        previewContext.textAlign = 'left';
+                    }
                 });
+                
+                // Add overall image label if multiple diseases detected
+                if (Object.keys(legendData).length > 1) {
+                    const diseaseCount = Object.values(legendData).reduce((sum, data) => sum + data.count, 0);
+                    previewContext.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                    previewContext.font = 'bold 16px Arial';
+                    previewContext.textAlign = 'center';
+                    previewContext.fillText(
+                        `Detected: ${diseaseCount} objects - ${Object.keys(legendData).length} disease types`, 
+                        canvasWidth / 2, 
+                        30
+                    );
+                    previewContext.textAlign = 'left';
+                }
                 
                 // Ensure canvas is displayed
                 elements.previewCanvas.style.display = 'block';
-                console.log('Preview canvas displayed with bounding boxes');
+                console.log('Preview canvas displayed with bounding boxes and labels');
+            }
+
+            function updateLegend() {
+                if (!elements.legendItems || !elements.imageLegend) return;
+                
+                // Clear previous legend items
+                elements.legendItems.innerHTML = '';
+                
+                if (Object.keys(legendData).length === 0) {
+                    elements.imageLegend.style.display = 'none';
+                    return;
+                }
+                
+                // Add legend items for each disease type
+                Object.entries(legendData).forEach(([modelId, data]) => {
+                    const legendItem = document.createElement('div');
+                    legendItem.className = 'legend-item';
+                    
+                    legendItem.innerHTML = `
+                        <div class="legend-color" style="background-color: ${data.color};"></div>
+                        <div class="legend-text">${data.label}</div>
+                        <div class="legend-count">${data.count}</div>
+                    `;
+                    
+                    elements.legendItems.appendChild(legendItem);
+                });
+                
+                // Show legend
+                elements.imageLegend.style.display = 'block';
             }
 
             function updateDetectionResults() {
@@ -1709,7 +1985,7 @@
                         <div class="detection-class">
                             <span class="detection-class-name">
                                 <i class="fas ${detection.icon}" style="color: ${detection.color}; margin-right: 8px;"></i>
-                                ${detection.class}
+                                ${detection.label} (${detection.class})
                             </span>
                             <span class="detection-confidence">${Math.round(avgConfidence * 100)}%</span>
                         </div>
@@ -1804,6 +2080,24 @@
                 // Add timestamp
                 treatment += `Assessment Date: ${new Date().toLocaleDateString()}\n\n`;
                 
+                // Add image analysis summary
+                treatment += "IMAGE ANALYSIS SUMMARY:\n";
+                treatment += `Total Detections: ${currentDetections.length}\n`;
+                
+                if (hasGanoderma) {
+                    const ganodermaCount = currentDetections.filter(d => d.model === 'ganoderma').length;
+                    treatment += `Ganoderma Detections: ${ganodermaCount}\n`;
+                }
+                if (hasBlackspot) {
+                    const blackspotCount = currentDetections.filter(d => d.model === 'blackspot').length;
+                    treatment += `Black Spot Detections: ${blackspotCount}\n`;
+                }
+                if (hasHealthy) {
+                    const healthyCount = currentDetections.filter(d => d.model === 'healthy').length;
+                    treatment += `Healthy Areas: ${healthyCount}\n`;
+                }
+                treatment += "\n";
+                
                 if (hasGanoderma) {
                     const ganodermaCount = currentDetections.filter(d => d.model === 'ganoderma').length;
                     treatment += "⚠️ GANODERMA DISEASE DETECTED\n";
@@ -1865,6 +2159,8 @@
                 currentDetections = [];
                 originalImage = null;
                 isProcessing = false;
+                labelsVisible = true;
+                legendData = {};
                 
                 // Reset UI
                 if (elements.imagePlaceholder) elements.imagePlaceholder.style.display = 'flex';
@@ -1878,8 +2174,8 @@
                         previewContext.clearRect(0, 0, elements.previewCanvas.width, elements.previewCanvas.height);
                     }
                 }
-                if (elements.imageCanvas) {
-                    elements.imageCanvas.style.display = 'none';
+                if (elements.imageLegend) {
+                    elements.imageLegend.style.display = 'none';
                 }
                 if (elements.analyzingOverlay) elements.analyzingOverlay.style.display = 'none';
                 if (elements.detectionResults) elements.detectionResults.style.display = 'none';
@@ -1891,6 +2187,11 @@
                 if (elements.imageInput) elements.imageInput.value = '';
                 if (elements.issuesCount) elements.issuesCount.style.display = 'none';
                 if (elements.progressContainer) elements.progressContainer.style.display = 'none';
+                if (elements.toggleLabelsBtn) elements.toggleLabelsBtn.style.display = 'none';
+                if (elements.downloadBtn) elements.downloadBtn.style.display = 'none';
+                if (elements.toggleLabelsBtn) {
+                    elements.toggleLabelsBtn.innerHTML = '<i class="fas fa-eye-slash"></i> Hide Labels';
+                }
                 
                 // Clear detections list
                 if (elements.detectionsList) elements.detectionsList.innerHTML = '';
@@ -1972,6 +2273,16 @@
                 // Gallery button
                 if (elements.galleryBtn) {
                     elements.galleryBtn.onclick = handleGalleryClick;
+                }
+                
+                // Download labeled image button
+                if (elements.downloadBtn) {
+                    elements.downloadBtn.onclick = handleDownloadLabeledImage;
+                }
+                
+                // Toggle labels button
+                if (elements.toggleLabelsBtn) {
+                    elements.toggleLabelsBtn.onclick = toggleLabelsVisibility;
                 }
                 
                 // Image placeholder click
